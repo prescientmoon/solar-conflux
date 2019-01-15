@@ -18,7 +18,7 @@ The next step is to create an instance of the Mongy class:
 const mydb = new Mongy();
 ```
 
-To connect to your datebase you need to call the (async) 'connect' method:
+To connect to your datebase you need to call the 'connect' method:
 ```
 mydb.connect(process.env.DBURL);
 ```
@@ -38,7 +38,7 @@ async function addUser(name,email){
 }
 ```
 
-And then to save your model call the (async) function 'saveModel':
+And then to save your model call the function 'saveModel':
 ```
 async function addUser(name,email){
   ...
