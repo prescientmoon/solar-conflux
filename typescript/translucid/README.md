@@ -30,17 +30,17 @@ connect.then(() => {
 ```
 The translucid object can be used to make file bindings:
 ```
-translucid.bind("/","client/index.html",true//use midleware,["myId"]);
+translucid.bind("/","client/index.html",true,["myId"]);
 ```
-Then you can add midleware like this:
+Then you can add middleware like this:
 ```
 translucid.use({
-    name:"my midleware",
+    name:"my middleware",
     keys:["myid"],
     run:(prev,req,res,next) => {
         //prev is the data that is going to be sent to the client
         //(it might for example be the index.html file);
-        next(prev+"string added by a midleware");
+        next(`${prev} <br/> string added by a middleware`);
     }
 });
 ```
