@@ -37,7 +37,7 @@ class Translucid {
                     });
                 }
                 decorated.push((prev) => {
-                    res.send(prev + "<br/>Sent from the last iteration");
+                    res.send(prev);
                 });
                 decorated[0](readResults);
             }
