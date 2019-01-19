@@ -36,7 +36,7 @@ Then you can add midlewares like this:
 ```
 translucid.use({
     name:"my midleware",
-    keys:"myid",
+    keys:["myid"],
     run:(prev,req,res,next) => {
         //prev is the data that is going to be sent to the client
         //(it might for example be the index.html file);
