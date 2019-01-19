@@ -1,0 +1,22 @@
+{
+  "name": "ultra32",
+  "version": "1.0.0",
+  "description": "A vector package using the fast float32array",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "github",
+    "url": "https://github.com/Mateiadrielrafael/ultra32"
+  },
+  "keywords": [
+    "vector",
+    "float32array",
+    "webgl"
+  ],
+  "author": "Matei Adriel",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {}
+}
