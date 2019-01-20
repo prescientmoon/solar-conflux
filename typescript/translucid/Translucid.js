@@ -16,31 +16,26 @@ class Translucid {
     use(obj) {
         this.midleware.push(obj);
     }
-    bind(path = "/", filepath = "", text = false, classes = []) {
+    bind(path = "/", filepath = "", classes = []) {
         this.app.get(path, async (req, res) => {
-            if (!text) {
-                console.error("Blocking reading acces s deprecated, and would be remove in the next version.");
+            const readResults = await read_1.read(filepath);
+            const toRun = [];
+            for (let i of this.midleware) {
+                if (containsAny(classes, i.keys)) {
+                    toRun.push(i.run);
+                }
             }
-            else {
-                const readResults = await read_1.read(filepath);
-                const toRun = [];
-                for (let i of this.midleware) {
-                    if (containsAny(classes, i.keys)) {
-                        toRun.push(i.run);
-                    }
-                }
-                const decorated = [];
-                const expressArgs = [req, res];
-                for (let i = 0; i < toRun.length; i++) {
-                    decorated.push((prev) => {
-                        toRun[i](prev, ...expressArgs, decorated[i + 1]);
-                    });
-                }
+            const decorated = [];
+            const expressArgs = [req, res];
+            for (let i = 0; i < toRun.length; i++) {
                 decorated.push((prev) => {
-                    res.send(prev);
+                    toRun[i](prev, ...expressArgs, decorated[i + 1]);
                 });
-                decorated[0](readResults);
             }
+            decorated.push((prev) => {
+                res.send(prev);
+            });
+            decorated[0](readResults);
         });
     }
 }
