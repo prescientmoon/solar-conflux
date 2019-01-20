@@ -42,3 +42,10 @@ function rotate(vector) {
     return vector;
 }
 exports.rotate = rotate;
+function clone(vector) {
+    const newVec = new Float32Array(vector.length);
+    for (let i = 0; i < vector.length; i++) {
+        newVec[i] = vector[i];
+    }
+    return newVec;
+}
