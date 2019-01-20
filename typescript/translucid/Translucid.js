@@ -18,7 +18,7 @@ class Translucid {
         this.midleware.push(obj);
     }
     public(path = "") {
-        this.app.use(`${__dirname}/../../${path}`, express.static(`${__dirname}/../../${path}`));
+        this.app.use(`/${path}`, express.static(`/${path}`));
     }
     bind(path = "/", filepath = "", classes = []) {
         this.app.get(path, async (req, res) => {
