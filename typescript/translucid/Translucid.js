@@ -19,7 +19,7 @@ class Translucid {
     bind(path = "/", filepath = "", text = false, classes = []) {
         this.app.get(path, async (req, res) => {
             if (!text) {
-                res.sendFile(`${__dirname}/../../${filepath}`);
+                console.error("Blocking reading acces s deprecated, and would be remove in the next version.");
             }
             else {
                 const readResults = await read_1.read(filepath);
