@@ -35,3 +35,10 @@ function mirror(vector) {
     return vector;
 }
 exports.mirror = mirror;
+function rotate(vector) {
+    const oldx = vector[0];
+    vector[0] = Math.cos(vector[0]) - Math.sin(vector[1]);
+    vector[1] = Math.sin(oldx) + Math.cos(vector[1]);
+    return vector;
+}
+exports.rotate = rotate;
