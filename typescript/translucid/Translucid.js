@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const express = require('express');
 const read_1 = require("./read");
 function containsAny(array, keys) {
     for (let i = 0; i < keys.length; i++) {
