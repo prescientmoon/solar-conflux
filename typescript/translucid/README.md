@@ -30,7 +30,7 @@ connect.then(() => {
 ```
 The translucid object can be used to make file bindings:
 ```
-translucid.bind("/","client/index.html",true,["myId"]);
+translucid.bind("/","client/index.html",["myId"]);
 ```
 Then you can add middleware like this:
 ```
