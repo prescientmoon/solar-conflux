@@ -12,19 +12,27 @@ function containsAny(array, keys) {
 class Translucid {
     constructor(app) {
         this.app = app;
-        this.midleware = [];
+        this.middleware = [];
     }
     use(obj) {
-        this.midleware.push(obj);
+        this.middleware.push(obj);
     }
     public(path = "") {
         this.app.use(`/${path}`, express.static(`${__dirname}/../../${path}`));
+    }
+    async bindJSON(path) {
+        const json = await read_1.read(path);
+        const object = JSON.parse(json);
+        for (let i in object) {
+            const classes = object.classes || [];
+            this.bind(object[i].path, object[i].file, classes);
+        }
     }
     bind(path = "/", filepath = "", classes = []) {
         this.app.get(path, async (req, res) => {
             const readResults = await read_1.read(filepath);
             const toRun = [];
-            for (let i of this.midleware) {
+            for (let i of this.middleware) {
                 if (containsAny(classes, i.keys)) {
                     toRun.push(i.run);
                 }
@@ -43,4 +51,3 @@ class Translucid {
         });
     }
 }
-exports.Translucid = Translucid;
