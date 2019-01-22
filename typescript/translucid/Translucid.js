@@ -53,7 +53,7 @@ class Translucid {
                 else
                     res.sendFile(prev);
             });
-            decorated[0](sendFiles ? readResults : `${__dirname}/../../${filepath}`);
+            decorated[0]((!sendFiles) ? readResults : `${__dirname}/../../${filepath}`);
         });
     }
 }
