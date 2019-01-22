@@ -30,12 +30,12 @@ class Translucid {
 
         for (let i in object){
             const classes = object[i].classes || [];
-            this.bind(i,object[i].file,classes);
-            //gotta comment this later
-            // console.log(`Binded room with name ${i} and path ${object[i].file} with classes ${classes}`)
+            const sendAsFiles = object[i].sendFiles;
+            if (sendFiles != false) sendFiles = true;
+            this.bind(i,object[i].file,classes,sendFiles);
         }
     }
-    bind(path:string = "/", filepath:string = "", classes:Array<string> = [],sendFiles:boolean=false):void{
+    bind(path:string = "/", filepath:string = "", classes:Array<string> = [],sendFiles:boolean=true):void{
         this.app.get(path, async (req, res)=> {
             const readResults = await read(filepath);
             const toRun:Array<Function> = [];
