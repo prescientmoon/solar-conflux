@@ -60,3 +60,4 @@ class Translucid {
         });
     }
 }
+export {Translucid};
