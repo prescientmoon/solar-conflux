@@ -25,12 +25,13 @@ class Translucid {
         const object = JSON.parse(json);
         for (let i in object) {
             const classes = object[i].classes || [];
-            this.bind(i, object[i].file, classes);
-            //gotta comment this later
-            // console.log(`Binded room with name ${i} and path ${object[i].file} with classes ${classes}`)
+            const sendAsFiles = object[i].sendFiles;
+            if (sendFiles != false)
+                sendFiles = true;
+            this.bind(i, object[i].file, classes, sendFiles);
         }
     }
-    bind(path = "/", filepath = "", classes = [], sendFiles = false) {
+    bind(path = "/", filepath = "", classes = [], sendFiles = true) {
         this.app.get(path, async (req, res) => {
             const readResults = await read_1.read(filepath);
             const toRun = [];
