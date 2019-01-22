@@ -54,7 +54,7 @@ class Translucid {
                     toRun[i](prev, ...expressArgs, decorated[i + 1]);
                 });
             }
-            decorated.push((prev:any,req,res):void => {
+            decorated.push((prev:any):void => {
                 console.log(`${__dirname}/../../${filepath}`);
                 // res.contentType(`${__dirname}/../../${filepath}`);
                 res.send(prev);
