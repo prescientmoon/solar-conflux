@@ -55,8 +55,8 @@ class Translucid {
                 });
             }
             decorated.push((prev:any):void => {
-                console.log(`${__dirname}/../../${filepath}`);
-                // res.contentType(`${__dirname}/../../${filepath}`);
+                // console.log(`${__dirname}/../../${filepath}`);
+                res.contentType(`${__dirname}/../../${filepath}`);
                 res.send(prev);
             });
 
