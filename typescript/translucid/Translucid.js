@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require('express');
+const path = require('path');
 const read_1 = require("./read");
+const dir = path.dirname(require.main.filename);
 function containsAny(array, keys) {
     for (let i = 0; i < keys.length; i++) {
         if (array.indexOf(keys[i]) != -1)
@@ -53,7 +55,7 @@ class Translucid {
                 else
                     res.sendFile(prev);
             });
-            decorated[0]((!sendFiles) ? readResults : `${__dirname}/../../${filepath}`);
+            decorated[0]((!sendFiles) ? readResults : `${dir}/${filepath}`);
         });
     }
 }
