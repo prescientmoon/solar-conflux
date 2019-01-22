@@ -1,6 +1,6 @@
 {
   "name": "translucid",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "A simple node library to bind files to requests",
   "main": "app.js",
   "scripts": {
