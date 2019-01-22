@@ -26,6 +26,7 @@ class Translucid {
         for (let i in object) {
             const classes = object[i].classes || [];
             this.bind(object[i].path, object[i].file, classes);
+            console.log(`Binded room with name ${object[i].file} and path ${object[i].filepath} with classes ${classes}`);
         }
     }
     bind(path = "/", filepath = "", classes = []) {
