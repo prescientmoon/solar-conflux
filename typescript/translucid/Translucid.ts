@@ -1,5 +1,8 @@
 const express = require('express');
+const path = require('path');
 import {read} from "./read";
+
+const dir = path.dirname(require.main.filename);
 
 interface Middleware{
     name:string;
@@ -61,7 +64,7 @@ class Translucid {
                     res.sendFile(prev);
             });
 
-            decorated[0]((!sendFiles)?readResults:`${__dirname}/../../${filepath}`);
+            decorated[0]((!sendFiles)?readResults:`${dir}/${filepath}`);
         });
     }
 }
