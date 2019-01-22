@@ -6,7 +6,7 @@ canvas.width = window.innerWidth;
 const w = window.innerWidth;
 const h = window.innerHeight;
 
-const points = [];
+let points = [];
 const pointSize = 5;
 const shuffleProcent = 0.99;
 
