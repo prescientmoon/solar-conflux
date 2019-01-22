@@ -35,7 +35,7 @@ class Translucid {
             // console.log(`Binded room with name ${i} and path ${object[i].file} with classes ${classes}`)
         }
     }
-    bind(path:string = "/", filepath:string = "", classes:Array<string> = []):void{
+    bind(path:string = "/", filepath:string = "", classes:Array<string> = [],sendFiles:boolean=false):void{
         this.app.get(path, async (req, res)=> {
             const readResults = await read(filepath);
             const toRun:Array<Function> = [];
@@ -55,12 +55,13 @@ class Translucid {
                 });
             }
             decorated.push((prev:any):void => {
-                // console.log(`${__dirname}/../../${filepath}`);
-                res.contentType(`${__dirname}/../../${filepath}`);
-                res.send(prev);
+                if (!sendFiles)
+                    res.send(prev);
+                else
+                    res.sendFile(prev);
             });
 
-            decorated[0](readResults);
+            decorated[0](sendfiles?readResults:`${__dirname}/../../${filepath}`);
         });
     }
 }
