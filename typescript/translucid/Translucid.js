@@ -25,7 +25,7 @@ class Translucid {
         const object = JSON.parse(json);
         for (let i in object) {
             const classes = object[i].classes || [];
-            const sendAsFiles = object[i].sendFiles;
+            const sendFiles = object[i].sendFiles;
             if (sendFiles != false)
                 sendFiles = true;
             this.bind(i, object[i].file, classes, sendFiles);
