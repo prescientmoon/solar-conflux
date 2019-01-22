@@ -29,7 +29,7 @@ class Translucid {
         const object = JSON.parse(json);
 
         for (let i in object){
-            const classes = object.classes || [];
+            const classes = object[i].classes || [];
             this.bind(object[i].path,object[i].file,classes);
         }
     }
