@@ -32,7 +32,7 @@ class Translucid {
             const classes = object[i].classes || [];
             this.bind(i,object[i].file,classes);
             //gotta comment this later
-            console.log(`Binded room with name ${i} and path ${object[i].file} with classes ${classes}`)
+            // console.log(`Binded room with name ${i} and path ${object[i].file} with classes ${classes}`)
         }
     }
     bind(path:string = "/", filepath:string = "", classes:Array<string> = []):void{
@@ -54,8 +54,9 @@ class Translucid {
                     toRun[i](prev, ...expressArgs, decorated[i + 1]);
                 });
             }
-            decorated.push((prev:any):void => {
-                res.contentType(`${__dirname}/../../${filepath}`);
+            decorated.push((prev:any,req,res):void => {
+                console.log(`${__dirname}/../../${filepath}`);
+                // res.contentType(`${__dirname}/../../${filepath}`);
                 res.send(prev);
             });
 
