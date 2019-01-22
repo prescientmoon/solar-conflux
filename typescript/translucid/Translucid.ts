@@ -55,6 +55,7 @@ class Translucid {
                 });
             }
             decorated.push((prev:any):void => {
+                res.contentType(`${__dirname}/../../${filepath}`);
                 res.send(prev);
             });
 
