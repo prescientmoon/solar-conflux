@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require('express');
 const http = require('http');
-const Translucid_1 = require("./Translucid");
+const Translucid_1 = require("./Translucid.js");
 function QuickServer(port) {
     const app = express();
     const server = http.Server(app);
