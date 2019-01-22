@@ -30,7 +30,7 @@ class Translucid {
 
         for (let i in object){
             const classes = object[i].classes || [];
-            const sendFiles = object[i].sendFiles;
+            let sendFiles = object[i].sendFiles;
             if (sendFiles != false) sendFiles = true;
             this.bind(i,object[i].file,classes,sendFiles);
         }
