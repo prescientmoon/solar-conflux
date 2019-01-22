@@ -51,3 +51,4 @@ class Translucid {
         });
     }
 }
+exports.Translucid = Translucid;
