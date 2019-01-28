@@ -65,10 +65,12 @@ And in files.json:
 }
 ```
 
-The QuickServer returns:    * translucid => the basic translucid object
-                            * express => the express module
-                            * http => the http module
-                            * server => instance of http.Server()
-                            * connect => a promise that resolves when the server is listening to the specified port
+The QuickServer returns:    
+* translucid => the basic translucid object
+* express => the express module
+* http => the http module
+* server => instance of http.Server()
+* connect => a promise that resolves when the server is listening to the specified port
 
-Other utilities in translucid:  * read => read a file
+Other utilities in translucid:  
+* read => read a file
