@@ -22,12 +22,6 @@ The ".QuickServer" method return many useful objects:
 ```
 const {app,server,connect,translucid} = trans.QuickServer(8000);
 ```
-"Connect" is a promise that resolves when the server starts listening to the port:
-```
-connect.then(() => {
-    console.log("Listening on port 8000!");
-});
-```
 The translucid object can be used to make file bindings:
 ```
 translucid.bind("/","client/index.html",["myId"]);
@@ -38,9 +32,43 @@ translucid.use({
     name:"my middleware",
     keys:["myid"],
     run:(prev,req,res,next) => {
-        //prev is the data that is going to be sent to the client
-        //(it might for example be the index.html file);
-        next(`${prev} <br/> string added by a middleware`);
+        next(`${prev} <br/> string added by a middleware`);//passing the argument is optional
     }
 });
 ```
+
+
+You can make a folder public like this:
+```
+translucid.public(`client`);
+```
+
+You can read bindings from a file:
+```
+translucid.bindJSON(`data/files.json`);
+```
+And in files.json:
+```
+{
+    "/articles":{
+        "file":"client/articles.html",
+        "classes":["*"]
+    },
+    "/":{
+        "file":"client/start.html",
+        "classes":["*"]
+    },
+    "/start":{
+        "file":"client/start.html",
+        "classes":["*"]
+    }
+}
+```
+
+The QuickServer returns:    * translucid => the basic translucid object
+                            * express => the express module
+                            * http => the http module
+                            * server => instance of http.Server()
+                            * connect => a promise that resolves when the server is listening to the specified port
+
+Other utilities in translucid:  * read => read a file
