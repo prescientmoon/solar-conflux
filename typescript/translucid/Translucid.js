@@ -45,7 +45,7 @@ class Translucid {
             const decorated = [];
             const expressArgs = [req, res];
             for (let i = 0; i < toRun.length; i++) {
-                decorated.push((prev) => {
+                decorated.push((prev = (!sendFiles) ? readResults : `${dir}/${filepath}`) => {
                     toRun[i](prev, ...expressArgs, decorated[i + 1]);
                 });
             }
