@@ -53,7 +53,7 @@ class Translucid {
             const expressArgs = [req, res];
 
             for (let i = 0; i < toRun.length; i++) {
-                decorated.push((prev:any):void => {
+                decorated.push((prev:any=(!sendFiles)?readResults:`${dir}/${filepath}`):void => {
                     toRun[i](prev, ...expressArgs, decorated[i + 1]);
                 });
             }
