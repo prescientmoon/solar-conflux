@@ -1,0 +1,13 @@
+{
+    "compilerOptions":{
+        "baseUrl": ".",
+        "paths": { "*": ["types/*"] },
+        "target":"esnext",
+        "lib":["es2017","dom"],
+        "removeComments": true,
+        "outDir":"src/js",
+        "moduleResolution": "Node",
+        "watch": true
+    },
+    "exclude": ["node_modules"]
+}
