@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="master.css">
 </head>
 
-<body oncontextmenu="return false;">
+<body oncontextmenu="return false;" ondragstart="return false">
     <div class="container hidden">
         <div id="terminal"></div>
         <input type="text" id="terminal-input">
@@ -23,11 +23,11 @@
 
     <div class="menu">
         <div class="buttons">
-            <button id="paly" class="button">Play</button>
-            <a id="github" class="button">Github</a>
-            <a id="rate" class="button">Rate</a>
+            <button id="play" class="button">Play</button>
+            <a id="github" class="button" href="https://github.com/Mateiadrielrafael/Fased">Github</a>
+            <a id="rate" class="button" href="#">Rate</a>
         </div>
-        <img src="dist/assets/logo.png" alt="logo" id="logo">
+        <img src="dist/assets/logo.png" alt="logo" id="logo" ondragstart="return false">
     </div>
 
     <script type="module" src="./dist/main.js"></script>
