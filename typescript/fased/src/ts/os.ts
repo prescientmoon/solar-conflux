@@ -4,6 +4,7 @@ import { length, tau } from "./math";
 import * as loop from "mainloop.js";
 import { WormHole } from "./WormHole";
 import * as score from "./score";
+import { fadeIn, fadeOut } from "./animations";
 
 type planetOptions = [number, number, number[], number[], boolean];
 interface system {
@@ -14,6 +15,8 @@ interface Line {
     radius: number;
     speed: number;
 }
+
+let started = performance.now();
 let currentCameraOffset = 0;
 let cameraOffsetStack = 0;
 let basicCameraEffect = 15;
@@ -28,9 +31,16 @@ let deltaPlanetSpawn = 75;
 let planetSpawnRadius = [300, 360];
 let planetSpawnerClock = 0;
 
+const restart = document.getElementById("again");
+const popup = document.getElementById("end");
 const terminal = document.getElementById("terminal");
 const input = <HTMLInputElement>document.getElementById("terminal-input");
 const container = terminal.parentElement;
+popup.style.zIndex = "-1";
+fadeOut(popup,0.5);
+restart.addEventListener("click",(e) => {
+    commands.restart("");
+});
 
 const canvas = <HTMLCanvasElement>document.getElementById("canvas");
 const ctx: CanvasRenderingContext2D = canvas.getContext("2d");
@@ -49,7 +59,7 @@ let scorePerLevel = 10;
 let lastScore = 0;
 let normalLineSpeed = 2;
 let lineSpeed = normalLineSpeed;
-let points = 1.23;
+let points = 0;
 let normalDeltaLines = 100;
 let deltaLines = normalDeltaLines;
 let lineTime = 0;
@@ -67,9 +77,17 @@ let initialSystem: system = {
 };
 
 const loadSystem = (data: system): void => {
+    level = 1;
+    hp = 100;
+    points = 0;
+    planetSpawnerClock = 0;
+    deltaPlanetSpawn = 75;
+    lastScore = 0;
+    scorePerLevel = 10;
     planets = [];
     wormHoles = [];
     tempPortals = [];
+    started = performance.now();
 
     memory.G = data.G;
     print("<span class'red'>Reseting G...</span>")
@@ -81,13 +99,19 @@ const loadSystem = (data: system): void => {
         planets.push(newplanet);
     }
 
+    fadeOut(popup,0.05);
+    setTimeout(() => {
+        popup.style.zIndex = "-1";
+    }, 1000);
+    // commands.start("");
     print("<span class='green'>Universe succesfully reseted.</span>");
 }
 const memory = {
     lineOperator: "overlay",
     warp: 0.1,
     G: 10,
-    spawn: 0.3
+    spawn: 0.3,
+    dev: "0"
 };
 const commands = {
     "set": (key: any, value: any, path: string) => {
@@ -165,6 +189,7 @@ const commands = {
     "restart": (path: string) => {
         print(path);
         loadSystem(initialSystem);
+        commands.start(path);
     },
     "noPortalLimit": (path: string = "") => {
         print(path);
@@ -469,7 +494,9 @@ const checkLifeLost = () => {
             if (memory.warp < 0.1) memory.warp = 0.1;
             if (hp <= 0) {
                 loop.stop();
-                alert("you lost");
+                popup.style.zIndex = "40";
+                score.die(points,performance.now() - started,document.getElementById("end-data"));
+                fadeIn(popup,0.05)
             }
             setTimeout(() => {
                 if (--speedUpEffect == 0) {
@@ -490,6 +517,7 @@ const toggle = () => {
         container.style.display = "none";
 }
 const effect = (e: any) => {
+    if (!parseInt(memory.dev)) return;
     hp -= hpDamage
     lineSpeed = 10;
     deltaLines = 500;
