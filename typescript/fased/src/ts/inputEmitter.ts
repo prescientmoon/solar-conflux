@@ -1,5 +1,6 @@
 import { EventEmitter } from "./emitter.js";
 import * as keyCode from "key-code";
+import { fadeOut } from "./animations.js";
 
 const terminal = document.getElementById("terminal");
 const input:HTMLInputElement = <HTMLInputElement> document.getElementById("terminal-input");
@@ -10,6 +11,7 @@ window.onresize = (e) => inputEmitter.emit("resize",e);
 terminal.addEventListener("change",(e) => {
     inputEmitter.emit("change",e);
 });
+document.getElementById("logo").addEventListener("drag",(e) => e.preventDefault());
 document.addEventListener("keydown",(e) => {
     if (input == document.activeElement && e.keyCode == keyCode.ENTER){
         inputEmitter.emit("submit",input.value);
@@ -29,6 +31,11 @@ canvas.addEventListener("click",(e) => {
 });
 canvas.addEventListener("contextmenu",(e) =>{
     inputEmitter.emit("red",[e.clientX - canvas.offsetLeft,e.clientY - canvas.clientTop])
+});
+document.getElementById("play").addEventListener("click",(e) => {
+    e.preventDefault();
+    fadeOut(<HTMLElement>document.getElementsByClassName("menu")[0],0.05);
+    inputEmitter.emit("start",e);
 });
 
 export {inputEmitter};
