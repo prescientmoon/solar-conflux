@@ -25,7 +25,7 @@ let lines: Line[] = [];
 let hp = 100;
 let hpDamage = 11;
 let deltaPlanetSpawn = 75;
-let planetSpawnRadius = [500, 600];
+let planetSpawnRadius = [300, 360];
 let planetSpawnerClock = 0;
 
 const terminal = document.getElementById("terminal");
@@ -34,13 +34,15 @@ const container = terminal.parentElement;
 
 const canvas = <HTMLCanvasElement>document.getElementById("canvas");
 const ctx: CanvasRenderingContext2D = canvas.getContext("2d");
+let scale = 1;
 
-canvas.height = window.innerHeight;
-canvas.width = window.innerWidth;
+canvas.height = window.innerHeight * scale;
+canvas.width = window.innerWidth * scale;
 
 const lineWidth = 20;
 const original_os_name = "axios";
 const commandHistory = [];
+const portalSize = 12;
 
 let level = 1;
 let scorePerLevel = 10;
@@ -56,11 +58,10 @@ let diagonal = Math.sqrt(size[0] ** 2 + size[1] ** 2);
 let os_name = original_os_name;
 let currentCommand = -1;
 let tempPortals = [null, null];
-let portalLimit = 1500;
+let portalLimit = 5000;
 let initialSystem: system = {
     planets: [
-        [100, 100, size.map(val => val / 2), [0, 0], true],
-        [10, 10, [size[0] / 2, size[1] / 2 - 300], [Math.sqrt(100 / 300), 0], false]
+        [60, 100, size.map(val => val / 2), [0, 0], true]
     ],
     G: 20
 };
@@ -221,13 +222,13 @@ const back = () => {
 const noPlanetOverlap = (data: Array<number>) => {
     if (!data) return true;
     for (let i of planets) {
-        if (length(...i.position, ...data) < 20 + i.radius) return false;
+        if (length(...i.position, ...data) < portalSize + i.radius) return false;
     }
     return true;
 }
 const portalSelfOverlap = (x1: Array<number>, x2: Array<number>): boolean => {
     if (!x1 || !x2) return true;
-    return (length(...x1, ...x2) > 40);
+    return (length(...x1, ...x2) > 2 * portalSize);
 }
 const addBluePortal = (e) => {
     if (!tempPortals[0] || !tempPortals[1]) {
@@ -240,7 +241,7 @@ const addBluePortal = (e) => {
             && noPlanetOverlap(tempPortals[0])
             && noPlanetOverlap(tempPortals[1])
             && portalSelfOverlap(tempPortals[0], tempPortals[1])) {
-            wormHoles[0] = new WormHole(20, tempPortals[0], tempPortals[1]);
+            wormHoles[0] = new WormHole(portalSize, tempPortals[0], tempPortals[1]);
         }
     }
     else if (length(...wormHoles[0].end, ...e) < portalLimit
@@ -261,7 +262,7 @@ const addRedPortal = (e) => {
             && noPlanetOverlap(tempPortals[0])
             && noPlanetOverlap(tempPortals[1])
             && portalSelfOverlap(tempPortals[0], tempPortals[1])) {
-            wormHoles[0] = new WormHole(20, tempPortals[0], tempPortals[1]);
+            wormHoles[0] = new WormHole(portalSize, tempPortals[0], tempPortals[1]);
         }
     }
     else if (length(...wormHoles[0].start, ...e) < portalLimit
@@ -338,20 +339,20 @@ const draw = (): void => {
     }
 
     if (tempPortals[0] && !wormHoles[0]) {
-        drawPortalLimit("blue", tempPortals[0]);
+        // drawPortalLimit("blue", tempPortals[0]);
         ctx.fillStyle = "#0000ff";
         ctx.beginPath();
-        ctx.arc(tempPortals[0][0], tempPortals[0][1], 20, 0, tau);
+        ctx.arc(tempPortals[0][0], tempPortals[0][1], portalSize, 0, tau);
         ctx.fill();
     }
     if (tempPortals[1] && !wormHoles[0]) {
-        drawPortalLimit("red", tempPortals[1]);
+        // drawPortalLimit("red", tempPortals[1]);
         ctx.fillStyle = "#ff0000";
         ctx.beginPath();
-        ctx.arc(tempPortals[1][0], tempPortals[1][1], 20, 0, tau);
+        ctx.arc(tempPortals[1][0], tempPortals[1][1], portalSize, 0, tau);
         ctx.fill();
     }
-    // ctx.globalCompositeOperation = "source-over";
+    ctx.globalCompositeOperation = "source-over";
     ctx.restore();
 }
 const checkTeleportation = () => {
@@ -423,7 +424,7 @@ const spawnPlanets = () => {
             Math.sin(alpha) * radius + size[1] / 2
         ];
         planetSpawnerClock = 0;
-        const newPlanet: Planet = new Planet(20, 1, cartesanPosition, false);
+        const newPlanet: Planet = new Planet(portalSize, 1, cartesanPosition, false);
         planets.push(newPlanet);
     }
 }
@@ -509,8 +510,8 @@ loadSystem(initialSystem);
 
 const resize = (e) => {
     console.log(e);
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth * scale;
+    canvas.height = window.innerHeight * scale;
 
     size = [canvas.width, canvas.height];
     diagonal = length(0, 0, ...size);
