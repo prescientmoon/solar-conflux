@@ -8,7 +8,8 @@ inputEmitter.on("submit", (data) => {
     axios.addBluePortal(e);
 }).on("red", (e) => {
     axios.addRedPortal(e);
-}).on("start", axios.start)
-    .on("toggle", (e) => axios.toggle())
+}).on("start", () => {
+    axios.start("");
+}).on("toggle", (e) => axios.toggle())
     .on("effectTest", axios.effect)
     .on("resize", axios.resize);
