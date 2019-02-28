@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>TODO:dtu</title>
 
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <!-- <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"> -->
     <link rel="stylesheet" href="master.css">
 </head>
 
@@ -17,7 +17,18 @@
         <input type="text" id="terminal-input">
     </div>
 
+    <div id="scoreHolder"></div>
+
     <canvas id="canvas"></canvas>
+
+    <div class="menu">
+        <div class="buttons">
+            <button id="paly" class="button">Play</button>
+            <a id="github" class="button">Github</a>
+            <a id="rate" class="button">Rate</a>
+        </div>
+        <img src="dist/assets/logo.png" alt="logo" id="logo">
+    </div>
 
     <script type="module" src="./dist/main.js"></script>
 </body>
