@@ -3,27 +3,52 @@ import { Planet } from "./planet";
 import { length, tau } from "./math";
 import * as loop from "mainloop.js";
 import { WormHole } from "./WormHole";
-let initialSystem = {
-    planets: [
-        [20, 100, [200, 200], [0, 0], true],
-        [10, 10, [200, 100], [1, 0], false]
-    ],
-    G: 1
-};
+import * as score from "./score";
+let currentCameraOffset = 0;
+let cameraOffsetStack = 0;
+let basicCameraEffect = 15;
+let speedUpEffect = 0;
+let scoreMultiplier = 0.001;
 let planets = [];
 let wormHoles = [];
+let lines = [];
+let hp = 100;
+let hpDamage = 11;
+let deltaPlanetSpawn = 75;
+let planetSpawnRadius = [500, 600];
+let planetSpawnerClock = 0;
 const terminal = document.getElementById("terminal");
 const input = document.getElementById("terminal-input");
+const container = terminal.parentElement;
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 canvas.height = window.innerHeight;
 canvas.width = window.innerWidth;
+const lineWidth = 20;
 const original_os_name = "axios";
 const commandHistory = [];
+let level = 1;
+let scorePerLevel = 10;
+let lastScore = 0;
+let normalLineSpeed = 2;
+let lineSpeed = normalLineSpeed;
+let points = 1.23;
+let normalDeltaLines = 100;
+let deltaLines = normalDeltaLines;
+let lineTime = 0;
+let size = [canvas.width, canvas.height];
+let diagonal = Math.sqrt(size[0] ** 2 + size[1] ** 2);
 let os_name = original_os_name;
 let currentCommand = -1;
 let tempPortals = [null, null];
-let portalLimit = 300;
+let portalLimit = 1500;
+let initialSystem = {
+    planets: [
+        [100, 100, size.map(val => val / 2), [0, 0], true],
+        [10, 10, [size[0] / 2, size[1] / 2 - 300], [Math.sqrt(100 / 300), 0], false]
+    ],
+    G: 20
+};
 const loadSystem = (data) => {
     planets = [];
     wormHoles = [];
@@ -40,8 +65,10 @@ const loadSystem = (data) => {
     print("<span class='green'>Universe succesfully reseted.</span>");
 };
 const memory = {
-    warp: 0.05,
-    G: 1
+    lineOperator: "overlay",
+    warp: 0.1,
+    G: 10,
+    spawn: 0.3
 };
 const commands = {
     "set": (key, value, path) => {
@@ -112,6 +139,20 @@ const commands = {
     "restart": (path) => {
         print(path);
         loadSystem(initialSystem);
+    },
+    "noPortalLimit": (path = "") => {
+        print(path);
+        portalLimit = Math.sqrt(size[0] ** 2 + size[1] ** 2);
+    },
+    "hp": (value, path = "") => {
+        print(path);
+        print(`Setting the hp to ${value}...`, false);
+        hp = parseFloat(value);
+    },
+    "score": (value, path = "") => {
+        print(path);
+        print(`Setting the score to ${value}...`, false);
+        points = parseFloat(value);
     }
 };
 function run(command) {
@@ -146,25 +187,61 @@ const back = () => {
         return;
     input.value = commandHistory[--currentCommand];
 };
+const noPlanetOverlap = (data) => {
+    if (!data)
+        return true;
+    for (let i of planets) {
+        if (length(...i.position, ...data) < 20 + i.radius)
+            return false;
+    }
+    return true;
+};
+const portalSelfOverlap = (x1, x2) => {
+    if (!x1 || !x2)
+        return true;
+    return (length(...x1, ...x2) > 40);
+};
 const addBluePortal = (e) => {
     if (!tempPortals[0] || !tempPortals[1]) {
-        if (!tempPortals[1] || length(...e, ...tempPortals[1]) < portalLimit)
+        if ((!tempPortals[1] || length(...e, ...tempPortals[1]) < portalLimit)
+            && noPlanetOverlap(tempPortals[1])
+            && noPlanetOverlap(e)
+            && portalSelfOverlap(tempPortals[1], e))
             tempPortals[0] = e;
-        if (tempPortals[0] && tempPortals[1])
+        if (tempPortals[0] && tempPortals[1]
+            && noPlanetOverlap(tempPortals[0])
+            && noPlanetOverlap(tempPortals[1])
+            && portalSelfOverlap(tempPortals[0], tempPortals[1])) {
             wormHoles[0] = new WormHole(20, tempPortals[0], tempPortals[1]);
+        }
     }
-    else if (length(...wormHoles[0].end, ...e) < portalLimit)
+    else if (length(...wormHoles[0].end, ...e) < portalLimit
+        && noPlanetOverlap(wormHoles[0].end)
+        && noPlanetOverlap(e)
+        && portalSelfOverlap(wormHoles[0].end, e)) {
         wormHoles[0].start = e;
+    }
 };
 const addRedPortal = (e) => {
     if (!tempPortals[0] || !tempPortals[1]) {
-        if (!tempPortals[0] || length(...e, ...tempPortals[0]) < portalLimit)
+        if ((!tempPortals[0] || length(...e, ...tempPortals[0]) < portalLimit)
+            && noPlanetOverlap(tempPortals[0])
+            && noPlanetOverlap(e)
+            && portalSelfOverlap(tempPortals[0], e))
             tempPortals[1] = e;
-        if (tempPortals[0] && tempPortals[1])
+        if (tempPortals[0] && tempPortals[1]
+            && noPlanetOverlap(tempPortals[0])
+            && noPlanetOverlap(tempPortals[1])
+            && portalSelfOverlap(tempPortals[0], tempPortals[1])) {
             wormHoles[0] = new WormHole(20, tempPortals[0], tempPortals[1]);
+        }
     }
-    else if (length(...wormHoles[0].start, ...e) < portalLimit)
+    else if (length(...wormHoles[0].start, ...e) < portalLimit
+        && noPlanetOverlap(wormHoles[0].start)
+        && noPlanetOverlap(e)
+        && portalSelfOverlap(wormHoles[0].start, e)) {
         wormHoles[0].end = e;
+    }
 };
 const applyGravity = (time) => {
     for (let i of planets) {
@@ -202,11 +279,15 @@ const drawPortalLimit = (color, position) => {
     ctx.fill();
 };
 const clear = () => {
-    ctx.fillStyle = "rgba(0,0,0,0.9)";
-    ctx.fillRect(0, 0, 2000, 2000);
+    const color = 256 - Math.floor(256 * hp / 100);
+    ctx.fillStyle = `rgba(0,${color / 4},${color / 4},0.9)`;
+    ctx.fillRect(0, 0, size[0], size[1]);
 };
 const draw = () => {
+    ctx.save();
+    ctx.translate(Math.random() * currentCameraOffset * 2 - currentCameraOffset, Math.random() * currentCameraOffset * 2 - currentCameraOffset);
     clear();
+    drawLine();
     for (let i of planets) {
         ctx.fillStyle = "#ffff00";
         ctx.beginPath();
@@ -214,8 +295,6 @@ const draw = () => {
         ctx.fill();
     }
     for (let i of wormHoles) {
-        drawPortalLimit("blue", i.start);
-        drawPortalLimit("red", i.end);
         ctx.fillStyle = "#0000ff";
         ctx.beginPath();
         ctx.arc(i.start[0], i.start[1], i.radius, 0, tau);
@@ -239,17 +318,73 @@ const draw = () => {
         ctx.arc(tempPortals[1][0], tempPortals[1][1], 20, 0, tau);
         ctx.fill();
     }
+    ctx.restore();
 };
 const checkTeleportation = () => {
     for (let i of planets) {
         for (let j of wormHoles) {
-            if (length(...j.start, ...i.position) < j.radius + i.radius) {
+            points += i.mass;
+            if (length(...j.start, ...i.position) < j.radius + i.radius && !i.locked) {
                 i.position = j.end.map((val, index) => val + j.start[index] - i.position[index]);
             }
-            else if (length(...j.end, ...i.position) < j.radius + i.radius) {
+            else if (length(...j.end, ...i.position) < j.radius + i.radius && !i.locked) {
                 i.position = j.start.map((val, index) => val + j.end[index] - i.position[index]);
             }
+            else
+                points -= i.mass;
         }
+    }
+};
+const moveLines = () => {
+    for (let i of lines) {
+        i.radius -= lineSpeed;
+        if (i.radius < 1)
+            lines.splice(lines.indexOf(i), 1);
+    }
+};
+const drawLine = () => {
+    for (let i of lines) {
+        const grd = ctx.createRadialGradient(size[0] / 2, size[1] / 2, i.radius, size[0] / 2, size[1] / 2, i.radius + lineWidth);
+        let opacity = 0.1;
+        if (i.radius <= 200)
+            opacity = 1;
+        else
+            opacity = 1 - ((i.radius - 200) / (diagonal / 2 - 200)) ** 0.5;
+        const color = Math.floor(hp * 256 / 100);
+        grd.addColorStop(0, `rgba(256,${color},${color},${opacity / (hp * 3 / 100)})`);
+        grd.addColorStop(1, `rgba(256,${color / 2},${color / 2},0)`);
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(size[0] / 2, size[1] / 2, i.radius + lineWidth, 0, tau, false);
+        ctx.arc(size[0] / 2, size[1] / 2, i.radius, 0, tau, true);
+        ctx.fill();
+    }
+    ctx.globalCompositeOperation = "source-over";
+};
+const spawnLine = () => {
+    if (++lineTime >= deltaLines) {
+        lines.push({ radius: diagonal / 2, speed: lineSpeed });
+        lineTime = 0;
+    }
+};
+const increaseScore = () => {
+    for (let i of planets) {
+        if (i != planets[0])
+            points += i.mass * scoreMultiplier;
+    }
+};
+const spawnPlanets = () => {
+    planetSpawnerClock += memory.spawn;
+    if (planetSpawnerClock >= deltaPlanetSpawn) {
+        const radius = planetSpawnRadius[0] + Math.random() * (planetSpawnRadius[1] - planetSpawnRadius[0]);
+        const alpha = Math.random() * tau;
+        const cartesanPosition = [
+            Math.cos(alpha) * radius + size[0] / 2,
+            Math.sin(alpha) * radius + size[1] / 2
+        ];
+        planetSpawnerClock = 0;
+        const newPlanet = new Planet(20, 1, cartesanPosition, false);
+        planets.push(newPlanet);
     }
 };
 const mainLoop = (delta) => {
@@ -257,8 +392,88 @@ const mainLoop = (delta) => {
     applyGravity(time);
     move(time);
     checkTeleportation();
+    moveLines();
+    spawnLine();
+    increaseScore();
+    checkLifeLost();
+    spawnPlanets();
+    checkLevelingUp();
+    score.display(points, hp);
+};
+const checkLevelingUp = () => {
+    if (points >= lastScore + scorePerLevel) {
+        scorePerLevel *= 2;
+        lastScore += scorePerLevel;
+        memory.warp += 0.1;
+        normalDeltaLines /= 2;
+        normalLineSpeed *= 1.5;
+        deltaLines = normalDeltaLines;
+        lineSpeed = normalLineSpeed;
+        deltaPlanetSpawn /= 2;
+        hp += ++level * 10;
+    }
+};
+const checkLifeLost = () => {
+    for (let i of planets) {
+        if (i == planets[0])
+            continue;
+        else if (length(...planets[0].position, ...i.position) <= i.radius + planets[0].radius) {
+            hp -= hpDamage;
+            lineSpeed = 10;
+            deltaLines = 500;
+            currentCameraOffset = basicCameraEffect;
+            speedUpEffect++;
+            cameraOffsetStack++;
+            memory.warp -= 0.01;
+            if (memory.warp < 0.1)
+                memory.warp = 0.1;
+            if (hp <= 0) {
+                loop.stop();
+                alert("you lost");
+            }
+            setTimeout(() => {
+                if (--speedUpEffect == 0) {
+                    lineSpeed = normalLineSpeed;
+                    deltaLines = normalDeltaLines;
+                }
+                if (--cameraOffsetStack == 0)
+                    currentCameraOffset = 0;
+            }, 1000);
+            planets.splice(planets.indexOf(i), 1);
+        }
+    }
 };
 const start = (data) => commands["start"]("");
+const toggle = () => {
+    if (container.style.display == "none")
+        container.style.display = "block";
+    else
+        container.style.display = "none";
+};
+const effect = (e) => {
+    hp -= hpDamage;
+    lineSpeed = 10;
+    deltaLines = 500;
+    currentCameraOffset = basicCameraEffect;
+    speedUpEffect++;
+    cameraOffsetStack++;
+    setTimeout(() => {
+        if (--speedUpEffect == 0) {
+            lineSpeed = normalLineSpeed;
+            deltaLines = normalDeltaLines;
+        }
+        if (--cameraOffsetStack == 0)
+            currentCameraOffset = 0;
+    }, 1000);
+};
 loop.setUpdate(mainLoop).setDraw(draw);
 loadSystem(initialSystem);
-export { run, back, addRedPortal, addBluePortal, start };
+const resize = (e) => {
+    console.log(e);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    size = [canvas.width, canvas.height];
+    diagonal = length(0, 0, ...size);
+    planets[0].position = size.map(val => val / 2);
+};
+export { run, back, addRedPortal, addBluePortal, start, toggle, effect, resize };
