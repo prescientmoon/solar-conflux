@@ -6,7 +6,17 @@ import { WormHole } from "./WormHole";
 import * as score from "./score";
 import { fadeIn, fadeOut } from "./animations";
 
-type planetOptions = [number, number, number[], number[], boolean];
+const paths = ["./assets/meteor.png","./assets/meteor2.png","./assets/meteor3.png"];
+const images = paths.map(val => {
+    const img = new Image(400,400);
+    img.src = val;
+    return img;
+});
+
+const earth = new Image(1000,1000);
+earth.src = "./assets/earth.png";
+
+type planetOptions = [number, number, number[], number[], boolean,HTMLImageElement];
 interface system {
     planets: planetOptions[];
     G: number;
@@ -71,7 +81,7 @@ let tempPortals = [null, null];
 let portalLimit = 5000;
 let initialSystem: system = {
     planets: [
-        [60, 100, size.map(val => val / 2), [0, 0], true]
+        [60, 100, size.map(val => val / 2), [0, 0], true,earth]
     ],
     G: 20
 };
@@ -93,7 +103,7 @@ const loadSystem = (data: system): void => {
     print("<span class'red'>Reseting G...</span>")
     for (let i of data.planets) {
         print(`<span class="blue">Creating the planet:</span> ${i}...`);
-        const newplanet = new Planet(i[0], i[1], i[2], i[4]);
+        const newplanet = new Planet(i[0], i[1], i[2], i[4],i[5]);
         newplanet.speed = [i[3][0], i[3][1]];
         print(`<span class="blue">Loading the planet</span> ${i} <span class="blue">into the universe...</span>`)
         planets.push(newplanet);
@@ -344,10 +354,11 @@ const draw = (): void => {
     clear();
     drawLine();
     for (let i of planets) {
-        ctx.fillStyle = "#ffff00";
-        ctx.beginPath();
-        ctx.arc(i.position[0], i.position[1], i.radius, 0, tau);
-        ctx.fill();
+        // ctx.fillStyle = "#ffff00";
+        // ctx.beginPath();
+        // ctx.arc(i.position[0], i.position[1], i.radius, 0, tau);
+        // ctx.fill();
+        ctx.drawImage(i.image,i.position[0] - i.radius/2,i.position[1] - i.radius/2,i.radius,i.radius);
     }
     // ctx.globalCompositeOperation = "screen";
     for (let i of wormHoles) {
@@ -449,7 +460,9 @@ const spawnPlanets = () => {
             Math.sin(alpha) * radius + size[1] / 2
         ];
         planetSpawnerClock = 0;
-        const newPlanet: Planet = new Planet(portalSize, 1, cartesanPosition, false);
+        
+        const texture = images[Math.floor(Math.random() * 3)];
+        const newPlanet: Planet = new Planet(portalSize, 1, cartesanPosition, false,texture);
         planets.push(newPlanet);
     }
 }

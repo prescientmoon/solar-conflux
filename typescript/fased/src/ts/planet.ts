@@ -5,7 +5,7 @@ class Planet {
         public radius: number,
         public mass: number,
         public position: [number, number] | Array<number>,
-        public locked:boolean = false) { }
+        public locked:boolean = false,public image:HTMLImageElement) { }
 }
 
 export { Planet };
