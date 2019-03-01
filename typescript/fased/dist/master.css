@@ -116,9 +116,25 @@ canvas{
     background-repeat: no-repeat;
     background-blend-mode: luminosity;
 }
-#logo{
+#images{
     width: 65%;
     float: right;
+}
+#logo{
+    width: 100%;
+    /* flex-flow: column-reverse; */
+    /* float: right; */
+}
+#tutorial{
+    width:20%;
+    border-radius: 5%;
+    padding: 3%;
+    /* bottom: 5%; */
+    margin: 10%;
+    /* margin-left: -15%; */
+    /* z-index: 55; */
+    float:right;
+    background-color: rgba(128,128,128,0.5);
 }
 .buttons{
     background-color: rgba(128,128,128,0.5);
