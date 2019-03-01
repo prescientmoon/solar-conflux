@@ -7,6 +7,9 @@ const input:HTMLInputElement = <HTMLInputElement> document.getElementById("termi
 const canvas:HTMLCanvasElement = <HTMLCanvasElement> document.getElementById("canvas");
 const inputEmitter = new EventEmitter();
 
+let startedMusic = false;
+let music = new Audio("assets/music.ogg");
+
 window.onresize = (e) => inputEmitter.emit("resize",e);
 terminal.addEventListener("change",(e) => {
     inputEmitter.emit("change",e);

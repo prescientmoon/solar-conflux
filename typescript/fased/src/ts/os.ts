@@ -52,6 +52,10 @@ restart.addEventListener("click",(e) => {
     commands.restart("");
 });
 
+let startedMusic = false;
+let music = new Audio("assets/music.ogg");
+music.loop = true;
+
 const canvas = <HTMLCanvasElement>document.getElementById("canvas");
 const ctx: CanvasRenderingContext2D = canvas.getContext("2d");
 let scale = 1;
@@ -63,6 +67,7 @@ const lineWidth = 20;
 const original_os_name = "axios";
 const commandHistory = [];
 const portalSize = 12;
+
 
 let level = 1;
 let scorePerLevel = 10;
@@ -190,6 +195,12 @@ const commands = {
         print(path);
         loop.stop().start();
         print(`<span class="green">The universe was succesfully started</span>`);
+
+        if (!startedMusic){
+            startedMusic = true;
+            music.play();
+            // music.loop = true;
+        }
     },
     "stop": (path: string) => {
         print(path);
@@ -266,6 +277,8 @@ const portalSelfOverlap = (x1: Array<number>, x2: Array<number>): boolean => {
     return (length(...x1, ...x2) > 2 * portalSize);
 }
 const addBluePortal = (e) => {
+    let sfx_1 = new Audio("assets/sfx_1.mp3");
+    sfx_1.play();
     if (!tempPortals[0] || !tempPortals[1]) {
         if ((!tempPortals[1] || length(...e, ...tempPortals[1]) < portalLimit)
             && noPlanetOverlap(tempPortals[1])
@@ -287,6 +300,8 @@ const addBluePortal = (e) => {
     }
 };
 const addRedPortal = (e) => {
+    let sfx_1 = new Audio("assets/sfx_1.mp3");
+    sfx_1.play();
     if (!tempPortals[0] || !tempPortals[1]) {
         if ((!tempPortals[0] || length(...e, ...tempPortals[0]) < portalLimit)
             && noPlanetOverlap(tempPortals[0])
@@ -358,7 +373,7 @@ const draw = (): void => {
         // ctx.beginPath();
         // ctx.arc(i.position[0], i.position[1], i.radius, 0, tau);
         // ctx.fill();
-        ctx.drawImage(i.image,i.position[0] - i.radius/2,i.position[1] - i.radius/2,i.radius,i.radius);
+        ctx.drawImage(i.image,i.position[0] - i.radius,i.position[1] - i.radius,2 * i.radius,2 * i.radius);
     }
     // ctx.globalCompositeOperation = "screen";
     for (let i of wormHoles) {
@@ -519,6 +534,8 @@ const checkLifeLost = () => {
                 if (--cameraOffsetStack == 0) currentCameraOffset = 0;
             }, 1000);
             planets.splice(planets.indexOf(i), 1);
+            let sfx = new Audio("assets/sfx_2.mp3");
+            sfx.play();
         }
     }
 }
