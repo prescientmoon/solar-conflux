@@ -1,26 +1,56 @@
 import * as express from "express"
-import { baseUrl, routes } from "../config";
-import { performance } from "perf_hooks"
-import { shortLogger } from "./routes/logging/shortLog";
+import * as sessions from "express-session"
+import chalk from "chalk";
 
-export interface serverSetupResults{
-    time:number;
-    app:express.Application
+import { staticRoutes } from "../config";
+import { routes } from "./routes"
+import { urlencoded } from "body-parser";
+import { database } from "./services/db/firestore"
+import { morganChalk } from "./middleware/morgan";
+import { sessionMiddleware } from "./middleware/sessions"
+
+
+// @ts-ignore no declaration file
+// import * as store from "firestore-store"
+import * as store from "connect-mongo"
+import { connection, connected } from "./services/db/mongo";
+
+// const firestore = store(sessions)
+export interface serverSetupResults {
+    app: express.Application
 }
 
-export const setupServer = ():serverSetupResults => {
+export const setupServer = (): Promise<serverSetupResults> =>
+    new Promise(async (res, rej) => {
+        try {
+            let MongoStore = store(sessions)
 
-    const start = performance.now()
-    const app = express()
+            await connected
 
-    for (let i in routes) {
-        const route = require(`${process.cwd()}/${baseUrl}${routes[i]}`)
-        app.use(i, route.router)
-    }
+            //create express app
+            const app = express()
 
-    const time = performance.now() - start
-    const message = `Server created in: ${Math.floor(time)}ms`
-    shortLogger.log("Server created",message)
+            app.use(urlencoded({ extended: true }), sessions({
+                secret: process.env.SESSION_SECRET,
+                saveUninitialized: false,
+                resave: false,
+                store: new MongoStore({ mongooseConnection: connection })
+            }), morganChalk, sessionMiddleware)
 
-    return {app,time}
-}
+            //load static routes
+            staticRoutes.forEach(route => {
+                app.use(express.static(`${route}`))
+            })
+
+            //Load normal routes
+            for (let i in routes) {
+                app.use(`/${i}`, routes[i])
+            }
+            console.log(chalk.bold.green("👏  Succesfully creatd server!"))
+
+            res({ app })
+        }
+        catch (err) {
+            rej(err)
+        }
+    })
