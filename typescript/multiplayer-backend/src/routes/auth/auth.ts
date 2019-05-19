@@ -33,14 +33,14 @@ const loginHtml = (req: Request, res: Response) => {
                     <label for=name>name</label>
                     <input type=name id=name name=name>
                 </div>
-                <button type=submit onclick="
-                    alert('click')
+                <button type=submit>Submit</button>
+            </form>
+            <button onclick="
                     fetch('/',{
                         headers: {
                             authorization: 'do u see this?'
                         }
-                    })">Submit</button>
-            </form>
+                    })">send</button>
     `)
 }
 
