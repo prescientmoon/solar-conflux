@@ -1,5 +1,3 @@
-//public config
-
 //interfaces
 export interface routeList {
     [key: string]: string
@@ -17,6 +15,12 @@ export const routes: routeList = {
 }
 
 //whitelist of urls
-export const whiteList = [{
-    url: "http://localhost:4200"
+export const whiteList: whiteListUrl[] = [{
+    url: "localhost:4200"
+},{
+    url: "localhost:8000"
+},{
+    url: "localhost:3000"
 }]
+
+export const staticRoutes:string[] = []
