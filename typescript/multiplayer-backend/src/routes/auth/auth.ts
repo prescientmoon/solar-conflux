@@ -45,7 +45,6 @@ const loginHtml = (req: Request, res: Response) => {
 }
 
 
-
 const sayHello = (req: Request, res: Response) => {
     res.send(`
         <form action="/auth" method=post>
