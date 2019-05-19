@@ -19,13 +19,15 @@
         "experimentalDecorators": true,
         "downlevelIteration": true,
         "target": "ESNext",
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "jsx": "preserve"
     },
     "include": [
         "src"
     ],
     "exclude": [
         "node_modules",
-        "dist"
+        "dist",
+        "old_client"
     ]
 }
