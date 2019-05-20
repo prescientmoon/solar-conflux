@@ -12,6 +12,7 @@ const getToken = (req: Request) => {
         // Handle token presented as a cookie parameter
         return req.cookies.token;
     }
+
     // If we return null, we couldn't find a token.
     // In this case, the JWT middleware will return a 401 (unauthorized) to the client for this request
     return null;
@@ -59,12 +60,6 @@ export const sessionMiddleware = async (req: Request, res: Response, next: Funct
             data
         })
     } 
-
-    req.session.rainbow = "unicorn"
-
-    //TODO: remove types for express-session
-    //@ts-ignore expects callback
-    req.session.save()
 
     next()
 }
