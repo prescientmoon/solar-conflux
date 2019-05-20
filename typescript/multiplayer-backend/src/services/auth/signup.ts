@@ -1,7 +1,6 @@
 import * as bcrypt from "bcryptjs"
 import { promisify } from "util";
 import { randomBytes } from "crypto";
-import { database } from "../db/firestore";
 import { Passsord, PasswordDoc } from "../../models/Password";
 import { User } from "../../models/User";
 
@@ -38,8 +37,9 @@ export function savePassword(uid: string, password: string) {
 
 export async function getPassword(uid: string) {
     //get doc
-    const doc = await database.doc(`passwords/${uid}`).get()
+    // const doc = await database.doc(`passwords/${uid}`).get()
 
     //return result
-    return doc.data()
+    // return doc.data()
+    return "train"
 }

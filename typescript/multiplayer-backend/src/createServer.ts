@@ -1,9 +1,10 @@
 import * as express from "express"
 import chalk from "chalk";
+import * as cors from "cors"
 
 import { staticRoutes } from "../config";
 import { routes } from "./routes"
-import { urlencoded } from "body-parser";
+import { json } from "body-parser";
 import { morganChalk } from "./middleware/morgan";
 import { sessionMiddleware } from "./middleware/sessions"
 
@@ -18,7 +19,12 @@ export const setupServer = (): Promise<serverSetupResults> =>
             //create express app
             const app = express()
 
-            app.use(urlencoded({ extended: true }), morganChalk, sessionMiddleware)
+            app.use(
+                cors(),
+                json(),
+                morganChalk,
+                sessionMiddleware
+            )
 
             //load static routes
             staticRoutes.forEach(route => {

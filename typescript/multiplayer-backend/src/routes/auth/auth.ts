@@ -1,134 +1,66 @@
 import { Router, Response, Request } from "express"
-import { reddirect } from "../../middleware/reddirect";
 import * as validator from "express-validator"
 import { generateUid, encodePassword } from "../../services/auth/signup";
 import { savePassword } from "../../services/auth/signup";
-import { corsErrorFixer } from "../../middleware/corsErrorMiddleware";
 import { config } from "dotenv"
 import { compare } from "bcryptjs";
 import { User, UserDoc } from "../../models/User";
 import { Passsord } from "../../models/Password";
+import { preventGlobalErrors } from "../../common/preventGlobalError";
+import { respond } from "../../common/respond";
 
 //extract env variables
 config()
 
 const router = Router()
 
-router.get("/test", (req, res) => {
-    res.send("just a test")
+const authHandler = preventGlobalErrors(async (req: Request, res: Response) => {
+    //if already logged in return the uid
+    if (req.session.uid)
+        return respond(res, true, { uid: req.session.uid })
+
+    //get data from body
+    const { password, email, name } = req.body
+
+    //check if the email isnt used
+    if (await User.findOne({ email }))
+        return respond(res, false, { email }, ["email is already used"], 400)
+
+    //validate
+    req.check("email", "email isnt valid").isEmail()
+    const errors = req.validationErrors() as any[]
+
+    if (errors)
+        return respond(res, false, {}, errors, 400)
+
+    //generate an uid
+    const uid = await generateUid()
+
+    const user = new User({
+        email, name, uid,
+        friends: [],
+        photo: process.env.DEFAULTPROFILEPIC
+    } as UserDoc) //used for my editor to help me
+
+    //save things in session
+    req.session.uid = uid
+    req.session.save(() => { })
+
+    await Promise.all([
+        encodePassword(password).then(result => savePassword(uid, result)),
+        user.save()
+    ])
+
+    //send uid back
+    return respond(res,true,{ uid })
 })
-
-const loginHtml = (req: Request, res: Response) => {
-    res.send(`
-        <form action="/auth/login" method=post>
-                <div>
-                    <label for=email>email</label>
-                    <input type=text id=email name=email>
-                </div>
-                <div>
-                    <label for=password>password</label>
-                    <input type=password id=password name=password>
-                </div>
-                <div>
-                    <label for=name>name</label>
-                    <input type=name id=name name=name>
-                </div>
-                <button type=submit>Submit</button>
-            </form>
-            <button onclick="
-                    fetch('/',{
-                        headers: {
-                            authorization: 'do u see this?'
-                        }
-                    })">send</button>
-    `)
-}
-
-
-const sayHello = (req: Request, res: Response) => {
-    res.send(`
-        <form action="/auth" method=post>
-            <div>
-                <label for=email>email</label>
-                <input type=text id=email name=email>
-            </div>
-            <div>
-                <label for=password>password</label>
-                <input type=password id=password name=password>
-            </div>
-            <div>
-                <label for=name>name</label>
-                <input type=name id=name name=name>
-            </div>
-            <button type=submit>Submit</button>
-        </form>
-    `)
-}
-
-const authHandler = async (req: Request, res: Response) => {
-    try {
-        //if already logged in return the uid
-        if (req.session.uid)
-            return res.redirect("auth/account")
-
-        //get data from body
-        const { password, email, name } = req.body
-
-        //check if the email isnt used
-        if (await User.findOne({ name }))
-            res.redirect("login")
-
-        //validate
-        req.check("email", "email isnt valid").isEmail()
-        const errors = req.validationErrors()
-
-        if (errors)
-            res.json({ error: `${req.body.email} is not a valid email` })
-
-        //generate an uid
-        const uid = await generateUid()
-
-        const user = new User({
-            email,
-            friends: [],
-            name,
-            photo: process.env.DEFAULTPROFILEPIC,
-            uid
-        } as UserDoc) //used for my editor to help me
-
-        encodePassword(password)
-
-        //save the password and the user in the db
-        await Promise.all([
-            encodePassword(password).then(result => savePassword(uid, result)),
-            user.save()
-        ])
-
-        //save things in session
-        req.session.uid = uid
-
-        //save in the session
-        req.session.save(() => { })
-
-        //send uid back
-        res.json({
-            succes: true,
-            data: {
-                uid
-            }
-        }).status(200)
-    }
-    catch (errors) {
-        //send erros to clinet
-        res.json({ errors })
-    }
-}
 
 const account = async (req: Request, res: Response) => {
     try {
         if (!req.session.uid)
             res.json({
                 succes: false,
+                data: {},
                 errors: ["uid doesnt exist"]
             }).status(203)
 
@@ -139,9 +71,9 @@ const account = async (req: Request, res: Response) => {
             }
         })
     }
-    catch (errors) {
+    catch (err) {
         //send erros to clinet
-        res.json({ errors })
+        res.json({ succes: false, errors: [err] })
     }
 }
 
@@ -202,12 +134,10 @@ const logout = async (req: Request, res: Response) => {
     res.send({ succes: true })
 }
 
-router.use("*", validator(), corsErrorFixer)
+router.use("*", validator())
 
 router
-    .get("/", sayHello)
     .post("/", authHandler)
-    .get("/login", loginHtml)
     .post("/login", login)
     .get("/account", account)
     .get("/logout", logout)
@@ -217,7 +147,5 @@ router
     .get("/test/uid", async (req, res) => {
         res.send(await generateUid())
     })
-
-router.use("/*", reddirect("/auth"))
 
 export const auth = router
