@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "jsx": "preserve"
+    },
+    "exclude": ["node_modules"],
+    "include": ["src"]
+}
