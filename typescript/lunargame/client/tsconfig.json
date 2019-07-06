@@ -2,7 +2,9 @@
     "compilerOptions": {
         "moduleResolution": "node",
         "esModuleInterop": true,
-        "jsx": "preserve"
+        "jsx": "preserve",
+        "noImplicitAny": true,
+        "experimentalDecorators": true
     },
     "exclude": ["node_modules"],
     "include": ["src"]
