@@ -4,7 +4,8 @@
         "esModuleInterop": true,
         "jsx": "preserve",
         "noImplicitAny": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "target": "esnext"
     },
     "exclude": ["node_modules"],
     "include": ["src"]
