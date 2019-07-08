@@ -8,6 +8,7 @@ import { theme as MuiTheme } from '../data/Theme'
 import { ThemeProvider as Theme } from '@material-ui/styles'
 import { AppBar } from './AppBar'
 import { Body } from './Body'
+import { BaseDialogRenderer } from '../../../common/dom/dialogs/components/BaseDialogRenderer'
 
 export const App = () => {
     return (
@@ -16,6 +17,7 @@ export const App = () => {
             <Router>
                 <AppBar />
                 <Body />
+                <BaseDialogRenderer />
             </Router>
         </Theme>
     )
