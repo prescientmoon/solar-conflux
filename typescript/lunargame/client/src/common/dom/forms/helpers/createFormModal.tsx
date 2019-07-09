@@ -22,19 +22,35 @@ export interface ModalProps {
     onClose: Function
 }
 
+export interface FormModalOptions {
+    title: string
+    description: string
+    url: string
+    fields: TextFieldData[]
+    onSubmit: (data: unknown) => void
+}
+
+export const defaultFormModalOptions: FormModalOptions = {
+    title: 'Mymodal',
+    description: 'This is a modal',
+    url: '',
+    fields: [],
+    onSubmit: () => {}
+}
+
 const useStyles = makeStyles((theme: Theme) => ({
     field: {
         marginTop: theme.spacing(2)
     }
 }))
 
-export const createFormModal = (
-    title: string,
-    description: string,
-    url: string,
-    fields: TextFieldData[],
-    onSubmit?: (data: unknown) => void
-) => {
+export const createFormModal = (options: Partial<FormModalOptions> = {}) => {
+    // This merges all options
+    const { fields, title, description, onSubmit, url } = {
+        ...defaultFormModalOptions,
+        ...options
+    }
+
     const formFields = fields.map(
         field =>
             new FormField(
@@ -54,7 +70,7 @@ export const createFormModal = (
             props.onClose(event)
         }
 
-        const classes = useStyles()
+        const classes = useStyles(props)
 
         const textFields = fields.map((field, index) => {
             const fieldObject = formFields[index]

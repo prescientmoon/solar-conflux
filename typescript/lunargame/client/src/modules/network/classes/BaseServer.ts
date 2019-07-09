@@ -26,14 +26,22 @@ export class BaseServer {
     public async request<T>(
         url: string,
         method = 'GET',
-        body = {}
+        body = {},
+        queryParams: Record<string, string | number> = {}
     ): Promise<T> {
         const noBody = ['GET', 'DELETE']
+        const useBody = noBody.indexOf(method) === -1
 
-        const response = await fetch(`${this.path}/${url}`, {
-            ...(noBody.indexOf(method) === -1
-                ? { body: JSON.stringify(body) }
-                : {}),
+        const params = Object.keys(queryParams).map(
+            key => `${key}=${queryParams[key]}`
+        )
+
+        const finalUrl = `${this.path}/${url}${
+            params.length ? '?' : ''
+        }${params.join('&')}`
+
+        const response = await fetch(finalUrl, {
+            ...(useBody ? { body: JSON.stringify(body) } : {}),
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
@@ -42,6 +50,7 @@ export class BaseServer {
             method,
             credentials: 'include'
         })
+
         const parsed: Response<T> = await response.json()
         const status = response.status
 
