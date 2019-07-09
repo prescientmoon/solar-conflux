@@ -1,0 +1,25 @@
+.gameListContainer {
+    overflow-y: scroll;
+    height: 100%;
+    display: block;
+    padding: 5vw;
+}
+
+.gameListContainer > .gameListGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-auto-rows: 1fr;
+}
+
+.gameListGrid::before {
+    content: '';
+    width: 0;
+    padding-bottom: 100%;
+    grid-row: 1 / 1;
+    grid-column: 1 / 1;
+}
+
+.gameListGrid > *:first-child {
+    grid-row: 1 / 1;
+    grid-column: 1 / 1;
+}
