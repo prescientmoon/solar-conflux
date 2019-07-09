@@ -5,7 +5,8 @@ import { Route } from 'react-router-dom'
 
 const useStyles = makeStyles({
     root: {
-        padding: '5%'
+        height: '90vh',
+        display: 'block'
     }
 })
 

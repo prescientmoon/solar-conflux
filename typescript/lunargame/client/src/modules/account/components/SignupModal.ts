@@ -10,11 +10,11 @@ import { DialogManager } from '../../../common/dom/dialogs/classes/DialogManager
 
 const dialogManager = new DialogManager()
 
-export const SignupModal = createFormModal(
-    'Signup',
-    `To create an account you need to provide an username, email and a password.`,
-    'auth/create',
-    [
+export const SignupModal = createFormModal({
+    title: 'Signup',
+    description: `To create an account you need to provide an username, email and a password.`,
+    url: 'auth/create',
+    fields: [
         {
             name: 'name',
             type: 'text',
@@ -31,7 +31,7 @@ export const SignupModal = createFormModal(
             validators: passwordValidatorList()
         }
     ],
-    (data: Account) => {
+    onSubmit: (data: Account) => {
         updateAccount(data)
         dialogManager.add({
             title: 'Email verification',
@@ -41,4 +41,4 @@ export const SignupModal = createFormModal(
             onClose: () => {}
         })
     }
-)
+})

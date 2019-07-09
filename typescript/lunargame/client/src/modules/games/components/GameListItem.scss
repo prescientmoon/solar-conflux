@@ -1,0 +1,16 @@
+@import '../../core/styles/mixins/maxSize.scss';
+
+.gameListItemContainer {
+    padding: 2%;
+}
+
+.gameListItem {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+.gameListItem,
+.gameListItemContainer {
+    @include maxSize();
+}
