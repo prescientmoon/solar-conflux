@@ -1,13 +1,18 @@
 import Koa, { Middleware } from 'koa'
 import session from 'koa-session'
 import knexSessionStore from 'koa-session-knex-store'
-import { DbManager } from '../../db/classes/DbManager'
+import { connection } from '../../db/connection'
 
-const { connection } = new DbManager()
+// The store sessions are saved to
 const store = knexSessionStore(connection, {
     createtable: true
 })
 
+/**
+ * Middleware factory for handling sessions
+ *
+ * @param app The app to handle sessions for
+ */
 export const handleSessions = (app: Koa): Middleware =>
     session(
         {
