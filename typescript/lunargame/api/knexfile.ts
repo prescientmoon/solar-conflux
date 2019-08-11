@@ -10,9 +10,12 @@ const dbFolder = resolve(__dirname, 'db')
 const testFolder = resolve(__dirname, 'test')
 
 // This is used in all configs
-const migrations: Config['migrations'] = {
-    directory: resolve(dbFolder, 'migrations'),
-    tableName: 'migrations'
+const commonConfig: Partial<Config> = {
+    migrations: {
+        directory: resolve(dbFolder, 'migrations'),
+        tableName: 'migrations'
+    },
+    useNullAsDefault: true
 }
 
 // This is the confg we are going to esport
@@ -25,7 +28,7 @@ const config: Partial<Record<iNode_env, Config>> = {
         connection: {
             filename: resolve(dbFolder, dbName)
         },
-        migrations,
+        ...commonConfig,
         seeds: {
             directory: resolve(dbFolder, 'seeds')
         }
@@ -35,7 +38,7 @@ const config: Partial<Record<iNode_env, Config>> = {
         connection: {
             filename: resolve(testFolder, dbName)
         },
-        migrations,
+        ...commonConfig,
         seeds: {
             directory: resolve(testFolder, 'seeds')
         }
