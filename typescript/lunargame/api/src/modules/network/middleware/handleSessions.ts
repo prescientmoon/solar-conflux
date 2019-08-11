@@ -4,7 +4,7 @@ import knexSessionStore from 'koa-session-knex-store'
 import { connection } from '../../db/connection'
 
 // The store sessions are saved to
-const store = knexSessionStore(connection, {
+export const sessionStore = knexSessionStore(connection, {
     createtable: true
 })
 
@@ -16,13 +16,12 @@ const store = knexSessionStore(connection, {
 export const handleSessions = (app: Koa): Middleware =>
     session(
         {
-            key: 'something',
             maxAge: 1000 * 60 * 60 * (24 * 7),
             overwrite: true,
             signed: true,
             rolling: true,
             renew: false,
-            store,
+            store: sessionStore,
             domain: 'localhost'
         },
         app
