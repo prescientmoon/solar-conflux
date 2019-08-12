@@ -1,4 +1,14 @@
 import Router from 'koa-router'
+import { validate } from '../../../common/validation/middleware/validate'
+import { getPasswordByEmail } from '../queries/getPasswordByEmail'
+import { HttpError } from '../../network/classes/HttpError'
+import { checkPassword } from '../helpers/checkPassword'
+import { SignupBodySchema } from '../schemas/SignupBody'
+import { encryptPassword } from '../helpers/encryptPassword'
+import { createAccount } from '../queries/createAccount'
+import { defaultEncryptionMethod } from '../constants'
+import { LoginBodySchema } from '../schemas/LoginBody'
+import { isUnauthorized } from '../middleware/isUnauthorized'
 
 const router = new Router()
 
@@ -10,11 +20,65 @@ router.get('/', (context, next) => {
     return next()
 })
 
-router.post('/login', (context, next) => {
-    context.session.uid = context.request.body.uid
-    context.body = {}
+router.post(
+    '/login',
+    isUnauthorized(),
+    validate(LoginBodySchema, 'body'),
+    async (context, next) => {
+        const { email, password } = context.request.body
 
-    return next()
-})
+        const passwordData = await getPasswordByEmail(email)
+
+        // in case the user doesnt exist
+        if (!passwordData) {
+            throw new HttpError(400)
+        }
+
+        const match = checkPassword(
+            passwordData.password,
+            password,
+            passwordData.passwordEncryption
+        )
+
+        if (!match) {
+            throw new HttpError(400, 'wrong password')
+        }
+
+        context.session.uid = passwordData.id
+
+        context.body = {
+            encryption: passwordData.passwordEncryption,
+            uid: passwordData.id
+        }
+
+        return next()
+    }
+)
+
+router.post(
+    '/signup',
+    isUnauthorized(),
+    validate(SignupBodySchema, 'body'),
+    async (context, next) => {
+        const { email, name, password } = context.request.body
+
+        // encript the password (bcrypt by default)
+        const encryptedPassword = await encryptPassword(password, defaultEncryptionMethod, 10)
+
+        const uid = await createAccount({
+            email,
+            name,
+            password: encryptedPassword,
+            passwordEncryption: defaultEncryptionMethod
+        })
+
+        context.body = {
+            uid,
+            encryption: defaultEncryptionMethod
+        }
+
+        return next()
+    }
+)
 
 export default router

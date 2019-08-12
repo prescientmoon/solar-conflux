@@ -16,8 +16,8 @@ exports.up = knex => {
         // the password of the user
         table.text('password').notNullable()
 
-        // the password encription
-        table.text('password_encription').notNullable()
+        // the password encryption
+        table.text('passwordEncryption').notNullable()
     })
 }
 
