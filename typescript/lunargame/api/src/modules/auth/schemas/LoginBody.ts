@@ -1,7 +1,9 @@
-import Joi from 'joi'
-import { name, password } from './authFields'
+import Joi from '@hapi/joi'
+import { email, password } from './authFields'
 
 export const LoginBodySchema = Joi.object({
-    name,
+    email,
     password
-})
+}).required()
+
+export type LoginBody = Joi.extractType<typeof LoginBodySchema>

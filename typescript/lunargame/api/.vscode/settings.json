@@ -2,5 +2,7 @@
     "eslint.enable": true,
     "editor.formatOnSave": true,
     "prettier.eslintIntegration": true,
-    "explorer.autoReveal": false
+    "explorer.autoReveal": false,
+    "eslint.autoFixOnSave": true,
+    "eslint.validate": ["javascript", { "language": "typescript", "autoFix": true }]
 }

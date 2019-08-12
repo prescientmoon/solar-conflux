@@ -8,15 +8,8 @@ describe('The randomElement function', () => {
     })
 
     test('should throw an error when passing an empty array', () => {
-        let error: Error | undefined
-
-        try {
+        expect(() => {
             randomElement([])
-        } catch (catchedError) {
-            //
-            error = catchedError
-        }
-
-        expect(error).toBeTruthy()
+        }).toThrow()
     })
 })

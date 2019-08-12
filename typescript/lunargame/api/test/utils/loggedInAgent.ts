@@ -1,4 +1,6 @@
 import supertest from 'supertest'
+import 'joi-extract-type'
+import { LoginBody } from '../../src/modules/auth/schemas/LoginBody'
 
 /**
  * Helper to get a supertest agent wich is logged in
@@ -8,10 +10,11 @@ import supertest from 'supertest'
  */
 export const loggedInAgent = async (
     agent: supertest.SuperTest<supertest.Test>,
-    uid: number
+    { email, password }: LoginBody
 ) => {
     const response = await agent.post('/auth/login').send({
-        uid
+        email,
+        password
     })
 
     // the cookie to send back
