@@ -4,7 +4,7 @@ import { HttpError } from '../../network/classes/HttpError'
 /**
  * Middleware wich throws an error if the user is logged in
  */
-export const isUnauthorized = (): Middleware => (context, next) => {
+export const requireAnonymous = (): Middleware => (context, next) => {
     if (context.session.uid === undefined) {
         return next()
     } else {

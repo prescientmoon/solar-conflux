@@ -8,7 +8,7 @@ import { encryptPassword } from '../helpers/encryptPassword'
 import { createAccount } from '../queries/createAccount'
 import { defaultEncryptionMethod } from '../constants'
 import { LoginBodySchema } from '../schemas/LoginBody'
-import { isUnauthorized } from '../middleware/isUnauthorized'
+import { requireAnonymous } from '../middleware/requireAnonymous'
 
 const router = new Router()
 
@@ -22,30 +22,28 @@ router.get('/', (context, next) => {
 
 router.post(
     '/login',
-    isUnauthorized(),
+    requireAnonymous(),
     validate(LoginBodySchema, 'body'),
     async (context, next) => {
         const { email, password } = context.request.body
-
         const passwordData = await getPasswordByEmail(email)
 
         // in case the user doesnt exist
         if (!passwordData) {
-            throw new HttpError(400)
+            throw new HttpError(404)
         }
 
-        const match = checkPassword(
+        const match = await checkPassword(
             passwordData.password,
             password,
             passwordData.passwordEncryption
         )
 
         if (!match) {
-            throw new HttpError(400, 'wrong password')
+            throw new HttpError(422, 'wrong password')
         }
 
         context.session.uid = passwordData.id
-
         context.body = {
             encryption: passwordData.passwordEncryption,
             uid: passwordData.id
@@ -57,7 +55,7 @@ router.post(
 
 router.post(
     '/signup',
-    isUnauthorized(),
+    requireAnonymous(),
     validate(SignupBodySchema, 'body'),
     async (context, next) => {
         const { email, name, password } = context.request.body
