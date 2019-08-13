@@ -11,6 +11,7 @@ export enum HttpStatus {
     Conflict = 409,
     Gone = 410,
     PayloadTooLarge = 413,
+    UnprocessableEntity = 422,
     TooManyRequests = 429,
     InternalServerError = 500
 }
@@ -24,6 +25,7 @@ export const HTTP_REASONS: Record<HttpStatus, string> = {
     '409': 'Conflict',
     '410': 'Gone',
     '413': 'Payload too large',
+    '422': 'Validation error',
     '429': 'Too many requests',
     '500': 'Internal server error'
 }
@@ -34,7 +36,7 @@ export class HttpError extends Error {
     // for some reason instanceof stopped working at some point
     public [httpSymbol] = true
 
-    constructor(
+    public constructor(
         public status: HttpStatus = HttpStatus.InternalServerError,
         public reason?: string
     ) {
