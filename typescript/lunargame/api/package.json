@@ -5,7 +5,8 @@
         "start": "nodemon",
         "reset-db": "knex migrate:rollback && knex migrate:latest && knex seed:run",
         "reset-db:test": "(knex migrate:rollback --env test) && (knex migrate:latest --env test) && (knex seed:run --env test)",
-        "test": "cross-env NODE_ENV=test && jest"
+        "test": "cross-env NODE_ENV=test && jest",
+        "show": "gource -f  --start-date \"2019-07-01 12:00\" --key --hide dirnames,filenames,bloom -s 0.3"
     },
     "main": "index.js",
     "private": true,
