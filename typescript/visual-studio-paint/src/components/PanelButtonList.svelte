@@ -12,12 +12,14 @@
 </style>
 
 <div id="buttons">
-  <List>
-    {#each buttons as button, index}
-      <Item on:SMUI:action={button.action || (() => {})}>
-        <Graphic class="material-icons">{button.icon}</Graphic>
-        <Text>{button.text}</Text>
-      </Item>
-    {/each}
-  </List>
+  {#if process.browser}
+    <List>
+      {#each buttons as button, index}
+        <Item on:SMUI:action={button.action || (() => {})}>
+          <div class="mdc-list-item__graphic material-icons">{button.icon}</div>
+          <div class="mdc-list-item__text">{button.text}</div>
+        </Item>
+      {/each}
+    </List>
+  {/if}
 </div>
