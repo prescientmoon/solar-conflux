@@ -1,9 +1,19 @@
 <script>
-  import Sidebar from "../components/Sidebar.svelte"
-  import Paint from "../components/Paint.svelte"
+  import Sidebar from "../components/Sidebar"
+  import Paint from "../components/Paint"
 
+  import { Painting } from "../classes/Painting"
+  import { brushes } from "../constants/brushes"
   import { renderingContext$ } from "../stores/renderingContext"
-  import { sidebarButtons as buttons } from "../constants/sidebar.ts"
+  import { sidebarButtons as buttons } from "../constants/sidebar"
+  import { currentBrush$ } from "../stores/currentBrush"
+  import { setContext } from "svelte"
+
+  // the contexts are then updated by the CanvasStack component
+  const painting = new Painting(currentBrush$, [], brushes)
+
+  // current way of doing things
+  setContext("painting", painting)
 </script>
 
 <style>

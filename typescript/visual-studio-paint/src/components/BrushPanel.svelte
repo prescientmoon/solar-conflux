@@ -1,9 +1,11 @@
 <script>
-  import List, { Item, Graphic, Text, Separator } from "@smui/list"
+  import List, { Item, Separator } from "@smui/list"
+  import Option from "./Option"
   import { createBrushSelectionHandler } from "../helpers/selectBrush"
+  import { getContext } from "svelte"
 
-  export let currentBrush$
-  export let brushes = []
+  const painting = getContext("painting")
+  const { currentBrush$ } = painting
 </script>
 
 <style>
@@ -12,24 +14,45 @@
     --mdc-theme-text-icon-on-background: var(--panel-icon-color);
   }
 
-  div#brushes-header {
-    font-size: 2rem;
-    font-family: "Righteous", cursive;
+  .option {
+    width: 100%;
+
+    padding: var(--brush-option-spacing);
+    box-sizing: border-box;
+  }
+
+  #options {
+    display: flex;
+    flex-direction: column;
   }
 </style>
 
 <div class="container">
-  <div id="brushes-header">Brushes:</div>
+  <div class="header">Brushes:</div>
 
-  <List>
-    {#each brushes as brush}
-      <Item
-        on:SMUI:action={createBrushSelectionHandler(currentBrush$, brush)}
-        selected={$currentBrush$ === brush}>
-        <Graphic class="material-icons">{brush.icon}</Graphic>
-        <Text>{brush.name}</Text>
-      </Item>
-    {/each}
-  </List>
+  {#if process.browser}
+    <List>
+      {#each painting.brushes as brush}
+        <Item
+          on:SMUI:action={createBrushSelectionHandler(currentBrush$, brush)}
+          selected={$currentBrush$ === brush}>
+          <div class="mdc-list-item__graphic material-icons">{brush.icon}</div>
+          <div class="mdc-list-item__text">{brush.name}</div>
+        </Item>
+      {/each}
+    </List>
+  {/if}
+
+  {#if Object.values($currentBrush$.options || {}).length}
+    <div class="header">Options:</div>
+
+    <div id="options">
+      {#each Object.entries($currentBrush$.options) as option}
+        <div class="option">
+          <Option name={option[0]} {...option[1]} />
+        </div>
+      {/each}
+    </div>
+  {/if}
 
 </div>
