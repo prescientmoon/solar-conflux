@@ -1,15 +1,12 @@
 import * as sapper from "@sapper/app"
-import { renderingContext$ } from "./stores/renderingContext"
-import { interval, combineLatest } from "rxjs"
 import "./constants.scss"
+import "regenerator-runtime/runtime"
 
-sapper.start({
-  target: document.querySelector("#sapper")!
-})
+// load default brush
+import "./constants/brushes"
 
-const loop = interval(100)
-
-combineLatest(loop, renderingContext$).subscribe(([time, context]) => {
-  context.fillStyle = "red"
-  context.fillRect(300, 30, 100, 100)
-})
+try {
+  sapper.start({
+    target: document.querySelector("#sapper")!
+  })
+} catch {}

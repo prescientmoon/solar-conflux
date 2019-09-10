@@ -15,10 +15,12 @@
     "express": "^4.17.1",
     "express-session": "^1.16.2",
     "mainloop.js": "^1.0.4",
+    "regenerator-runtime": "^0.13.3",
     "rxjs": "^6.5.3"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
     "@babel/preset-typescript": "^7.3.3",
     "@smui/button": "^1.0.0-beta.14",
@@ -39,6 +41,7 @@
     "sass-loader": "^8.0.0",
     "style-loader": "^1.0.0",
     "svelte": "^3.0.0",
+    "svelte-color-picker": "^1.0.6",
     "svelte-loader": "^2.9.0",
     "webpack": "^4.7.0"
   }

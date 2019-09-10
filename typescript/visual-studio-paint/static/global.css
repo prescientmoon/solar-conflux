@@ -14,3 +14,26 @@ html {
   height: 100%;
   display: block;
 }
+
+.header {
+  font-size: 2rem;
+  font-family: "Righteous", cursive;
+}
+
+.main-container {
+  border-radius: var(--color-picker-border-radius) rem !important;
+}
+
+.rgb-text-block,
+.hex-text-block,
+.main-container {
+  background-color: var(--bg) !important;
+  color: var(--text-color) !important;
+  border: none !important;
+}
+
+.color-picked-bg {
+  background-color: var(--bg) !important;
+  background-image: none !important;
+  filter: brightness(0.75) !important;
+}
