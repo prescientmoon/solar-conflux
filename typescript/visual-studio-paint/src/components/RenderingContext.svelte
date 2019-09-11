@@ -1,12 +1,14 @@
 <script>
-  import { onMount } from "svelte"
+  import { getContext, onMount } from "svelte"
+  import { clearCanvas } from "../helpers/clearCanvas"
 
   export let width
   export let height
   export let id
   export let output$
   export let mouseHandler
-  export let background = "white"
+
+  const painting = getContext('painting')
 
   let canvas
 
@@ -15,13 +17,7 @@
 
     output$.next(context)
 
-    // context.translate(100, 100)
-    // context.scale(0.3, 0.3)
-    // context.rotate(Math.PI / 4)
-    // context.translate(400, -200)
-
-    context.fillStyle = background
-    context.fillRect(0, 0, width, height)
+    clearCanvas(context, painting)
   })
 </script>
 

@@ -1,6 +1,7 @@
-import { Subject } from "rxjs"
+import { PersistentSubject } from "rxjs-extra"
+import { BehaviorSubject } from "rxjs"
 
 export interface IRenderingContext {
   id: string
-  output$: Subject<CanvasRenderingContext2D>
+  output$: BehaviorSubject<CanvasRenderingContext2D>
 }

@@ -43,7 +43,7 @@
     </List>
   {/if}
 
-  {#if Object.values($currentBrush$.options || {}).length}
+  {#if process.browser && Object.values($currentBrush$.options || {}).length}
     <div class="header">Options:</div>
 
     <div id="options">
@@ -54,5 +54,4 @@
       {/each}
     </div>
   {/if}
-
 </div>

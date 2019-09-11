@@ -17,22 +17,24 @@ const alias = { svelte: path.resolve("node_modules", "svelte") }
 const extensions = [".mjs", ".js", ".json", ".svelte", ".html", ".ts"]
 const mainFields = ["svelte", "module", "browser", "main"]
 
-const commonPlugins = dev
-  ? []
-  : [
-      new MiniCssExtractPlugin({
-        filename: "[name].css",
-        chunkFilename: "[name].[id].css"
-      }),
-      new OptimizeCssAssetsPlugin({
-        assetNameRegExp: /\.css$/g,
-        cssProcessor: require("cssnano"),
-        cssProcessorPluginOptions: {
-          preset: ["default", { discardComments: { removeAll: true } }]
-        },
-        canPrint: true
-      })
-    ]
+const commonPlugins = [
+  ...(dev
+    ? []
+    : [
+        new OptimizeCssAssetsPlugin({
+          assetNameRegExp: /\.css$/g,
+          cssProcessor: require("cssnano"),
+          cssProcessorPluginOptions: {
+            preset: ["default", { discardComments: { removeAll: true } }]
+          },
+          canPrint: true
+        })
+      ]),
+  new MiniCssExtractPlugin({
+    filename: "[name].css",
+    chunkFilename: "[name].[id].css"
+  })
+]
 
 const commonRules = [
   {
@@ -45,9 +47,13 @@ const commonRules = [
 const sassRule = server => ({
   test: /\.(sa|sc|c)ss$/,
   use: [
-    ...(server ? [] : ["style-loader"]),
-    ...(dev ? [] : MiniCssExtractPlugin.loader),
-    "css-loader",
+    MiniCssExtractPlugin.loader,
+    {
+      loader: "css-loader",
+      options: {
+        importLoaders: 1
+      }
+    },
     {
       loader: "sass-loader",
       options: {
@@ -124,6 +130,9 @@ module.exports = {
     mode,
     performance: {
       hints: false // it doesn't matter if server.js is large
+    },
+    node: {
+      __dirname: false
     }
   },
 

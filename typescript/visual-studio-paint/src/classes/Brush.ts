@@ -1,21 +1,30 @@
 import { IBrush } from "../types/IBrush"
 import { IVector2, IVector4 } from "../types/IVector2"
 import { brushOptionTypes } from "../constants/brushOptionTypes"
-import { BehaviorSubject } from "rxjs"
 import { vector4ToColor } from "../helpers/vectorToColor"
+import { PersistentSubject } from "rxjs-extra"
+import { OptionBrush } from "./OptionBrush"
 
-export class Brush implements IBrush {
-  public name = "brush"
+export class Brush extends OptionBrush {
   public icon = "brush"
+
+  public constructor() {
+    super("brush")
+  }
 
   public options = {
     color: {
       type: brushOptionTypes.color,
-      value: new BehaviorSubject<IVector4>([255, 0, 0, 1])
+      value: new PersistentSubject<IVector4>(this.getOptionKey("color"), [
+        255,
+        0,
+        0,
+        1
+      ])
     },
     size: {
       type: brushOptionTypes.number,
-      value: new BehaviorSubject(3)
+      value: new PersistentSubject(this.getOptionKey("size"), 3)
     }
   }
 
@@ -59,16 +68,24 @@ export class SomeOtherBrush implements IBrush {
   public icon = "edit"
 }
 
-export class Bucket implements IBrush {
-  public name = "bucket"
+export class Bucket extends OptionBrush {
   public icon = "perm_media"
+
+  public constructor() {
+    super("bucket")
+  }
 
   public filling = false
 
   public options = {
     color: {
       type: brushOptionTypes.color,
-      value: new BehaviorSubject<IVector4>([255, 0, 0, 1])
+      value: new PersistentSubject<IVector4>(this.getOptionKey("color"), [
+        255,
+        0,
+        0,
+        1
+      ])
     }
   }
 
