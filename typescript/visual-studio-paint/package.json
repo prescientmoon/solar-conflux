@@ -12,11 +12,14 @@
   },
   "dependencies": {
     "compression": "^1.7.1",
+    "connect-session-knex": "^1.4.0",
     "express": "^4.17.1",
     "express-session": "^1.16.2",
-    "mainloop.js": "^1.0.4",
+    "knex": "^0.19.4",
     "regenerator-runtime": "^0.13.3",
-    "rxjs": "^6.5.3"
+    "rxjs": "^6.5.3",
+    "rxjs-extra": "^2.0.1",
+    "sqlite3": "^4.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",
@@ -29,7 +32,7 @@
     "@smui/ripple": "^1.0.0-beta.14",
     "@types/compression": "^1.0.1",
     "@types/express": "^4.17.1",
-    "@types/mainloop.js": "^1.0.5",
+    "@types/express-session": "^1.15.14",
     "babel-loader": "^8.0.6",
     "cross-env": "^5.2.1",
     "css-loader": "^3.2.0",
@@ -39,7 +42,6 @@
     "optimize-css-assets-webpack-plugin": "^5.0.3",
     "sapper": "^0.27.0",
     "sass-loader": "^8.0.0",
-    "style-loader": "^1.0.0",
     "svelte": "^3.0.0",
     "svelte-color-picker": "^1.0.6",
     "svelte-loader": "^2.9.0",
