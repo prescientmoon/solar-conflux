@@ -10,7 +10,7 @@
   import { setContext } from "svelte"
 
   // the contexts are then updated by the CanvasStack component
-  const painting = new Painting(currentBrush$, [], brushes)
+  const painting = new Painting(currentBrush$, brushes)
 
   // current way of doing things
   setContext("painting", painting)

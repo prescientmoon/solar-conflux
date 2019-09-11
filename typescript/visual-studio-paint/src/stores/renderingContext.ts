@@ -1,3 +1,5 @@
-import { Subject } from "rxjs"
+import { BehaviorSubject } from "rxjs"
 
-export const renderingContext$ = new Subject<CanvasRenderingContext2D>()
+export const renderingContext$ = new BehaviorSubject<CanvasRenderingContext2D | null>(
+  null
+)

@@ -10,7 +10,7 @@
   const painting = getContext("painting")
   const { currentBrush$ } = painting
 
-  painting.contexts = canvases
+  painting.contexts$.next(canvases)
 
   const mouseHandler = createMouseHandler(painting)
 </script>
