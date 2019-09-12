@@ -7,8 +7,9 @@
   export let id
   export let output$
   export let mouseHandler
+  export let clear = true
 
-  const painting = getContext('painting')
+  const painting = getContext("painting")
 
   let canvas
 
@@ -17,7 +18,9 @@
 
     output$.next(context)
 
-    clearCanvas(context, painting)
+    if (clear) {
+      clearCanvas(context, painting)
+    }
   })
 </script>
 

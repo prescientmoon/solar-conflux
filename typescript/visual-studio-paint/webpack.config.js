@@ -41,6 +41,20 @@ const commonRules = [
     test: /\.ts$/,
     exclude: resolve(__dirname, "node_modules"),
     use: "babel-loader"
+  },
+  {
+    test: /\.(jpe?g|png|gif|svg|cur)$/i,
+    use: [
+      {
+        loader: "url-loader",
+        options: {
+          limit: 8192
+        }
+      },
+      {
+        loader: "file-loader"
+      }
+    ]
   }
 ]
 

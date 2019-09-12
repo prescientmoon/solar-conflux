@@ -1,13 +1,14 @@
 import { toLocalSpace } from "./toLocalSpace"
 import { Painting } from "../classes/Painting"
 import { take } from "rxjs/operators"
+import { BehaviorSubject } from "rxjs"
 
 export const createMouseHandler = (painting: Painting) => {
-  let mouseState = 0
+  let mouseState = new BehaviorSubject(0)
 
   return {
     down: async (e: MouseEvent) => {
-      mouseState |= 1 << e.button
+      mouseState.next(mouseState.value | (1 << e.button))
 
       if (painting.currentBrush.mouseDown) {
         const contexts = await painting.contextsBehavior$
@@ -16,7 +17,7 @@ export const createMouseHandler = (painting: Painting) => {
 
         const position = toLocalSpace(contexts[0], [e.clientX, e.clientY])
 
-        painting.currentBrush.mouseDown(contexts, mouseState, position)
+        painting.currentBrush.mouseDown(contexts, mouseState.value, position)
       }
     },
     move: async (e: MouseEvent) => {
@@ -27,12 +28,12 @@ export const createMouseHandler = (painting: Painting) => {
 
         const position = toLocalSpace(contexts[0], [e.clientX, e.clientY])
 
-        painting.currentBrush.mouseMove(contexts, mouseState, position)
+        painting.currentBrush.mouseMove(contexts, mouseState.value, position)
       }
     },
     up: async (e: MouseEvent) => {
-      if (mouseState & (1 << e.button)) {
-        mouseState ^= 1 << e.button
+      if (mouseState.value & (1 << e.button)) {
+        mouseState.next(mouseState.value ^ (1 << e.button))
       }
 
       if (painting.currentBrush.mouseUp) {
@@ -41,8 +42,9 @@ export const createMouseHandler = (painting: Painting) => {
           .toPromise()
         const position = toLocalSpace(contexts[0], [e.clientX, e.clientY])
 
-        painting.currentBrush.mouseUp(contexts, mouseState, position)
+        painting.currentBrush.mouseUp(contexts, mouseState.value, position)
       }
-    }
+    },
+    state: () => mouseState
   }
 }

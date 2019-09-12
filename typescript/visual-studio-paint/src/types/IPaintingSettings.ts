@@ -1,3 +1,5 @@
+import { IVector4 } from "./IVector2"
+
 export interface IPaintingSettings {
-  canvasBackground: string
+  "canvas background": IVector4
 }

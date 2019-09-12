@@ -3,13 +3,17 @@
   import { brushOptionTypes } from "../constants/brushOptionTypes"
   import { vector4ToColor, vector4ToHex } from "../helpers/vectorToColor"
   import { HsvPicker } from "svelte-color-picker"
-  import { fly , slide} from "svelte/transition"
+  import { fly, slide } from "svelte/transition"
 
   export let name = ""
   export let type = 0
   export let value
+  export let settings = {}
 
   let extended = false
+  let rangeValue = $value
+
+  $: value.next(rangeValue)
 </script>
 
 <style>
@@ -48,6 +52,13 @@
       on:click={() => {
         extended = !extended
       }} />
+  {:else if type === brushOptionTypes.range}
+    <input
+      bind:value={rangeValue}
+      type="range"
+      min={settings.min || 1}
+      max={settings.max || 100}
+      class="slider reset" />
   {/if}
 
 </div>
