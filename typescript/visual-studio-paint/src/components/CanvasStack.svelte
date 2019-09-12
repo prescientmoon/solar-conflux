@@ -29,7 +29,7 @@
 
 <div
   id="canvas-container"
-  style={`cursor: url("${$currentBrush$ ? `cursors/${getCursor(cursors[$currentBrush$.name], $mouseState$, -1)}` : ''}"), auto`}
+  style={`cursor: url("${$currentBrush$ ? `cursors/${getCursor(cursors[$currentBrush$.name], $mouseState$, -1)}` : ''}") 16 16, auto`}
   class={`full`}>
   {#each canvases as canvas, index}
     <RenderingContext
