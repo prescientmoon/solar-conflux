@@ -2,9 +2,9 @@ import { PersistentSubject } from "rxjs-extra"
 import { BehaviorSubject } from "rxjs"
 
 export class Settings<T extends Record<string, unknown>> {
-  private settingMap = new Map<keyof T, PersistentSubject<any>>()
+  public settingMap = new Map<keyof T, PersistentSubject<any>>()
 
-  public constructor(defaults?: T) {
+  public constructor(public defaults?: T) {
     if (defaults) {
       for (const key in defaults) {
         this.set(key, defaults[key])
@@ -18,7 +18,10 @@ export class Settings<T extends Record<string, unknown>> {
     }
   }
 
-  public get<K extends (keyof T) & string>(name: K, fallback: T[K]) {
+  public get<K extends (keyof T) & string>(
+    name: K,
+    fallback: T[K] = this.defaults![name]
+  ) {
     if (process.browser) {
       return this.settingMap.get(name) as PersistentSubject<T[K]>
     }

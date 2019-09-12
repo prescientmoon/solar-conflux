@@ -4,7 +4,6 @@
 
   import { Painting } from "../classes/Painting"
   import { brushes } from "../constants/brushes"
-  import { renderingContext$ } from "../stores/renderingContext"
   import { sidebarButtons as buttons } from "../constants/sidebar"
   import { currentBrush$ } from "../stores/currentBrush"
   import { setContext } from "svelte"
@@ -31,7 +30,7 @@
 
 <Sidebar {buttons}>
   <div class="full" slot="content">
-    <Paint {renderingContext$} height={1000} width={1000} />
+    <Paint height={1000} width={1000} />
   </div>
   <div slot="panel">
     <slot />

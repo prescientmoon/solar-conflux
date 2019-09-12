@@ -1,5 +1,7 @@
 import * as sapper from "@sapper/app"
-import "./constants.scss"
+import "./styles/constants.scss"
+import "./styles/sliders.scss"
+import "./styles/resetSliders.scss"
 import "regenerator-runtime/runtime"
 
 // load default brush
