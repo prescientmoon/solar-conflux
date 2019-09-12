@@ -1,12 +1,16 @@
 <script>
   import CanvasStack from "./CanvasStack"
 
-  export let renderingContext$
+  import {
+    drawingRenderingContext$,
+    cursorRenderingContext$
+  } from "../stores/renderingContext"
+
   export let width
   export let height
 </script>
 
 <CanvasStack
-  canvases={[{ id: 'a-layer', output$: renderingContext$ }]}
+  canvases={[{ id: 'first-layer', output$: drawingRenderingContext$ }, { id: 'cursor-layer', output$: cursorRenderingContext$ }]}
   {width}
   {height} />

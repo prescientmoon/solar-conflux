@@ -1,16 +1,21 @@
 <script>
   import { stores } from "@sapper/app"
+  import { fly, slide } from "svelte/transition"
+  import { PersistentSubject } from "rxjs-extra"
+  import { BehaviorSubject } from "rxjs"
 
   const { page } = stores()
 
-  let panel = true
+  let panel = process.browser
+    ? new PersistentSubject("panel", false)
+    : new BehaviorSubject(false)
 
   const handleIconClick = e => {
     const parent = e.target.parentNode
 
     if (parent.href === location.href) {
       e.preventDefault()
-      panel = !panel
+      panel.next(!panel.value)
     }
   }
 
@@ -93,8 +98,8 @@
   </div>
 
   <div id="page-content">
-    {#if panel}
-      <div id="panel">
+    {#if $panel}
+      <div id="panel" transition:fly={{ x: -100, y: 0, duration: 100 }}>
         <slot name="panel">Panel content goes here</slot>
       </div>
     {/if}

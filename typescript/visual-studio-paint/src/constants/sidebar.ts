@@ -9,17 +9,10 @@ export const sidebarButtons: ISidebarButtonConfig[] = [
     icon: "edit",
     route: "/brush"
   },
-  {
-    icon: "color_lens",
-    route: "/color"
-  },
+
   {
     icon: "select_all",
     route: "/selection"
-  },
-  {
-    icon: "layers",
-    route: "/layers"
   },
   {
     icon: "settings",

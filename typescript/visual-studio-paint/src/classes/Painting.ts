@@ -2,16 +2,16 @@ import { IRenderingContext } from "../types/IRenderingContext"
 import { BehaviorSubject, Subscription, Observable } from "rxjs"
 import { IBrush } from "../types/IBrush"
 import { filter, map } from "rxjs/operators"
-import { PersistentSubject } from "rxjs-extra"
 import { Settings } from "./Settings"
 import { IPaintingSettings } from "../types/IPaintingSettings"
+import { IVector4 } from "../types/IVector2"
 
 export class Painting {
   public subscriptions: Subscription[] = []
   public contextsBehavior$: Observable<CanvasRenderingContext2D[]>
   public contexts$ = new BehaviorSubject<IRenderingContext[]>([])
   public settings = new Settings<IPaintingSettings>({
-    canvasBackground: "white"
+    "canvas background": [255, 255, 255, 1] as IVector4
   })
 
   public constructor(

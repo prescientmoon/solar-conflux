@@ -16,6 +16,11 @@ export type BrushOption = {
     | BehaviorSubject<IVector4>
     | BehaviorSubject<string>
     | BehaviorSubject<number>
+  settings?: {
+    min?: number
+    max?: number
+    preview?: number
+  }
 }
 
 export interface IBrush {

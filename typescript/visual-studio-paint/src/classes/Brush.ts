@@ -1,9 +1,9 @@
-import { IBrush } from "../types/IBrush"
 import { IVector2, IVector4 } from "../types/IVector2"
 import { brushOptionTypes } from "../constants/brushOptionTypes"
 import { vector4ToColor } from "../helpers/vectorToColor"
 import { PersistentSubject } from "rxjs-extra"
 import { OptionBrush } from "./OptionBrush"
+import { clearCanvas } from "../helpers/clearCanvas"
 
 export class Brush extends OptionBrush {
   public icon = "brush"
@@ -23,7 +23,7 @@ export class Brush extends OptionBrush {
       ])
     },
     size: {
-      type: brushOptionTypes.number,
+      type: brushOptionTypes.range,
       value: new PersistentSubject(this.getOptionKey("size"), 3)
     }
   }
@@ -38,34 +38,44 @@ export class Brush extends OptionBrush {
     if (state & 1) {
       this.lastPosition = position
     }
+
+    this.draw(contexts, state, position)
   }
 
-  public mouseMove(
+  private draw(
     contexts: CanvasRenderingContext2D[],
     state: number,
     position: IVector2
   ) {
+    const [layer, cursor] = contexts
+
+    const color = vector4ToColor(this.options.color.value.value)
+    const size = this.options.size.value.value
+
+    clearCanvas(cursor)
+
+    cursor.strokeStyle = color
+    cursor.beginPath()
+    cursor.arc(position[0], position[1], size / 2, 0, 2 * Math.PI)
+    cursor.stroke()
+
     if (state & 1) {
-      const firstLayer = contexts[0]
+      layer.beginPath()
 
-      firstLayer.beginPath()
+      layer.lineCap = "round"
+      layer.lineWidth = size
+      layer.strokeStyle = color
 
-      firstLayer.lineWidth = this.options.size.value.value
-      firstLayer.strokeStyle = vector4ToColor(this.options.color.value.value)
+      layer.moveTo(...this.lastPosition)
+      layer.lineTo(...position)
 
-      firstLayer.moveTo(...this.lastPosition)
-      firstLayer.lineTo(...position)
-
-      firstLayer.stroke()
+      layer.stroke()
     }
 
     this.lastPosition = position
   }
-}
 
-export class SomeOtherBrush implements IBrush {
-  public name = "other"
-  public icon = "edit"
+  public mouseMove = this.draw
 }
 
 export class Bucket extends OptionBrush {
