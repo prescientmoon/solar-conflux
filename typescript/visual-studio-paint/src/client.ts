@@ -5,7 +5,7 @@ import "./styles/resetSliders.scss"
 import "regenerator-runtime/runtime"
 
 // load default brush
-import "./constants/brushes"
+import "./stores/currentBrush"
 
 try {
   sapper.start({

@@ -10,5 +10,8 @@ export const settings: Record<
 > = {
   "canvas background": {
     type: brushOptionTypes.color
+  },
+  "skip cursor collision checks": {
+    type: brushOptionTypes.boolean
   }
 }

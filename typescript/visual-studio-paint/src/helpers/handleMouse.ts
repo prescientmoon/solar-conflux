@@ -17,7 +17,12 @@ export const createMouseHandler = (painting: Painting) => {
 
         const position = toLocalSpace(contexts[0], [e.clientX, e.clientY])
 
-        painting.currentBrush.mouseDown(contexts, mouseState.value, position)
+        painting.currentBrush.mouseDown({
+          contexts,
+          state: mouseState.value,
+          position,
+          painting
+        })
       }
     },
     move: async (e: MouseEvent) => {
@@ -28,7 +33,12 @@ export const createMouseHandler = (painting: Painting) => {
 
         const position = toLocalSpace(contexts[0], [e.clientX, e.clientY])
 
-        painting.currentBrush.mouseMove(contexts, mouseState.value, position)
+        painting.currentBrush.mouseMove({
+          contexts,
+          state: mouseState.value,
+          position,
+          painting
+        })
       }
     },
     up: async (e: MouseEvent) => {
@@ -42,7 +52,12 @@ export const createMouseHandler = (painting: Painting) => {
           .toPromise()
         const position = toLocalSpace(contexts[0], [e.clientX, e.clientY])
 
-        painting.currentBrush.mouseUp(contexts, mouseState.value, position)
+        painting.currentBrush.mouseUp({
+          contexts,
+          state: mouseState.value,
+          position,
+          painting
+        })
       }
     },
     state: () => mouseState
