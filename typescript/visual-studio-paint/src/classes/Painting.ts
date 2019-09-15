@@ -10,8 +10,10 @@ export class Painting {
   public subscriptions: Subscription[] = []
   public contextsBehavior$: Observable<CanvasRenderingContext2D[]>
   public contexts$ = new BehaviorSubject<IRenderingContext[]>([])
+
   public settings = new Settings<IPaintingSettings>({
-    "canvas background": [255, 255, 255, 1] as IVector4
+    "canvas background": [255, 255, 255, 1] as IVector4,
+    "skip cursor collision checks": false
   })
 
   public constructor(

@@ -47,10 +47,12 @@
     <div class="header">Options:</div>
 
     <div id="options">
-      {#each Object.entries($currentBrush$.options) as option}
-        <div class="option">
-          <Option name={option[0]} {...option[1]} />
-        </div>
+      {#each Object.entries($currentBrush$.options) as [name, option]}
+        {#if !option.hidden}
+          <div class="option">
+            <Option {name} {...option} />
+          </div>
+        {/if}
       {/each}
     </div>
   {/if}

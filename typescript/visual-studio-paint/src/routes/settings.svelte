@@ -7,13 +7,27 @@
 </script>
 
 <style>
-    .header {
-        margin-bottom: 1rem;
-    }
+  .header {
+    margin-bottom: var(--settings-spacing);
+  }
+
+  .settings {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .setting {
+    margin: var(--settings-spacing);
+  }
 </style>
 
 <div class="header">Settings:</div>
 
-{#each Array.from(painting.settings.settingMap) as [name, value]}
-  <Option {name} {...settings[name]} {value} />
-{/each}
+<div class="settings">
+  {#each Array.from(painting.settings.settingMap) as [name, value$]}
+    <div class="setting">
+      <Option {name} {...settings[name]} {value$} />
+    </div>
+  {/each}
+
+</div>
