@@ -5,12 +5,14 @@ export const createBrushSelectionHandler = (
   currentBrush$: BehaviorSubject<IBrush>,
   brush: IBrush
 ) => () => {
-  if (brush === currentBrush$.value) {
+  const other = currentBrush$.value
+
+  if (brush === other) {
     return
   }
 
-  if (currentBrush$.value.disable) {
-    currentBrush$.value.disable(0)
+  if (other.disable) {
+    other.disable(0)
   }
 
   if (brush.enable) {
@@ -20,10 +22,16 @@ export const createBrushSelectionHandler = (
   for (const option in currentBrush$.value.options || {}) {
     if (
       brush.options &&
+      other.options &&
       brush.options[option] &&
-      brush.options[option].type === currentBrush$.value.options![option]!.type
+      other.options[option] &&
+      brush.options[option].hidden !== true &&
+      other.options[option].hidden !== true &&
+      brush.options[option].type === other.options[option].type
     ) {
-      brush.options[option].value = currentBrush$.value.options![option]!.value
+      // this is so hacky...
+      brush.options[option].value$.next(other.options[option].value$
+        .value as never)
     }
   }
 

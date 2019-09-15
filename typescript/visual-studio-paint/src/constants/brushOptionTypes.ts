@@ -3,5 +3,6 @@ export enum brushOptionTypes {
   string,
   number,
   range,
-  color
+  color,
+  boolean
 }

@@ -14,5 +14,12 @@ export const selectionPanelButtonConfigs: IButtonConfig[] = [
 
       clearCanvas(firstLayer, painting)
     }
+  },
+  {
+    icon: "clear",
+    text: "clear storage",
+    action: () => {
+      localStorage.clear()
+    }
   }
 ]
