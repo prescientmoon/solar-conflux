@@ -1,4 +1,3 @@
-import { IBrush } from "../types/IBrush"
 import { IPaintingSettings } from "../types/IPaintingSettings"
 import { brushOptionTypes } from "./brushOptionTypes"
 
