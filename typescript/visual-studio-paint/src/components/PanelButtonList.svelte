@@ -1,6 +1,7 @@
 <script>
   import List, { Item, Graphic, Text } from "@smui/list"
   import { getContext } from "svelte"
+  import { firstCharUppercase } from "../helpers/firstCharUppercase"
 
   const painting = getContext("painting")
 
@@ -20,7 +21,9 @@
       {#each buttons as button, index}
         <Item on:SMUI:action={() => (button.action || (() => {}))(painting)}>
           <div class="mdc-list-item__graphic material-icons">{button.icon}</div>
-          <div class="mdc-list-item__text">{button.text}</div>
+          <div class="mdc-list-item__text">
+            {firstCharUppercase(button.text)}
+          </div>
         </Item>
       {/each}
     </List>
