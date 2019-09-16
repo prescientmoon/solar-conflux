@@ -58,13 +58,14 @@ export class Brush extends OptionBrush implements IBrush {
     const size = this.options.size.value$.value
     const cursorRadius = size / 2
 
+    const skipChecks = painting.settings.get("skip cursor collision checks")
+      .value
+    const inBounds =
+      skipChecks || !cursorOutOfBounds(cursor, position, cursorRadius)
+
     clearCanvas(cursor)
 
-    if (
-      this.options["cursor border"].value$.value &&
-      (painting.settings.get("skip cursor collision checks").value ||
-        !cursorOutOfBounds(cursor, position, cursorRadius))
-    ) {
+    if (this.options["cursor border"].value$.value && inBounds) {
       cursor.strokeStyle = color
       cursor.beginPath()
       cursor.arc(position[0], position[1], cursorRadius, 0, 2 * Math.PI)

@@ -1,5 +1,7 @@
 import { Brush } from "./Brush"
 import { IBrush, BrushMouseHandlerArguments } from "../types/IBrush"
+import { IVector4 } from "../types/IVector2"
+import { Painting } from "./Painting"
 
 export class Eraser extends Brush implements IBrush {
   public icon = "eraser"
@@ -12,18 +14,22 @@ export class Eraser extends Brush implements IBrush {
     this.reset()
   }
 
-  private reset() {
-    this.options["color"].value$.next([255, 255, 255, 1])
+  private reset(color: IVector4 = [255, 255, 255, 1]) {
+    this.options["color"].value$.next(color)
+  }
+
+  private resetWithPainting(painting: Painting) {
+    this.reset(painting.settings.get("canvas background").value)
   }
 
   public mouseDown(args: BrushMouseHandlerArguments) {
-    this.reset()
+    this.resetWithPainting(args.painting)
 
     super.mouseDown(args)
   }
 
   public mouseMove(args: BrushMouseHandlerArguments) {
-    this.reset()
+    this.resetWithPainting(args.painting)
 
     super.mouseMove(args)
   }
