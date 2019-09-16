@@ -48,18 +48,24 @@
   }
 </style>
 
-<div class="header">File:</div>
+<header>
+  <div class="header">File:</div>
+</header>
 
-<List {buttons} />
+<section>
+  <List {buttons} />
+</section>
 
-<div
-  id="upolad"
-  class:dropping
-  on:dragover|preventDefault
-  on:drop|preventDefault={drop}
-  on:dragenter={setDropping(true)}
-  on:dragleave={setDropping(false)}>
-  <div id="upolad-text">Upolad</div>
-</div>
+<section>
+  <div
+    id="upolad"
+    class:dropping
+    on:dragover|preventDefault
+    on:drop|preventDefault={drop}
+    on:dragenter={setDropping(true)}
+    on:dragleave={setDropping(false)}>
+    <div id="upolad-text">Upolad</div>
+  </div>
 
-<div id="upolad-description">Drop your file onto the "upolad" zone</div>
+  <div id="upolad-description">Drop your file onto the "upolad" zone</div>
+</section>

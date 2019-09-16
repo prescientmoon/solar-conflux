@@ -26,6 +26,8 @@
   <link
     href="https://fonts.googleapis.com/icon?family=Material+Icons"
     rel="stylesheet" />
+
+  <title>Visual studio paint</title>
 </svelte:head>
 
 <Sidebar {buttons}>

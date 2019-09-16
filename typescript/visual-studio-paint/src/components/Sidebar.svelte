@@ -84,29 +84,34 @@
 </style>
 
 <div id="page">
-  <div id="sidebar">
-    {#each buttons as button}
-      <a
-        class:sidebar-icon={true}
-        class:current={$page.path === button.route}
-        on:click={handleIconClick}
-        href={button.route}>
+  <nav>
+    <div id="sidebar">
+      {#each buttons as button}
+        <a
+          class:sidebar-icon={true}
+          class:current={$page.path === button.route}
+          on:click={handleIconClick}
+          href={button.route}>
 
-        <i class="material-icons">{button.icon}</i>
-      </a>
-    {/each}
-  </div>
-
+          <i class="material-icons">{button.icon}</i>
+        </a>
+      {/each}
+    </div>
+  </nav>
   <div id="page-content">
     {#if $panel}
-      <div id="panel" transition:fly={{ x: -100, y: 0, duration: 100 }}>
-        <slot name="panel">Panel content goes here</slot>
-      </div>
+      <aside>
+        <div id="panel" transition:fly={{ x: -100, y: 0, duration: 100 }}>
+          <slot name="panel">Panel content goes here</slot>
+        </div>
+      </aside>
     {/if}
 
-    <div id="content" style={`width:calc(100% - var(--panel-width));`}>
-      <slot name="content" />
-    </div>
+    <main>
+      <div id="content" style={`width:calc(100% - var(--panel-width));`}>
+        <slot name="content" />
+      </div>
+    </main>
   </div>
 
 </div>
