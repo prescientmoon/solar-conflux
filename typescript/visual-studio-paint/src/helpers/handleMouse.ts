@@ -21,7 +21,8 @@ export const createMouseHandler = (painting: Painting) => {
           contexts,
           state: mouseState.value,
           position,
-          painting
+          painting,
+          raw: e
         })
       }
     },
@@ -37,7 +38,8 @@ export const createMouseHandler = (painting: Painting) => {
           contexts,
           state: mouseState.value,
           position,
-          painting
+          painting,
+          raw: e
         })
       }
     },
@@ -56,7 +58,8 @@ export const createMouseHandler = (painting: Painting) => {
           contexts,
           state: mouseState.value,
           position,
-          painting
+          painting,
+          raw: e
         })
       }
     },

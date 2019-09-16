@@ -20,14 +20,12 @@ export class Painting {
     public currentBrush$: BehaviorSubject<IBrush>,
     public brushes: IBrush[]
   ) {
-    if (currentBrush$ && brushes) {
-      this.contextsBehavior$ = this.contexts$.pipe(
-        map(contexts => {
-          return contexts.map(context => context.output$.value)
-        }),
-        filter(contexts => contexts.length === contexts.filter(Boolean).length)
-      )
-    }
+    this.contextsBehavior$ = this.contexts$.pipe(
+      map(contexts => {
+        return contexts.map(context => context.output$.value)
+      }),
+      filter(contexts => contexts.length === contexts.filter(Boolean).length)
+    )
   }
 
   public get currentBrush() {

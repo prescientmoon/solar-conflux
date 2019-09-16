@@ -11,6 +11,7 @@ export interface BrushMouseHandlerArguments {
   state: mouseState
   position: IVector2
   painting: Painting
+  raw: MouseEvent
 }
 
 export type mouseHandler = (args: BrushMouseHandlerArguments) => void
