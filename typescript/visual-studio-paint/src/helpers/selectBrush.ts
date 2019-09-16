@@ -19,7 +19,7 @@ export const createBrushSelectionHandler = (
     brush.enable(0)
   }
 
-  for (const option in currentBrush$.value.options || {}) {
+  for (const option in other.options || {}) {
     if (
       brush.options &&
       other.options &&

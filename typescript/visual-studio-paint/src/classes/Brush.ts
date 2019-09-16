@@ -5,10 +5,10 @@ import { PersistentSubject } from "rxjs-extra"
 import { OptionBrush } from "./OptionBrush"
 import { clearCanvas } from "../helpers/clearCanvas"
 import { cursorOutOfBounds } from "../helpers/cursorOutOfBounds"
-import { BrushMouseHandlerArguments, IBrush } from "../types/IBrush"
+import { BrushMouseHandlerArguments, IBrush, BrushIcon } from "../types/IBrush"
 
 export class Brush extends OptionBrush implements IBrush {
-  public icon = "brush"
+  public icon: BrushIcon = "brush"
 
   public constructor(name = "brush") {
     super(name)

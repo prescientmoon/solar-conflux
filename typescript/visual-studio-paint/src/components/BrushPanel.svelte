@@ -1,8 +1,10 @@
 <script>
-  import List, { Item, Separator } from "@smui/list"
+  import Icon from "./Icon"
   import Option from "./Option"
+  import List, { Item, Separator } from "@smui/list"
   import { createBrushSelectionHandler } from "../helpers/selectBrush"
   import { getContext } from "svelte"
+  import { firstCharUppercase } from "../helpers/firstCharUppercase"
 
   const painting = getContext("painting")
   const { currentBrush$ } = painting
@@ -36,8 +38,12 @@
         <Item
           on:SMUI:action={createBrushSelectionHandler(currentBrush$, brush)}
           selected={$currentBrush$ === brush}>
-          <div class="mdc-list-item__graphic material-icons">{brush.icon}</div>
-          <div class="mdc-list-item__text">{brush.name}</div>
+          <div class="mdc-list-item__graphic">
+            <Icon config={brush.icon} />
+          </div>
+          <div class="mdc-list-item__text">
+            {firstCharUppercase(brush.name)}
+          </div>
         </Item>
       {/each}
     </List>
@@ -47,7 +53,7 @@
     <div class="header">Options:</div>
 
     <div id="options">
-      {#each Object.entries($currentBrush$.options) as [name, option]}
+      {#each Object.entries($currentBrush$.options) as [name, option] (`${name} ${$currentBrush$.name} ${option.type}`)}
         {#if !option.hidden}
           <div class="option">
             <Option {name} {...option} />

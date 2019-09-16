@@ -2,9 +2,14 @@ import { Brush } from "./Brush"
 import { IBrush, BrushMouseHandlerArguments } from "../types/IBrush"
 import { IVector4 } from "../types/IVector2"
 import { Painting } from "./Painting"
+import { mdiEraserVariant } from "@mdi/js"
+import { iconTypes } from "../constants/iconTypes"
 
 export class Eraser extends Brush implements IBrush {
-  public icon = "eraser"
+  public icon = {
+    type: iconTypes.svg,
+    data: mdiEraserVariant
+  }
 
   public constructor() {
     super("eraser")
