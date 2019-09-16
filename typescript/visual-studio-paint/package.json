@@ -6,23 +6,17 @@
     "prebuild": "rimraf ./src/node_modules/@sapper",
     "build": "cross-env NODE_ENV=production sapper build",
     "export": "cross-env NODE_ENV=production sapper export",
-    "start": "node __sapper__/build",
-    "cy:run": "cypress run",
-    "cy:open": "cypress open",
-    "test": "run-p --race dev cy:run"
+    "start": "node __sapper__/build"
   },
   "dependencies": {
     "@mdi/js": "^4.4.95",
     "compression": "^1.7.1",
-    "connect-session-knex": "^1.4.0",
     "express": "^4.17.1",
-    "express-session": "^1.16.2",
     "file-saver": "^2.0.2",
     "knex": "^0.19.4",
     "regenerator-runtime": "^0.13.3",
     "rxjs": "^6.5.3",
-    "rxjs-extra": "^2.0.1",
-    "sqlite3": "^4.1.0"
+    "rxjs-extra": "^2.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",
@@ -36,7 +30,6 @@
     "@smui/switch": "^1.0.0-beta.15",
     "@types/compression": "^1.0.1",
     "@types/express": "^4.17.1",
-    "@types/express-session": "^1.15.14",
     "@types/file-saver": "^2.0.1",
     "babel-loader": "^8.0.6",
     "cross-env": "^5.2.1",
