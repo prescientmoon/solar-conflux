@@ -31,7 +31,7 @@
     background-color: var(--bg);
   }
 
-  div#sidebar {
+  nav#sidebar {
     display: flex;
     flex-direction: column;
 
@@ -41,7 +41,7 @@
     background-color: var(--sidebar-bg);
   }
 
-  div#sidebar > .sidebar-icon {
+  .sidebar-icon {
     color: var(--sidebar-text-color);
     margin: var(--sidebar-spacing);
     cursor: pointer;
@@ -54,7 +54,7 @@
     font-size: 2em;
   }
 
-  div#sidebar > .sidebar-icon.current {
+  .sidebar-icon.current {
     filter: brightness(2);
     text-shadow: 0 0 var(--sidebar-glow-size) var(--sidebar-glow-color);
   }
@@ -84,19 +84,17 @@
 </style>
 
 <div id="page">
-  <nav>
-    <div id="sidebar">
-      {#each buttons as button}
-        <a
-          class:sidebar-icon={true}
-          class:current={$page.path === button.route}
-          on:click={handleIconClick}
-          href={button.route}>
+  <nav id="sidebar">
+    {#each buttons as button}
+      <a
+        class:sidebar-icon={true}
+        class:current={$page.path === button.route}
+        on:click={handleIconClick}
+        href={button.route}>
 
-          <i class="material-icons">{button.icon}</i>
-        </a>
-      {/each}
-    </div>
+        <i class="material-icons">{button.icon}</i>
+      </a>
+    {/each}
   </nav>
   <div id="page-content">
     {#if $panel}
@@ -107,11 +105,11 @@
       </aside>
     {/if}
 
-    <main>
-      <div id="content" style={`width:calc(100% - var(--panel-width));`}>
+    <div id="content" style={`width:calc(100% - var(--panel-width));`}>
+      <main>
         <slot name="content" />
-      </div>
-    </main>
+      </main>
+    </div>
   </div>
 
 </div>
