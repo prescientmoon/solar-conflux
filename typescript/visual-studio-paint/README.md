@@ -1,6 +1,7 @@
 # Visual studio paint
 
 This is a paint - like program made in 1 week for the [code community](https://discord.gg/RFPVysw) code jam
+You can check out [the demo](http://visual-studio-paint.herokuapp.com/)!
 
 # Tehnologies
 
