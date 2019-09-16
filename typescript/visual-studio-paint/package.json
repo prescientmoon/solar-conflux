@@ -2,8 +2,10 @@
   "name": "sapper-client",
   "version": "0.0.1",
   "scripts": {
+    "predev": "npm run clean",
     "dev": "sapper dev",
-    "prebuild": "rimraf ./src/node_modules/@sapper",
+    "clean": "rimraf ./src/node_modules/@sapper",
+    "prebuild": "npm run clean",
     "build": "cross-env NODE_ENV=production sapper build",
     "export": "cross-env NODE_ENV=production sapper export",
     "start": "node __sapper__/build"
