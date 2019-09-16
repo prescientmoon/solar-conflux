@@ -12,6 +12,7 @@
     "test": "run-p --race dev cy:run"
   },
   "dependencies": {
+    "@mdi/js": "^4.4.95",
     "compression": "^1.7.1",
     "connect-session-knex": "^1.4.0",
     "express": "^4.17.1",

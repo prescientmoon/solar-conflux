@@ -2,6 +2,7 @@ import { IVector2, IVector4 } from "./IVector2"
 import { brushOptionTypes } from "../constants/brushOptionTypes"
 import { BehaviorSubject } from "rxjs"
 import { Painting } from "../classes/Painting"
+import { iconTypes } from "../constants/iconTypes"
 
 export type mouseState = number
 
@@ -29,9 +30,16 @@ export type BrushOption = {
   hidden?: boolean
 }
 
+export type BrushIcon =
+  | string
+  | {
+      type: iconTypes
+      data: string
+    }
+
 export interface IBrush {
   name: string
-  icon: string
+  icon: BrushIcon
 
   options?: Record<string, BrushOption>
 
