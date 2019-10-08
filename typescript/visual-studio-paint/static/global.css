@@ -1,39 +1,40 @@
 @import url("https://fonts.googleapis.com/css?family=Righteous&display=swap");
-
+@import url("https://fonts.googleapis.com/css?family=Montserrat&display=swap");
 body,
 html {
-  margin: 0;
-  padding: 0;
-  display: block;
-  height: 100%;
-  width: 100%;
+    margin: 0;
+    padding: 0;
+    display: block;
+    height: 100%;
+    width: 100%;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .full {
-  width: 100%;
-  height: 100%;
-  display: block;
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 .header {
-  font-size: 2rem;
-  font-family: "Righteous", cursive;
+    font-size: 1.5rem;
+    font-family: "Righteous", cursive;
 }
 
 .main-container {
-  border-radius: var(--color-picker-border-radius) rem !important;
+    border-radius: var(--color-picker-border-radius) rem !important;
 }
 
 .rgb-text-block,
 .hex-text-block,
 .main-container {
-  background-color: var(--bg) !important;
-  color: var(--text-color) !important;
-  border: none !important;
+    background-color: var(--bg) !important;
+    color: var(--text-color) !important;
+    border: none !important;
 }
 
 .color-picked-bg {
-  background-color: var(--bg) !important;
-  background-image: none !important;
-  filter: brightness(0.75) !important;
+    background-color: var(--bg) !important;
+    background-image: none !important;
+    filter: brightness(0.75) !important;
 }

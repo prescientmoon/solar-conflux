@@ -1,35 +1,27 @@
 :root {
-  --bg: rgb(41, 45, 62);
-  --text-color: white;
-  --spacing: 2rem;
-
-  --sidebar-spacing: 0.5em;
-  --sidebar-transition: 0.5s;
-  --sidebar-bg: rgb(27, 30, 43);
-  --sidebar-text-color: #aaa;
-  --sidebar-glow-color: white;
-  --sidebar-glow-size: 7px;
-
-  --sidebar-divider-bg: black;
-
-  --panel-width: 300px;
-  --panel-horizontal-padding: 1rem;
-  --panel-vertical-padding: 0.5rem;
-
-  --panel-icon-color: #aaa;
-  --panel-text-color: #b4b4b4;
-
-  --brush-option-spacing: 0.5rem;
-  --settings-spacing: var(--brush-option-spacing);
-
-  --color-picker-border-radius: 0.3rem;
-
-  --slider-track-height: 0.5rem;
-  --slider-thumb-height: 1.5rem;
-  --slider-bg: var(--bg);
-  --slider-thumb-bg: var(--sidebar-text-color);
-  --slider-track-radius: 0.3rem;
-
-  --upolad-padding: 3rem;
-  --upolad-margin: 1rem;
+    --bg: rgb(41, 45, 62);
+    --text-color: white;
+    --spacing: 2rem;
+    --sidebar-spacing: 0.3em;
+    --sidebar-transition: 0.5s;
+    --sidebar-bg: rgb(41, 45, 62);
+    --sidebar-text-color: rgb(255, 255, 255);
+    --sidebar-glow-color: rgb(146, 146, 146);
+    --sidebar-glow-size: 3px;
+    --sidebar-divider-bg: rgb(201, 201, 201);
+    --panel-width: 250px;
+    --panel-horizontal-padding: 1rem;
+    --panel-vertical-padding: 0.5rem;
+    --panel-icon-color: rgb(255, 255, 255);
+    --panel-text-color: #ffffff;
+    --brush-option-spacing: 0.5rem;
+    --settings-spacing: var(--brush-option-spacing);
+    --color-picker-border-radius: 0.3rem;
+    --slider-track-height: 0.5rem;
+    --slider-thumb-height: 1.5rem;
+    --slider-bg: var(--bg);
+    --slider-thumb-bg: var(--sidebar-text-color);
+    --slider-track-radius: 0.3rem;
+    --upolad-padding: 3rem;
+    --upolad-margin: 1rem;
 }
