@@ -22,6 +22,9 @@ div#page-content {
     height: 100%;
     color: var(--on-bg, black);
     padding: var(--spacing, 1rem);
+    overflow-y: auto;
+    padding: calc(2 * var(--font-size, 1em) + 4 * var(--spacing, 1rem));
+    box-sizing: border-box;
 }
 
 body {

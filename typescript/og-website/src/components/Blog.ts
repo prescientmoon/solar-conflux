@@ -4,6 +4,8 @@ import { withCss } from '../helpers/withCss'
 export const Blog = () => html`
     ${withCss('blog')}
     <div class="full center">
-        <div id="blog-title">This page is still in construction!</div>
+        <div class="title">
+            This page is still in construction!
+        </div>
     </div>
 `
