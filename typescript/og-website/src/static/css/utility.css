@@ -15,3 +15,28 @@
     justify-content: center;
     align-items: center;
 }
+
+.glow {
+    animation: glow var(--glow-duration, 1s) ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 10px var(--glow-color-1, white),
+            0 0 20px var(--glow-color-1, white),
+            0 0 30px var(--glow-color-2, white),
+            0 0 40px var(--glow-color-2, white),
+            0 0 50px var(--glow-color-2, white),
+            0 0 60px var(--glow-color-2, white),
+            0 0 70px var(--glow-color-2, white);
+    }
+    to {
+        text-shadow: 0 0 20px var(--glow-color-1, white),
+            0 0 30px var(--glow-color-3, white),
+            0 0 40px var(--glow-color-3, white),
+            0 0 50px var(--glow-color-3, white),
+            0 0 60px var(--glow-color-3, white),
+            0 0 70px var(--glow-color-3, white),
+            0 0 80px var(--glow-color-3, white);
+    }
+}

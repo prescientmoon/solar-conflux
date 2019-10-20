@@ -1,11 +1,38 @@
 div.project-thumbail {
-    width: 100px;
-    height: 100px;
+    width: 200px;
+    height: 200px;
     display: block;
-    margin: var(--spacing, 1rem);
 }
 
 div.project {
     background-color: var(--bg-raised, black);
     margin: var(--spacing, 1rem);
+    border-radius: var(--spacing, 1rem);
+}
+
+div.project > div {
+    margin: var(--spacing, 1rem);
+    text-align: center;
+    box-sizing: border-box;
+}
+
+div.project-name {
+    border-bottom: 1px solid #777777;
+    padding-bottom: var(--spacing, 1rem);
+}
+
+div.project-links {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+div#projects {
+    flex-direction: row;
+    flex-wrap: wrap;
+    font-family: var(--title-font);
+}
+
+div.project-links *:hover {
+    animation: glow var(--glow-duration, 1s) ease-in-out infinite alternate;
 }

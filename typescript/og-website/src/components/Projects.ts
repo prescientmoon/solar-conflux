@@ -8,7 +8,8 @@ export const Project = (project: ProjectConfig) => {
     return html`
         <div class="project">
             <div class="project-thumbail background" style=${style}></div>
-            <div class="project-icons">
+            <div class="project-name">${project.name}</div>
+            <div class="project-links">
                 <a class="project-source" href=${project.source}>Source</a>
                 <a class="project-demo" href=${project.demo}>Demo</a>
             </div>
