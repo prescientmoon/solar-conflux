@@ -1,7 +1,7 @@
 import { UrlConfig } from '../types/UrlConfig'
 import { Home } from '../components/Home'
 import { Projects } from '../components/Projects'
-import { html } from '@popeindustries/lit-html-server'
+import { Blog } from '../components/Blog'
 
 export const buttons: UrlConfig[] = [
     {
@@ -17,6 +17,6 @@ export const buttons: UrlConfig[] = [
     {
         url: '/blog',
         name: 'Blog',
-        component: () => html``
+        component: Blog
     }
 ]
