@@ -1,0 +1,4 @@
+div#blog-title {
+    font-size: 3rem;
+    font-family: var(--title-font);
+}
