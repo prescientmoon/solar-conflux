@@ -3,8 +3,11 @@ import { Layout } from './components/Layout'
 import { resolve } from 'path'
 import { createPageMiddlewareFactory } from './middleware/servePage'
 import { buttons } from './constants/navButtons'
+import { config } from 'dotenv'
 
-const port = process.env.PORT || 8080
+config()
+
+const port = Number(process.env.PORT) || 8080
 const app = express()
 
 const renderComponent = createPageMiddlewareFactory(Layout, 'Matei Adriel')

@@ -1,7 +1,10 @@
 div#nav {
     width: 100%;
     padding: var(--spacing, 1rem);
-    position: absolute;
+    position: fixed;
+    font-size: var(--font-size);
+    background-color: var(--nav-bg);
+    filter: hue-rotate(180deg);
 }
 
 div#nav-buttons {
@@ -17,4 +20,11 @@ a.nav-button:hover {
     animation: glow var(--transition-ruration, 1s) ease-in-out infinite
         alternate;
     --glow-color-3: red;
+}
+
+@media screen and (min-width: 800px) {
+    div#nav {
+        background-color: transparent;
+        filter: none;
+    }
 }

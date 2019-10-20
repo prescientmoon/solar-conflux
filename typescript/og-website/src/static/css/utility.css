@@ -41,3 +41,9 @@
             0 0 80px var(--glow-color-3, white);
     }
 }
+
+.title {
+    font-size: var(--title-font-size, 1em);
+    font-family: var(--title-font);
+    text-align: center;
+}

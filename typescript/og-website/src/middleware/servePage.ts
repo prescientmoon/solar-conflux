@@ -10,6 +10,7 @@ export const createPageMiddlewareFactory = (
         request: Request,
         response: Response
     ) => {
+        console.log(`Serving page ${config.title}`)
         renderComponent(response, config)
     }
 }
