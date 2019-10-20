@@ -6,4 +6,8 @@
     --on-bg: white;
     --title-font: 'Permanent Marker', cursive;
     --home-bg: url(https://cdn.discordapp.com/attachments/485859146558865408/635409620537442325/Wallpaper_space_galaxy_planet_4k_Space_8652415352.jpg);
+    --glow-color-1: white;
+    --glow-color-2: cyan;
+    --glow-color-3: blue;
+    --glow-duration: 2s;
 }

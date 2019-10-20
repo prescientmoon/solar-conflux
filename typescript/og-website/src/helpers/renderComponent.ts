@@ -5,10 +5,11 @@ import { Response } from 'express'
 export const createComponentRenderer = (
     layout: (options: LayoutOptions) => TemplateResult,
     name: string
-) => (res: Response, { body, title }: LayoutOptions) => {
+) => (res: Response, { body, title, url }: LayoutOptions) => {
     renderToStream(
         layout({
             body,
+            url,
             title: `${name} | ${title}`
         })
     ).pipe(res)

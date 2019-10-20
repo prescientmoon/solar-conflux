@@ -1,6 +1,7 @@
 div#nav {
     width: 100%;
     padding: var(--spacing, 1rem);
+    position: absolute;
 }
 
 div#nav-buttons {
@@ -10,4 +11,9 @@ div#nav-buttons {
 a.nav-button {
     margin: var(--spacing, 1rem);
     font-family: var(--title-font);
+}
+
+a.nav-button:hover {
+    animation: glow var(--glow-duration, 1s) ease-in-out infinite alternate;
+    --glow-color-3: red;
 }
