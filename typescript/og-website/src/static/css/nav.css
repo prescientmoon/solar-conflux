@@ -1,0 +1,13 @@
+div#nav {
+    width: 100%;
+    padding: var(--spacing, 1rem);
+}
+
+div#nav-buttons {
+    display: flex;
+}
+
+a.nav-button {
+    margin: var(--spacing, 1rem);
+    font-family: var(--title-font);
+}
