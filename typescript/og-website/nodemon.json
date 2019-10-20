@@ -1,0 +1,6 @@
+{
+    "$schema": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/nodemon.json",
+    "exec": "npm start",
+    "ext": "js,json,ts",
+    "ignore": ["node_modules", ".gitignore", ".vscode"]
+}

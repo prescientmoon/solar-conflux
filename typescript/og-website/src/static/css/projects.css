@@ -1,0 +1,11 @@
+div.project-thumbail {
+    width: 100px;
+    height: 100px;
+    display: block;
+    margin: var(--spacing, 1rem);
+}
+
+div.project {
+    background-color: var(--bg-raised, black);
+    margin: var(--spacing, 1rem);
+}

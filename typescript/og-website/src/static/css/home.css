@@ -1,0 +1,20 @@
+div#nav {
+    position: absolute;
+}
+
+div#home-title {
+    max-width: 80%;
+    font-size: 3em;
+    text-align: center;
+    font-family: var(--title-font);
+}
+
+a.home-button {
+    background-color: rgba(128, 128, 128, 0.5);
+    padding: var(--spacing, 1rem);
+    border-radius: var(--spacing, 1rem);
+}
+
+div#home-buttons {
+    padding: var(--spacing, 0.5rem);
+}

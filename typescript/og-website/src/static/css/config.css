@@ -1,0 +1,9 @@
+:root {
+    --spacing: 1rem;
+    --on-raised: white;
+    --bg-raised: #444444;
+    --bg: #222222;
+    --on-bg: white;
+    --title-font: 'Permanent Marker', cursive;
+    --home-bg: url(https://cdn.discordapp.com/attachments/485859146558865408/635409620537442325/Wallpaper_space_galaxy_planet_4k_Space_8652415352.jpg);
+}
