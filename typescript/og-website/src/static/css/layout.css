@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css?family=Permanent+Marker&display=swap');
+@import './utility.css';
+
+html,
+body {
+    height: 100%;
+    width: 100%;
+    display: block;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+a {
+    text-decoration: none;
+    outline: none;
+    color: var(--on-bg, black);
+}
+
+div#page-content {
+    display: block;
+    height: 100%;
+    color: var(--on-bg, black);
+    padding: var(--spacing, 1rem);
+}
+
+body {
+    background-image: var(--home-bg);
+}
