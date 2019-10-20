@@ -10,7 +10,7 @@ export const HomeButton = (config: UrlConfig) => html`
 export const Home = () => html`
     ${withCss('home')}
     <div id="home" class="full center">
-        <div id="home-title">
+        <div id="home-title" class="title">
             Hello! I'm Matei Adriel!
         </div>
 

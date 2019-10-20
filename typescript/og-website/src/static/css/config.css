@@ -2,7 +2,7 @@
     --spacing: 1rem;
     --on-raised: white;
     --bg-raised: #444444;
-    --bg: #222222;
+    --nav-bg: rgba(79, 79, 79, 0.3);
     --on-bg: white;
     --title-font: 'Permanent Marker', cursive;
     --home-bg: url(https://cdn.discordapp.com/attachments/485859146558865408/635409620537442325/Wallpaper_space_galaxy_planet_4k_Space_8652415352.jpg);
@@ -13,4 +13,13 @@
     --project-var-multiplier: 3;
     --project-thumbail-scale: 1.1;
     --project-thumbail-size: 200px;
+    --title-font-size: 7vw;
+    --font-size: 3vw;
+}
+
+@media screen and (max-width: 800px) {
+    :root {
+        --title-font-size: 3rem;
+        --font-size: 1.4rem;
+    }
 }
