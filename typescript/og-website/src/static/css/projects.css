@@ -1,7 +1,21 @@
 div.project-thumbail {
-    width: 200px;
-    height: 200px;
+    width: var(--project-thumbail-size, 100px);
+    height: var(--project-thumbail-size, 100px);
     display: block;
+    transition: transform
+            calc(var(--transition-duration) / var(--project-var-multiplier, 3)),
+        border-radius
+            calc(var(--transition-duration) / var(--project-var-multiplier, 3));
+}
+
+div.project-thumbail:hover {
+    transform: scale(
+        var(--project-thumbail-scale, 1),
+        var(--project-thumbail-scale, 1)
+    );
+    border-radius: calc(
+        var(--spacing, 1rem) / var(--project-var-multiplier, 3)
+    );
 }
 
 div.project {
@@ -10,10 +24,11 @@ div.project {
     border-radius: var(--spacing, 1rem);
 }
 
-div.project > div {
+div.project > * {
     margin: var(--spacing, 1rem);
     text-align: center;
     box-sizing: border-box;
+    display: block;
 }
 
 div.project-name {
@@ -34,5 +49,6 @@ div#projects {
 }
 
 div.project-links *:hover {
-    animation: glow var(--glow-duration, 1s) ease-in-out infinite alternate;
+    animation: glow var(--transition-ruration, 1s) ease-in-out infinite
+        alternate;
 }

@@ -9,5 +9,8 @@
     --glow-color-1: white;
     --glow-color-2: cyan;
     --glow-color-3: blue;
-    --glow-duration: 2s;
+    --transition-duration: 1s;
+    --project-var-multiplier: 3;
+    --project-thumbail-scale: 1.1;
+    --project-thumbail-size: 200px;
 }

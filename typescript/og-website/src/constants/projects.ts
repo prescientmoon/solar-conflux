@@ -12,5 +12,11 @@ export const projects: ProjectConfig[] = [
         demo: 'https://visual-studio-paint.herokuapp.com/',
         source: 'https://github.com/Mateiadrielrafael/visual-studio-paint',
         thumbail: 'paint.jpg'
+    },
+    {
+        name: 'Reix',
+        docs: 'https://mateiadrielrafael.github.io/reix/',
+        source: 'https://github.com/Mateiadrielrafael/reix',
+        thumbail: 'gears.jpg'
     }
 ]
