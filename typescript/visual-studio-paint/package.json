@@ -15,7 +15,7 @@
     "compression": "^1.7.1",
     "express": "^4.17.1",
     "file-saver": "^2.0.2",
-    "knex": "^0.19.4",
+    "knex": "^0.19.5",
     "regenerator-runtime": "^0.13.3",
     "rxjs": "^6.5.3",
     "rxjs-extra": "^2.0.1"
