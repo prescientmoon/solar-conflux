@@ -46,7 +46,7 @@
         "dotenv": "^8.0.0",
         "joi": "^14.3.1",
         "joi-extract-type": "^15.0.0",
-        "knex": "^0.18.1",
+        "knex": "^0.19.5",
         "koa": "^2.7.0",
         "koa-bodyparser": "^4.2.1",
         "koa-router": "^7.4.0",
