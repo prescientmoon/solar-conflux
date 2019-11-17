@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "strictNullChecks": true,
+    "sourceMap": true
+  },
+  "include": ["src"]
+}
