@@ -44,6 +44,5 @@ jobs:
       - run: pnpm install
       - run: pnpm run build
       - run: pnpx ts-node scripts/removeScope.ts
+      - run: echo "//npm.pkg.github.com/:_authToken=${{secrets.GH_TOKEN}}" >> .npmrc
       - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.GH_TOKEN}}
