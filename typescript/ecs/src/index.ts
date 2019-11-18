@@ -1,6 +1,7 @@
 import { CompactComponentManager } from './classes/CompactComponentManager'
 import { Ecs } from './classes/Ecs'
 import { MappedComponentManager } from './classes/MappedComponentManager'
+import { System } from './classes/System'
 
 const ecs = new Ecs({
   age: new CompactComponentManager<number>(),
@@ -8,29 +9,21 @@ const ecs = new Ecs({
   nickname: new MappedComponentManager<string>()
 })
 
-const foo = ecs.create({
-  name: 'Foo',
-  age: 7,
-  nickname: 'Tom'
-})
-
-const unnamed = ecs.create({
-  age: 9
-})
-
-const bar = ecs.create({
-  name: 'Bar',
-  nickname: 'Jerry'
-})
-
-const result = ecs.pickComponentByEid(unnamed, ['age'])
-
-console.log(result)
-
-for (const age of ecs.components.age) {
-  console.log(age)
+class AgeSystem extends System<number> {
+  public didCreate(component: number) {
+    console.log(`Recived component: ${component}`)
+  }
 }
 
-for (const nickname of ecs.components.nickname) {
-  console.log(nickname)
+class NameSystem extends System<string> {
+  public didCreate(component: string) {
+    console.log(`Recived name: ${component}`)
+  }
 }
+
+ecs.registerSystem(AgeSystem, 'age')
+ecs.registerSystem(NameSystem, 'name')
+
+ecs.create({ name: 'somethign' })
+ecs.create({ age: 7 })
+ecs.create({ age: 123, name: 'something' })

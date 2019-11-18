@@ -4,7 +4,8 @@
     "moduleResolution": "node",
     "strictNullChecks": true,
     "sourceMap": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "experimentalDecorators": true
   },
   "include": ["src"]
 }
