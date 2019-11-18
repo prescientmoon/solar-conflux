@@ -1,0 +1,3 @@
+-r ts-node/register
+--recursive
+src/**/*.test.ts

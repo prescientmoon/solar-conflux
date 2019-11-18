@@ -1,16 +1,32 @@
 {
-  "name": "ecs",
+  "name": "@adrielus/ecs",
   "version": "1.0.0",
-  "description": "",
+  "description": "Efficient typesafe entity component system",
   "main": "src/index.ts",
   "scripts": {
     "dev": "nodemon",
-    "start": "ts-node src/index.ts"
+    "start": "ts-node src/index.ts",
+    "test": "mocha"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "private": false,
+  "keywords": [
+    "ecs",
+    "entity",
+    "component",
+    "system",
+    "typesafe",
+    "typescript",
+    "data",
+    "dotd"
+  ],
+  "author": "Matei Adriel",
+  "license": "PPL",
   "devDependencies": {
+    "@types/chai": "^4.2.5",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.12.8",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.2",
     "nodemon": "^1.19.4",
     "ts-node": "^8.5.2",
     "typescript": "^3.7.2"
