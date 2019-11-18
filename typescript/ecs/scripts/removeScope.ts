@@ -8,6 +8,6 @@ const npmConfig = JSON.parse(readFileSync(path).toString()) as {
 }
 
 npmConfig.name =
-  '@Mateiadrielrafael' + npmConfig.name.substr(npmConfig.name.indexOf('/') + 1)
+  '@Mateiadrielrafael' + npmConfig.name.substr(npmConfig.name.indexOf('/'))
 
 writeFileSync(path, JSON.stringify(npmConfig))
