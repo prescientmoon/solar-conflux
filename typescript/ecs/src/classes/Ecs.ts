@@ -1,4 +1,4 @@
-import { System } from './System'
+import { System } from './../types/System'
 import { EidGenerator } from './EidGenerator'
 import { ComponentManager } from '../types/ComponentManager'
 import { MappedComponentManager } from './MappedComponentManager'
@@ -8,7 +8,6 @@ type ComponentManagerMap<T extends object> = {
 }
 
 type ComponentList<T> = (keyof T)[]
-
 type SystemMap<T extends object> = { [K in keyof T]: System<T[K]>[] }
 
 export class Ecs<T extends object> {
@@ -33,19 +32,20 @@ export class Ecs<T extends object> {
       this.components[typedName].register(eid, components[typedName]!)
     }
 
-    // notify components
-    for (const name in components) {
-      for (const system of this.systems[name as keyof typeof components]) {
-        system.didCreate(components[name]!)
-      }
-    }
-
     this.componentLists.register(
       eid,
       Object.keys(components) as ComponentList<T>
     )
 
     return eid
+  }
+
+  public destroy(...eids: number[]) {
+    for (const eid of eids) {
+      for (const componentName of this.componentLists.getComponentByEid(eid)) {
+        this.components[componentName].unregister(eid)
+      }
+    }
   }
 
   public registerSystem<K extends keyof T>(
@@ -79,5 +79,55 @@ export class Ecs<T extends object> {
     }
 
     return baseObject
+  }
+
+  public update() {
+    for (const componentName in this.systems) {
+      const componentManager = this.components[componentName]
+
+      const needUpdate = this.systems[componentName].filter(
+        system => system.onUpdate
+      )
+
+      // We don't need to iterate over everything if we don't need the mutations
+      if (!needUpdate.length) {
+        return
+      }
+
+      componentManager.mutateAll(oldComponent => {
+        let nextComponentValue = oldComponent
+
+        const setComponent = (newComponent: T[typeof componentName]) => {
+          nextComponentValue = newComponent
+        }
+
+        for (const system of needUpdate) {
+          system.onUpdate!(oldComponent, setComponent)
+        }
+
+        return nextComponentValue
+      })
+    }
+  }
+
+  public render() {
+    for (const componentName in this.systems) {
+      const componentManager = this.components[componentName]
+
+      const needRender = this.systems[componentName].filter(
+        system => system.onRender
+      )
+
+      // We don't need to iterate over everything if we don't need the mutations
+      if (!needRender.length) {
+        return
+      }
+
+      for (const system of needRender) {
+        for (const component of componentManager) {
+          system.onRender!(component)
+        }
+      }
+    }
   }
 }

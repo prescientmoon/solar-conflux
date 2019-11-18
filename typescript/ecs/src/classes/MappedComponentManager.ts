@@ -21,6 +21,18 @@ export class MappedComponentManager<T> implements ComponentManager<T> {
     return result
   }
 
+  public mutateAll(callback: (old: T) => T) {
+    for (const [eid, value] of this.valueMap) {
+      const newValue = callback(value)
+
+      // we are checking this because in the future we might want to
+      // emit an event or something when this happens
+      if (newValue !== value) {
+        this.valueMap.set(eid, newValue)
+      }
+    }
+  }
+
   [Symbol.iterator]() {
     return this.valueMap.values()
   }

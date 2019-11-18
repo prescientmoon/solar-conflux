@@ -50,6 +50,19 @@ export class CompactComponentManager<T> implements ComponentManager<T> {
     return this.components[index]
   }
 
+  public mutateAll(callback: (old: T) => T) {
+    for (let index = 0; index < this.components.length; index++) {
+      const oldComponent = this.components[index]
+      const newComponent = callback(oldComponent)
+
+      // we are checking this because in the future we might want to
+      // emit an event or something when this happens
+      if (newComponent !== oldComponent) {
+        this.components[index] = newComponent
+      }
+    }
+  }
+
   [Symbol.iterator]() {
     return this.components[Symbol.iterator]()
   }
