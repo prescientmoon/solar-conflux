@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: 12
       - run: npm i -g pnpm
-      - run: pnpm ci
+      - run: pnpm install
       - run: pnpm run test
 
   publish-npm:
@@ -26,7 +26,7 @@ jobs:
           node-version: 12
           registry-url: https://registry.npmjs.org/
       - run: npm i -g pnpm
-      - run: pnpm ci
+      - run: pnpm install
       - run: pnpm run build
       - run: pnpm publish
         env:
@@ -43,7 +43,7 @@ jobs:
           registry-url: https://npm.pkg.github.com/
           scope: '@Mateiadrielrafael'
       - run: npm i -g pnpm
-      - run: pnpm ci
+      - run: pnpm install
       - run: pnpm run build
       - run: pnpm publish
         env:
