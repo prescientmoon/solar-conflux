@@ -12,8 +12,9 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12
-      - run: npm ci
-      - run: npm test
+      - run: npm i -g pnpm
+      - run: pnpm ci
+      - run: pnpm test
 
   publish-npm:
     needs: build
@@ -24,8 +25,9 @@ jobs:
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm publish
+      - run: npm i -g pnpm
+      - run: pnpm ci
+      - run: pnpm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
@@ -39,7 +41,8 @@ jobs:
           node-version: 12
           registry-url: https://npm.pkg.github.com/
           scope: '@Mateiadrielrafael'
-      - run: npm ci
-      - run: npm publish
+      - run: npm i -g pnpm
+      - run: pnpm ci
+      - run: pnpm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GH_TOKEN}}
