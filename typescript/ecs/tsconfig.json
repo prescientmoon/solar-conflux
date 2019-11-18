@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
-    "lib": ["esnext", "dom"],
+    "lib": ["esnext", "dom", "es2015.iterable"],
     "moduleResolution": "node",
     "strictNullChecks": true,
     "sourceMap": true,
     "downlevelIteration": true,
-    "experimentalDecorators": true
+    "target": "es6"
   },
   "include": ["src"]
 }

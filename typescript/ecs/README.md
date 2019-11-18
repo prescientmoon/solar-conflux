@@ -8,3 +8,4 @@ Todo:
 
 - finish writing tests
 - add eslint
+- docs

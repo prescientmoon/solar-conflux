@@ -4,5 +4,5 @@ export interface ComponentManager<T> {
   getComponentByEid(eid: number): T
   mutateAll(callback: (value: T) => T): void
 
-  [Symbol.iterator](): Iterable<T>
+  [Symbol.iterator](): IterableIterator<T>
 }
