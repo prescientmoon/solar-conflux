@@ -6,3 +6,7 @@ export interface ComponentManager<T> {
 
   [Symbol.iterator](): IterableIterator<T>
 }
+
+export type ComponentManagerClass<T> = {
+  new (capacity: number): ComponentManager<T>
+}

@@ -3,6 +3,10 @@ import { EidGenerator } from './EidGenerator'
 import { ComponentManager } from '../types/ComponentManager'
 import { MappedComponentManager } from './MappedComponentManager'
 
+type ComponentManagerClassMap<T extends object> = {
+  [K in keyof T]: { new (capacity: number): ComponentManager<T[K]> }
+}
+
 type ComponentManagerMap<T extends object> = {
   [K in keyof T]: ComponentManager<T[K]>
 }
@@ -13,11 +17,21 @@ type SystemMap<T extends object> = { [K in keyof T]: System<T[K]>[] }
 export class Ecs<T extends object> {
   private componentLists = new MappedComponentManager<ComponentList<T>>()
   private systems = {} as SystemMap<T>
+  public components = {} as ComponentManagerMap<T>
 
   public constructor(
-    public components: ComponentManagerMap<T>,
+    components: ComponentManagerClassMap<T>,
+    public capacity = 10000,
     private generator = new EidGenerator()
   ) {
+    for (const [key, Component] of Object.entries(components)) {
+      this.components[
+        key
+      ] = new (Component as typeof components[keyof typeof components])(
+        capacity
+      )
+    }
+
     for (const key in components) {
       this.systems[key] = []
     }
@@ -32,6 +46,17 @@ export class Ecs<T extends object> {
       this.components[typedName].register(eid, components[typedName]!)
     }
 
+    // perform didCreate hook
+    for (const name in components) {
+      const typedName = name as keyof typeof components
+
+      for (const system of this.systems[typedName]) {
+        if (system.didCreate) {
+          system.didCreate!(components[typedName]!, eid)
+        }
+      }
+    }
+
     this.componentLists.register(
       eid,
       Object.keys(components) as ComponentList<T>
@@ -42,8 +67,17 @@ export class Ecs<T extends object> {
 
   public destroy(...eids: number[]) {
     for (const eid of eids) {
-      for (const componentName of this.componentLists.getComponentByEid(eid)) {
+      const components = this.componentLists.getComponentByEid(eid)
+
+      for (const componentName of components) {
+        const component = this.components[componentName].getComponentByEid(eid)
         this.components[componentName].unregister(eid)
+
+        for (const system of this.systems[componentName]) {
+          if (system.didDestroy) {
+            system.didDestroy(component, eid)
+          }
+        }
       }
     }
   }
@@ -83,30 +117,41 @@ export class Ecs<T extends object> {
 
   public update() {
     for (const componentName in this.systems) {
-      const componentManager = this.components[componentName]
+      const hasBeforeUpdate = this.systems[componentName].filter(
+        system => system.beforeUpdate
+      )
 
       const needUpdate = this.systems[componentName].filter(
         system => system.onUpdate
       )
 
+      const hasDidUpdate = this.systems[componentName].filter(
+        system => system.didUpdate
+      )
+
+      const componentManager = this.components[componentName]
+
       // We don't need to iterate over everything if we don't need the mutations
-      if (!needUpdate.length) {
-        return
+      if (needUpdate.length) {
+        componentManager.mutateAll(oldComponent => {
+          let nextComponentValue = oldComponent
+
+          for (const system of needUpdate) {
+            const result = system.onUpdate!(oldComponent)
+
+            if (result !== undefined) {
+              nextComponentValue = result
+            }
+          }
+
+          return nextComponentValue
+        })
       }
 
-      componentManager.mutateAll(oldComponent => {
-        let nextComponentValue = oldComponent
-
-        const setComponent = (newComponent: T[typeof componentName]) => {
-          nextComponentValue = newComponent
-        }
-
-        for (const system of needUpdate) {
-          system.onUpdate!(oldComponent, setComponent)
-        }
-
-        return nextComponentValue
-      })
+      // run didUpdate hook
+      for (const system of hasDidUpdate) {
+        system.didUpdate!(componentManager)
+      }
     }
   }
 

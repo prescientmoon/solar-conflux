@@ -1,6 +1,0 @@
-{
-  "$schema": "https://github.com/SchemaStore/schemastore/raw/master/src/schemas/json/nodemon.json",
-  "ext": "ts,js,json",
-  "ignore": ["./node_modules", ".gitignore", "*.test.js"],
-  "exec": "pnpm start"
-}
