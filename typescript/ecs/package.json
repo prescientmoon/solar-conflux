@@ -1,6 +1,6 @@
 {
   "name": "@adrielus/ecs",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "description": "Efficient typesafe entity component system",
   "main": "dist/bundle.cjs.js",
   "module": "dist/bundle.esm.js",
