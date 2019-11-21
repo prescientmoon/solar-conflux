@@ -1,24 +1,16 @@
-import { ComponentManager } from './../types/ComponentManager'
+import { ComponentManager } from './ComponentManager'
 
 export interface System<T> {
-  // implemented
-  beforeUpdate?(manager: ComponentManager<T>): void
+  beforeUpdate?(manager: ComponentManager<T>): boolean | void
+  beforeRender?(manager: ComponentManager<T>): boolean | void
+  beforeCreate?(component: T): boolean | void
 
-  // implemented
+  onCreate?(component: T): T | void
   onUpdate?(component: T): T | void
-
-  // implemented
   onRender?(component: T): void
 
-  // implemented
   didUpdate?(manager: ComponentManager<T>): void
-
-  // implemented
+  didRender?(manager: ComponentManager<T>): void
   didCreate?(component: T, eid: number): void
-
-  // implemented
   didDestroy?(component: T, eid: number): void
-
-  // not implemented
-  beforeCreate?(component: T): T | void
 }

@@ -6,9 +6,12 @@ export class CompactComponentManager<T> implements ComponentManager<T> {
 
   public eidsToIndices = new DoubleMap<number, number>()
 
-  public register(eid: number, component: T) {
+  public register(eid: number, component: T, verbooe = true) {
     if (this.eidsToIndices.getFromHead(eid) !== undefined) {
-      throw new Error(`Component with eid ${eid} already registered`)
+      if (verbooe) {
+        throw new Error(`Component with eid ${eid} already registered`)
+      }
+      return
     }
 
     const index = this.components.push(component) - 1
@@ -16,11 +19,14 @@ export class CompactComponentManager<T> implements ComponentManager<T> {
     this.eidsToIndices.set(eid, index)
   }
 
-  public unregister(eid: number) {
+  public unregister(eid: number, verboose = true) {
     const index = this.eidsToIndices.getFromHead(eid)
 
     if (index === undefined) {
-      throw new Error(`Entity ${eid} was never registered`)
+      if (verboose) {
+        throw new Error(`Entity ${eid} was never registered`)
+      }
+      return
     }
 
     this.eidsToIndices.deleteByHead(eid)
@@ -48,6 +54,16 @@ export class CompactComponentManager<T> implements ComponentManager<T> {
     }
 
     return this.components[index]
+  }
+
+  public setComponentByEid(eid: number, value: T) {
+    const index = this.eidsToIndices.getFromHead(eid)
+
+    if (index === undefined) {
+      throw new Error(`Cannot find component with eid: ${eid}`)
+    }
+
+    this.components[index] = value
   }
 
   public mutateAll(callback: (old: T) => T) {

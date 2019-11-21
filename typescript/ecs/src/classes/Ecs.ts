@@ -1,35 +1,42 @@
+import { ComponentManagerClass } from './../types/ComponentManager'
+import {
+  SystemMap,
+  ComponentManagerMap,
+  ComponentList,
+  ComponentManagerBuilderMap,
+  FunctionalManagerBuilder
+} from '../types/EcsHelpers'
 import { System } from './../types/System'
 import { EidGenerator } from './EidGenerator'
 import { ComponentManager } from '../types/ComponentManager'
 import { MappedComponentManager } from './MappedComponentManager'
+import {
+  typesafeIterable,
+  typesafeKeys,
+  typesafeEntries
+} from '../helpers/typesafeIterable'
+import { withProp } from '../helpers/whichHaveProp'
 
-type ComponentManagerClassMap<T extends object> = {
-  [K in keyof T]: { new (capacity: number): ComponentManager<T[K]> }
-}
-
-type ComponentManagerMap<T extends object> = {
-  [K in keyof T]: ComponentManager<T[K]>
-}
-
-type ComponentList<T> = (keyof T)[]
-type SystemMap<T extends object> = { [K in keyof T]: System<T[K]>[] }
-
-export class Ecs<T extends object> {
+export class Ecs<T extends object = {}> {
   private componentLists = new MappedComponentManager<ComponentList<T>>()
   private systems = {} as SystemMap<T>
   public components = {} as ComponentManagerMap<T>
 
   public constructor(
-    components: ComponentManagerClassMap<T>,
+    components: ComponentManagerBuilderMap<T>,
     public capacity = 10000,
     private generator = new EidGenerator()
   ) {
-    for (const [key, Component] of Object.entries(components)) {
-      this.components[
-        key
-      ] = new (Component as typeof components[keyof typeof components])(
-        capacity
-      )
+    for (const [key, Component] of typesafeEntries(components)) {
+      try {
+        this.components[key] = (Component as FunctionalManagerBuilder<
+          T[keyof T]
+        >)(this)
+      } catch {
+        this.components[key] = new (Component as ComponentManagerClass<
+          T[keyof T]
+        >)(capacity)
+      }
     }
 
     for (const key in components) {
@@ -37,23 +44,40 @@ export class Ecs<T extends object> {
     }
   }
 
-  public create(components: Partial<T>) {
+  public create(components: Partial<Pick<T, keyof T>>) {
     const eid = this.generator.create()
 
-    for (const name in components) {
-      const typedName = name as keyof typeof components
+    // perform beforeCreate hook
+    for (const name of typesafeIterable<keyof T>(Object.keys(components)))
+      for (const system of withProp(this.systems[name], 'beforeCreate')) {
+        const result = system.beforeCreate(components[name]!)
 
-      this.components[typedName].register(eid, components[typedName]!)
+        if (result === false) {
+          this.generator.destroy(eid)
+
+          return eid
+        }
+      }
+
+    for (const name of typesafeKeys(components)) {
+      let component = components[name]!
+
+      // perform onUpdate hook
+      for (const system of withProp(this.systems[name], 'onCreate')) {
+        const result = system.onCreate(component)
+
+        if (result !== undefined) {
+          component = result as typeof component
+        }
+      }
+
+      this.components[name].register(eid, component)
     }
 
     // perform didCreate hook
-    for (const name in components) {
-      const typedName = name as keyof typeof components
-
-      for (const system of this.systems[typedName]) {
-        if (system.didCreate) {
-          system.didCreate!(components[typedName]!, eid)
-        }
+    for (const name of typesafeKeys(components)) {
+      for (const system of withProp(this.systems[name], 'didCreate')) {
+        system.didCreate(components[name]!, eid)
       }
     }
 
@@ -89,6 +113,8 @@ export class Ecs<T extends object> {
     name: K
   ) {
     this.systems[name].push(new SystemClass(this.components[name]))
+
+    return this
   }
 
   public getComponentsByEid<K extends keyof T>(eid: number) {
@@ -131,6 +157,11 @@ export class Ecs<T extends object> {
 
       const componentManager = this.components[componentName]
 
+      // run beforeUpdate hook
+      for (const system of hasBeforeUpdate) {
+        system.beforeUpdate!(componentManager)
+      }
+
       // We don't need to iterate over everything if we don't need the mutations
       if (needUpdate.length) {
         componentManager.mutateAll(oldComponent => {
@@ -159,18 +190,9 @@ export class Ecs<T extends object> {
     for (const componentName in this.systems) {
       const componentManager = this.components[componentName]
 
-      const needRender = this.systems[componentName].filter(
-        system => system.onRender
-      )
-
-      // We don't need to iterate over everything if we don't need the mutations
-      if (!needRender.length) {
-        return
-      }
-
-      for (const system of needRender) {
+      for (const system of withProp(this.systems[componentName], 'onRender')) {
         for (const component of componentManager) {
-          system.onRender!(component)
+          system.onRender(component)
         }
       }
     }

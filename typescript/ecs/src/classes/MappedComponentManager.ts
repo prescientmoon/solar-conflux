@@ -21,6 +21,14 @@ export class MappedComponentManager<T> implements ComponentManager<T> {
     return result
   }
 
+  public setComponentByEid(eid: number, value: T) {
+    if (!this.valueMap.has(eid)) {
+      throw new Error(`Cannot find component with eid ${eid}`)
+    }
+
+    this.valueMap.set(eid, value)
+  }
+
   public mutateAll(callback: (old: T) => T) {
     for (const [eid, value] of this.valueMap) {
       const newValue = callback(value)

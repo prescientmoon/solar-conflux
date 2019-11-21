@@ -18,7 +18,17 @@ export class UmbrellaComponentManager<T> implements ComponentManager<T> {
     this.values = new Array(capacity)
   }
 
-  public register(eid: number, component: T) {
+  public register(eid: number, component: T, verboose = true) {
+    const index = this.getIndex(eid)
+
+    if (index !== undefined) {
+      if (verboose) {
+        throw new Error(`Component ${eid} already registered`)
+      }
+
+      return
+    }
+
     this.values[this.length] = component
 
     this.sparse[eid] = this.length
@@ -27,22 +37,28 @@ export class UmbrellaComponentManager<T> implements ComponentManager<T> {
     this.length++
   }
 
-  public unregister(eid: number) {
+  public unregister(eid: number, verboose = true) {
     const index = this.getIndex(eid)
 
-    if (index !== undefined) {
-      if (this.length > 1) {
-        const last = this.length - 1
-        const lastEid = this.dense[last]
-
-        this.dense[index] = lastEid
-        this.sparse[lastEid] = index
-
-        this.values[index] = this.values[last]
+    if (index === undefined) {
+      if (verboose) {
+        throw new Error(`Cannot find index for component ${eid}`)
       }
 
-      this.length--
+      return
     }
+
+    if (this.length > 1) {
+      const last = this.length - 1
+      const lastEid = this.dense[last]
+
+      this.dense[index] = lastEid
+      this.sparse[lastEid] = index
+
+      this.values[index] = this.values[last]
+    }
+
+    this.length--
   }
 
   public getComponentByEid(eid: number) {
@@ -53,6 +69,16 @@ export class UmbrellaComponentManager<T> implements ComponentManager<T> {
     }
 
     return this.values[index]
+  }
+
+  public setComponentByEid(eid: number, value: T) {
+    const index = this.getIndex(eid)
+
+    if (index === undefined) {
+      throw new Error(`Cannot find component with eid ${eid}`)
+    }
+
+    this.values[index] = value
   }
 
   private getIndex(eid: number) {
