@@ -9,7 +9,7 @@ export class GroupComponentManager<T extends object, K extends keyof T>
   public constructor(
     public capacity: number,
     private ecs: Ecs<T>,
-    private components: K[]
+    public components: K[]
   ) {}
 
   private get managers() {

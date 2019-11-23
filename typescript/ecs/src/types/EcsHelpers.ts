@@ -1,16 +1,5 @@
-import { Ecs } from '../classes/Ecs'
 import { System } from './System'
-import { ComponentManager, ComponentManagerClass } from './ComponentManager'
-
-export type FunctionalManagerBuilder<T> = (ecs: Ecs<any>) => ComponentManager<T>
-
-export type ComponentManagerBuilder<T> =
-  | FunctionalManagerBuilder<T>
-  | ComponentManagerClass<T>
-
-export type ComponentManagerBuilderMap<T extends object> = {
-  [K in keyof T]: ComponentManagerBuilder<T[K]>
-}
+import { ComponentManager } from './ComponentManager'
 
 export type ComponentManagerMap<T extends object> = {
   [K in keyof T]: ComponentManager<T[K]>

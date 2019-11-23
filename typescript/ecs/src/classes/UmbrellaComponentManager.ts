@@ -1,6 +1,7 @@
 import { uintType } from './../helpers/uintType'
 import { ComponentManager } from './../types/ComponentManager'
-import { UIntArray, typedArray } from '@thi.ng/api'
+import { UIntArray, typedArray, Type } from '@thi.ng/api'
+import { Ecs } from './Ecs'
 
 export class UmbrellaComponentManager<T> implements ComponentManager<T> {
   private sparse: UIntArray
@@ -9,13 +10,13 @@ export class UmbrellaComponentManager<T> implements ComponentManager<T> {
   private values: T[]
   private length = 0
 
-  public constructor(private capacity: number) {
-    const type = uintType(capacity)
+  public init(ecs: Ecs) {
+    const type = uintType(ecs.capacity)
 
-    this.sparse = typedArray(type, capacity)
-    this.dense = typedArray(type, capacity)
+    this.sparse = typedArray(type, ecs.capacity)
+    this.dense = typedArray(type, ecs.capacity)
 
-    this.values = new Array(capacity)
+    this.values = new Array(ecs.capacity)
   }
 
   public register(eid: number, component: T, verboose = true) {
@@ -84,7 +85,7 @@ export class UmbrellaComponentManager<T> implements ComponentManager<T> {
   private getIndex(eid: number) {
     const index = this.sparse[eid]
 
-    if (index < this.length) {
+    if (index < this.length && this.dense[index] === eid) {
       return index
     }
 

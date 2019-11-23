@@ -2,9 +2,7 @@ import { ComponentManagerClass } from './../types/ComponentManager'
 import {
   SystemMap,
   ComponentManagerMap,
-  ComponentList,
-  ComponentManagerBuilderMap,
-  FunctionalManagerBuilder
+  ComponentList
 } from '../types/EcsHelpers'
 import { System } from './../types/System'
 import { EidGenerator } from './EidGenerator'
@@ -13,14 +11,21 @@ import { MappedComponentManager } from './MappedComponentManager'
 import {
   typesafeIterable,
   typesafeKeys,
-  typesafeEntries
+  typesafeEntries,
+  typesafeValues
 } from '../helpers/typesafeIterable'
 import { withProp } from '../helpers/whichHaveProp'
+import {
+  FunctionalManagerBuilder,
+  ComponentManagerBuilderMap
+} from '../types/ComponentBuilder'
 
 export class Ecs<T extends object = {}> {
   private componentLists = new MappedComponentManager<ComponentList<T>>()
   private systems = {} as SystemMap<T>
   public components = {} as ComponentManagerMap<T>
+
+  private eid = 0
 
   public constructor(
     components: ComponentManagerBuilderMap<T>,
@@ -35,7 +40,13 @@ export class Ecs<T extends object = {}> {
       } catch {
         this.components[key] = new (Component as ComponentManagerClass<
           T[keyof T]
-        >)(capacity)
+        >)()
+      }
+    }
+
+    for (const manager of typesafeValues(this.components)) {
+      if (manager.init) {
+        manager.init(this)
       }
     }
 
@@ -46,6 +57,7 @@ export class Ecs<T extends object = {}> {
 
   public create(components: Partial<Pick<T, keyof T>>) {
     const eid = this.generator.create()
+    // const eid = ++this.eid
 
     // perform beforeCreate hook
     for (const name of typesafeIterable<keyof T>(Object.keys(components)))
@@ -95,7 +107,7 @@ export class Ecs<T extends object = {}> {
 
       for (const componentName of components) {
         const component = this.components[componentName].getComponentByEid(eid)
-        this.components[componentName].unregister(eid)
+        this.components[componentName].unregister(eid, false)
 
         for (const system of this.systems[componentName]) {
           if (system.didDestroy) {
@@ -196,5 +208,9 @@ export class Ecs<T extends object = {}> {
         }
       }
     }
+  }
+
+  public get managers() {
+    return typesafeValues(this.components)
   }
 }

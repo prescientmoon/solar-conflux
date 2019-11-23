@@ -1,22 +1,48 @@
 import { Ecs } from './Ecs'
+import { ExtractComponentManagerType } from '../types/EcsHelpers'
+import { GroupComponentManager } from './GroupComponentManager'
 import {
   ComponentManagerBuilderMap,
-  ComponentManagerBuilder,
-  ExtractComponentManagerType
-} from '../types/EcsHelpers'
-import { GroupComponentManager } from './GroupComponentManager'
+  ComponentManagerBuilder
+} from '../types/ComponentBuilder'
 
-class EcsSafeBuilder<T extends object = {}> {
-  public constructor(private managers: ComponentManagerBuilderMap<T>) {}
+export class EcsBuilder {
+  public constructor(protected readonly capacity = 1000) {}
 
   public addManager<K extends string, L>(
     name: K,
     manager: ComponentManagerBuilder<L>
   ) {
-    return new EcsSafeBuilder<T & Record<K, L>>({
-      ...this.managers,
-      [name]: manager
-    } as any)
+    return new EcsSafeBuilder<Record<K, L>>(
+      {
+        [name]: manager
+      } as any,
+      this.capacity
+    )
+  }
+
+  public setCapacity(capacity: number) {
+    return new EcsBuilder(capacity)
+  }
+}
+
+class EcsSafeBuilder<T extends object = {}> {
+  public constructor(
+    private readonly managers: ComponentManagerBuilderMap<T>,
+    private readonly capacity
+  ) {}
+
+  public addManager<K extends string, L>(
+    name: K,
+    manager: ComponentManagerBuilder<L>
+  ) {
+    return new EcsSafeBuilder<T & Record<K, L>>(
+      {
+        ...this.managers,
+        [name]: manager
+      } as any,
+      this.capacity
+    )
   }
 
   public group<K extends string, L extends keyof T>(
@@ -28,24 +54,20 @@ class EcsSafeBuilder<T extends object = {}> {
 
     return new EcsSafeBuilder<
       T & Record<K, ExtractComponentManagerType<ReturnType<typeof group>>>
-    >({
-      ...this.managers,
-      [name]: group
-    } as any)
+    >(
+      {
+        ...this.managers,
+        [name]: group
+      } as any,
+      this.capacity
+    )
   }
 
-  public build(capacity = 10000) {
-    return new Ecs(this.managers, capacity)
+  public setCapacity(capacity: number) {
+    return new EcsSafeBuilder(this.managers, capacity)
   }
-}
 
-export class EcsBuilder {
-  public addManager<K extends string, L>(
-    name: K,
-    manager: ComponentManagerBuilder<L>
-  ) {
-    return new EcsSafeBuilder<Record<K, L>>({
-      [name]: manager
-    } as any)
+  public build() {
+    return new Ecs(this.managers, this.capacity)
   }
 }
