@@ -1,6 +1,6 @@
 {
     "name": "@adrielus/loopover",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "description": "Isomorphic loopover simulator.",
     "main": "dist/bundle.cjs.js",
     "module": "dist/bundle.esm.js",
