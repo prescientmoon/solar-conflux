@@ -22,7 +22,8 @@
     "author": "Matei Adriel",
     "license": "GPL-3.0",
     "dependencies": {
-        "@thi.ng/api": "^6.5.0"
+        "@thi.ng/api": "^6.5.0",
+        "immutable": "^4.0.0-rc.12"
     },
     "sideEffects": false,
     "devDependencies": {
