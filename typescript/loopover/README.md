@@ -1,3 +1,7 @@
+![npm (scoped)](https://img.shields.io/npm/v/@adrielus/loopover?style=for-the-badge)
+![npm bundle size (scoped)](https://img.shields.io/bundlephobia/minzip/@adrielus/loopover?style=for-the-badge)
+[![forthebadge](https://forthebadge.com/images/badges/powered-by-water.svg)](https://forthebadge.com)
+
 # Loopover
 
 ## Installation
