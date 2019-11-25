@@ -1,5 +1,6 @@
 dependencies:
   '@thi.ng/api': 6.5.0
+  immutable: 4.0.0-rc.12
 devDependencies:
   '@types/chai': 4.2.5
   '@types/mocha': 5.2.7
@@ -232,6 +233,10 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha1-tdRU3CGZriJWmfNGfloH87lVuv0=
+  /immutable/4.0.0-rc.12:
+    dev: false
+    resolution:
+      integrity: sha512-0M2XxkZLx/mi3t8NVwIm1g8nHoEmM9p9UBl/G9k4+hm0kBgOVdMV/B3CY5dQ8qG8qc80NN4gDV4HQv6FTJ5q7A==
   /inflight/1.0.6:
     dependencies:
       once: 1.4.0
@@ -552,6 +557,7 @@ specifiers:
   '@types/mocha': ^5.2.7
   '@types/node': ^12.12.12
   chai: ^4.2.0
+  immutable: ^4.0.0-rc.12
   rimraf: ^3.0.0
   rollup: ^1.27.5
   rollup-plugin-commonjs: ^10.1.0
