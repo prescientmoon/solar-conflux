@@ -10,6 +10,8 @@
 npm install @adrielus/loopover
 ```
 
+(There is also an amd build at `/dist/bundle.amd.js` which uses the `Loopover` namespace)
+
 ## Usage
 
 ### Creating a game
