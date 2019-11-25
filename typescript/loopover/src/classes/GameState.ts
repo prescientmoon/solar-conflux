@@ -19,7 +19,7 @@ export class GameState {
     public moveX(direction: Direction, layer: number) {
         const minimumLayerIndex = layer * this.width
 
-        const newState = this.cellList.reduce((accumulated, current, index) => {
+        const newState = this.cellList.reduce((accumulated, _, index) => {
             if (
                 index < minimumLayerIndex ||
                 index >= (layer + 1) * this.width
@@ -31,6 +31,28 @@ export class GameState {
                 minimumLayerIndex +
                 ((index - minimumLayerIndex - direction + this.width) %
                     this.width)
+
+            return accumulated.set(index, this.cellList.get(copyFrom)!)
+        }, this.cellList)
+
+        return new GameState(newState, this.width)
+    }
+
+    public moveY(direction: Direction, layer: number) {
+        const minimumLayerIndex = layer * this.width
+
+        const newState = this.cellList.reduce((accumulated, current, index) => {
+            const currentX = index % this.width
+            const currentY = Math.floor(index / this.width)
+
+            if (currentX !== layer) {
+                return accumulated
+            }
+
+            const copyFrom =
+                currentX +
+                this.width *
+                    ((currentY + this.height - direction) % this.height)
 
             return accumulated.set(index, this.cellList.get(copyFrom)!)
         }, this.cellList)
