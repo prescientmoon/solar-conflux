@@ -19,7 +19,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm i -g elm create-elm-app
-      - run: elm install
       - run: elm-app build
       - name: Deploy to github pages
         uses: JamesIves/github-pages-deploy-action@master
