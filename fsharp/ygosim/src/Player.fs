@@ -8,12 +8,6 @@ type Player =
 
 let inflictDamage (player: Player) amount = { player with lifePoints = player.lifePoints - amount }
 
-
-type PlayerControllerAction =
-    | ChooseZone
-    | BoardUpdate
-
-type PlayerActionPayload = PlayerControllerAction * Side
-
-type PlayerController = PlayerController of (PlayerControllerAction -> PlayerController)
- 
+let initialPlayer lp =
+    { lifePoints = lp
+      side = emptySide }
