@@ -7,8 +7,6 @@
 
   <ItemGroup>
     <Compile Include="src/Card.fs" />
-    <Compile Include="src/Side.fs" />
-    <Compile Include="src/Player.fs" />
     <Compile Include="src/Board.fs" />
     <Compile Include="src/Program.fs" />
   </ItemGroup>
