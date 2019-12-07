@@ -22,17 +22,24 @@ module Player =
     open Side
     open Card
 
+    type PlayerState =
+        | InGame
+        | Won
+        | Lost of reason: string
+
     type Player =
         { lifePoints: int
           side: Side
-          hand: CardInstance list }
+          hand: CardInstance list
+          state: PlayerState }
 
     let inflictDamage (player: Player) amount = { player with lifePoints = player.lifePoints - amount }
 
     let initialPlayer lp =
         { lifePoints = lp
           side = emptySide
-          hand = [] }
+          hand = []
+          state = InGame }
 
 module Turn =
     type Phase =
@@ -64,7 +71,7 @@ module Board =
     let emptyBoard =
         { players = (initialPlayer 8000, initialPlayer 8000)
           turn = 0
-          phase = Draw }
+          phase = Turn.Draw }
 
 module Game =
     open Board
@@ -74,7 +81,7 @@ module Game =
 
     let draw (player: Player) =
         match player.side.deck with
-        | [] -> player // TODO: makes this end the game
+        | [] -> { player with state = Lost "deckout" }
         | card :: deck ->
             { player with
                   hand = card :: player.hand
