@@ -55,10 +55,10 @@ type Race =
     | Zombie
 
 type SpellCardDetails =
-    { _type: SpellCardType }
+    { spellType: SpellCardType }
 
 type TrapCardDetails =
-    { _type: TrapCardType }
+    { trapType: TrapCardType }
 
 
 type MonsterCardDetails =
@@ -72,3 +72,6 @@ type Card =
     | Monster of BaseCard * MonsterCardDetails
     | Spell of BaseCard * SpellCardDetails
     | Trap of BaseCard * TrapCardDetails
+
+// TODO: actually make this do what its supposed to
+type CardInstance = Card
