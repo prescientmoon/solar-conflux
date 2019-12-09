@@ -4,9 +4,9 @@
     open Game
 
     [<EntryPoint>]
-    let main argv =
+    let main _ =
         let board = Board.emptyBoard
-        let sampleCard = Spell ({name= "sampleCard"; text="something"}, {spellType = Card.ContinuosSpell})
+        let sampleCard = Card.Spell ({name= "sampleCard"; text="something"; effects = []}, {spellType = Card.ContinuosSpell})
 
         let secondBoard = withCurrentPlayer <| Game.toDeckBottom sampleCard <| board
 
