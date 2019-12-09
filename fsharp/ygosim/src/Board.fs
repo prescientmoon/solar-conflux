@@ -1,14 +1,14 @@
 module Board
 
 module Side =
-    open Card
+    open Card.Card
 
-    type Side =
-        { field: CardInstance option
-          monsters: CardInstance list
-          spells: CardInstance list
-          graveyard: CardInstance list
-          deck: CardInstance list }
+    type Side<'s> =
+        { field: CardInstance<'s> option
+          monsters: CardInstance<'s> list
+          spells: CardInstance<'s> list
+          graveyard: CardInstance<'s> list
+          deck: CardInstance<'s> list }
 
     let emptySide =
         { field = None
@@ -20,26 +20,26 @@ module Side =
 
 module Player =
     open Side
-    open Card
+    open Card.Card
 
     type PlayerState =
         | InGame
         | Won
         | Lost of reason: string
 
-    type Player =
+    type Player<'s> =
         { lifePoints: int
-          side: Side
-          hand: CardInstance list
+          side: Side<'s>
+          hand: CardInstance<'s> list
           state: PlayerState }
-
-    let inflictDamage (player: Player) amount = { player with lifePoints = player.lifePoints - amount }
 
     let initialPlayer lp =
         { lifePoints = lp
           side = emptySide
           hand = []
           state = InGame }
+
+// module Side =
 
 module Turn =
     type Phase =
@@ -60,24 +60,45 @@ module Turn =
         | End -> (Draw, turn + 1)
 
 module Board =
-    open Player
     open Turn
+    open Card
 
-    type Board =
+    type Player = Player.Player<Board>
+
+    and Board =
         { players: Player * Player
           turn: int
           phase: Phase }
 
+    type Card = Card.Card<Board>
+
+    type CardInstance = Card.CardInstance<Board>
+
+    type Effect = Effect.Effect<Board>
+
+    type Condition = Effect.Condition<Board>
+
+    type Action = Effect.Action<Board>
+
     let emptyBoard =
-        { players = (initialPlayer 8000, initialPlayer 8000)
+        { players = (Player.initialPlayer 8000, Player.initialPlayer 8000)
           turn = 0
-          phase = Turn.Draw }
+          phase = Draw }
 
 module Game =
     open Board
     open Turn
     open Player
-    open Card
+
+    type PlayerAction =
+        | Pass
+        | NormalSummon
+        | InitialDraw
+        | Activate
+        | Set
+
+    // let canDoInitialDraw (board: Board) =
+
 
     let draw (player: Player) =
         match player.side.deck with

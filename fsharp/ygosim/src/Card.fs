@@ -1,77 +1,104 @@
 module Card
 
-// TODO: actually implement it
-type BaseCard =
-    { name: string
-      text: string }
 
-type SpellCardType =
-    | NormalSpell
-    | Field
-    | Equip
-    | ContinuosSpell
-    | QuickPlay
-    | Ritual
+module Effect =
+    type Condition<'s> = 's -> bool
 
-type TrapCardType =
-    | NormalTrap
-    | Counter
-    | ContinuosTrap
+    type Action<'s> =
+        { condition: Condition<'s>
+          resolution: 's -> 's }
 
-type Attribute =
-    | Dark
-    | Light
-    | Water
-    | Fire
-    | Earth
-    | Wind
-    | Divine
+    type EffectType =
+        | Trigger
+        | Ignition
 
-type Race =
-    | Aqua
-    | Beast
-    | BeastWarrior
-    | Creator
-    | Cyberse
-    | Dinosaur
-    | DivineBeast
-    | Dragon
-    | Fairy
-    | Fiend
-    | Fish
-    | Insect
-    | Machine
-    | Plant
-    | Psychic
-    | Pyro
-    | Reptile
-    | Rock
-    | SeaSerpent
-    | Spellcaster
-    | Thunder
-    | Warrior
-    | WingedBeast
-    | Wyrm
-    | Zombie
-
-type SpellCardDetails =
-    { spellType: SpellCardType }
-
-type TrapCardDetails =
-    { trapType: TrapCardType }
+    type Effect<'s> =
+        { cost: Action<'s>
+          resolve: Action<'s>
+          _type: EffectType }
 
 
-type MonsterCardDetails =
-    { attack: int
-      defense: int
-      attribute: Attribute
-      level: int }
+module Card =
+    open Effect
+
+    type BaseCard<'s> =
+        { name: string
+          text: string
+          effects: Effect<'s> list }
+
+    type SpellCardType =
+        | NormalSpell
+        | Field
+        | Equip
+        | ContinuosSpell
+        | QuickPlay
+        | Ritual
+
+    type TrapCardType =
+        | NormalTrap
+        | Counter
+        | ContinuosTrap
+
+    type Attribute =
+        | Dark
+        | Light
+        | Water
+        | Fire
+        | Earth
+        | Wind
+        | Divine
+
+    type Race =
+        | Aqua
+        | Beast
+        | BeastWarrior
+        | Creator
+        | Cyberse
+        | Dinosaur
+        | DivineBeast
+        | Dragon
+        | Fairy
+        | Fiend
+        | Fish
+        | Insect
+        | Machine
+        | Plant
+        | Psychic
+        | Pyro
+        | Reptile
+        | Rock
+        | SeaSerpent
+        | Spellcaster
+        | Thunder
+        | Warrior
+        | WingedBeast
+        | Wyrm
+        | Zombie
+
+    type SpellCardDetails =
+        { spellType: SpellCardType }
+
+    type TrapCardDetails =
+        { trapType: TrapCardType }
 
 
-type Card =
-    | Monster of BaseCard * MonsterCardDetails
-    | Spell of BaseCard * SpellCardDetails
-    | Trap of BaseCard * TrapCardDetails
+    type MonsterCardDetails =
+        { attack: int
+          defense: int
+          attribute: Attribute
+          level: int }
 
-// TODO: actually make this do what its supposed to
-type CardInstance = Card
+
+    type Card<'s> =
+        | Monster of BaseCard<'s> * MonsterCardDetails
+        | Spell of BaseCard<'s> * SpellCardDetails
+        | Trap of BaseCard<'s> * TrapCardDetails
+
+    // TODO: actually make this do what its supposed to
+    type CardInstance<'s> = Card<'s>
+
+module Decklist =
+    type Decklist =
+        { main: int list
+          side: int list
+          extra: int list }
