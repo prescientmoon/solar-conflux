@@ -1,5 +1,7 @@
 module Board
 
+open FSharpPlus.Lens
+
 module Side =
     open Card.Card
 
@@ -9,6 +11,13 @@ module Side =
           spells: CardInstance<'s> list
           graveyard: CardInstance<'s> list
           deck: CardInstance<'s> list }
+
+    module Side =
+        let inline field f side = f side.field <&> fun v -> { side with field = v }
+        let inline monsters f side = f side.monsters <&> fun v -> { side with monsters = v }
+        let inline spells f side = f side.spells <&> fun v -> { side with spells = v }
+        let inline graveyard f side = f side.graveyard <&> fun v -> { side with graveyard = v }
+        let inline deck f side = f side.deck <&> fun v -> { side with deck = v }
 
     let emptySide =
         { field = None
@@ -33,6 +42,13 @@ module Player =
           hand: CardInstance<'s> list
           state: PlayerState }
 
+    module Player =
+        let inline lifePoints f player = f player.lifePoints <&> fun v -> { player with lifePoints = v }
+        let inline side f player = f player.side <&> fun v -> { player with side = v }
+        let inline hand f player = f player.hand <&> fun v -> { player with hand = v }
+        let inline state f player = f player.state <&> fun v -> { player with state = v }
+        let inline deck f player = (side << Side.deck) f player
+
     let initialPlayer lp =
         { lifePoints = lp
           side = emptySide
@@ -50,14 +66,14 @@ module Turn =
         | Main2
         | End
 
-    let nextPhase (previous: Phase) (turn: int) =
-        match previous with
-        | Draw -> (Standby, turn)
-        | Standby -> (Main1, turn)
-        | Main1 -> (Battle, turn)
-        | Battle -> (Main2, turn)
-        | Main2 -> (End, turn)
-        | End -> (Draw, turn + 1)
+    let nextPhase (turn, phase) =
+        match phase with
+        | Draw -> (turn, Standby)
+        | Standby -> (turn, Main1)
+        | Main1 -> (turn, Battle)
+        | Battle -> (turn, Main2)
+        | Main2 -> (turn, End)
+        | End -> (turn + 1, Draw)
 
 module Board =
     open Turn
@@ -67,8 +83,18 @@ module Board =
 
     and Board =
         { players: Player * Player
-          turn: int
-          phase: Phase }
+          moment: int * Phase }
+
+    module Board =
+        let inline players f board = f board.players <&> fun v -> { board with players = v }
+        let inline moment f board = f board.moment <&> fun v -> { board with moment = v }
+
+        let inline turn f board = (moment << _1) f board
+        let inline phase f board = (moment << _2) f board
+
+        let inline currentPlayer f board =
+            if (view turn board) % 2 = 0 then (players << _2) f board
+            else (players << _1) f board
 
     type Card = Card.Card<Board>
 
@@ -82,13 +108,13 @@ module Board =
 
     let emptyBoard =
         { players = (Player.initialPlayer 8000, Player.initialPlayer 8000)
-          turn = 0
-          phase = Draw }
+          moment = 0, Draw }
 
 module Game =
     open Board
     open Turn
     open Player
+    open Side
 
     type PlayerAction =
         | Pass
@@ -97,46 +123,23 @@ module Game =
         | Activate
         | Set
 
-    // let canDoInitialDraw (board: Board) =
-
 
     let draw (player: Player) =
         match player.side.deck with
-        | [] -> { player with state = Lost "deckout" }
+        | [] -> player |> Player.state .-> Lost "deckout"
         | card :: deck ->
-            { player with
-                  hand = card :: player.hand
-                  side = { player.side with deck = deck } }
+            let hand = card :: player.hand
+
+            player
+            |> Player.hand .-> hand
+            |> Player.deck .-> deck
 
     // Player is the last arg to be able to use this with the withCurrentPlayer function
-    let toDeckBottom (card: CardInstance) (player: Player) =
-        { player with side = { player.side with deck = card :: player.side.deck } }
-
-    let currentPlayer (board: Board) =
-        let (first, second) = board.players
-
-        if board.turn % 2 = 0 then first
-        else second
-
-    let withCurrentPlayer callback board =
-        let (first, second) = board.players
-
-        let players =
-            if board.turn % 2 = 0 then (callback first, second)
-            else (first, callback second)
-
-        { board with players = players }
-
+    let toDeckBottom (card: CardInstance) (player: Player) = over Player.deck (fun d -> card :: d) player
 
     let processTurn (board: Board) =
-        match board.phase with
-        | Draw -> withCurrentPlayer draw board
+        match board ^. Board.phase with
+        | Draw -> over Board.currentPlayer draw board
         | _ -> board
 
-    let doTurn (board: Board) =
-        let newBoard = processTurn board
-        let (phase, turn) = nextPhase newBoard.phase newBoard.turn
-
-        { newBoard with
-              turn = turn
-              phase = phase }
+    let doTurn (board: Board) = over Board.moment nextPhase <| processTurn board

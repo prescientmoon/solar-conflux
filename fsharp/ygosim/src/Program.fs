@@ -1,14 +1,15 @@
 ﻿module Main =
-    open Board
+    open FSharpPlus.Lens
+    open Board.Board
+    open Board.Game
     open Card
-    open Game
 
     [<EntryPoint>]
     let main _ =
-        let board = Board.emptyBoard
+        let board = emptyBoard
         let sampleCard = Card.Spell ({name= "sampleCard"; text="something"; effects = []}, {spellType = Card.ContinuosSpell})
 
-        let secondBoard = withCurrentPlayer <| Game.toDeckBottom sampleCard <| board
+        let secondBoard = over Board.currentPlayer <| toDeckBottom sampleCard <| board
 
         printfn "%A" secondBoard
 
