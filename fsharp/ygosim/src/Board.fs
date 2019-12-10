@@ -40,22 +40,27 @@ module Player =
         { lifePoints: int
           side: Side<'s>
           hand: CardInstance<'s> list
-          state: PlayerState }
+          state: PlayerState
+          id: int
+          lastInitialDraw: int }
 
     module Player =
         let inline lifePoints f player = f player.lifePoints <&> fun v -> { player with lifePoints = v }
         let inline side f player = f player.side <&> fun v -> { player with side = v }
         let inline hand f player = f player.hand <&> fun v -> { player with hand = v }
         let inline state f player = f player.state <&> fun v -> { player with state = v }
+        let inline _id f player = f player.id <&> fun v -> { player with id = v }
+        let inline lastInitialDraw f player = f player.lastInitialDraw <&> fun v -> { player with lastInitialDraw = v }
+
         let inline deck f player = (side << Side.deck) f player
 
-    let initialPlayer lp =
+    let initialPlayer lp id =
         { lifePoints = lp
           side = emptySide
           hand = []
-          state = InGame }
-
-// module Side =
+          state = InGame
+          id = id
+          lastInitialDraw = -1 }
 
 module Turn =
     type Phase =
@@ -78,6 +83,7 @@ module Turn =
 module Board =
     open Turn
     open Card
+    open Player
 
     type Player = Player.Player<Board>
 
@@ -96,6 +102,12 @@ module Board =
             if (view turn board) % 2 = 0 then (players << _2) f board
             else (players << _1) f board
 
+        let inline currentPlayerId f board = (currentPlayer << Player._id) f board
+        let inline currentPlayerLastDraw f board = (currentPlayer << Player.lastInitialDraw) f board
+        let inline currentPlayerState f board = (currentPlayer << Player.state) f board
+        let inline currentPlayerDeck f board = (currentPlayer << Player.deck) f board
+        let inline currentPlayerHand f board = (currentPlayer << Player.hand) f board
+
     type Card = Card.Card<Board>
 
     type CardInstance = Card.CardInstance<Board>
@@ -107,14 +119,14 @@ module Board =
     type Action = Effect.Action<Board>
 
     let emptyBoard =
-        { players = (Player.initialPlayer 8000, Player.initialPlayer 8000)
+        { players = (Player.initialPlayer 8000 0, Player.initialPlayer 8000 1)
           moment = 0, Draw }
 
 module Game =
-    open Board
     open Turn
     open Player
     open Side
+    open Board
 
     type PlayerAction =
         | Pass
@@ -123,23 +135,45 @@ module Game =
         | Activate
         | Set
 
+    type ClientCommand = Log of string
 
-    let draw (player: Player) =
-        match player.side.deck with
-        | [] -> player |> Player.state .-> Lost "deckout"
+    type ClientResult =
+        | Zone of int
+        | Bool of int
+        | NoResult
+
+    type Client = ClientCommand -> ClientResult
+
+    let isCurrentPlayer (board: Board) (player: Player) = (board ^. Board.currentPlayerId) = player.id
+
+    let canDrawCard (board: Board) (player: Player) =
+        isCurrentPlayer board player && board ^. Board.currentPlayerLastDraw <> board ^. Board.turn
+        && board ^. Board.phase = Draw && board ^. Board.turn <> 0
+
+
+    let draw (board: Board) =
+        match board ^. Board.currentPlayerDeck with
+        | [] -> board |> Board.currentPlayerState .-> Lost "deckout"
         | card :: deck ->
-            let hand = card :: player.hand
+            let hand = card :: (board ^. Board.currentPlayerHand)
+            let turn = board ^. Board.turn
 
-            player
-            |> Player.hand .-> hand
-            |> Player.deck .-> deck
+            board
+            |> Board.currentPlayerHand .-> hand
+            |> Board.currentPlayerDeck .-> deck
+            |> Board.currentPlayerLastDraw .-> turn
 
-    // Player is the last arg to be able to use this with the withCurrentPlayer function
     let toDeckBottom (card: CardInstance) (player: Player) = over Player.deck (fun d -> card :: d) player
 
-    let processTurn (board: Board) =
-        match board ^. Board.phase with
-        | Draw -> over Board.currentPlayer draw board
-        | _ -> board
-
-    let doTurn (board: Board) = over Board.moment nextPhase <| processTurn board
+    let processAction (client: Client) (board: Board) (player: Player) (action: PlayerAction) =
+        match action with
+        | InitialDraw ->
+            if canDrawCard board player then
+                (draw board, true)
+            else
+                client <| Log "cannot draw card" |> ignore
+                (board, false)
+        | Pass ->
+            if isCurrentPlayer board player then (over Board.moment nextPhase board, true)
+            else (board, false)
+        | _ -> (board, true)
