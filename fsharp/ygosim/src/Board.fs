@@ -41,8 +41,7 @@ module Player =
           side: Side<'s>
           hand: CardInstance<'s> list
           state: PlayerState
-          id: int
-          lastInitialDraw: int }
+          id: int }
 
     module Player =
         let inline lifePoints f player = f player.lifePoints <&> fun v -> { player with lifePoints = v }
@@ -50,7 +49,6 @@ module Player =
         let inline hand f player = f player.hand <&> fun v -> { player with hand = v }
         let inline state f player = f player.state <&> fun v -> { player with state = v }
         let inline _id f player = f player.id <&> fun v -> { player with id = v }
-        let inline lastInitialDraw f player = f player.lastInitialDraw <&> fun v -> { player with lastInitialDraw = v }
 
         let inline deck f player = (side << Side.deck) f player
 
@@ -59,8 +57,7 @@ module Player =
           side = emptySide
           hand = []
           state = InGame
-          id = id
-          lastInitialDraw = -1 }
+          id = id }
 
 module Turn =
     type Phase =
@@ -103,7 +100,6 @@ module Board =
             else (players << _1) f board
 
         let inline currentPlayerId f board = (currentPlayer << Player._id) f board
-        let inline currentPlayerLastDraw f board = (currentPlayer << Player.lastInitialDraw) f board
         let inline currentPlayerState f board = (currentPlayer << Player.state) f board
         let inline currentPlayerDeck f board = (currentPlayer << Player.deck) f board
         let inline currentPlayerHand f board = (currentPlayer << Player.hand) f board
@@ -125,55 +121,56 @@ module Board =
 module Game =
     open Turn
     open Player
-    open Side
     open Board
 
-    type PlayerAction =
-        | Pass
-        | NormalSummon
-        | InitialDraw
-        | Activate
-        | Set
+    type Log =
+        | CardToHand of string
+        | NewPhase of Phase
+        | StateChanged of PlayerState
 
-    type ClientCommand = Log of string
-
-    type ClientResult =
-        | Zone of int
-        | Bool of int
-        | NoResult
-
-    type Client = ClientCommand -> ClientResult
+    type Client = Log -> int
 
     let isCurrentPlayer (board: Board) (player: Player) = (board ^. Board.currentPlayerId) = player.id
 
     let canDrawCard (board: Board) (player: Player) =
-        isCurrentPlayer board player && board ^. Board.currentPlayerLastDraw <> board ^. Board.turn
-        && board ^. Board.phase = Draw && board ^. Board.turn <> 0
+        isCurrentPlayer board player && board ^. Board.phase = Draw && board ^. Board.turn <> 0
 
 
     let draw (board: Board) =
         match board ^. Board.currentPlayerDeck with
-        | [] -> board |> Board.currentPlayerState .-> Lost "deckout"
+        | [] -> board |> Board.currentPlayerState .-> PlayerState.Lost "deckout"
         | card :: deck ->
             let hand = card :: (board ^. Board.currentPlayerHand)
-            let turn = board ^. Board.turn
 
             board
             |> Board.currentPlayerHand .-> hand
             |> Board.currentPlayerDeck .-> deck
-            |> Board.currentPlayerLastDraw .-> turn
 
     let toDeckBottom (card: CardInstance) (player: Player) = over Player.deck (fun d -> card :: d) player
 
-    let processAction (client: Client) (board: Board) (player: Player) (action: PlayerAction) =
-        match action with
-        | InitialDraw ->
-            if canDrawCard board player then
-                (draw board, true)
-            else
-                client <| Log "cannot draw card" |> ignore
-                (board, false)
-        | Pass ->
-            if isCurrentPlayer board player then (over Board.moment nextPhase board, true)
-            else (board, false)
-        | _ -> (board, true)
+    let processPhase client board =
+        match board ^. Board.phase with
+        | Draw -> draw board
+        | _ -> board
+
+    let switchPhases (client: Client) board =
+        let newBoard = over Board.moment nextPhase board
+
+        NewPhase <| newBoard ^. Board.phase
+        |> client
+        |> ignore
+
+        newBoard
+
+    let rec game board (client: Client) =
+        let newBoard =
+            (processPhase client)
+            >> (switchPhases client)
+            <| board
+        let currentState = newBoard ^. Board.currentPlayerState
+
+        if currentState <> InGame then
+            client <| StateChanged currentState |> ignore
+            failwith "end of game"
+        else
+            game newBoard client
