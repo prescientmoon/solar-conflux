@@ -6,19 +6,38 @@
 
     [<EntryPoint>]
     let main _ =
-        let board = emptyBoard
         let sampleCard = Card.Spell ({name= "sampleCard"; text="something"; effects = []}, {spellType = Card.ContinuosSpell})
+        let board = over Board.currentPlayer <| toDeckBottom sampleCard <| emptyBoard
 
-        let secondBoard = over Board.currentPlayer <| toDeckBottom sampleCard <| board
+        let consoleClient command = 
+            match command with
+            | Log message -> 
+                printfn "%s" message
+                NoResult
+            // | _ -> NoResult
 
-        printfn "%A" secondBoard
+        let parseAction _ = 
+            printf "What action do you want to do?"
 
-        let thirdBoard = doTurn secondBoard
+            let stringified = System.Console.ReadLine()
 
-        printfn "%A" thirdBoard
+            match stringified with
+            | "draw" -> InitialDraw
+            | "pass" -> Pass
+            | _ -> failwith "unknown command"
+ 
 
-        let lastBoard = List.fold (fun b _ -> doTurn b) thirdBoard [0..5]
 
-        printf "%A" lastBoard
+        let rec loop board = 
+            let action = parseAction
 
+            let (newBoard, success) = processAction consoleClient board <| board^. Board.currentPlayer <| action()
+
+            if success then
+                printfn "%A" newBoard
+            printfn "%b" success
+
+            loop newBoard
+
+        loop board
         0
