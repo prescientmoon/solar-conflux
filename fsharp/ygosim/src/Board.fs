@@ -7,8 +7,8 @@ module Side =
 
     type Side<'s> =
         { field: CardInstance<'s> option
-          monsters: CardInstance<'s> list
-          spells: CardInstance<'s> list
+          monsters: CardInstance<'s> option list
+          spells: CardInstance<'s> option list
           graveyard: CardInstance<'s> list
           deck: CardInstance<'s> list }
 
@@ -19,10 +19,12 @@ module Side =
         let inline graveyard f side = f side.graveyard <&> fun v -> { side with graveyard = v }
         let inline deck f side = f side.deck <&> fun v -> { side with deck = v }
 
-    let emptySide =
+    let emptyRow _ = List.init 5 <| fun _ -> None
+
+    let emptySide _ =
         { field = None
-          monsters = []
-          spells = []
+          monsters = emptyRow()
+          spells = emptyRow()
           graveyard = []
           deck = [] }
 
@@ -41,7 +43,8 @@ module Player =
           side: Side<'s>
           hand: CardInstance<'s> list
           state: PlayerState
-          id: int }
+          id: int
+          lastNormalSummon: int }
 
     module Player =
         let inline lifePoints f player = f player.lifePoints <&> fun v -> { player with lifePoints = v }
@@ -49,15 +52,18 @@ module Player =
         let inline hand f player = f player.hand <&> fun v -> { player with hand = v }
         let inline state f player = f player.state <&> fun v -> { player with state = v }
         let inline _id f player = f player.id <&> fun v -> { player with id = v }
+        let inline lastNormalSummon f player =
+            f player.lastNormalSummon <&> fun v -> { player with lastNormalSummon = v }
 
         let inline deck f player = (side << Side.deck) f player
 
     let initialPlayer lp id =
         { lifePoints = lp
-          side = emptySide
+          side = emptySide()
           hand = []
           state = InGame
-          id = id }
+          id = id
+          lastNormalSummon = -1 }
 
 module Turn =
     type Phase =
@@ -82,6 +88,7 @@ module Board =
     open Card
     open Player
 
+
     type Player = Player.Player<Board>
 
     and Board =
@@ -103,6 +110,7 @@ module Board =
         let inline currentPlayerState f board = (currentPlayer << Player.state) f board
         let inline currentPlayerDeck f board = (currentPlayer << Player.deck) f board
         let inline currentPlayerHand f board = (currentPlayer << Player.hand) f board
+        let inline currentPlayerLastNormalSummon f board = (currentPlayer << Player.lastNormalSummon) f board
 
         let inline firstPlayer f board = (players << _1) f board
         let inline secondPlayer f board = (players << _2) f board
@@ -121,23 +129,72 @@ module Board =
         { players = (initialPlayer 8000 0, initialPlayer 8000 1)
           moment = 0, Draw }
 
-module Game =
-    open Turn
+module Client =
     open Player
+    open Turn
+    open Card.Card
     open Board
 
     type Log =
         | CardToHand of string
         | NewPhase of Phase
         | StateChanged of PlayerState * PlayerState
+        | ChooseZone of int list
 
     type Client = Log -> int
+
+    let rec chooseZone client free =
+        let freeIndices = List.mapi (fun i _ -> i) free
+        let command = ChooseZone freeIndices
+        let result = client command
+
+        if List.contains result freeIndices then free.[result]
+        else chooseZone client free
+
+module Zone =
+    open Player
+    open Side
+
+    let freeMonsterZones player = List.filter Option.isNone player.side.monsters
+    let freeMonsterZoneCount player = List.length <| freeMonsterZones player
+    let hasFreeMonsterZones player count = freeMonsterZoneCount player >= count
+    let hasFreeMonsterZone player = hasFreeMonsterZones player 1
+
+module Summon =
+    open Board
+    open Zone
+    open Client
+
+    module Normal =
+        let canNormalSummon board =
+            hasFreeMonsterZone <| board ^. Board.currentPlayer
+            && board ^. Board.currentPlayerLastNormalSummon < board ^. Board.turn
+
+        let performNormalSummon client board =
+            let free = freeMonsterZones <| board ^. Board.currentPlayer
+
+            printfn "%A" free
+
+            let zone = chooseZone client free
+
+            printfn "%A" zone
+
+            let turn = board ^. Board.turn
+
+            board |> Board.currentPlayerLastNormalSummon .-> turn
+
+
+module Game =
+    open Turn
+    open Player
+    open Board
+    open Summon.Normal
+    open Client
 
     let isCurrentPlayer (board: Board) (player: Player) = (board ^. Board.currentPlayerId) = player.id
 
     let canDrawCard (board: Board) (player: Player) =
         isCurrentPlayer board player && board ^. Board.phase = Draw && board ^. Board.turn <> 0
-
 
     let draw (board: Board) =
         match board ^. Board.currentPlayerDeck with
@@ -151,11 +208,18 @@ module Game =
 
     let toDeckBottom (card: CardInstance) (player: Player) = over Player.deck (fun d -> card :: d) player
 
+    let handleMainPhase client board =
+        printfn "%b" <| canNormalSummon board
+        if canNormalSummon board then performNormalSummon client board
+        else board
+
     let processPhase client board =
         match board ^. Board.phase with
         | Draw ->
             if canDrawCard board <| board ^. Board.currentPlayer then draw board
             else board
+        | Main1 -> handleMainPhase client board
+        | Main2 -> handleMainPhase client board
         | _ -> board
 
     let switchPhases (client: Client) board =
