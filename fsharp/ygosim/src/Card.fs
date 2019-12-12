@@ -16,6 +16,7 @@ module Effect =
     type EffectType =
         | Trigger
         | Ignition
+        | Maintanence
 
     type Effect<'s> =
         { cost: Action<'s>
@@ -125,7 +126,6 @@ module Card =
         let inline baseCard f card = _1 f card
         let inline cardDetails f card = _2 f card
 
-    // TODO: actually make this do what its supposed to
     type CardInstance<'s> = Card<'s>
 
 module Decklist =

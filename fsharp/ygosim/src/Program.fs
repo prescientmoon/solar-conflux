@@ -3,6 +3,7 @@
     open Board.Player
     open Board.Board
     open Board.Game
+    open Board.Client
     open Card
 
     let printState state = 
@@ -21,10 +22,15 @@
             | StateChanged (s1, s2) -> 
                 printfn "Player 1: %s" <| printState s1
                 printfn "Player 2: %s" <| printState s2
-            | NewPhase phase -> printfn "New phse: %A" phase
-            | _ -> printfn "Something unkown happened"
-
-            0
+                0
+            | NewPhase phase -> 
+                printfn "New phse: %A" phase
+                0
+            | ChooseZone free -> 
+                List.head free
+            | _ -> 
+                printfn "Something unkown happened" 
+                0
 
         game board client
 
