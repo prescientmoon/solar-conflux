@@ -33,7 +33,7 @@ module Player =
 
     type PlayerState =
         | InGame
-        | Won
+        | Won of reason: string
         | Lost of reason: string
 
     type Player<'s> =
@@ -104,6 +104,9 @@ module Board =
         let inline currentPlayerDeck f board = (currentPlayer << Player.deck) f board
         let inline currentPlayerHand f board = (currentPlayer << Player.hand) f board
 
+        let inline firstPlayer f board = (players << _1) f board
+        let inline secondPlayer f board = (players << _2) f board
+
     type Card = Card.Card<Board>
 
     type CardInstance = Card.CardInstance<Board>
@@ -115,7 +118,7 @@ module Board =
     type Action = Effect.Action<Board>
 
     let emptyBoard =
-        { players = (Player.initialPlayer 8000 0, Player.initialPlayer 8000 1)
+        { players = (initialPlayer 8000 0, initialPlayer 8000 1)
           moment = 0, Draw }
 
 module Game =
@@ -126,7 +129,7 @@ module Game =
     type Log =
         | CardToHand of string
         | NewPhase of Phase
-        | StateChanged of PlayerState
+        | StateChanged of PlayerState * PlayerState
 
     type Client = Log -> int
 
@@ -138,7 +141,7 @@ module Game =
 
     let draw (board: Board) =
         match board ^. Board.currentPlayerDeck with
-        | [] -> board |> Board.currentPlayerState .-> PlayerState.Lost "deckout"
+        | [] -> board |> Board.currentPlayerState .-> Lost "deckout"
         | card :: deck ->
             let hand = card :: (board ^. Board.currentPlayerHand)
 
@@ -150,7 +153,9 @@ module Game =
 
     let processPhase client board =
         match board ^. Board.phase with
-        | Draw -> draw board
+        | Draw ->
+            if canDrawCard board <| board ^. Board.currentPlayer then draw board
+            else board
         | _ -> board
 
     let switchPhases (client: Client) board =
@@ -162,15 +167,41 @@ module Game =
 
         newBoard
 
+
+    let getPlayerStates board =
+        (board ^. (Board.firstPlayer << Player.state), board ^. (Board.secondPlayer << Player.state))
+
+
+    let resolvePlayerStates (p1, p2) =
+        let s1, s2 = p1.state, p2.state
+
+        match s1 with
+        | Lost reason ->
+            match s2 with
+            | InGame -> p1, p2 |> Player.state .-> Won reason
+            | _ -> p1, p2
+        | Won reason ->
+            match s2 with
+            | InGame -> p1, p2 |> Player.state .-> Lost reason
+            | _ -> p1, p2
+        | InGame ->
+            match s2 with
+            | InGame -> p1, p2
+            | Won reason -> p1 |> Player.state .-> Lost reason, p2
+            | Lost reason -> p1 |> Player.state .-> Won reason, p2
+
+    let resolveBoardState board = over Board.players resolvePlayerStates board
+
     let rec game board (client: Client) =
         let newBoard =
             (processPhase client)
-            >> (switchPhases client)
+            >> resolveBoardState
             <| board
+
         let currentState = newBoard ^. Board.currentPlayerState
 
         if currentState <> InGame then
-            client <| StateChanged currentState |> ignore
-            failwith "end of game"
+            let newStates = getPlayerStates newBoard
+            client <| StateChanged newStates |> ignore
         else
-            game newBoard client
+            game <| switchPhases client newBoard <| client
