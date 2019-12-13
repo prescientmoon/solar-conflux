@@ -132,8 +132,6 @@ module Board =
 module Client =
     open Player
     open Turn
-    open Card.Card
-    open Board
 
     type Log =
         | CardToHand of string
@@ -156,16 +154,24 @@ module Zone =
     open Side
 
     let freeMonsterZones player = List.filter Option.isNone player.side.monsters
-    let freeMonsterZoneCount player = List.length <| freeMonsterZones player
-    let hasFreeMonsterZones player count = freeMonsterZoneCount player >= count
+    let freeMonsterZoneCount = freeMonsterZones >> List.length
+    let hasFreeMonsterZones = (>=) << freeMonsterZoneCount
     let hasFreeMonsterZone player = hasFreeMonsterZones player 1
 
 module Summon =
+    open Card.Card
     open Board
     open Zone
     open Client
 
     module Normal =
+        let inline numberOfTributes monster =
+            let level = monster ^. Card.level
+
+            if level <= 4 then 0
+            elif level <= 6 then 1
+            else 2
+
         let canNormalSummon board =
             hasFreeMonsterZone <| board ^. Board.currentPlayer
             && board ^. Board.currentPlayerLastNormalSummon < board ^. Board.turn
@@ -180,6 +186,7 @@ module Summon =
             printfn "%A" zone
 
             let turn = board ^. Board.turn
+
 
             board |> Board.currentPlayerLastNormalSummon .-> turn
 

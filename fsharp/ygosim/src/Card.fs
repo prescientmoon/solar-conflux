@@ -116,15 +116,18 @@ module Card =
         let inline attribute f card = f card.attribute <&> fun v -> { card with attribute = v }
         let inline level f card = f card.level <&> fun v -> { card with level = v }
 
+    type Monster<'s> = BaseCard<'s> * MonsterCardDetails
 
     type Card<'s> =
-        | Monster of BaseCard<'s> * MonsterCardDetails
+        | Monster of Monster<'s>
         | Spell of BaseCard<'s> * SpellCardDetails
         | Trap of BaseCard<'s> * TrapCardDetails
 
     module Card =
         let inline baseCard f card = _1 f card
         let inline cardDetails f card = _2 f card
+
+        let inline level f card = (_2 << MonsterCardDetails.level) f card
 
     type CardInstance<'s> = Card<'s>
 
