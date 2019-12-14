@@ -107,8 +107,9 @@ module Card =
     type MonsterCardDetails =
         { attack: int
           defense: int
+          level: int
           attribute: Attribute
-          level: int }
+          race: Race }
 
     module MonsterCardDetails =
         let inline attack f card = f card.attack <&> fun v -> { card with attack = v }
