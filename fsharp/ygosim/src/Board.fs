@@ -191,6 +191,8 @@ module Summon =
 
                 let freeZones = 5 - possibleTributes + requiredTributes
 
+                printfn "%i" freeZones
+
                 Some(requiredTributes <= possibleTributes && freeZones > 0)
             | None -> None
 
@@ -211,12 +213,9 @@ module Summon =
 
         let performNormalSummon client board =
             let free = freeMonsterZones <| board ^. Board.currentPlayer
-
-            printfn "%A" free
-
             let zone = chooseZone client free
 
-            printfn "%A" zone
+
 
             let turn = board ^. Board.turn
 
