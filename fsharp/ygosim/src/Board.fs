@@ -56,6 +56,7 @@ module Player =
             f player.lastNormalSummon <&> fun v -> { player with lastNormalSummon = v }
 
         let inline deck f player = (side << Side.deck) f player
+        let inline monsters f player = (side << Side.monsters) f player
 
     let initialPlayer lp id =
         { lifePoints = lp
@@ -111,6 +112,7 @@ module Board =
         let inline currentPlayerDeck f board = (currentPlayer << Player.deck) f board
         let inline currentPlayerHand f board = (currentPlayer << Player.hand) f board
         let inline currentPlayerLastNormalSummon f board = (currentPlayer << Player.lastNormalSummon) f board
+        let inline currentPlayerMonsters f board = (currentPlayer << Player.monsters) f board
 
         let inline firstPlayer f board = (players << _1) f board
         let inline secondPlayer f board = (players << _2) f board
@@ -118,6 +120,8 @@ module Board =
     type Card = Card.Card<Board>
 
     type CardInstance = Card.CardInstance<Board>
+
+    type Monster = Card.Monster<Board>
 
     type Effect = Effect.Effect<Board>
 
@@ -152,29 +156,58 @@ module Client =
 module Zone =
     open Player
     open Side
+    open Board
 
-    let freeMonsterZones player = List.filter Option.isNone player.side.monsters
+    let freeMonsterZones (player: Player) = List.filter Option.isNone player.side.monsters
     let freeMonsterZoneCount = freeMonsterZones >> List.length
     let hasFreeMonsterZones = (>=) << freeMonsterZoneCount
     let hasFreeMonsterZone player = hasFreeMonsterZones player 1
 
+
 module Summon =
     open Card.Card
+    open Card
     open Board
     open Zone
     open Client
 
     module Normal =
-        let inline numberOfTributes monster =
+        let inline numberOfTributes (monster: Monster) =
             let level = monster ^. Card.level
 
             if level <= 4 then 0
             elif level <= 6 then 1
             else 2
 
+        let isNormalSummonable board maybeMonster =
+            match maybeMonster with
+            | Some monster ->
+                let requiredTributes = numberOfTributes monster
+
+                let possibleTributes =
+                    board ^. Board.currentPlayerMonsters
+                    |> List.filter Option.isSome
+                    |> List.length
+
+                let freeZones = 5 - possibleTributes + requiredTributes
+
+                Some(requiredTributes <= possibleTributes && freeZones > 0)
+            | None -> None
+
+
+        let hasNormalSummonableMonster board =
+            let hand = board ^. Board.currentPlayerHand
+
+            let result =
+                List.tryFind <| (monster
+                                 >> (isNormalSummonable board)
+                                 >> Option.isSome)
+                <| hand
+
+            Option.isSome result
+
         let canNormalSummon board =
-            hasFreeMonsterZone <| board ^. Board.currentPlayer
-            && board ^. Board.currentPlayerLastNormalSummon < board ^. Board.turn
+            hasNormalSummonableMonster board && board ^. Board.currentPlayerLastNormalSummon < board ^. Board.turn
 
         let performNormalSummon client board =
             let free = freeMonsterZones <| board ^. Board.currentPlayer
@@ -187,9 +220,7 @@ module Summon =
 
             let turn = board ^. Board.turn
 
-
             board |> Board.currentPlayerLastNormalSummon .-> turn
-
 
 module Game =
     open Turn

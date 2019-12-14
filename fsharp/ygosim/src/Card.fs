@@ -123,6 +123,11 @@ module Card =
         | Spell of BaseCard<'s> * SpellCardDetails
         | Trap of BaseCard<'s> * TrapCardDetails
 
+    let monster card: option<Monster<'s>> =
+        match card with
+        | Monster m -> Some m
+        | _ -> None
+
     module Card =
         let inline baseCard f card = _1 f card
         let inline cardDetails f card = _2 f card
