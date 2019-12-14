@@ -4,7 +4,7 @@
     open Board.Board
     open Board.Game
     open Board.Client
-    open Card
+    open Card.Card
 
     let printState state = 
         match state with
@@ -14,8 +14,18 @@
 
     [<EntryPoint>]
     let main _ =
-        let sampleCard = Card.Spell ({name= "sampleCard"; text="something"; effects = []}, {spellType = Card.ContinuosSpell})
-        let board = over Board.currentPlayer <| toDeckBottom sampleCard <| emptyBoard
+        let sampleCard = 
+            Monster ({ name= "sampleCard" 
+                       text="something"
+                       effects = []}
+                    ,{ attack = 0
+                       defense = 0 
+                       level = 3 
+                       attribute = Fire
+                       race = Warrior })
+
+                  
+        let board = over Board.firstPlayer <| toDeckBottom sampleCard <| emptyBoard
 
         let client action =
             match action with
@@ -27,7 +37,10 @@
                 printfn "New phse: %A" phase
                 0
             | ChooseZone free -> 
-                List.head free
+                printfn "What Zone do wou want to use? %A" free
+                let i = System.Console.ReadLine() |> int
+
+                free.[i]
             | _ -> 
                 printfn "Something unkown happened" 
                 0
