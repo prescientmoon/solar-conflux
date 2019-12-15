@@ -25,7 +25,7 @@
                        race = Warrior })
 
                   
-        let board = over Board.firstPlayer <| toDeckBottom sampleCard <| emptyBoard
+        let board = over Board.secondPlayer <| toDeckBottom sampleCard <| emptyBoard
 
         let client action =
             match action with
