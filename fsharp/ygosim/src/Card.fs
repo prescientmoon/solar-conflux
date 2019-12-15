@@ -124,18 +124,34 @@ module Card =
         | Spell of BaseCard<'s> * SpellCardDetails
         | Trap of BaseCard<'s> * TrapCardDetails
 
-    let monster card: option<Monster<'s>> =
-        match card with
-        | Monster m -> Some m
-        | _ -> None
-
     module Card =
         let inline baseCard f card = _1 f card
         let inline cardDetails f card = _2 f card
 
         let inline level f card = (_2 << MonsterCardDetails.level) f card
 
-    type CardInstance<'s> = Card<'s>
+    type CardInstance<'s> =
+        { template: Card<'s>
+          id: int }
+
+
+    module CardInstance =
+        let inline template f card = f card.template <&> fun v -> { card with template = v }
+        let inline _id f card = f card.id <&> fun v -> { card with id = v }
+
+
+module Monster =
+    open Card
+
+    let monster card: option<Monster<'s> * int> =
+        match card.template with
+        | Monster m -> Some(m, card.id)
+        | _ -> None
+
+
+    let toCardInstance (card: Monster<'a>, _id): CardInstance<'a> =
+        { template = Monster card
+          id = _id }
 
 module Decklist =
     type Decklist =
