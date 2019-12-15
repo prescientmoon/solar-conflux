@@ -130,10 +130,13 @@ module Card =
 
         let inline level f card = (_2 << MonsterCardDetails.level) f card
 
+
+module CardInstance =
+    open Card
+
     type CardInstance<'s> =
         { template: Card<'s>
           id: int }
-
 
     module CardInstance =
         let inline template f card = f card.template <&> fun v -> { card with template = v }
@@ -142,6 +145,7 @@ module Card =
 
 module Monster =
     open Card
+    open CardInstance
 
     let monster card: option<Monster<'s> * int> =
         match card.template with
