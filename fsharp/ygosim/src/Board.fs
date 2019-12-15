@@ -179,34 +179,26 @@ module Summon =
             elif level <= 6 then 1
             else 2
 
-        let isNormalSummonable board maybeMonster =
-            match maybeMonster with
-            | Some monster ->
-                let requiredTributes = numberOfTributes monster
+        let isNormalSummonable board monster =
+            let requiredTributes = numberOfTributes monster
 
-                let possibleTributes =
-                    board ^. Board.currentPlayerMonsters
-                    |> List.filter Option.isSome
-                    |> List.length
+            let possibleTributes =
+                board ^. Board.currentPlayerMonsters
+                |> List.filter Option.isSome
+                |> List.length
 
-                let freeZones = 5 - possibleTributes + requiredTributes
+            let freeZones = 5 - possibleTributes + requiredTributes
 
-                printfn "%i" freeZones
+            printfn "%i" freeZones
 
-                Some(requiredTributes <= possibleTributes && freeZones > 0)
-            | None -> None
+            requiredTributes <= possibleTributes && freeZones > 0
 
 
         let hasNormalSummonableMonster board =
             let hand = board ^. Board.currentPlayerHand
+            let monsters = List.choose monster hand
 
-            let result =
-                List.tryFind <| (monster
-                                 >> (isNormalSummonable board)
-                                 >> Option.isSome)
-                <| hand
-
-            Option.isSome result
+            List.exists <| isNormalSummonable board <| monsters
 
         let canNormalSummon board =
             hasNormalSummonableMonster board && board ^. Board.currentPlayerLastNormalSummon < board ^. Board.turn
@@ -214,8 +206,6 @@ module Summon =
         let performNormalSummon client board =
             let free = freeMonsterZones <| board ^. Board.currentPlayer
             let zone = chooseZone client free
-
-
 
             let turn = board ^. Board.turn
 
