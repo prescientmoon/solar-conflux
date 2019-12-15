@@ -5,6 +5,7 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="src/Utils.fs" />
     <Compile Include="src/Card.fs" />
     <Compile Include="src/Board.fs" />
     <Compile Include="src/Program.fs" />
