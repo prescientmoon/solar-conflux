@@ -3,7 +3,7 @@ module Board
 open FSharpPlus.Lens
 
 module Side =
-    open Card.Card
+    open Card.CardInstance
 
     type Side<'s> =
         { field: CardInstance<'s> option
@@ -31,7 +31,7 @@ module Side =
 
 module Player =
     open Side
-    open Card.Card
+    open Card.CardInstance
 
     type PlayerState =
         | InGame
@@ -94,11 +94,13 @@ module Board =
 
     and Board =
         { players: Player * Player
-          moment: int * Phase }
+          moment: int * Phase
+          lastInstanceId: int }
 
     module Board =
         let inline players f board = f board.players <&> fun v -> { board with players = v }
         let inline moment f board = f board.moment <&> fun v -> { board with moment = v }
+        let inline lastInstanceId f board = f board.lastInstanceId <&> fun v -> { board with lastInstanceId = v }
 
         let inline turn f board = (moment << _1) f board
         let inline phase f board = (moment << _2) f board
@@ -113,13 +115,14 @@ module Board =
         let inline currentPlayerHand f board = (currentPlayer << Player.hand) f board
         let inline currentPlayerLastNormalSummon f board = (currentPlayer << Player.lastNormalSummon) f board
         let inline currentPlayerMonsters f board = (currentPlayer << Player.monsters) f board
+        let inline currentPlayerSide f board = (currentPlayer << Player.side) f board
 
         let inline firstPlayer f board = (players << _1) f board
         let inline secondPlayer f board = (players << _2) f board
 
     type Card = Card.Card<Board>
 
-    type CardInstance = Card.CardInstance<Board>
+    type CardInstance = CardInstance.CardInstance<Board>
 
     type Monster = Card.Monster<Board>
 
@@ -131,27 +134,51 @@ module Board =
 
     let emptyBoard =
         { players = (initialPlayer 8000 0, initialPlayer 8000 1)
-          moment = 0, Draw }
+          moment = 0, Draw
+          lastInstanceId = -1 }
+
+    let instantiate board card =
+        let instance =
+            { CardInstance.template = card
+              CardInstance.id = board.lastInstanceId }
+
+        (instance, over Board.lastInstanceId <| (+) 1 <| board)
 
 module Client =
     open Player
     open Turn
+    open Board
+    open Utils
 
     type Log =
         | CardToHand of string
+        | MonsterSummoned of Monster * int
         | NewPhase of Phase
         | StateChanged of PlayerState * PlayerState
         | ChooseZone of int list
+        | ChooseMonster of Monster list
 
     type Client = Log -> int
 
     let rec chooseZone client free =
-        let freeIndices = List.mapi (fun i _ -> i) free
-        let command = ChooseZone freeIndices
-        let result = client command
+        let result =
+            free
+            |> List.toIndices
+            |> ChooseZone
+            |> client
 
-        if List.contains result freeIndices then free.[result]
+        if List.containsIndex result free then result
         else chooseZone client free
+
+    let rec chooseMonster client monsters =
+        let result =
+            monsters
+            |> List.map (fun (m, _) -> m)
+            |> ChooseMonster
+            |> client
+
+        if List.containsIndex result monsters then monsters.[result]
+        else chooseMonster client monsters
 
 module Zone =
     open Player
@@ -166,13 +193,16 @@ module Zone =
 
 module Summon =
     open Card.Card
+    open Card.Monster
+    open Card.CardInstance
     open Card
     open Board
     open Zone
     open Client
+    open Utils
 
     module Normal =
-        let inline numberOfTributes (monster: Monster) =
+        let numberOfTributes (monster: Monster) =
             let level = monster ^. Card.level
 
             if level <= 4 then 0
@@ -191,23 +221,45 @@ module Summon =
 
             requiredTributes <= possibleTributes && freeZones > 0
 
-
-        let hasNormalSummonableMonster board =
+        let normalSummonable board =
             let hand = board ^. Board.currentPlayerHand
             let monsters = List.choose monster hand
 
-            List.exists <| isNormalSummonable board <| monsters
+            let isSummonable = view _1 >> isNormalSummonable board
+
+            List.filter isSummonable monsters
+
+        let hasNormalSummonableMonster =
+            (normalSummonable
+             >> List.length
+             >> (<=) 1)
 
         let canNormalSummon board =
             hasNormalSummonableMonster board && board ^. Board.currentPlayerLastNormalSummon < board ^. Board.turn
 
         let performNormalSummon client board =
+            let summonable = normalSummonable board
+            let target = chooseMonster client summonable
+            let (_, _id) = target
+
             let free = freeMonsterZones <| board ^. Board.currentPlayer
             let zone = chooseZone client free
 
             let turn = board ^. Board.turn
 
-            board |> Board.currentPlayerLastNormalSummon .-> turn
+            let summonedInstance =
+                target
+                |> toCardInstance
+                |> Some
+
+            let removeTarget = List.filter (fun card -> card.id <> _id)
+
+            client <| MonsterSummoned(target ^. _1, zone) |> ignore
+
+            board
+            |> over Board.currentPlayerHand removeTarget
+            |> (Board.currentPlayerMonsters << Lens.indexToLens zone) .-> summonedInstance
+            |> Board.currentPlayerLastNormalSummon .-> turn
 
 module Game =
     open Turn
@@ -291,5 +343,7 @@ module Game =
         if currentState <> InGame then
             let newStates = getPlayerStates newBoard
             client <| StateChanged newStates |> ignore
+
+            newBoard
         else
             game <| switchPhases client newBoard <| client

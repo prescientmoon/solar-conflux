@@ -14,7 +14,7 @@
 
     [<EntryPoint>]
     let main _ =
-        let sampleCard = 
+        let sampleCardTemplate = 
             Monster ({ name= "sampleCard" 
                        text="something"
                        effects = []}
@@ -24,8 +24,10 @@
                        attribute = Fire
                        race = Warrior })
 
-                  
-        let board = over Board.secondPlayer <| toDeckBottom sampleCard <| emptyBoard
+
+        let (sampleCard, initialBoard) = instantiate emptyBoard sampleCardTemplate
+                 
+        let board = over Board.firstPlayer <| toDeckBottom sampleCard <| initialBoard
 
         let client action =
             match action with
@@ -41,11 +43,20 @@
                 let i = System.Console.ReadLine() |> int
 
                 free.[i]
+            | ChooseMonster monsters ->
+                printfn "What monster do you want to choose? %A" <| List.map (fun (_base, details) -> _base.name) monsters
+                let i = System.Console.ReadLine() |> int
+
+                i
+            | MonsterSummoned (card, zone) -> 
+                printfn "Monster %A was summoned in zone %i" card zone
+                0
             | _ -> 
                 printfn "Something unkown happened" 
                 0
 
-        game board client
+        let finalBoard = game board client
 
+        printfn "The final baord was: %A" finalBoard
 
         0 // return integer code
