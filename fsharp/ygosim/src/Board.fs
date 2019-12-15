@@ -189,8 +189,6 @@ module Summon =
 
             let freeZones = 5 - possibleTributes + requiredTributes
 
-            printfn "%i" freeZones
-
             requiredTributes <= possibleTributes && freeZones > 0
 
 
@@ -236,7 +234,6 @@ module Game =
     let toDeckBottom (card: CardInstance) (player: Player) = over Player.deck (fun d -> card :: d) player
 
     let handleMainPhase client board =
-        printfn "%b" <| canNormalSummon board
         if canNormalSummon board then performNormalSummon client board
         else board
 
