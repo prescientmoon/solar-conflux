@@ -1,6 +1,7 @@
 module Card
 
 open FSharpPlus.Lens
+open FSharpPlus.Operators
 
 module Effect =
     type Condition<'s> = 's -> bool
@@ -28,8 +29,7 @@ module Effect =
         let inline resolve f effect = f effect.resolve <&> fun r -> { effect with resolve = r }
         let inline _type f effect = f effect._type <&> fun t -> { effect with _type = t }
 
-
-module Card =
+module BaseCard =
     open Effect
 
     type BaseCard<'s> =
@@ -42,18 +42,10 @@ module Card =
         let inline text f card = f card.text <&> fun v -> { card with text = v }
         let inline effects f card = f card.effects <&> fun v -> { card with effects = v }
 
-    type SpellCardType =
-        | NormalSpell
-        | Field
-        | Equip
-        | ContinuosSpell
-        | QuickPlay
-        | Ritual
 
-    type TrapCardType =
-        | NormalTrap
-        | Counter
-        | ContinuosTrap
+module MonsterTypes =
+    open BaseCard
+
 
     type Attribute =
         | Dark
@@ -91,19 +83,6 @@ module Card =
         | Wyrm
         | Zombie
 
-    type SpellCardDetails =
-        { spellType: SpellCardType }
-
-    module SpellCardDetails =
-        let inline spellType f card = f card.spellType <&> fun v -> { card with spellType = v }
-
-    type TrapCardDetails =
-        { trapType: TrapCardType }
-
-    module TrapCardDetails =
-        let inline trapType f card = f card.trapType <&> fun v -> { card with trapType = v }
-
-
     type MonsterCardDetails =
         { attack: int
           defense: int
@@ -117,7 +96,38 @@ module Card =
         let inline attribute f card = f card.attribute <&> fun v -> { card with attribute = v }
         let inline level f card = f card.level <&> fun v -> { card with level = v }
 
+
     type Monster<'s> = BaseCard<'s> * MonsterCardDetails
+
+module Card =
+    open BaseCard
+    open MonsterTypes
+
+    type SpellCardType =
+        | NormalSpell
+        | Field
+        | Equip
+        | ContinuosSpell
+        | QuickPlay
+        | Ritual
+
+    type TrapCardType =
+        | NormalTrap
+        | Counter
+        | ContinuosTrap
+
+    type SpellCardDetails =
+        { spellType: SpellCardType }
+
+    module SpellCardDetails =
+        let inline spellType f card = f card.spellType <&> fun v -> { card with spellType = v }
+
+    type TrapCardDetails =
+        { trapType: TrapCardType }
+
+    module TrapCardDetails =
+        let inline trapType f card = f card.trapType <&> fun v -> { card with trapType = v }
+
 
     type Card<'s> =
         | Monster of Monster<'s>
@@ -144,10 +154,11 @@ module CardInstance =
 
 
 module Monster =
-    open Card
+    open MonsterTypes
     open CardInstance
+    open Card
 
-    let monster card: option<Monster<'s> * int> =
+    let monster card: option<Monster<'a> * int> =
         match card.template with
         | Monster m -> Some(m, card.id)
         | _ -> None
@@ -156,6 +167,20 @@ module Monster =
     let toCardInstance (card: Monster<'a>, _id): CardInstance<'a> =
         { template = Monster card
           id = _id }
+
+module MonsterInstance =
+    open MonsterTypes
+
+    type MonsterInstance<'s> = Monster<'s> * int
+
+    module private Internals =
+        // idk how to preperly override (=)
+        let areEqual (_, _id1) (_, _id2) = _id1 = _id2
+        let (==) = areEqual
+
+    open Internals
+
+    let withoutInstance instance = areEqual instance >> not
 
 module Decklist =
     type Decklist =

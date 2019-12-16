@@ -1,6 +1,7 @@
 module Board
 
 open FSharpPlus.Lens
+open FSharpPlus.Operators
 
 module Side =
     open Card.CardInstance
@@ -124,7 +125,9 @@ module Board =
 
     type CardInstance = CardInstance.CardInstance<Board>
 
-    type Monster = Card.Monster<Board>
+    type Monster = MonsterTypes.Monster<Board>
+
+    type MonsterInstance = MonsterInstance.MonsterInstance<Board>
 
     type Effect = Effect.Effect<Board>
 
@@ -147,8 +150,10 @@ module Board =
 module Client =
     open Player
     open Turn
+    open Card
     open Board
     open Utils
+
 
     type Log =
         | CardToHand of string
@@ -157,35 +162,57 @@ module Client =
         | StateChanged of PlayerState * PlayerState
         | ChooseZone of int list
         | ChooseMonster of Monster list
+        | ChooseTributes of Monster list
 
     type Client = Log -> int
 
     let rec chooseZone client free =
         let result =
-            free
-            |> List.toIndices
+            free |>> view _1
             |> ChooseZone
             |> client
 
-        if List.containsIndex result free then result
+        if List.containsIndex result free then free.[result] ^. _1
         else chooseZone client free
 
     let rec chooseMonster client monsters =
         let result =
             monsters
-            |> List.map (fun (m, _) -> m)
+            |> List.map (view _1)
             |> ChooseMonster
             |> client
 
         if List.containsIndex result monsters then monsters.[result]
         else chooseMonster client monsters
 
+    let rec chooseTributes client monsters count old: list<MonsterInstance> =
+        match count with
+        | 0 -> old
+        | count ->
+            let resultIndex =
+                monsters
+                |> map (view _1)
+                |> ChooseTributes
+                |> client
+
+            if List.containsIndex resultIndex monsters then
+                let result = monsters.[resultIndex]
+                let withoutCurrent = filter <| Card.MonsterInstance.withoutInstance result <| monsters
+                chooseTributes client withoutCurrent <| count - 1 <| result :: old
+            else
+                chooseTributes client monsters count old
+
+
 module Zone =
     open Player
     open Side
     open Board
 
-    let freeMonsterZones (player: Player) = List.filter Option.isNone player.side.monsters
+    let freeMonsterZones (player: Player) =
+        player.side.monsters
+        |> List.indexed
+        |> List.filter (view _2 >> Option.isNone)
+
     let freeMonsterZoneCount = freeMonsterZones >> List.length
     let hasFreeMonsterZones = (>=) << freeMonsterZoneCount
     let hasFreeMonsterZone player = hasFreeMonsterZones player 1
@@ -194,6 +221,7 @@ module Zone =
 module Summon =
     open Card.Card
     open Card.Monster
+    open Player
     open Card.CardInstance
     open Card
     open Board
@@ -238,25 +266,48 @@ module Summon =
             hasNormalSummonableMonster board && board ^. Board.currentPlayerLastNormalSummon < board ^. Board.turn
 
         let performNormalSummon client board =
+            // Decide what monster to summon
             let summonable = normalSummonable board
             let target = chooseMonster client summonable
-            let (_, _id) = target
+            let (_monster, _id) = target
 
-            let free = freeMonsterZones <| board ^. Board.currentPlayer
+            // Find what monsters to tribute
+            let tributteCount = numberOfTributes _monster
+            let possibleTributes = board ^. Board.currentPlayerMonsters |>> ((=<<) monster) |> choose id
+            let tributes = chooseTributes client possibleTributes tributteCount []
+
+            // helpers to remove the tributes from the board
+            let replaceInstance instance =
+                let isInstance = List.tryFind (view _2 >> (=) instance.id) tributes |> Option.isSome
+                if isInstance then None
+                else Some instance
+
+            let replaceTributes = map <| Option.bind replaceInstance
+
+            // Tribute monsters
+            let boardWithoutTributes = board |> over Board.currentPlayerMonsters replaceTributes
+            let free = freeMonsterZones <| boardWithoutTributes ^. Board.currentPlayer
+
+            // TODO: move tributes to graveyard
+
+            // Choose a zone to summon the monster
             let zone = chooseZone client free
+            let turn = boardWithoutTributes ^. Board.turn
 
-            let turn = board ^. Board.turn
-
+            // Instance to actually summon
             let summonedInstance =
                 target
                 |> toCardInstance
                 |> Some
 
+            // Remove card from hand
             let removeTarget = List.filter (fun card -> card.id <> _id)
 
+            // Notify the client a new monster was summoned
             client <| MonsterSummoned(target ^. _1, zone) |> ignore
 
-            board
+            // Update the board
+            boardWithoutTributes
             |> over Board.currentPlayerHand removeTarget
             |> (Board.currentPlayerMonsters << Lens.indexToLens zone) .-> summonedInstance
             |> Board.currentPlayerLastNormalSummon .-> turn
@@ -283,7 +334,7 @@ module Game =
             |> Board.currentPlayerHand .-> hand
             |> Board.currentPlayerDeck .-> deck
 
-    let toDeckBottom (card: CardInstance) (player: Player) = over Player.deck (fun d -> card :: d) player
+    let toDeckBottom (card: CardInstance) (player: Player) = over Player.deck (fun d -> rev <| card :: rev d) player
 
     let handleMainPhase client board =
         if canNormalSummon board then performNormalSummon client board
