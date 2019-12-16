@@ -7,8 +7,6 @@ module List =
             else previous)
 
 
-    let (.->) = setIndex
-
     let toIndices list = List.mapi (fun i _ -> i) list
     let containsIndex index list = index >= 0 && index < List.length list
 
