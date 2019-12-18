@@ -7,6 +7,7 @@
     open Card.Card
     open Card.MonsterTypes
     open Card.BaseCard
+    open Board.Zone.Movement
 
     let printState state = 
         match state with

@@ -58,6 +58,7 @@ module Player =
 
         let inline deck f player = (side << Side.deck) f player
         let inline monsters f player = (side << Side.monsters) f player
+        let inline graveyard f player = (side << Side.graveyard) f player
 
     let initialPlayer lp id =
         { lifePoints = lp
@@ -217,6 +218,9 @@ module Zone =
     let hasFreeMonsterZones = (>=) << freeMonsterZoneCount
     let hasFreeMonsterZone player = hasFreeMonsterZones player 1
 
+    module Movement =
+        let toDeckBottom (card: CardInstance) = over Player.deck (fun deck -> deck @ [ card ])
+        let toGraveyard cards = over Player.graveyard (fun deck -> cards @ deck)
 
 module Summon =
     open Card.Card
@@ -226,6 +230,7 @@ module Summon =
     open Card
     open Board
     open Zone
+    open Zone.Movement
     open Client
     open Utils
 
@@ -285,10 +290,12 @@ module Summon =
             let replaceTributes = map <| Option.bind replaceInstance
 
             // Tribute monsters
-            let boardWithoutTributes = board |> over Board.currentPlayerMonsters replaceTributes
-            let free = freeMonsterZones <| boardWithoutTributes ^. Board.currentPlayer
+            let boardWithoutTributes =
+                board
+                |> over Board.currentPlayerMonsters replaceTributes
+                |> over Board.currentPlayer (tributes |>> toCardInstance |> toGraveyard)
 
-            // TODO: move tributes to graveyard
+            let free = freeMonsterZones <| boardWithoutTributes ^. Board.currentPlayer
 
             // Choose a zone to summon the monster
             let zone = chooseZone client free
@@ -333,8 +340,6 @@ module Game =
             board
             |> Board.currentPlayerHand .-> hand
             |> Board.currentPlayerDeck .-> deck
-
-    let toDeckBottom (card: CardInstance) (player: Player) = over Player.deck (fun d -> rev <| card :: rev d) player
 
     let handleMainPhase client board =
         if canNormalSummon board then performNormalSummon client board
