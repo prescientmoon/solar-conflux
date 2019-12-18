@@ -277,17 +277,16 @@ module Summon =
             let (_monster, _id) = target
 
             // Find what monsters to tribute
-            let tributteCount = numberOfTributes _monster
             let possibleTributes = board ^. Board.currentPlayerMonsters |>> ((=<<) monster) |> choose id
-            let tributes = chooseTributes client possibleTributes tributteCount []
+            let tributes = chooseTributes client possibleTributes <| numberOfTributes _monster <| []
 
             // helpers to remove the tributes from the board
-            let replaceInstance instance =
-                let isInstance = List.tryFind (view _2 >> (=) instance.id) tributes |> Option.isSome
-                if isInstance then None
-                else Some instance
+            let replaceInstance instance = List.tryFind (view _2 >> (=) instance.id) tributes |>> toCardInstance
 
-            let replaceTributes = map <| Option.bind replaceInstance
+            let replaceTributes =
+                replaceInstance
+                |> Option.bind
+                |> map
 
             // Tribute monsters
             let boardWithoutTributes =
@@ -295,10 +294,12 @@ module Summon =
                 |> over Board.currentPlayerMonsters replaceTributes
                 |> over Board.currentPlayer (tributes |>> toCardInstance |> toGraveyard)
 
-            let free = freeMonsterZones <| boardWithoutTributes ^. Board.currentPlayer
-
             // Choose a zone to summon the monster
-            let zone = chooseZone client free
+            let zone =
+                boardWithoutTributes ^. Board.currentPlayer
+                |> freeMonsterZones
+                |> chooseZone client
+
             let turn = boardWithoutTributes ^. Board.turn
 
             // Instance to actually summon
@@ -311,7 +312,9 @@ module Summon =
             let removeTarget = List.filter (fun card -> card.id <> _id)
 
             // Notify the client a new monster was summoned
-            client <| MonsterSummoned(target ^. _1, zone) |> ignore
+            MonsterSummoned(target ^. _1, zone)
+            |> client
+            |> ignore
 
             // Update the board
             boardWithoutTributes
@@ -327,9 +330,6 @@ module Game =
     open Client
 
     let isCurrentPlayer (board: Board) (player: Player) = (board ^. Board.currentPlayerId) = player.id
-
-    let canDrawCard (board: Board) (player: Player) =
-        isCurrentPlayer board player && board ^. Board.phase = Draw && board ^. Board.turn <> 0
 
     let draw (board: Board) =
         match board ^. Board.currentPlayerDeck with
@@ -347,9 +347,7 @@ module Game =
 
     let processPhase client board =
         match board ^. Board.phase with
-        | Draw ->
-            if canDrawCard board <| board ^. Board.currentPlayer then draw board
-            else board
+        | Draw -> draw board
         | Main1 -> handleMainPhase client board
         | Main2 -> handleMainPhase client board
         | _ -> board
