@@ -49,7 +49,7 @@ export const fold = <T, U>(
     initial: U,
     option: Option<T>
 ) => {
-    match(option, v => folder(initial, v), always(initial))
+    return match(option, v => folder(initial, v), always(initial))
 }
 
 export const foldback = <T, U>(
@@ -92,7 +92,7 @@ export const withDefault = <T>(_default: T, option: Option<T>) => {
 
 const checkIfOption = <T>(x): x is Option<T> => x[isOption]
 
-export const flat = <T>(option: Option<T>) => {
+export const flat = <T, U>(option: Option<T>): Option<U> => {
     return match(
         option,
         inner => {
