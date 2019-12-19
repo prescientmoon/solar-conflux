@@ -85,3 +85,7 @@ export const toArray = <T>(option: Option<T>) => {
 export const toNullable = <T>(option: Option<T>) => {
     return match(option, identity, always(null))
 }
+
+export const withDefault = <T>(_default: T, option: Option<T>) => {
+    return match(option, identity, always(_default))
+}
