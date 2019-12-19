@@ -1,5 +1,6 @@
 import { Option, Some, None } from './types'
 import { Binder, Folder, Mapper, Predicate, BackFolder } from './internalTypes'
+import { always, identity } from './internalHelperts'
 import Internals, { SomeClass } from './internals'
 
 export const isSome = <T>(option: Option<T>) =>
@@ -9,8 +10,8 @@ export const isNothing = <T>(option: Option<T>) =>
 
 export const match = <T, U>(
     option: Option<T>,
-    caseSome: (v: T) => U,
-    caseNone: () => U
+    caseSome: Mapper<T, U>,
+    caseNone: Mapper<void, U>
 ) => {
     if (isSome(option)) {
         return caseSome((option as SomeClass<T>)[Internals.someValue])
@@ -23,32 +24,24 @@ export const bind = <T, U>(
     binder: Binder<T, U>,
     option: Option<T>
 ): Option<U> => {
-    return match(option, binder, () => None)
+    return match(option, binder, always(None))
 }
 
 export const map = <T, U>(
     mapper: Mapper<T, U>,
     option: Option<T>
 ): Option<U> => {
-    return match(
-        option,
-        v => Some(mapper(v)),
-        () => None
-    )
+    return match(option, v => Some(mapper(v)), always(None))
 }
 
 export const count = <T>(option: Option<T>) => Number(isSome(option))
 
 export const exists = <T>(predicate: Predicate<T>, option: Option<T>) => {
-    return match(option, predicate, () => false)
+    return match(option, predicate, always(false))
 }
 
 export const filter = <T>(predicate: Predicate<T>, option: Option<T>) => {
-    return match(
-        option,
-        v => (predicate(v) ? Some(v) : None),
-        () => None
-    )
+    return match(option, v => (predicate(v) ? Some(v) : None), always(None))
 }
 
 export const fold = <T, U>(
@@ -56,11 +49,7 @@ export const fold = <T, U>(
     initial: U,
     option: Option<T>
 ) => {
-    match(
-        option,
-        v => folder(initial, v),
-        () => initial
-    )
+    match(option, v => folder(initial, v), always(initial))
 }
 
 export const foldback = <T, U>(
@@ -68,11 +57,7 @@ export const foldback = <T, U>(
     option: Option<T>,
     initial: U
 ) => {
-    return match(
-        option,
-        v => folder(v, initial),
-        () => initial
-    )
+    return match(option, v => folder(v, initial), always(initial))
 }
 
 export const forall = <T>(predicate: Predicate<T>, option: Option<T>) => {
@@ -94,17 +79,9 @@ export const iter = <T>(mapper: Mapper<T, void>, option: Option<T>) => {
 }
 
 export const toArray = <T>(option: Option<T>) => {
-    return match(
-        option,
-        v => [v],
-        () => []
-    )
+    return match(option, v => [v], always([]))
 }
 
 export const toNullable = <T>(option: Option<T>) => {
-    return match(
-        option,
-        v => v,
-        () => null
-    )
+    return match(option, identity, always(null))
 }
