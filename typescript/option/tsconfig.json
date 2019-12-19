@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "lib": ["esnext", "dom", "es2015.iterable"],
+        "moduleResolution": "node",
+        "strictNullChecks": true,
+        "sourceMap": true,
+        "downlevelIteration": true,
+        "target": "es6"
+    },
+    "include": ["src", "sandbox"]
+}
