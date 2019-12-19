@@ -32,7 +32,7 @@ export default [
                 file: `${outputDirectory}/bundle.amd.js`,
                 sourcemap: true,
                 format: 'amd',
-                name: 'Loopover'
+                name: 'Option'
             }
         ],
         plugins: [
