@@ -90,6 +90,18 @@ export const withDefault = <T>(_default: T, option: Option<T>) => {
     return match(option, identity, always(_default))
 }
 
-export const flat = <T>(option: Option<Option<T>>) => {
-    return bind(inner => (isSome(inner) ? flat(inner) : inner), option)
+const checkIfOption = <T>(x): x is Option<T> => x[isOption]
+
+export const flat = <T>(option: Option<T>) => {
+    return match(
+        option,
+        inner => {
+            if (checkIfOption(inner)) {
+                return flat(inner)
+            } else {
+                return Some(inner)
+            }
+        },
+        always(None)
+    )
 }
