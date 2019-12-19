@@ -1,9 +1,9 @@
 devDependencies:
+  '@rollup/plugin-node-resolve': 6.0.0_rollup@1.27.13
   rimraf: 3.0.0
   rollup: 1.27.13
   rollup-plugin-commonjs: 10.1.0_rollup@1.27.13
   rollup-plugin-dts: 1.1.13_rollup@1.27.13+typescript@3.7.3
-  rollup-plugin-node-resolve: 5.2.0_rollup@1.27.13
   rollup-plugin-terser: 5.1.3_rollup@1.27.13
   rollup-plugin-typescript2: 0.25.3_rollup@1.27.13+typescript@3.7.3
   semantic-release: 15.13.31_semantic-release@15.13.31
@@ -106,6 +106,32 @@ packages:
     dev: true
     resolution:
       integrity: sha512-StASIL2lgT3TRjxv17z9pAqbnI7HGu9DrJlg3sEBFfCLaMEqp+O3IQPUF6EZtQ4xkAu2ml6kMBBCtGxjvmtmuQ==
+  /@rollup/plugin-node-resolve/6.0.0_rollup@1.27.13:
+    dependencies:
+      '@rollup/pluginutils': 3.0.0_rollup@1.27.13
+      '@types/resolve': 0.0.8
+      builtin-modules: 3.1.0
+      is-module: 1.0.0
+      resolve: 1.14.1
+      rollup: 1.27.13
+    dev: true
+    engines:
+      node: '>= 8.0.0'
+    peerDependencies:
+      rollup: ^1.20.0
+    resolution:
+      integrity: sha512-GqWz1CfXOsqpeVMcoM315+O7zMxpRsmhWyhJoxLFHVSp9S64/u02i7len/FnbTNbmgYs+sZyilasijH8UiuboQ==
+  /@rollup/pluginutils/3.0.0_rollup@1.27.13:
+    dependencies:
+      estree-walker: 0.6.1
+      rollup: 1.27.13
+    dev: true
+    engines:
+      node: '>= 8.0.0'
+    peerDependencies:
+      rollup: ^1.20.0
+    resolution:
+      integrity: sha512-qBbGQQaUUiId/lBU9VMeYlVLOoRNvz1fV8HWY5tiGDpI2gdPZHbmOfCjzSdXPhdq3XOfyWvXEBlIPbnM3+9ogQ==
   /@semantic-release/commit-analyzer/6.3.3_semantic-release@15.13.31:
     dependencies:
       conventional-changelog-angular: 5.0.6
@@ -2040,20 +2066,6 @@ packages:
       typescript: ^3.7.3
     resolution:
       integrity: sha512-vpCSjTFodt8saLkFAi/Xn7JFgs2ZnbFYRbYyirlZjQtxS81JhU7oXuuyC9UrkftIot+/JbuavPOtI9OQoVQIcQ==
-  /rollup-plugin-node-resolve/5.2.0_rollup@1.27.13:
-    dependencies:
-      '@types/resolve': 0.0.8
-      builtin-modules: 3.1.0
-      is-module: 1.0.0
-      resolve: 1.14.1
-      rollup: 1.27.13
-      rollup-pluginutils: 2.8.2
-    deprecated: This package has been deprecated and is no longer maintained. Please use @rollup/plugin-node-resolve.
-    dev: true
-    peerDependencies:
-      rollup: '>=1.11.0'
-    resolution:
-      integrity: sha512-jUlyaDXts7TW2CqQ4GaO5VJ4PwwaV8VUGA7+km3n6k6xtOEacf61u0VXwN80phY/evMcaS+9eIeJ9MOyDxt5Zw==
   /rollup-plugin-terser/5.1.3_rollup@1.27.13:
     dependencies:
       '@babel/code-frame': 7.5.5
@@ -2625,11 +2637,11 @@ packages:
     resolution:
       integrity: sha512-GH/X/hYt+x5hOat4LMnCqMd8r5Cv78heOMIJn1hr7QPPBqfeC6p89Y78+WB9yGDvfpCvgasfmWLzNzEioOUD9Q==
 specifiers:
+  '@rollup/plugin-node-resolve': ^6.0.0
   rimraf: ^3.0.0
   rollup: ^1.27.13
   rollup-plugin-commonjs: ^10.1.0
   rollup-plugin-dts: ^1.1.13
-  rollup-plugin-node-resolve: ^5.2.0
   rollup-plugin-terser: ^5.1.3
   rollup-plugin-typescript2: ^0.25.3
   semantic-release: ^15.13.31
