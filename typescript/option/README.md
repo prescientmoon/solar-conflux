@@ -14,9 +14,7 @@ npm install @adrielus/option
 
 ## Usage
 
-Curently there are no docs, but all functions have the same type definition as the ones from [fsharp](https://msdn.microsoft.com/en-us/visualfsharpdocs/conceptual/core.option-module-%5Bfsharp%5D) (except the ones from my package are not curreied)
-
-There are also a few original helpers (match, flat and withDefault), but I'ts pretty easy to guess what those do
+For detailed usage read [the docs](docs/main.md)
 
 # Contributing
 
