@@ -14,7 +14,7 @@ npm install @adrielus/option
 
 ## Usage
 
-For detailed usage read [the docs](docs/main.md)
+For detailed usage read [the docs](https://github.com/Mateiadrielrafael/option/tree/master/docs/main.md)
 
 # Contributing
 
