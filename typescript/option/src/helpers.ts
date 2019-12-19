@@ -1,7 +1,7 @@
 import { Option, Some, None } from './types'
 import { Binder, Folder, Mapper, Predicate, BackFolder } from './internalTypes'
 import { always, identity } from './internalHelperts'
-import Internals, { SomeClass } from './internals'
+import Internals, { SomeClass, isOption } from './internals'
 
 export const isSome = <T>(option: Option<T>) =>
     option instanceof Internals.SomeClass
@@ -88,4 +88,8 @@ export const toNullable = <T>(option: Option<T>) => {
 
 export const withDefault = <T>(_default: T, option: Option<T>) => {
     return match(option, identity, always(_default))
+}
+
+export const flat = <T>(option: Option<Option<T>>) => {
+    return bind(inner => (isSome(inner) ? flat(inner) : inner), option)
 }
