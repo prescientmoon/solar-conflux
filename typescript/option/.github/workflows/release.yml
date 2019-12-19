@@ -19,5 +19,5 @@ jobs:
             - run: pnpm install
             - run: pnpx semantic-release
               env:
-                  _GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets._GITHUB_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
