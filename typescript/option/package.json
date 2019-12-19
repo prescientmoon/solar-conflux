@@ -1,0 +1,36 @@
+{
+    "name": "@adrielus/option",
+    "version": "0.0.0-development",
+    "description": "Typescript version of fsharps Option module",
+    "main": "dist/bundle.cjs.js",
+    "module": "dist/bundle.esm.js",
+    "typings": "dist/index.d.ts",
+    "scripts": {
+        "prebuild": "rimraf dist",
+        "build": "rollup -c rollup.config.ts"
+    },
+    "files": [
+        "dist"
+    ],
+    "keywords": [
+        "typescript",
+        "fsharp",
+        "option",
+        "maybe",
+        "nullable"
+    ],
+    "dependencies": {},
+    "sideEffects": false,
+    "devDependencies": {
+        "rimraf": "^3.0.0",
+        "rollup": "^1.27.5",
+        "rollup-plugin-commonjs": "^10.1.0",
+        "rollup-plugin-dts": "^1.1.12",
+        "rollup-plugin-node-resolve": "^5.2.0",
+        "rollup-plugin-terser": "^5.1.2",
+        "rollup-plugin-typescript2": "^0.25.2",
+        "typescript": "^3.7.2"
+    },
+    "author": "Matei Adriel",
+    "license": "SEE LICENSE IN LICENSE"
+}
