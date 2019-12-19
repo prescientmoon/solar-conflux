@@ -9,6 +9,9 @@
         "prebuild": "rimraf dist",
         "build": "rollup -c rollup.config.ts"
     },
+    "publishConfig": {
+        "access": "public"
+    },
     "files": [
         "dist"
     ],
