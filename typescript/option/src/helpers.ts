@@ -1,5 +1,12 @@
 import { Option, Some, None } from './types'
-import { Binder, Folder, Mapper, Predicate, BackFolder } from './internalTypes'
+import {
+    Binder,
+    Folder,
+    Mapper,
+    Predicate,
+    BackFolder,
+    Nullable
+} from './internalTypes'
 import { always, identity } from './internalHelperts'
 import Internals, { SomeClass, isOption } from './internals'
 
@@ -106,6 +113,6 @@ export const flat = <T, U>(option: Option<T>): Option<U> => {
     )
 }
 
-export const fromNullable = <T>(value: null | T): Option<T> => {
+export const fromNullable = <T>(value: Nullable<T>): Option<T> => {
     return value === null ? None : Some(value)
 }
