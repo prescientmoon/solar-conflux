@@ -187,4 +187,23 @@ foldback(add, None, x) // x
 foldback(add, Some(y), x) // x + y
 ```
 
+# FromNullable
+
+A function to create options from nullable values.
+
+### Signature
+
+```ts
+const fromNullable: <T>(value: T | null) => Option<T>
+```
+
+### Usage
+
+```ts
+import { Some, None, fromNullable } from '@adrielus/option'
+
+fromNullable(7) // Some(7)
+fromNullable(null) // None
+```
+
 **_This is still work in progress, right now only covering about 60% of the library. Contributions are welcome_**
