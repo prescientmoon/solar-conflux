@@ -105,3 +105,7 @@ export const flat = <T, U>(option: Option<T>): Option<U> => {
         always(None)
     )
 }
+
+export const fromNullable = <T>(value: null | T): Option<T> => {
+    return value === null ? None : Some(value)
+}
