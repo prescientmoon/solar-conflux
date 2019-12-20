@@ -194,7 +194,7 @@ A function to create options from nullable values.
 ### Signature
 
 ```ts
-const fromNullable: <T>(value: T | null) => Option<T>
+const fromNullable: <T>(value: Nullable<T>) => Option<T>
 ```
 
 ### Usage
