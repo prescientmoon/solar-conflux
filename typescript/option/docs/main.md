@@ -17,6 +17,7 @@
 -   [fold](#Fold)
 -   [foldback](#Foldback)
 -   [forall](#Forall)
+-   [fromArray](#FromArray)
 
 # General
 
@@ -204,6 +205,25 @@ import { Some, None, fromNullable } from '@adrielus/option'
 
 fromNullable(7) // Some(7)
 fromNullable(null) // None
+```
+
+## FromArray
+
+A function to create options from arrays. If the given array is empty produces None, else Some of the first element.
+
+### Signature
+
+```ts
+const fromArray: <T>(value: [T] | []) => Option<T>
+```
+
+### Usage
+
+```ts
+import { Some, None, fromArray } from '@adrielus/option'
+
+fromArray([7]) // Some(7)
+fromArray([]) // None
 ```
 
 **_This is still work in progress, right now only covering about 60% of the library. Contributions are welcome_**
