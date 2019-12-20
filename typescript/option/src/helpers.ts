@@ -75,7 +75,7 @@ export const get = <T>(option: Option<T>) => {
 }
 
 export const iter = <T>(mapper: Mapper<T, void>, option: Option<T>) => {
-    match(option, mapper, () => {})
+    return match(option, mapper, always(None))
 }
 
 export const toArray = <T>(option: Option<T>) => {
