@@ -17,6 +17,7 @@
 -   [fold](#Fold)
 -   [foldback](#Foldback)
 -   [forall](#Forall)
+-   [fromNullable](#FromNullable)
 -   [fromArray](#FromArray)
 
 # General
