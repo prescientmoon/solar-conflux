@@ -1,7 +1,7 @@
-export const some = Symbol('some')
-export const none = Symbol('none')
+export const some = 'some'
+export const none = 'none'
 
 export type NominalTyped<T, U> = {
-    type: T
+    _type: T
     value: U
 }
