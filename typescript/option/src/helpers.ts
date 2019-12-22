@@ -10,18 +10,16 @@ import {
 import { identity } from './internalHelperts'
 import { none, some } from './internals'
 
-export const isSome = <T>(option: Option<T>): option is Some<T> =>
-    option.type === some
-export const isNothing = <T>(option: Option<T>): option is None =>
-    option.type === none
+export const isSome = <T>(option: Option<T>) => option._type === some
+export const isNothing = <T>(option: Option<T>) => option._type === none
 
 const match = <T, U>(
     caseSome: Mapper<T, U>,
     _default: U,
     option: Option<T>
 ) => {
-    if (isSome(option)) {
-        return caseSome(option.value as T)
+    if (option._type === some) {
+        return caseSome(option.value)
     }
 
     return _default
@@ -72,7 +70,7 @@ export const forall = <T>(predicate: Predicate<T>, option: Option<T>) => {
 }
 
 export const get = <T>(option: Option<T>): T => {
-    if (isSome(option)) {
+    if (option._type === some) {
         return option.value
     }
 
@@ -80,7 +78,7 @@ export const get = <T>(option: Option<T>): T => {
 }
 
 export const iter = <T>(mapper: Mapper<T, void>, option: Option<T>) => {
-    if (isSome(option)) {
+    if (option._type === some) {
         mapper(option.value)
     }
 }

@@ -1,9 +1,6 @@
-import commonjs from 'rollup-plugin-commonjs'
-import nodeResolve from '@rollup/plugin-node-resolve'
-import dts from 'rollup-plugin-dts'
-import typescript from 'rollup-plugin-typescript2'
 import { terser } from 'rollup-plugin-terser'
 import { resolve } from 'path'
+import ts from '@wessberg/rollup-plugin-ts'
 
 const outputDirectory = resolve(__dirname, 'dist')
 const inputFile = resolve(__dirname, 'src/index.ts')
@@ -19,36 +16,36 @@ export default [
         external,
         output: [
             {
-                file: `${outputDirectory}/bundle.cjs.js`,
+                file: `${outputDirectory}/index.cjs.js`,
                 format: 'cjs',
                 sourcemap: true
             },
             {
-                file: `${outputDirectory}/bundle.esm.js`,
-                format: 'esm',
-                sourcemap: true
-            },
-            {
-                file: `${outputDirectory}/bundle.amd.js`,
+                file: `${outputDirectory}/index.amd.js`,
                 sourcemap: true,
                 format: 'amd',
                 name: 'Option'
             }
         ],
-        plugins: [
-            nodeResolve({
-                extensions: ['.ts']
-            }),
-            commonjs(),
-            typescript({
-                tsconfig: resolve(__dirname, 'tsconfig.json')
-            }),
-            !dev && terser()
-        ]
+        plugins: [ts(), !dev && terser()]
     },
     {
         input: inputFile,
-        output: [{ file: `${outputDirectory}/index.d.ts`, format: 'es' }],
-        plugins: [dts()]
+        external,
+        output: [
+            {
+                file: `${outputDirectory}/index.esm.js`,
+                format: 'esm',
+                sourcemap: true
+            }
+        ],
+        plugins: [
+            ts({
+                tsconfig: {
+                    declaration: true
+                }
+            }),
+            !dev && terser()
+        ]
     }
 ]
