@@ -1,7 +1,4 @@
-export const some = 'some'
-export const none = 'none'
+export const identity = <T>(v: T) => v
 
-export type NominalTyped<T, U> = {
-    _type: T
-    value: U
-}
+export const some = Symbol('some')
+export const none = Symbol('none')

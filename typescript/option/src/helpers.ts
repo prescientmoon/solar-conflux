@@ -7,8 +7,7 @@ import {
     BackFolder,
     Nullable
 } from './internalTypes'
-import { identity } from './internalHelperts'
-import { none, some } from './internals'
+import { identity, none, some } from './internals'
 
 export const isSome = <T>(option: Option<T>) => option._type === some
 export const isNothing = <T>(option: Option<T>) => option._type === none
