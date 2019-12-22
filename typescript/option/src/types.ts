@@ -1,6 +1,16 @@
-import * as Internals from './internals'
+import { NominalTyped, none, some } from './internals'
 
-export type Option<T> = Internals.SomeClass<T> | Internals.NoneClass
+export type None = NominalTyped<typeof none, null>
+export type Some<T> = NominalTyped<typeof some, T>
 
-export const None = new Internals.NoneClass()
-export const Some = <T>(v: T) => new Internals.SomeClass(v)
+export type Option<T> = Some<T> | None
+
+export const None: Option<any> = {
+    type: none,
+    value: null
+}
+
+export const Some = <T>(value: T): Option<T> => ({
+    type: some,
+    value
+})
