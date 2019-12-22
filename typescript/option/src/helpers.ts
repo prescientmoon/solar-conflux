@@ -7,48 +7,48 @@ import {
     BackFolder,
     Nullable
 } from './internalTypes'
-import { always, identity } from './internalHelperts'
-import Internals, { SomeClass, isOption } from './internals'
+import { identity } from './internalHelperts'
+import { none, some } from './internals'
 
-export const isSome = <T>(option: Option<T>) =>
-    option instanceof Internals.SomeClass
-export const isNothing = <T>(option: Option<T>) =>
-    option instanceof Internals.NoneClass
+export const isSome = <T>(option: Option<T>): option is Some<T> =>
+    option.type === some
+export const isNothing = <T>(option: Option<T>): option is None =>
+    option.type === none
 
-export const match = <T, U>(
-    option: Option<T>,
+const match = <T, U>(
     caseSome: Mapper<T, U>,
-    caseNone: Mapper<void, U>
+    _default: U,
+    option: Option<T>
 ) => {
     if (isSome(option)) {
-        return caseSome((option as SomeClass<T>)[Internals.someValue])
+        return caseSome(option.value as T)
     }
 
-    return caseNone()
+    return _default
 }
 
 export const bind = <T, U>(
     binder: Binder<T, U>,
     option: Option<T>
 ): Option<U> => {
-    return match(option, binder, always(None))
+    return match(binder, None, option)
 }
 
 export const map = <T, U>(
     mapper: Mapper<T, U>,
     option: Option<T>
 ): Option<U> => {
-    return match(option, v => Some(mapper(v)), always(None))
+    return match(v => Some(mapper(v)), None, option)
 }
 
 export const count = <T>(option: Option<T>) => Number(isSome(option))
 
 export const exists = <T>(predicate: Predicate<T>, option: Option<T>) => {
-    return match(option, predicate, always(false))
+    return match(predicate, false, option)
 }
 
 export const filter = <T>(predicate: Predicate<T>, option: Option<T>) => {
-    return match(option, v => (predicate(v) ? Some(v) : None), always(None))
+    return match(v => (predicate(v) ? Some(v) : None), None, option)
 }
 
 export const fold = <T, U>(
@@ -56,7 +56,7 @@ export const fold = <T, U>(
     initial: U,
     option: Option<T>
 ) => {
-    return match(option, v => folder(initial, v), always(initial))
+    return match(v => folder(initial, v), initial, option)
 }
 
 export const foldback = <T, U>(
@@ -64,53 +64,41 @@ export const foldback = <T, U>(
     option: Option<T>,
     initial: U
 ) => {
-    return match(option, v => folder(v, initial), always(initial))
+    return match(v => folder(v, initial), initial, option)
 }
 
 export const forall = <T>(predicate: Predicate<T>, option: Option<T>) => {
-    return match(option, predicate, () => true)
+    return match(predicate, true, option)
 }
 
-export const get = <T>(option: Option<T>) => {
-    return match(
-        option,
-        v => v,
-        () => {
-            throw new Error('Cannot get value from None')
-        }
-    )
+export const get = <T>(option: Option<T>): T => {
+    if (isSome(option)) {
+        return option.value
+    }
+
+    throw new Error(`Cannot get value of None`)
 }
 
 export const iter = <T>(mapper: Mapper<T, void>, option: Option<T>) => {
-    return match(option, mapper, always(None))
+    if (isSome(option)) {
+        mapper(option.value)
+    }
 }
 
 export const toArray = <T>(option: Option<T>) => {
-    return match(option, v => [v], always([]))
+    return match(v => [v], [], option)
 }
 
 export const toNullable = <T>(option: Option<T>) => {
-    return match(option, identity, always(null))
+    return match(identity, null, option)
 }
 
 export const withDefault = <T>(_default: T, option: Option<T>) => {
-    return match(option, identity, always(_default))
+    return match(identity, _default, option)
 }
 
-const checkIfOption = <T>(x): x is Option<T> => x[isOption]
-
-export const flat = <T, U>(option: Option<T>): Option<U> => {
-    return match(
-        option,
-        inner => {
-            if (checkIfOption(inner)) {
-                return flat(inner)
-            } else {
-                return Some(inner)
-            }
-        },
-        always(None)
-    )
+export const flat = <T>(option: Option<Option<T>>): Option<T> => {
+    return bind(identity, option)
 }
 
 export const fromNullable = <T>(value: Nullable<T>): Option<T> => {
