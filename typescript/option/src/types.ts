@@ -5,8 +5,8 @@ type NominalTyped<T, U> = {
     value: U
 }
 
-export type None = NominalTyped<typeof none, null>
-export type Some<T> = NominalTyped<typeof some, T>
+type None = NominalTyped<typeof none, null>
+type Some<T> = NominalTyped<typeof some, T>
 
 export type Option<T> = Some<T> | None
 
