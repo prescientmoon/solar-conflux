@@ -36,5 +36,8 @@
         "utility-types": "^3.10.0"
     },
     "author": "Matei Adriel",
-    "license": "SEE LICENSE IN LICENSE"
+    "license": "SEE LICENSE IN LICENSE",
+    "dependencies": {
+        "tslib": "^1.10.0"
+    }
 }
