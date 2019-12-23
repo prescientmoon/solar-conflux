@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 import { Some, None } from '../types'
-import { constantly } from '@thi.ng/compose'
 import { bindAsync } from './bindAsync'
 
 describe('The bindAsync helper', () => {
