@@ -4,7 +4,7 @@ import { Some, None } from '../types'
 import { constantly } from '@thi.ng/compose'
 
 describe('The bind helper', () => {
-    it('should return none for any callback when given None', () => {
+    it('should return None for any callback when given None', () => {
         // act
         const result = bind(Some, None)
 
