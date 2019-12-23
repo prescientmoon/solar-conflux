@@ -7,11 +7,7 @@ export const mapAsync = <T, U>(
     option: Option<T>
 ) => {
     return match(
-        async value => {
-            const output = await mapper(value)
-
-            return Some(output)
-        },
+        value => mapper(value).then(Some),
         Promise.resolve(None),
         option
     )
