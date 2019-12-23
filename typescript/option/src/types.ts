@@ -1,5 +1,8 @@
-import { some, none } from './internals'
+import { none } from './internals'
 import { Brand } from 'utility-types'
+
+// This is never actually used outside of typing so we can just declare it
+declare const some: unique symbol
 
 type None = Brand<void, typeof none>
 type Some<T> = Brand<T, typeof some>
