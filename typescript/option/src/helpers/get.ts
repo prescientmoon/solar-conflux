@@ -1,8 +1,8 @@
-import { some } from '../internals'
 import { Option } from '../types'
+import { isSome } from './isSome'
 
 export const get = <T>(option: Option<T>): T => {
-    if (option.__brand === some) {
+    if (isSome(option)) {
         return option as T
     }
 
