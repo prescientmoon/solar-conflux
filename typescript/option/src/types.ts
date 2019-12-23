@@ -1,4 +1,4 @@
-import { none } from './internals'
+import { none, identity } from './internals'
 import { Brand } from 'utility-types'
 
 // This is never actually used outside of typing so we can just declare it
@@ -13,4 +13,4 @@ export const None = {
     __brand: none,
     toString: () => 'None'
 } as None
-export const Some = <T>(value: T) => value as Option<T>
+export const Some = identity as <T>(value: T) => Option<T>
