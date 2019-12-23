@@ -1,4 +1,4 @@
 import { isSome } from './isSome'
-import { compL } from '@thi.ng/compose'
+import { Option } from '../types'
 
-export const count = compL(isSome, Number)
+export const count = <T>(option: Option<T>) => Number(isSome(option))
