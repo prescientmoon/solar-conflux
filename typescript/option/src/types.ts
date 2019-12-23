@@ -1,5 +1,6 @@
-import { none, identity } from './internals'
+import { identity } from '@thi.ng/compose'
 import { Brand } from 'utility-types'
+import { none } from './internals'
 
 // This is never actually used outside of typing so we can just declare it
 declare const some: unique symbol

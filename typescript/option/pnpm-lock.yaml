@@ -1,4 +1,5 @@
 dependencies:
+  '@thi.ng/compose': 1.3.6
   tslib: 1.10.0
 devDependencies:
   '@rollup/plugin-commonjs': 11.0.0_rollup@1.27.14
@@ -953,6 +954,21 @@ packages:
       semantic-release: '>=15.8.0 <16.0.0 || >=16.0.0-beta <17.0.0'
     resolution:
       integrity: sha512-LGjgPBGjjmjap/76O0Md3wc04Y7IlLnzZceLsAkcYRwGQdRPTTFUJKqDQTuieWTs7zfHzQoZqsqPfFxEN+g2+Q==
+  /@thi.ng/api/6.6.0:
+    dev: false
+    resolution:
+      integrity: sha512-CG4jxoidxdTNAVdGEGj9nLwOts37BszTWSl3RejFL/K2yOxEkB77c0zfvz19sSZVfUWv5dDWgXewbYwBnHvKlA==
+  /@thi.ng/compose/1.3.6:
+    dependencies:
+      '@thi.ng/api': 6.6.0
+      '@thi.ng/errors': 1.2.2
+    dev: false
+    resolution:
+      integrity: sha512-anCFAQqnfOjPXGkkAptJE9gMBtD4jMJc/2sETLl09M3BUMCj3i6We1tCJ9ljcoXwO+jgscTAaMOopiOwslO0SA==
+  /@thi.ng/errors/1.2.2:
+    dev: false
+    resolution:
+      integrity: sha512-M0T8m+H+FDAFi6Oe8FTYQWTBgx+xrwsstiH4KzSUGjDGmJ7Hi/FSfwmBPIslrRVnrnJKwBk41aYQ1tk3J6CNKw==
   /@types/color-name/1.1.1:
     dev: true
     resolution:
@@ -3631,6 +3647,7 @@ packages:
 specifiers:
   '@rollup/plugin-commonjs': ^11.0.0
   '@rollup/plugin-node-resolve': ^6.0.0
+  '@thi.ng/compose': ^1.3.6
   '@types/node': ^12.12.21
   '@wessberg/rollup-plugin-ts': ^1.1.83
   rimraf: ^3.0.0

@@ -1,5 +1,5 @@
 import { match } from './match'
-import { identity } from '../internals'
+import { identity } from '@thi.ng/compose'
 import { Option } from '../types'
 
 export const toNullable = <T>(option: Option<T>) => {
