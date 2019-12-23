@@ -38,6 +38,7 @@
     "author": "Matei Adriel",
     "license": "SEE LICENSE IN LICENSE",
     "dependencies": {
+        "@thi.ng/compose": "^1.3.6",
         "tslib": "^1.10.0"
     }
 }
