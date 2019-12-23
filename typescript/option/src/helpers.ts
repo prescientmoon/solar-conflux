@@ -9,16 +9,16 @@ import {
 } from './internalTypes'
 import { identity, none, some } from './internals'
 
-export const isSome = <T>(option: Option<T>) => option._type === some
-export const isNothing = <T>(option: Option<T>) => option._type === none
+export const isSome = <T>(option: Option<T>) => option.__brand === some
+export const isNothing = <T>(option: Option<T>) => option.__brand === none
 
 const match = <T, U>(
     caseSome: Mapper<T, U>,
     _default: U,
     option: Option<T>
 ) => {
-    if (option._type === some) {
-        return caseSome(option.value)
+    if (option.__brand === some) {
+        return caseSome(option as T)
     }
 
     return _default
@@ -69,16 +69,16 @@ export const forall = <T>(predicate: Predicate<T>, option: Option<T>) => {
 }
 
 export const get = <T>(option: Option<T>): T => {
-    if (option._type === some) {
-        return option.value
+    if (option.__brand === some) {
+        return option as T
     }
 
     throw new Error(`Cannot get value of None`)
 }
 
 export const iter = <T>(mapper: Mapper<T, void>, option: Option<T>) => {
-    if (option._type === some) {
-        mapper(option.value)
+    if (option.__brand === some) {
+        mapper(option as T)
     }
 }
 
