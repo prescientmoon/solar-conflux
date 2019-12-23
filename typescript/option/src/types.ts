@@ -6,5 +6,8 @@ type Some<T> = Brand<T, typeof some>
 
 export type Option<T> = Some<T> | None
 
-export const None = { __brand: none } as None
+export const None = {
+    __brand: none,
+    toString: () => 'None'
+} as None
 export const Some = <T>(value: T) => value as Option<T>
