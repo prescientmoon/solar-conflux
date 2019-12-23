@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "module": "CommonJS",
         "lib": ["esnext", "dom", "es2015.iterable"],
         "moduleResolution": "node",
         "strictNullChecks": true,
