@@ -1,21 +1,10 @@
 import { some, none } from './internals'
+import { Brand } from 'utility-types'
 
-type NominalTyped<T, U> = {
-    _type: T
-    value: U
-}
-
-type None = NominalTyped<typeof none, null>
-type Some<T> = NominalTyped<typeof some, T>
+type None = Brand<void, typeof none>
+type Some<T> = Brand<T, typeof some>
 
 export type Option<T> = Some<T> | None
 
-export const None: Option<any> = {
-    _type: none,
-    value: null
-}
-
-export const Some = <T>(value: T): Option<T> => ({
-    _type: some,
-    value
-})
+export const None = undefined as None
+export const Some = <T>(value: T): Option<T> => value as Some<T>
