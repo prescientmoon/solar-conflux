@@ -1,4 +1,4 @@
 import { Option } from '../types'
-import { isNothing } from './isNone'
+import { isNone } from './isNone'
 
-export const isSome = <T>(option: Option<T>) => !isNothing(option)
+export const isSome = <T>(option: Option<T>) => !isNone(option)
