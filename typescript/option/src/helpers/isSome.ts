@@ -1,4 +1,4 @@
 import { Option } from '../types'
-import { some } from '../internals'
+import { isNothing } from './isNone'
 
-export const isSome = <T>(option: Option<T>) => option.__brand === some
+export const isSome = <T>(option: Option<T>) => !isNothing(option)
