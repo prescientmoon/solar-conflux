@@ -42,7 +42,10 @@ export default [
         plugins: [
             ts({
                 tsconfig: {
-                    declaration: true
+                    declaration: true,
+                    ...require(resolve(__dirname, 'tsconfig.json'))[
+                        'compilerOptions'
+                    ]
                 }
             }),
             !dev && terser()
