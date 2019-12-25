@@ -4,7 +4,7 @@
 
 # Option
 
-Probably the most opinionated implementation of the Option type for typescript.
+Probably the most opinionated implementation of the Option type for TypeScript.
 
 ## Features:
 
@@ -26,7 +26,7 @@ Probably the most opinionated implementation of the Option type for typescript.
 
 ## Limitations
 
-Both limitaions bellow come from the lack of nominal-typing offered by typescript and are inherited from the `Brand` type offered by the [utility-types](https://github.com/piotrwitek/utility-types) library
+Both limitaions bellow come from the lack of nominal-typing offered by TypeScript and are inherited from the `Brand` type offered by the [utility-types](https://github.com/piotrwitek/utility-types) library
 
 -   Due to the way the library works (using the `Brand`
     type from [utility-types](https://github.com/piotrwitezutility-types)) `Some(4) === 4` will return true, similarly to how `4 == "4"` returns true (except in this libraries case the `===` operator will behave the same way).
