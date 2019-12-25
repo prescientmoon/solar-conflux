@@ -8,5 +8,6 @@
         "downlevelIteration": true,
         "target": "es6"
     },
-    "include": ["src", "sandbox", "test"]
+    "include": ["src", "sandbox", "test"],
+    "exclude": ["dist"]
 }
