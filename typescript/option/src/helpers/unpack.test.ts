@@ -38,10 +38,10 @@ describe('The unpack helper', () => {
 
         it('should not call the lazy default', () => {
             // arrange
-            const func = spy(constantly(x))
+            const func = spy(alwaysX)
 
             // act
-            unpack(func, constantly(x), someX)
+            unpack(func, alwaysX, someX)
 
             // assert
             expect(func.called).to.be.false
