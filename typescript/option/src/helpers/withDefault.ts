@@ -1,4 +1,4 @@
-import { match } from './match'
+import { unwrap } from './unwrap'
 import { identity } from '@thi.ng/compose'
 import { Option } from '../types'
 
@@ -9,5 +9,5 @@ import { Option } from '../types'
  * @param option The option to get the default of.
  */
 export const withDefault = <T>(_default: T, option: Option<T>) => {
-    return match(identity, _default, option)
+    return unwrap(_default, identity, option)
 }

@@ -1,4 +1,4 @@
-import { match } from './match'
+import { unwrap } from './unwrap'
 import { Option } from '../types'
 import { Folder } from '../internalTypes'
 
@@ -7,5 +7,5 @@ export const fold = <T, U>(
     initial: U,
     option: Option<T>
 ) => {
-    return match(v => folder(initial, v), initial, option)
+    return unwrap(initial, v => folder(initial, v), option)
 }
