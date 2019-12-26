@@ -1,19 +1,19 @@
 import { terser } from 'rollup-plugin-terser'
 import { resolve } from 'path'
 import ts from '@wessberg/rollup-plugin-ts'
+import nodeResolve from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
 
 const outputDirectory = resolve(__dirname, 'dist')
 const inputFile = resolve(__dirname, 'src/index.ts')
 
-const npmConfig = require(resolve(__dirname, `package.json`))
-
-const external = Object.keys(npmConfig.dependencies || {})
 const dev = Boolean(process.env.ROLLUP_WATCH)
+
+const commonPlugins = [commonjs(), nodeResolve()]
 
 export default [
     {
         input: inputFile,
-        external,
         output: [
             {
                 file: `${outputDirectory}/index.cjs.js`,
@@ -27,11 +27,10 @@ export default [
                 name: 'Option'
             }
         ],
-        plugins: [ts(), !dev && terser()]
+        plugins: [...commonPlugins, ts(), !dev && terser()]
     },
     {
         input: inputFile,
-        external,
         output: [
             {
                 file: `${outputDirectory}/index.esm.js`,
@@ -40,6 +39,7 @@ export default [
             }
         ],
         plugins: [
+            ...commonPlugins,
             ts({
                 tsconfig: {
                     declaration: true,
