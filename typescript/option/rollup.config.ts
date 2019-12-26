@@ -6,7 +6,6 @@ import commonjs from '@rollup/plugin-commonjs'
 import _package from './package.json'
 import filesize from 'rollup-plugin-filesize'
 
-const outputDirectory = resolve(__dirname, 'dist')
 const inputFile = resolve(__dirname, 'src/index.ts')
 
 const dev = Boolean(process.env.ROLLUP_WATCH)
