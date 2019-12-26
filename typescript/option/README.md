@@ -8,7 +8,9 @@ Probably the most opinionated implementation of the Option type for TypeScript.
 
 ## Features:
 
--   Large amount of helpers (curently 25), more than f#'s and elm's core libraries combined.
+-   Lazy and async versions of helpers:
+    One of the goals of this lib is to provide variations of helpers which are lazy (don't compute something if it's not needed) or async (make mixing Promises and Options easier). If there is any function you want one of those variations of, be sure to open an issue:)
+-   Large amount of helpers (curently 30), more than f#'s and elm's core libraries combined.
 -   Typesafe:
     ```ts
     const foo0: Option<string> = None // works
@@ -17,7 +19,7 @@ Probably the most opinionated implementation of the Option type for TypeScript.
     const foo3: Option<string> = null // errors out
     const foo4: Option<string> = Some(4) // errors out
     ```
--   Native equality:
+-   Reference equality:
     ```ts
     Some(7) === Some(7) // true
     Some(7) === Some(5) // false
