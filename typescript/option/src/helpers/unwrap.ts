@@ -3,8 +3,8 @@ import { Mapper } from '../internalTypes'
 import { isSome } from './isSome'
 
 /**
- * Apply the function to the value in the Maybe and return it unwrapped.
- * If the Maybe is Nothing, use the default value instead.
+ * Apply the function to the value in the Option and return it unwrapped.
+ * If the Option is None, use the default value instead.
  *
  * @param _default The default value to use.
  * @param mapper Function to apply to the inner value.
