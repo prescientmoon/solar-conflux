@@ -1,4 +1,4 @@
-import { match } from './match'
+import { unwrap } from './unwrap'
 import { Mapper } from '../internalTypes'
 import { Option, Some, None } from '../types'
 
@@ -6,5 +6,5 @@ export const map = <T, U>(
     mapper: Mapper<T, U>,
     option: Option<T>
 ): Option<U> => {
-    return match(v => Some(mapper(v)), None, option)
+    return unwrap(None, v => Some(mapper(v)), option)
 }
