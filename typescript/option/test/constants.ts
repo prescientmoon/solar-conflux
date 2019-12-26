@@ -7,4 +7,5 @@ export const x = Symbol('x')
 // same as x but for some
 export const someX = Some(x)
 
+export const alwaysX = constantly(x)
 export const alwaysSomeX = constantly(someX)
