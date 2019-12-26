@@ -1,4 +1,4 @@
-import { match } from './match'
+import { unwrap } from './unwrap'
 import { Option } from '../types'
 import { BackFolder } from '../internalTypes'
 
@@ -7,5 +7,5 @@ export const foldback = <T, U>(
     option: Option<T>,
     initial: U
 ) => {
-    return match(v => folder(v, initial), initial, option)
+    return unwrap(initial, v => folder(v, initial), option)
 }

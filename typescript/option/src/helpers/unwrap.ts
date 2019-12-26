@@ -1,7 +1,6 @@
-import { Mapper } from '../internalTypes'
 import { Option } from '../types'
-import { withDefault } from './withDefault'
-import { map } from './map'
+import { Mapper } from '../internalTypes'
+import { isSome } from './isSome'
 
 /**
  * Apply the function to the value in the Maybe and return it unwrapped.
@@ -13,8 +12,12 @@ import { map } from './map'
  */
 export const unwrap = <T, U>(
     _default: U,
-    mapper: Mapper<T, U>,
+    caseSome: Mapper<T, U>,
     option: Option<T>
 ) => {
-    return withDefault(_default, map(mapper, option))
+    if (isSome(option)) {
+        return caseSome(option as T)
+    }
+
+    return _default
 }

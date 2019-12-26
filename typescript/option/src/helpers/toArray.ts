@@ -1,6 +1,6 @@
-import { match } from './match'
+import { unwrap } from './unwrap'
 import { Option } from '../types'
 
 export const toArray = <T>(option: Option<T>) => {
-    return match(v => [v], [], option)
+    return unwrap([], v => [v], option)
 }
