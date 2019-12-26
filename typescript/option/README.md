@@ -41,7 +41,7 @@ Both limitaions bellow come from the lack of nominal-typing offered by TypeScrip
 npm install @adrielus/option
 ```
 
-(There is also an amd build at `/dist/bundle.amd.js` which uses the `Option` namespace)
+(There is also an amd build at `/dist/bundle.umd.js` which uses the `Option` namespace)
 
 ## Usage
 
