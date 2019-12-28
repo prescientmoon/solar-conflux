@@ -1,0 +1,12 @@
+.link {
+    text-decoration: none;
+    color: white;
+    filter: brightness(0.8);
+    font-size: 1.6rem;
+    padding: 1.4rem;
+    font: "Roboto light";
+}
+
+.activeLink {
+    filter: brightness(1);
+}
