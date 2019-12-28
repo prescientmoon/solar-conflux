@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css?family=Varela+Round&display=swap");
+@import url("https://fonts.googleapis.com/css?family=Roboto|Varela+Round&display=swap");
 
 html,
 body {
@@ -13,7 +13,12 @@ body {
     height: 100%;
 }
 
+* {
+    font-family: var(--font);
+}
+
 :root {
+    --font: "Roboto", sans-serif;
     --title-font: "Varela Round", sans-serif;
     --max-width: 800px;
     --spacing: 2rem;
