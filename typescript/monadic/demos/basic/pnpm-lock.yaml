@@ -1,0 +1,10 @@
+dependencies:
+  lit-html: 1.2.1
+lockfileVersion: 5.1
+packages:
+  /lit-html/1.2.1:
+    dev: false
+    resolution:
+      integrity: sha512-GSJHHXMGLZDzTRq59IUfL9FCdAlGfqNp/dEa7k7aBaaWD+JKaCjsAk9KYm2V12ItonVaYx2dprN66Zdm1AuBTQ==
+specifiers:
+  lit-html: ^1.2.1
