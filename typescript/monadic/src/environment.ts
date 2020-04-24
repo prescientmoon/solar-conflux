@@ -1,4 +1,4 @@
-import { IterableEmitter } from './iterableEmitter';
+import { Component, runComponent } from './component';
 
 export type EnvConfig<T, S, A> = {
   render: (template: T, parent: HTMLElement) => void;
@@ -6,30 +6,6 @@ export type EnvConfig<T, S, A> = {
   component: Component<T, S, A>;
   initialState: S;
 };
-
-export type Component<T, S, A> = {
-  render: (state: S, dispatch: (a: A) => () => void) => T;
-  handleActions: (action: A, state: S) => S;
-};
-
-async function* runComponent<T, S, A>(
-  component: Component<T, S, A>,
-  initialState: S
-): AsyncGenerator<T> {
-  const emitter = new IterableEmitter(initialState);
-
-  const dispatch = (state: S) => (action: A) => {
-    const newState = component.handleActions(action, state);
-
-    return () => {
-      emitter.next(newState);
-    };
-  };
-
-  for await (const state of emitter) {
-    yield component.render(state, dispatch(state));
-  }
-}
 
 export const runUi = async <T, S, A>(
   config: EnvConfig<T, S, A>
