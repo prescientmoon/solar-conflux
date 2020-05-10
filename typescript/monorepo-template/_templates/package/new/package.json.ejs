@@ -1,0 +1,26 @@
+---
+to: packages/<%= name %>/package.json
+---
+{
+    "name": "@<%= org %>/<%= name %>",
+    "version": "0.0.0",
+    "description": "",
+    "keywords": [],
+    "main": "dist/bundle.cjs.js",
+    "module": "dist/bundle.esm.js",
+    "typings": "./dist/index.d.ts",
+    "publishConfig": {
+        "access": "public"
+    },
+    "files": [
+        "dist"
+    ],
+    "author": "<%= author %>",
+    "homepage": "<%= homepage %>",
+    "license": "<%= license %>",
+    "repository": <%- repository %>,
+    "bugs": <%- bugs %>,
+    "dependencies": {},
+    "devDependencies": {},
+    "sideEffects": false
+}
