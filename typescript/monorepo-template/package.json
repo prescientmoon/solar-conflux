@@ -1,0 +1,24 @@
+{
+  "name": "monorepo",
+  "description": "Some monorepo",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mateiadriel/monorepo.git"
+  },
+  "keywords": [
+    "monorepo",
+    "pnpm",
+    "typescript"
+  ],
+  "author": "Matei Adriel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mateiadriel/monorepo/issues"
+  },
+  "homepage": "https://github.com/Mateiadriel/monorepo#readme",
+  "devDependencies": {
+    "semantic-release": "^17.0.7",
+    "semantic-release-monorepo": "^7.0.2"
+  }
+}
