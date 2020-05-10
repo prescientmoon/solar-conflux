@@ -1,10 +1,13 @@
 {
   "name": "monorepo",
   "description": "Some monorepo",
-  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Mateiadrielrafael/monorepo-template.git"
+  },
+  "scripts": {
+    "build": "pnpm run build --filter @monorepo/*",
+    "test": "pnpm run test --filter @monorepo/*"
   },
   "keywords": [
     "monorepo",
