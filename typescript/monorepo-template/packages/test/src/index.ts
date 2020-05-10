@@ -1,1 +1,0 @@
-export const hello = () => console.log("Hello world from the test package!")
