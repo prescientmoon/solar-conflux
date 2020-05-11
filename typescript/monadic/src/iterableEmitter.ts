@@ -10,6 +10,10 @@ export class IterableEmitter<T> {
 
   public constructor(private state: T) {}
 
+  public alter(mapper: (f: T) => T) {
+    this.next(mapper(this.state));
+  }
+
   async *[Symbol.asyncIterator](): AsyncGenerator<T> {
     const createPromise = () =>
       new Promise<T>(resolve => {
