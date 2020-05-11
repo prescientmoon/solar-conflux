@@ -1,18 +1,20 @@
-import { Component, runComponent } from './component';
+import { ComponentConfig, Component } from './Component';
 
 export type EnvConfig<T, S, A> = {
   render: (template: T, parent: HTMLElement) => void;
   parent: HTMLElement;
-  component: Component<T, S, A>;
+  component: ComponentConfig<T, S, A, string, {}>;
   initialState: S;
 };
 
-export const runUi = async <T, S, A>(
-  config: EnvConfig<T, S, A>
-): Promise<void> => {
-  const component = runComponent(config.component, config.initialState);
+export const runUi = <T, S, A>(config: EnvConfig<T, S, A>) => {
+  const reRender = () => config.render(component.getTemplate(), config.parent);
 
-  for await (const template of component) {
-    config.render(template, config.parent);
-  }
+  const component = new Component(config.initialState, config.component, _ => {
+    reRender();
+  });
+
+  reRender();
+
+  return component;
 };
