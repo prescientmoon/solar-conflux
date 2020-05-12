@@ -1,4 +1,5 @@
 import { ComponentConfig, Component } from './Component';
+import { IterableEmitter } from './iterableEmitter';
 
 export type EnvConfig<T, S, A, O> = {
   render: (template: T, parent: HTMLElement) => void;
@@ -7,14 +8,29 @@ export type EnvConfig<T, S, A, O> = {
   initialState: S;
 };
 
-export const runUi = <T, S, A, O>(config: EnvConfig<T, S, A, O>) => {
+// Not an arrow function cause it's a generator
+/**
+ * Run a component and render it to the dom
+ */
+export async function* runUi<T, S, A, O>(config: EnvConfig<T, S, A, O>) {
   const reRender = () => config.render(component.getTemplate(), config.parent);
 
-  const component = new Component(config.initialState, config.component, _ => {
-    reRender();
-  });
+  const outputEmitter = new IterableEmitter<null | O>(null);
+
+  const component = new Component(
+    config.initialState,
+    config.component,
+    outputEmitter.next,
+    _ => {
+      reRender();
+    }
+  );
 
   reRender();
 
-  return component;
-};
+  for await (const event of outputEmitter) {
+    if (event) {
+      yield event;
+    }
+  }
+}
