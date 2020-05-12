@@ -1,25 +1,25 @@
 import { mapRecord } from './Record';
-import { values, GenericLens } from './helpers';
-import O from 'fp-ts/es6/Option';
-import { constant } from 'fp-ts/es6/function';
+import { values, GenericLens, areEqual } from './helpers';
+import * as O from 'fp-ts/es6/Option';
+import { constant, flow } from 'fp-ts/es6/function';
 
 /**
  * Helper type for dispatcher functions
  */
 export type Dispatcher<A> = (action: A) => void;
 
-export type Communicate<
-  T,
-  A,
-  O,
-  N extends string,
-  C extends ChildrenConfigs<N>
-> = {
+export type Communicate<A, O> = {
   dispatch: Dispatcher<A>;
-  child: <K extends N>(key: K, name: string, input: C[K]['input']) => T;
   raise: (event: O) => void;
 };
 
+export type CanAddChildren<
+  T,
+  N extends string,
+  C extends ChildrenConfigs<N>
+> = {
+  child: <K extends N>(key: K, name: string, input: C[K]['input']) => T;
+};
 export type RenderFunction<
   T,
   S,
@@ -27,7 +27,7 @@ export type RenderFunction<
   O,
   N extends string,
   C extends ChildrenConfigs<N>
-> = (state: S, communicate: Communicate<T, A, O, N, C>) => T;
+> = (state: S, communicate: Communicate<A, O> & CanAddChildren<T, N, C>) => T;
 
 export type ComponentConfig<
   T,
@@ -38,7 +38,7 @@ export type ComponentConfig<
   C extends ChildrenConfigs<N>
 > = {
   render: RenderFunction<T, S, A, O, N, C>;
-  handleAction: (action: A, state: S) => S;
+  handleAction: (action: A, state: S, communication: Communicate<A, O>) => S;
   children: ChildrenTemplates<T, S, A, N, C>;
 };
 
@@ -102,51 +102,98 @@ export class Component<
   public constructor(
     protected state: S,
     private config: ComponentConfig<T, S, A, O, N, C>,
+    private raise: Communicate<A, O>['raise'],
     private pushDownwards: (state: S) => void
   ) {
     this.childrenMap = mapRecord(this.config.children, constant({}));
   }
 
-  protected pushStateUpwards(state: S) {
+  /**
+   * Do something only if the state changed.
+   *
+   * @param state The new state.
+   * @param then The thing you want to do with the state
+   */
+  private setStateAndThen = (then: (state: S) => unknown) => (state: S) => {
+    if (areEqual(state, this.state)) {
+      return;
+    }
+
     this.state = state;
 
+    then(state);
+  };
+
+  /**
+   * Propagate a new state upstream the tree
+   *
+   * @param state The new state
+   */
+  protected pushStateUpwards = this.setStateAndThen(state => {
     for (const { component, lens } of this.children()) {
-      component.pushStateUpwards(lens.set(state, component.state));
+      component.pushStateUpwards(lens.get(state));
     }
+  });
+
+  /**
+   * Function to get a child or create it if it doesn't exist
+   */
+  private getChild: CanAddChildren<T, N, C> = {
+    child: (key, name, input) => {
+      const hasName = Reflect.has(this.childrenMap[key], name);
+
+      if (!hasName) {
+        const config = this.config.children[key];
+        const lens = config.lens(input);
+        const raise = flow(config.handleOutput, O.map(this.dispatch));
+        const child = this.childrenMap[key] as Record<string, any>;
+
+        child[name] = {
+          lens,
+          component: new Component(
+            lens.get(this.state),
+            this.config.children[key].component,
+            event => raise(input, event),
+            childState => {
+              const newState = lens.set(this.state, childState);
+
+              this.setStateAndThen(this.pushDownwards)(newState);
+            }
+          ),
+        };
+      }
+
+      return this.childrenMap[key][name].component.getTemplate();
+    },
+  };
+
+  private getCommunication(): Communicate<A, O> {
+    return {
+      dispatch: value => this.dispatch(value),
+      raise: this.raise,
+    };
   }
 
   public getTemplate(): T {
     return this.config.render(this.state, {
-      dispatch: value => this.dispatch(value),
-      raise: _ => undefined,
-      child: (key, name, input) => {
-        const hasName = Reflect.has(this.childrenMap[key], name);
-
-        if (!hasName) {
-          const lens = this.config.children[key].lens(input);
-          const child = this.childrenMap[key] as Record<string, any>;
-
-          child[name] = {
-            lens,
-            component: new Component(
-              lens.get(this.state),
-              this.config.children[key].component,
-              state => this.pushDownwards(lens.set(this.state, state))
-            ),
-          };
-        }
-
-        return this.childrenMap[key][name].component.getTemplate();
-      },
+      ...this.getCommunication(),
+      ...this.getChild,
     });
   }
 
-  public dispatch(action: A) {
-    const newState = this.config.handleAction(action, this.state);
+  /**
+   * Dispatch an arbitrary action on the component.
+   */
+  public dispatch = (action: A) => {
+    const newState = this.config.handleAction(
+      action,
+      this.state,
+      this.getCommunication()
+    );
 
     this.pushStateUpwards(newState);
     this.pushDownwards(newState);
-  }
+  };
 
   /**
    * Get a list of all the children of the component

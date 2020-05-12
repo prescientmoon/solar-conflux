@@ -11,4 +11,5 @@ export {
   buildSpec,
   withTemplate,
   withChild,
+  withOutput,
 } from './Builder';
