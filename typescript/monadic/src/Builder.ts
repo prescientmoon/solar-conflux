@@ -6,8 +6,11 @@ import {
   Child,
 } from './Component';
 import { GenericLens } from './helpers';
-import { constant, identity } from 'fp-ts/es6/function';
+import { constant, identity, flow } from 'fp-ts/es6/function';
 import * as O from 'fp-ts/es6/Option';
+
+// This is here since all the builders are pretty much this
+const alwaysIdentity = constant(identity);
 
 type ComponentBuilder = <
   T,
@@ -47,6 +50,9 @@ export const mkChild: ChildBuilder = (
   handleOutput = constant(O.none)
 ) => ({ lens, component, handleOutput });
 
+/**
+ * Structure which keeps track of the different types needed to build a component.
+ */
 export type ComponentSpec<
   T,
   S,
@@ -56,16 +62,29 @@ export type ComponentSpec<
   C extends ChildrenConfigs<N>
 > = [T, S, A, O, N, C];
 
-export const withChild = constant(identity) as <
+/**
+ * Add a child to a spec (type only, the implementation is given when building the spec)
+ */
+export const withChild = alwaysIdentity as <
   N1 extends keyof any,
   I,
   S,
   O
->() => <T, PS, A, PO, N0 extends string, C extends ChildrenConfigs<N0>>(
+>() => <
+  T,
+  PS,
+  A,
+  PO,
+  N0 extends Exclude<string, N1>,
+  C extends ChildrenConfigs<N0>
+>(
   spec: ComponentSpec<T, PS, A, PO, N0, C>
 ) => ComponentSpec<T, PS, A, PO, N1 & N0, C & Record<N1, Child<I, S, O>>>;
 
-export const withAction = constant(identity) as <A1>() => <
+/**
+ * Specify the action type of a spec
+ */
+export const withAction = alwaysIdentity as <A1>() => <
   T,
   S,
   A0,
@@ -76,7 +95,24 @@ export const withAction = constant(identity) as <A1>() => <
   spec: ComponentSpec<T, S, A0, O, N, C>
 ) => ComponentSpec<T, S, A1, O, N, C>;
 
-export const withState = constant(identity) as <S1>() => <
+/**
+ * Specify the output type of a spec
+ */
+export const withOutput = alwaysIdentity as <O1>() => <
+  T,
+  S,
+  A,
+  O0,
+  N extends string,
+  C extends ChildrenConfigs<N>
+>(
+  spec: ComponentSpec<T, S, A, O0, N, C>
+) => ComponentSpec<T, S, A, O1, N, C>;
+
+/**
+ * Specify the type of state in a spec
+ */
+export const withState = alwaysIdentity as <S1>() => <
   T,
   S0,
   A,
@@ -87,7 +123,10 @@ export const withState = constant(identity) as <S1>() => <
   spec: ComponentSpec<T, S0, A, O, N, C>
 ) => ComponentSpec<T, S1, A, O, N, C>;
 
-export const withTemplate = constant(identity) as <T1>() => <
+/**
+ * Specify what a component renders to
+ */
+export const withTemplate = alwaysIdentity as <T1>() => <
   T0,
   S,
   A,
@@ -98,7 +137,10 @@ export const withTemplate = constant(identity) as <T1>() => <
   spec: ComponentSpec<T0, S, A, O, N, C>
 ) => ComponentSpec<T1, S, A, O, N, C>;
 
-export const buildSpec = (constant(makeComponent) as any) as <
+/**
+ * Takes implementations of the components watching the spec and creates the component
+ */
+export const buildSpec = flow(makeComponent, constant) as <
   T,
   S,
   A,
