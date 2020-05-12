@@ -172,6 +172,7 @@ const todoList = pipe(
     }
   )
 );
+
 const main = async () => {
   const output = runUi({
     parent: document.getElementById('app'),
