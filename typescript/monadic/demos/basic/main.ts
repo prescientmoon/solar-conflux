@@ -9,7 +9,7 @@ type TodoState = {
 type TodoAction = 'complete';
 
 const todo = makeComponent(
-  ({ name, done }: TodoState, dispatch: Dispatcher<TodoAction>) => {
+  ({ name, done }: TodoState, { dispatch }) => {
     return html`
       <div>
         Name: ${name} Completed: ${done}
