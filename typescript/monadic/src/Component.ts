@@ -1,25 +1,36 @@
 import { mapRecord } from './Record';
 import { values } from './helpers';
+import O from 'fp-ts/es6/Option';
+import { constant } from 'fp-ts/es6/function';
 
 /**
  * Helper type for dispatcher functions
  */
 export type Dispatcher<A> = (action: A) => void;
 
+export type Communicate<
+  T,
+  A,
+  O,
+  N extends string,
+  C extends ChildrenConfigs<N>
+> = {
+  dispatch: Dispatcher<A>;
+  child: <K extends N>(key: K, name: string, input: C[K]['input']) => T;
+  raise: (event: O) => void;
+};
+
 export type ComponentConfig<
   T,
   S,
   A,
+  O,
   N extends string,
   C extends ChildrenConfigs<N>
 > = {
-  render: (
-    state: S,
-    dispatch: Dispatcher<A>,
-    child: <K extends N>(key: K, name: string, input: C[K]['input']) => T
-  ) => T;
+  render: (state: S, communicate: Communicate<T, A, O, N, C>) => T;
   handleAction: (action: A, state: S) => S;
-  children: ChildrenTemplates<T, S, N, C>;
+  children: ChildrenTemplates<T, S, A, O, N, C>;
 };
 
 type GenericLens<T, U> = {
@@ -27,17 +38,26 @@ type GenericLens<T, U> = {
   set: (v: T, n: U) => T;
 };
 
-type Child<I = unknown, S = unknown> = {
+type Child<I = unknown, S = unknown, O = unknown> = {
   input: I;
   state: S;
+  output: O;
 };
 
 type ChildrenConfigs<N extends string> = Record<N, Child>;
 
-type ChildrenTemplates<T, S, N extends string, C extends ChildrenConfigs<N>> = {
+type ChildrenTemplates<
+  T,
+  S,
+  A,
+  O,
+  N extends string,
+  C extends ChildrenConfigs<N>
+> = {
   [K in N]: {
     lens: (input: C[K]['input']) => GenericLens<S, C[K]['state']>;
-    component: ComponentConfig<T, C[K]['state'], unknown, string, {}>;
+    component: ComponentConfig<T, C[K]['state'], O, unknown, string, {}>;
+    handleOutput: (input: C[K]['input'], output: C[K]['output']) => O.Option<A>;
   };
 };
 
@@ -45,7 +65,14 @@ type Children<T, S, N extends string, C extends ChildrenConfigs<N>> = {
   [K in N]: Record<
     string,
     {
-      component: Component<T, C[K]['state'], unknown, string, {}>;
+      component: Component<
+        T,
+        C[K]['state'],
+        unknown,
+        C[K]['output'],
+        string,
+        {}
+      >;
       lens: GenericLens<S, C[K]['state']>;
     }
   >;
@@ -55,16 +82,17 @@ export class Component<
   T,
   S,
   A,
+  O,
   N extends string,
   C extends ChildrenConfigs<N>
 > {
-  private childrenMap: Children<T, S, N, C>;
+  public childrenMap: Children<T, S, N, C>;
   public constructor(
     protected state: S,
-    private config: ComponentConfig<T, S, A, N, C>,
+    private config: ComponentConfig<T, S, A, O, N, C>,
     private pushDownwards: (state: S) => void
   ) {
-    this.childrenMap = mapRecord(this.config.children, () => ({}));
+    this.childrenMap = mapRecord(this.config.children, constant({}));
   }
 
   protected pushStateUpwards(state: S) {
@@ -76,10 +104,10 @@ export class Component<
   }
 
   public getTemplate(): T {
-    return this.config.render(
-      this.state,
-      value => this.dispatch(value),
-      (key, name, input) => {
+    return this.config.render(this.state, {
+      dispatch: value => this.dispatch(value),
+      raise: _ => undefined,
+      child: (key, name, input) => {
         const hasName = Reflect.has(this.childrenMap[key], name);
 
         if (!hasName) {
@@ -97,8 +125,8 @@ export class Component<
         }
 
         return this.childrenMap[key][name].component.getTemplate();
-      }
-    );
+      },
+    });
   }
 
   public dispatch(action: A) {
@@ -111,10 +139,8 @@ export class Component<
   /**
    * Get a list of all the children of the component
    */
-  private children() {
-    return values(this.childrenMap).flatMap(record =>
-      values(record)
-    ) as Children<T, S, N, C>[N][string][];
+  private children(): this['childrenMap'][N][string][] {
+    return values(this.childrenMap).flatMap(record => values(record)) as any;
   }
 }
 
@@ -129,15 +155,17 @@ export const makeComponent = <
   T,
   S,
   A,
+  O,
   N extends string,
   C extends ChildrenConfigs<N>
 >(
-  render: ComponentConfig<T, S, A, N, C>['render'],
-  handleAction: ComponentConfig<T, S, A, N, C>['handleAction'],
-  children: ComponentConfig<T, S, A, N, C>['children']
+  render: ComponentConfig<T, S, A, O, N, C>['render'],
+  handleAction: ComponentConfig<T, S, O, A, N, C>['handleAction'],
+  children: ComponentConfig<T, S, A, O, N, C>['children']
 ) => ({ render, handleAction, children });
 
-export const mkChild = <T, PS, I, S>(
+export const mkChild = <T, PS, A, I, S, O>(
   lens: (input: I) => GenericLens<PS, S>,
-  component: ComponentConfig<T, S, unknown, string, {}>
-) => ({ lens, component });
+  component: ComponentConfig<T, S, A, O, string, {}>,
+  handleOutput: (input: I, output: O) => O.Option<A> = constant(O.none)
+) => ({ lens, component, handleOutput });
