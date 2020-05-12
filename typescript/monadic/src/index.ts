@@ -1,7 +1,14 @@
 export { runUi, EnvConfig } from './environment';
+export { ComponentConfig, Dispatcher } from './Component';
+
 export {
-  ComponentConfig,
-  Dispatcher,
   makeComponent,
   mkChild,
-} from './Component';
+  ComponentSpec,
+  withAction,
+  emptySpec,
+  withState,
+  buildSpec,
+  withTemplate,
+  withChild,
+} from './Builder';
