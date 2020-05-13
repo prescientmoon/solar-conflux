@@ -6,6 +6,7 @@
         "hygen",
         "plugin",
         "pnpm",
+        "pnpx",
         "rollup",
         "show",
         "size",

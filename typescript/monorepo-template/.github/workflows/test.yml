@@ -1,0 +1,38 @@
+name: Test ⛳
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install pnpm
+        run: npm i -g pnpm
+      - name: Config pnpm for ci
+        run: pnpm config set verify-store-integrity false
+      - name: Cache node_modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.pnpm-store
+          key: 'pnpm cache'
+      - name: Install dependencies
+        run: pnpm i
+      - name: Build project
+        run: pnpm run build
+      - name: Test project
+        run: pnpm test
