@@ -5,5 +5,6 @@ exports.prompt = async ({ args }) => ({
   ...args,
   org: packageJson.name,
   repository: JSON.stringify(packageJson.repository),
-  bugs: JSON.stringify(packageJson.bugs)
+  bugs: JSON.stringify(packageJson.bugs),
+  description: args.description || ''
 })
