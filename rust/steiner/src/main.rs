@@ -11,7 +11,7 @@ fn main() {
             .read_line(&mut input)
             .expect("Error reading line");
 
-        match lexer::lex(input.as_bytes()) {
+        match lexer::lex(input[..].as_bytes()) {
             Ok((_, result)) => {
                 println!("Parsed string successfully!");
                 for token in result.iter() {

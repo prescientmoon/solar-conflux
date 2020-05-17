@@ -1,6 +1,12 @@
-use nom::character::complete::space0;
+use nom::branch::alt;
+use nom::bytes::complete::is_a;
+use nom::character::complete::one_of;
+use nom::character::complete::{alphanumeric1, multispace0};
+use nom::combinator::{all_consuming, map};
+use nom::multi::many0;
 use nom::number::complete::double;
-use nom::{alt, is_a, many0, map, named, one_of, terminated};
+use nom::sequence::terminated;
+use nom::IResult;
 use std::vec::Vec;
 
 #[derive(Debug)]
@@ -14,6 +20,7 @@ pub enum TokenKind<'a> {
     FloatLit(f64),
     Punctuation(PunctuationKind),
     Operator(&'a [u8]),
+    Identifier(&'a [u8]),
 }
 
 // Convert a char to it's corresponding punctuation
@@ -27,12 +34,21 @@ fn char_to_punctuation<'a>(input: char) -> TokenKind<'a> {
 
 const OPERATOR_CHARS: &[u8] = b"<=>+-/*!$%^&|";
 
-named!(parse_float_literal<&[u8],TokenKind>,map!(double, |f| TokenKind::FloatLit(f)));
-named!(parse_punctuation<&[u8], TokenKind>, map!(one_of!("()"), char_to_punctuation));
+pub fn lex(input: &[u8]) -> IResult<&[u8], Vec<TokenKind>> {
+    let parse_float_literal = map(double, TokenKind::FloatLit);
+    let parse_punctuation = map(one_of("()"), char_to_punctuation);
+    let parse_operator = map(is_a(OPERATOR_CHARS), TokenKind::Operator);
+    let parse_identifier = map(alphanumeric1, TokenKind::Identifier);
 
-named!(parse_operator<&[u8],TokenKind>, map!(is_a!(OPERATOR_CHARS),|operator| TokenKind::Operator(operator)));
+    let parse = all_consuming(many0(terminated(
+        alt((
+            parse_float_literal,
+            parse_punctuation,
+            parse_operator,
+            parse_identifier,
+        )),
+        multispace0,
+    )));
 
-named!(
-    pub lex<&[u8], Vec<TokenKind>>,
-    many0!(terminated!(alt!(parse_float_literal | parse_punctuation | parse_operator), space0))
-);
+    parse(input)
+}
