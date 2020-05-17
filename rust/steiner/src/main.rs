@@ -1,11 +1,24 @@
+use std::io;
+
 mod lexer;
 
 fn main() {
-    let my_lexer = lexer::Lexer::new();
-    let (my_new_string, _) = lexer::skip_whitespace(
-        "           Something With whitespace at the start!",
-        my_lexer,
-    );
+    loop {
+        println!("Enter a string to lex:");
+        let mut input = String::new();
 
-    println!("{}", my_new_string);
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Error reading line");
+
+        match lexer::lex(input.as_bytes()) {
+            Ok((_, result)) => {
+                println!("Parsed string successfully!");
+                for token in result.iter() {
+                    println!("{:?}", token)
+                }
+            }
+            Err(err) => println!("An error ocurred while parsing: {}", err),
+        }
+    }
 }
