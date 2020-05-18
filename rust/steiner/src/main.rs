@@ -1,6 +1,7 @@
 use std::io;
 
 mod lexer;
+mod parser;
 
 fn main() {
     loop {
@@ -13,9 +14,15 @@ fn main() {
 
         match lexer::lex(input[..].as_bytes()) {
             Ok((_, result)) => {
-                println!("Parsed string successfully!");
-                for token in result.iter() {
-                    println!("{:?}", token)
+                println!("Finished lexing string successfully!");
+                match parser::parse_expression(result) {
+                    Ok((_, parsing_result)) => {
+                        println!("Finished parsing successfully");
+
+                        println!("{:?}", parsing_result);
+                    }
+
+                    Err(err) => println!("An error ocurred while parsing {}", err),
                 }
             }
             Err(err) => println!("An error ocurred while parsing: {}", err),

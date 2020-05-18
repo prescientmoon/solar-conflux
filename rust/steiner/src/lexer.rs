@@ -15,13 +15,13 @@ macro_rules! tagged {
     };
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PunctuationKind {
     OpenParenthesis,
     CloseParenthesis,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum KeywordKind {
     If,
     Then,
@@ -34,7 +34,7 @@ macro_rules! keyword {
     };
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Token<'a> {
     FloatLit(f64),
     Punctuation(PunctuationKind),
