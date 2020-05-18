@@ -26,6 +26,8 @@ pub enum KeywordKind {
     If,
     Then,
     Else,
+    Let,
+    In,
 }
 
 macro_rules! keyword {
@@ -44,7 +46,7 @@ pub enum Token<'a> {
 }
 
 const OPERATOR_CHARS: &[u8] = b"<=>+-/*!$%^&|";
-const KEYWORDS: [&[u8]; 3] = [b"if", b"then", b"else"];
+const KEYWORDS: [&[u8]; 5] = [b"if", b"then", b"else", b"let", b"in"];
 
 pub fn lex(input: &[u8]) -> IResult<&[u8], Vec<Token>> {
     let parse_float_literal = map(double, Token::FloatLit);
@@ -61,6 +63,8 @@ pub fn lex(input: &[u8]) -> IResult<&[u8], Vec<Token>> {
             keyword!(KEYWORDS[0], KeywordKind::If),
             keyword!(KEYWORDS[1], KeywordKind::Then),
             keyword!(KEYWORDS[2], KeywordKind::Else),
+            keyword!(KEYWORDS[3], KeywordKind::Let),
+            keyword!(KEYWORDS[4], KeywordKind::In),
         )),
         Token::Keyword,
     );

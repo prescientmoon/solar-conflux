@@ -15,6 +15,12 @@ fn main() {
         match lexer::lex(input[..].as_bytes()) {
             Ok((_, result)) => {
                 println!("Finished lexing string successfully!");
+                println!("Tokens:");
+
+                for token in &result {
+                    println!("{:?}", token);
+                }
+
                 match parser::parse_expression(result) {
                     Ok((_, parsing_result)) => {
                         println!("Finished parsing successfully");

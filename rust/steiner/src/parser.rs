@@ -1,20 +1,28 @@
 use crate::lexer::{KeywordKind, Token};
 use nom::branch::alt;
-use nom::combinator::{map_opt, verify};
+use nom::combinator::{map, map_opt, verify};
 use nom::error::{make_error, ErrorKind};
 use nom::{Err, IResult};
 use std::vec::Vec;
 
+// Shorthand for names of variables
+type VariableName<'a> = &'a [u8];
+
 #[derive(Debug)]
 pub enum Ast<'a> {
-    Variable(&'a [u8]),
+    Variable(VariableName<'a>),
     FloatLiteral(f64),
     If(Box<Ast<'a>>, Box<Ast<'a>>, Box<Ast<'a>>),
+    Let(VariableName<'a>, Box<Ast<'a>>, Box<Ast<'a>>),
 }
 
 impl<'a> Ast<'a> {
     pub fn new_if(condition: Ast<'a>, left: Ast<'a>, right: Ast<'a>) -> Ast<'a> {
         Ast::If(Box::new(condition), Box::new(left), Box::new(right))
+    }
+
+    pub fn new_let(name: VariableName<'a>, value: Ast<'a>, body: Ast<'a>) -> Ast<'a> {
+        Ast::Let(name, Box::new(value), Box::new(body))
     }
 }
 
@@ -42,6 +50,24 @@ macro_rules! keyword {
     };
 }
 
+// Macro for matching a particular operator
+macro_rules! operator {
+    ($operator:expr) => {
+        only!(Token::Operator($operator))
+    };
+}
+
+// This matches any identifier
+macro_rules! identifier {
+    () => {
+        map_opt(first(), |input| match input {
+            Token::Identifier(value) => Some(value),
+            _ => None,
+        });
+    };
+}
+
+// This parses an if statement
 fn parse_if(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     let (remaining, (_, condition, _, left, _, right)) = nom::sequence::tuple((
         keyword!(KeywordKind::If),
@@ -57,18 +83,31 @@ fn parse_if(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     Ok((remaining, ast))
 }
 
+// This parses a let expression
+fn parse_let(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
+    let (remaining, (_, name, _, value, _, body)) = nom::sequence::tuple((
+        keyword!(KeywordKind::Let),
+        identifier!(),
+        operator!(b"="),
+        parse_expression,
+        keyword!(KeywordKind::In),
+        parse_expression,
+    ))(input)?;
+
+    let ast = Ast::new_let(name, value, body);
+
+    Ok((remaining, ast))
+}
+
 pub fn parse_expression(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     let parse_float_literal = map_opt(first(), |input| match input {
         Token::FloatLit(value) => Some(Ast::FloatLiteral(value)),
         _ => None,
     });
 
-    let parse_identifier = map_opt(first(), |input| match input {
-        Token::Identifier(value) => Some(Ast::Variable(value)),
-        _ => None,
-    });
+    let parse_identifier = map(identifier!(), Ast::Variable);
 
-    let parse = alt((parse_if, parse_float_literal, parse_identifier));
+    let parse = alt((parse_if, parse_let, parse_float_literal, parse_identifier));
 
     parse(input)
 }
