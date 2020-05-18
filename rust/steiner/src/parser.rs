@@ -1,7 +1,8 @@
-use crate::lexer::{KeywordKind, Token};
+use crate::lexer::{KeywordKind, PunctuationKind, Token};
 use nom::branch::alt;
 use nom::combinator::{map, map_opt, verify};
 use nom::error::{make_error, ErrorKind};
+use nom::sequence::delimited;
 use nom::{Err, IResult};
 use std::vec::Vec;
 
@@ -26,12 +27,13 @@ impl<'a> Ast<'a> {
     }
 }
 
+// Takes the first element of the input vector and returns it
 fn first<T: Clone + Copy>() -> impl Fn(Vec<T>) -> IResult<Vec<T>, T> {
     move |input: Vec<T>| {
         if let Some((first, rest)) = input.split_first() {
             Ok((rest.to_vec(), *first))
         } else {
-            Err(Err::Error(make_error(input, ErrorKind::Tag)))
+            Err(Err::Error(make_error(input, ErrorKind::Eof)))
         }
     }
 }
@@ -54,6 +56,12 @@ macro_rules! keyword {
 macro_rules! operator {
     ($operator:expr) => {
         only!(Token::Operator($operator))
+    };
+}
+
+macro_rules! punctuation {
+    ($punctuation:expr) => {
+        only!(Token::Punctuation($punctuation))
     };
 }
 
@@ -105,9 +113,21 @@ pub fn parse_expression(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
         _ => None,
     });
 
+    let prase_wrapped = delimited(
+        punctuation!(PunctuationKind::OpenParenthesis),
+        parse_expression,
+        punctuation!(PunctuationKind::CloseParenthesis),
+    );
+
     let parse_identifier = map(identifier!(), Ast::Variable);
 
-    let parse = alt((parse_if, parse_let, parse_float_literal, parse_identifier));
+    let parse = alt((
+        parse_if,
+        parse_let,
+        parse_float_literal,
+        parse_identifier,
+        prase_wrapped,
+    ));
 
     parse(input)
 }
