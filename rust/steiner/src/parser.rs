@@ -28,23 +28,33 @@ fn first<T: Clone + Copy>() -> impl Fn(Vec<T>) -> IResult<Vec<T>, T> {
     }
 }
 
+// Macro to only match a particular value
 macro_rules! only {
     ($value:expr) => {
         verify(first(), |v| v == &$value)
     };
 }
 
+// Macro for matching a particular keyword
+macro_rules! keyword {
+    ($keyword:expr) => {
+        only!(Token::Keyword($keyword))
+    };
+}
+
 fn parse_if(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     let (remaining, (_, condition, _, left, _, right)) = nom::sequence::tuple((
-        only!(Token::Keyword(KeywordKind::If)),
+        keyword!(KeywordKind::If),
         parse_expression,
-        only!(Token::Keyword(KeywordKind::Then)),
+        keyword!(KeywordKind::Then),
         parse_expression,
-        only!(Token::Keyword(KeywordKind::Else)),
+        keyword!(KeywordKind::Else),
         parse_expression,
     ))(input)?;
 
-    Ok((remaining, Ast::new_if(condition, left, right)))
+    let ast = Ast::new_if(condition, left, right);
+
+    Ok((remaining, ast))
 }
 
 pub fn parse_expression(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
@@ -52,6 +62,13 @@ pub fn parse_expression(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
         Token::FloatLit(value) => Some(Ast::FloatLiteral(value)),
         _ => None,
     });
-    let parse = alt((parse_if, parse_float_literal));
+
+    let parse_identifier = map_opt(first(), |input| match input {
+        Token::Identifier(value) => Some(Ast::Variable(value)),
+        _ => None,
+    });
+
+    let parse = alt((parse_if, parse_float_literal, parse_identifier));
+
     parse(input)
 }
