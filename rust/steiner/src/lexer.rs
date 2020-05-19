@@ -6,7 +6,6 @@ use nom::multi::many0;
 use nom::number::complete::double;
 use nom::sequence::terminated;
 use nom::IResult;
-use std::vec::Vec;
 
 // This is a simple macro for making parsers which replace a tag with a custom value
 macro_rules! tagged {

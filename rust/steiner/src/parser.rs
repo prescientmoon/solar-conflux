@@ -1,6 +1,6 @@
 use crate::lexer::{KeywordKind, PunctuationKind, Token};
 use nom::branch::alt;
-use nom::combinator::{map, map_opt, verify};
+use nom::combinator::{map, map_opt, opt, verify};
 use nom::error::{make_error, ErrorKind};
 use nom::sequence::delimited;
 use nom::{Err, IResult};
@@ -9,21 +9,27 @@ use std::vec::Vec;
 // Shorthand for names of variables
 type VariableName<'a> = &'a [u8];
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Ast<'a> {
     Variable(VariableName<'a>),
     FloatLiteral(f64),
     If(Box<Ast<'a>>, Box<Ast<'a>>, Box<Ast<'a>>),
     Let(VariableName<'a>, Box<Ast<'a>>, Box<Ast<'a>>),
+    FunctionCall(Box<Ast<'a>>, Box<Ast<'a>>),
 }
 
 impl<'a> Ast<'a> {
+    // Those 3 functions are just helpers to build expressions which contain Boxes
     pub fn new_if(condition: Ast<'a>, left: Ast<'a>, right: Ast<'a>) -> Ast<'a> {
         Ast::If(Box::new(condition), Box::new(left), Box::new(right))
     }
 
     pub fn new_let(name: VariableName<'a>, value: Ast<'a>, body: Ast<'a>) -> Ast<'a> {
         Ast::Let(name, Box::new(value), Box::new(body))
+    }
+
+    pub fn new_call(function: Ast<'a>, argument: Ast<'a>) -> Ast<'a> {
+        Ast::FunctionCall(Box::new(function), Box::new(argument))
     }
 }
 
@@ -107,6 +113,21 @@ fn parse_let(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     Ok((remaining, ast))
 }
 
+fn maybe_call<'a>(expression: Ast<'a>, input: Vec<Token<'a>>) -> IResult<Vec<Token<'a>>, Ast<'a>> {
+    map(opt(parse_expression), |result| {
+        let expression_clone = expression.clone();
+        match result {
+            Some(argument) => Ast::new_call(expression_clone, argument),
+            None => expression_clone,
+        }
+    })(input)
+}
+
+pub fn parse_expression_with_calls<'a>(input: Vec<Token<'a>>) -> IResult<Vec<Token>, Ast> {
+    let (rest, expression) = parse_expression(input)?;
+    maybe_call(expression, rest)
+}
+
 pub fn parse_expression(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     let parse_float_literal = map_opt(first(), |input| match input {
         Token::FloatLit(value) => Some(Ast::FloatLiteral(value)),
@@ -115,7 +136,7 @@ pub fn parse_expression(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
 
     let prase_wrapped = delimited(
         punctuation!(PunctuationKind::OpenParenthesis),
-        parse_expression,
+        parse_expression_with_calls,
         punctuation!(PunctuationKind::CloseParenthesis),
     );
 

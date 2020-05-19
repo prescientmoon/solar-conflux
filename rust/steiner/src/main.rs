@@ -21,7 +21,7 @@ fn main() {
                     println!("{:?}", token);
                 }
 
-                match parser::parse_expression(result) {
+                match parser::parse_expression_with_calls(result) {
                     Ok((_, parsing_result)) => {
                         println!("Finished parsing successfully");
 
