@@ -48,6 +48,17 @@ impl<'a> Ast<'a> {
 
         result
     }
+
+    // construct a chain of lambda declarations
+    pub fn lambda_chain(self: Ast<'a>, parameters: Vec<VariableName<'a>>) -> Ast<'a> {
+        let mut result = self;
+
+        for parameter in parameters {
+            result = Ast::new_lambda(parameter, result)
+        }
+
+        result
+    }
 }
 
 // Takes the first element of the input vector and returns it
@@ -114,6 +125,11 @@ fn parse_if(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     Ok((remaining, ast))
 }
 
+// Parse the argument list for a function
+fn parse_argument_list(input: Vec<Token>) -> IResult<Vec<Token>, Vec<VariableName<'_>>> {
+    many0(identifier!())(input)
+}
+
 // This parses a let expression
 fn parse_let(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     let (remaining, (_, name, _, value, _, body)) = nom::sequence::tuple((
@@ -132,14 +148,14 @@ fn parse_let(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
 
 // Prase a lambda
 fn parse_lambda(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
-    let (remaining, (_, argument, _, body)) = nom::sequence::tuple((
-        punctuation!(PunctuationKind::Backspace),
-        identifier!(),
+    let (remaining, (_, parameters, _, body)) = nom::sequence::tuple((
+        punctuation!(PunctuationKind::Backslash),
+        parse_argument_list,
         operator!(b"->"),
         parse_expression,
     ))(input)?;
 
-    let ast = Ast::new_lambda(argument, body);
+    let ast = body.lambda_chain(parameters);
 
     Ok((remaining, ast))
 }

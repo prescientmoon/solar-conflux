@@ -18,7 +18,7 @@ macro_rules! tagged {
 pub enum PunctuationKind {
     OpenParenthesis,
     CloseParenthesis,
-    Backspace,
+    Backslash,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -54,7 +54,7 @@ pub fn lex(input: &[u8]) -> IResult<&[u8], Vec<Token>> {
         alt((
             tagged!(b"(", PunctuationKind::OpenParenthesis),
             tagged!(b")", PunctuationKind::CloseParenthesis),
-            tagged!(b"\\", PunctuationKind::Backspace),
+            tagged!(b"\\", PunctuationKind::Backslash),
         )),
         Token::Punctuation,
     );
