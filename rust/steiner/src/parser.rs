@@ -17,6 +17,7 @@ pub enum Ast<'a> {
     If(Box<Ast<'a>>, Box<Ast<'a>>, Box<Ast<'a>>),
     Let(VariableName<'a>, Box<Ast<'a>>, Box<Ast<'a>>),
     FunctionCall(Box<Ast<'a>>, Box<Ast<'a>>),
+    Lambda(VariableName<'a>, Box<Ast<'a>>),
 }
 
 impl<'a> Ast<'a> {
@@ -31,6 +32,10 @@ impl<'a> Ast<'a> {
 
     pub fn new_call(function: Ast<'a>, argument: Ast<'a>) -> Ast<'a> {
         Ast::FunctionCall(Box::new(function), Box::new(argument))
+    }
+
+    pub fn new_lambda(name: VariableName<'a>, body: Ast<'a>) -> Ast<'a> {
+        Ast::Lambda(name, Box::new(body))
     }
 
     // construct a chain of function calls
@@ -97,11 +102,11 @@ macro_rules! identifier {
 fn parse_if(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     let (remaining, (_, condition, _, left, _, right)) = nom::sequence::tuple((
         keyword!(KeywordKind::If),
-        parse_expression_with_calls,
+        parse_expression,
         keyword!(KeywordKind::Then),
-        parse_expression_with_calls,
+        parse_expression,
         keyword!(KeywordKind::Else),
-        parse_expression_with_calls,
+        parse_expression,
     ))(input)?;
 
     let ast = Ast::new_if(condition, left, right);
@@ -115,9 +120,9 @@ fn parse_let(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
         keyword!(KeywordKind::Let),
         identifier!(),
         operator!(b"="),
-        parse_expression_with_calls,
+        parse_expression,
         keyword!(KeywordKind::In),
-        parse_expression_with_calls,
+        parse_expression,
     ))(input)?;
 
     let ast = Ast::new_let(name, value, body);
@@ -125,32 +130,47 @@ fn parse_let(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     Ok((remaining, ast))
 }
 
-pub fn parse_expression_with_calls<'a>(input: Vec<Token<'a>>) -> IResult<Vec<Token>, Ast> {
-    let (rest, expression) = parse_expression(input)?;
-    let (rest, arguments) = many0(parse_expression)(rest)?;
+// Prase a lambda
+fn parse_lambda(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
+    let (remaining, (_, argument, _, body)) = nom::sequence::tuple((
+        punctuation!(PunctuationKind::Backspace),
+        identifier!(),
+        operator!(b"->"),
+        parse_expression,
+    ))(input)?;
+
+    let ast = Ast::new_lambda(argument, body);
+
+    Ok((remaining, ast))
+}
+
+pub fn parse_expression<'a>(input: Vec<Token<'a>>) -> IResult<Vec<Token>, Ast> {
+    let (rest, expression) = parse_atom(input)?;
+    let (rest, arguments) = many0(parse_atom)(rest)?;
 
     let ast = expression.chain_call(arguments);
 
     Ok((rest, ast))
 }
 
-pub fn parse_expression(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
+pub fn parse_atom(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
+    let prase_wrapped = delimited(
+        punctuation!(PunctuationKind::OpenParenthesis),
+        parse_expression,
+        punctuation!(PunctuationKind::CloseParenthesis),
+    );
+
     let parse_float_literal = map_opt(first(), |input| match input {
         Token::FloatLit(value) => Some(Ast::FloatLiteral(value)),
         _ => None,
     });
-
-    let prase_wrapped = delimited(
-        punctuation!(PunctuationKind::OpenParenthesis),
-        parse_expression_with_calls,
-        punctuation!(PunctuationKind::CloseParenthesis),
-    );
 
     let parse_identifier = map(identifier!(), Ast::Variable);
 
     let parse = alt((
         parse_if,
         parse_let,
+        parse_lambda,
         parse_float_literal,
         parse_identifier,
         prase_wrapped,
