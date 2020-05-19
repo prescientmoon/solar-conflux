@@ -2,6 +2,7 @@ use std::io;
 
 mod lexer;
 mod parser;
+mod type_checker;
 
 fn main() {
     loop {

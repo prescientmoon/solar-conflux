@@ -1,14 +1,16 @@
+#[macro_use]
+pub mod helpers;
+mod type_;
+
 use crate::lexer::{KeywordKind, PunctuationKind, Token};
+use crate::type_checker::type_::Type;
+use helpers::{first, VariableName};
 use nom::branch::alt;
 use nom::combinator::{map, map_opt, verify};
-use nom::error::{make_error, ErrorKind};
 use nom::multi::many0;
-use nom::sequence::delimited;
-use nom::{Err, IResult};
+use nom::sequence::{delimited, preceded};
+use nom::IResult;
 use std::vec::Vec;
-
-// Shorthand for names of variables
-type VariableName<'a> = &'a [u8];
 
 #[derive(Debug, Clone)]
 pub enum Ast<'a> {
@@ -18,6 +20,7 @@ pub enum Ast<'a> {
     Let(VariableName<'a>, Box<Ast<'a>>, Box<Ast<'a>>),
     FunctionCall(Box<Ast<'a>>, Box<Ast<'a>>),
     Lambda(VariableName<'a>, Box<Ast<'a>>),
+    Annotation(Box<Ast<'a>>, Type<'a>),
 }
 
 impl<'a> Ast<'a> {
@@ -59,54 +62,11 @@ impl<'a> Ast<'a> {
 
         result
     }
-}
 
-// Takes the first element of the input vector and returns it
-fn first<T: Clone + Copy>() -> impl Fn(Vec<T>) -> IResult<Vec<T>, T> {
-    move |input: Vec<T>| {
-        if let Some((first, rest)) = input.split_first() {
-            Ok((rest.to_vec(), *first))
-        } else {
-            Err(Err::Error(make_error(input, ErrorKind::Eof)))
-        }
+    // annotate an expression with a type
+    pub fn annotate(self: Ast<'a>, annotation: Type<'a>) -> Ast<'a> {
+        Ast::Annotation(Box::new(self), annotation)
     }
-}
-
-// Macro to only match a particular value
-macro_rules! only {
-    ($value:expr) => {
-        verify(first(), |v| v == &$value)
-    };
-}
-
-// Macro for matching a particular keyword
-macro_rules! keyword {
-    ($keyword:expr) => {
-        only!(Token::Keyword($keyword))
-    };
-}
-
-// Macro for matching a particular operator
-macro_rules! operator {
-    ($operator:expr) => {
-        only!(Token::Operator($operator))
-    };
-}
-
-macro_rules! punctuation {
-    ($punctuation:expr) => {
-        only!(Token::Punctuation($punctuation))
-    };
-}
-
-// This matches any identifier
-macro_rules! identifier {
-    () => {
-        map_opt(first(), |input| match input {
-            Token::Identifier(value) => Some(value),
-            _ => None,
-        });
-    };
 }
 
 // This parses an if statement
@@ -192,5 +152,14 @@ pub fn parse_atom(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
         prase_wrapped,
     ));
 
-    parse(input)
+    let (rest, expression) = parse(input)?;
+
+    match preceded(
+        punctuation!(PunctuationKind::DoubleColon),
+        type_::parse_type,
+    )(rest.clone())
+    {
+        Ok((rest, annotation)) => Ok((rest, expression.annotate(annotation))),
+        Err(_) => Ok((rest, expression)),
+    }
 }

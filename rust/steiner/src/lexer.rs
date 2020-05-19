@@ -19,6 +19,7 @@ pub enum PunctuationKind {
     OpenParenthesis,
     CloseParenthesis,
     Backslash,
+    DoubleColon,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -55,6 +56,7 @@ pub fn lex(input: &[u8]) -> IResult<&[u8], Vec<Token>> {
             tagged!(b"(", PunctuationKind::OpenParenthesis),
             tagged!(b")", PunctuationKind::CloseParenthesis),
             tagged!(b"\\", PunctuationKind::Backslash),
+            tagged!(b"::", PunctuationKind::DoubleColon),
         )),
         Token::Punctuation,
     );
