@@ -1,7 +1,8 @@
 use crate::lexer::{KeywordKind, PunctuationKind, Token};
 use nom::branch::alt;
-use nom::combinator::{map, map_opt, opt, verify};
+use nom::combinator::{map, map_opt, verify};
 use nom::error::{make_error, ErrorKind};
+use nom::multi::many0;
 use nom::sequence::delimited;
 use nom::{Err, IResult};
 use std::vec::Vec;
@@ -30,6 +31,17 @@ impl<'a> Ast<'a> {
 
     pub fn new_call(function: Ast<'a>, argument: Ast<'a>) -> Ast<'a> {
         Ast::FunctionCall(Box::new(function), Box::new(argument))
+    }
+
+    // construct a chain of function calls
+    pub fn chain_call(self: Ast<'a>, arguments: Vec<Ast<'a>>) -> Ast<'a> {
+        let mut result = self;
+
+        for argument in arguments {
+            result = Ast::new_call(result, argument)
+        }
+
+        result
     }
 }
 
@@ -85,11 +97,11 @@ macro_rules! identifier {
 fn parse_if(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     let (remaining, (_, condition, _, left, _, right)) = nom::sequence::tuple((
         keyword!(KeywordKind::If),
-        parse_expression,
+        parse_expression_with_calls,
         keyword!(KeywordKind::Then),
-        parse_expression,
+        parse_expression_with_calls,
         keyword!(KeywordKind::Else),
-        parse_expression,
+        parse_expression_with_calls,
     ))(input)?;
 
     let ast = Ast::new_if(condition, left, right);
@@ -103,9 +115,9 @@ fn parse_let(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
         keyword!(KeywordKind::Let),
         identifier!(),
         operator!(b"="),
-        parse_expression,
+        parse_expression_with_calls,
         keyword!(KeywordKind::In),
-        parse_expression,
+        parse_expression_with_calls,
     ))(input)?;
 
     let ast = Ast::new_let(name, value, body);
@@ -113,19 +125,13 @@ fn parse_let(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     Ok((remaining, ast))
 }
 
-fn maybe_call<'a>(expression: Ast<'a>, input: Vec<Token<'a>>) -> IResult<Vec<Token<'a>>, Ast<'a>> {
-    map(opt(parse_expression), |result| {
-        let expression_clone = expression.clone();
-        match result {
-            Some(argument) => Ast::new_call(expression_clone, argument),
-            None => expression_clone,
-        }
-    })(input)
-}
-
 pub fn parse_expression_with_calls<'a>(input: Vec<Token<'a>>) -> IResult<Vec<Token>, Ast> {
     let (rest, expression) = parse_expression(input)?;
-    maybe_call(expression, rest)
+    let (rest, arguments) = many0(parse_expression)(rest)?;
+
+    let ast = expression.chain_call(arguments);
+
+    Ok((rest, ast))
 }
 
 pub fn parse_expression(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
