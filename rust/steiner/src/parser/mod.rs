@@ -8,7 +8,7 @@ use helpers::{first, VariableName};
 use nom::branch::alt;
 use nom::combinator::{map, map_opt, verify};
 use nom::multi::many0;
-use nom::sequence::{delimited, preceded};
+use nom::sequence::{delimited, preceded, tuple};
 use nom::IResult;
 use std::vec::Vec;
 
@@ -24,7 +24,7 @@ pub enum Ast<'a> {
 }
 
 impl<'a> Ast<'a> {
-    // Those 3 functions are just helpers to build expressions which contain Boxes
+    // Constructors
     pub fn new_if(condition: Ast<'a>, left: Ast<'a>, right: Ast<'a>) -> Ast<'a> {
         Ast::If(Box::new(condition), Box::new(left), Box::new(right))
     }
@@ -41,8 +41,7 @@ impl<'a> Ast<'a> {
         Ast::Lambda(name, Box::new(body))
     }
 
-    // construct a chain of function calls
-    pub fn chain_call(self: Ast<'a>, arguments: Vec<Ast<'a>>) -> Ast<'a> {
+    pub fn call_chain(self: Ast<'a>, arguments: Vec<Ast<'a>>) -> Ast<'a> {
         let mut result = self;
 
         for argument in arguments {
@@ -52,11 +51,10 @@ impl<'a> Ast<'a> {
         result
     }
 
-    // construct a chain of lambda declarations
     pub fn lambda_chain(self: Ast<'a>, parameters: Vec<VariableName<'a>>) -> Ast<'a> {
         let mut result = self;
 
-        for parameter in parameters {
+        for parameter in parameters.iter().rev() {
             result = Ast::new_lambda(parameter, result)
         }
 
@@ -66,6 +64,17 @@ impl<'a> Ast<'a> {
     // annotate an expression with a type
     pub fn annotate(self: Ast<'a>, annotation: Type) -> Ast<'a> {
         Ast::Annotation(Box::new(self), annotation)
+    }
+
+    // annotate with multiple types
+    pub fn annotate_many(self: Ast<'a>, annotations: Vec<Type>) -> Ast<'a> {
+        let mut result = self;
+
+        for annotation in annotations {
+            result = result.annotate(annotation)
+        }
+
+        result
     }
 }
 
@@ -124,9 +133,17 @@ pub fn parse_expression<'a>(input: Vec<Token<'a>>) -> IResult<Vec<Token>, Ast> {
     let (rest, expression) = parse_atom(input)?;
     let (rest, arguments) = many0(parse_atom)(rest)?;
 
-    let ast = expression.chain_call(arguments);
+    let ast = expression.call_chain(arguments);
 
     Ok((rest, ast))
+}
+
+// Parse the optional type annotation
+pub fn prase_annotation(input: Vec<Token>) -> IResult<Vec<Token>, Type> {
+    preceded(
+        punctuation!(PunctuationKind::DoubleColon),
+        type_::parse_type,
+    )(input)
 }
 
 pub fn parse_atom(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
@@ -143,23 +160,19 @@ pub fn parse_atom(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
 
     let parse_identifier = map(identifier!(), Ast::Variable);
 
-    let parse = alt((
-        parse_if,
-        parse_let,
-        parse_lambda,
-        parse_float_literal,
-        parse_identifier,
-        prase_wrapped,
+    let parse = tuple((
+        alt((
+            parse_if,
+            parse_let,
+            parse_lambda,
+            parse_float_literal,
+            parse_identifier,
+            prase_wrapped,
+        )),
+        many0(prase_annotation),
     ));
 
-    let (rest, expression) = parse(input)?;
-
-    match preceded(
-        punctuation!(PunctuationKind::DoubleColon),
-        type_::parse_type,
-    )(rest.clone())
-    {
-        Ok((rest, annotation)) => Ok((rest, expression.annotate(annotation))),
-        Err(_) => Ok((rest, expression)),
-    }
+    map(parse, |(expression, annotations)| {
+        expression.annotate_many(annotations)
+    })(input)
 }

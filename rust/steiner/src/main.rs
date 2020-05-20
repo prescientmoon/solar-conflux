@@ -27,7 +27,7 @@ fn run(input: String) -> Result<(), String> {
     };
 
     println!("Finished type-checking successfully!");
-    println!("The expression has type {:?}", inferred);
+    println!("The expression has type {}", inferred);
 
     return Ok(());
 }
@@ -36,13 +36,14 @@ fn main() {
     loop {
         println!("Enter a string to lex:");
         let mut input = String::new();
-
         io::stdin()
             .read_line(&mut input)
             .expect("Error reading line");
+        println!();
 
         if let Err(message) = run(input) {
-            println!("{}", message)
+            println!("\n{}", message)
         }
+        println!()
     }
 }

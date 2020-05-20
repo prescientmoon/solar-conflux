@@ -84,6 +84,24 @@ impl Type {
     }
 }
 
+impl Display for Type {
+    fn fmt(self: &Type, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Type::Variable(name) => write!(f, "{}", name),
+            Type::Constructor { name, args } if name == "Function" => {
+                write!(f, "{} -> {}", args[0], args[1])
+            }
+            Type::Constructor { name, args } => {
+                let mut result = String::from(name);
+                for arg in args {
+                    result.extend(format!(" {}", arg).chars())
+                }
+                write!(f, "{}", result)
+            }
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum TypeError {
     TypeMismatch(Type, Type),
@@ -97,7 +115,7 @@ impl Display for TypeError {
     fn fmt(self: &TypeError, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             TypeError::TypeMismatch(t1, t2) => {
-                write!(f, "Cannot match type\n    {:?}\nwith type\n    {:?}", t1, t2)
+                write!(f, "Cannot match type\n    {}\nwith type\n    {}", t1, t2)
             }
             TypeError::NotInScope(name) => write!(f, "Variable {} is not in scope", name),
             TypeError::RecursiveType(ty) => {
@@ -366,8 +384,6 @@ pub fn get_type_of(expression: Ast) -> TypeResult {
     let mut context = TypeContext::new();
     let resulting_type = context.infer(expression)?;
     let subst = context.solve_constraints()?;
-
-    println!("{:?}", subst);
 
     Ok(resulting_type.apply_substitution(&subst))
 }

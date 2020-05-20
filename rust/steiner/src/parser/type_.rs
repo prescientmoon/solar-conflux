@@ -10,7 +10,7 @@ use std::vec::Vec;
 use crate::{identifier, operator};
 
 fn parse_non_lambda_type(input: Vec<Token>) -> IResult<Vec<Token>, Type> {
-    let prase_wrapped = delimited(
+    let parse_wrapped = delimited(
         punctuation!(PunctuationKind::OpenParenthesis),
         parse_type,
         punctuation!(PunctuationKind::CloseParenthesis),
@@ -32,7 +32,7 @@ fn parse_non_lambda_type(input: Vec<Token>) -> IResult<Vec<Token>, Type> {
         }
     });
 
-    let parse = alt((prase_wrapped, parse_identifier));
+    let parse = alt((parse_wrapped, parse_identifier));
 
     parse(input)
 }
