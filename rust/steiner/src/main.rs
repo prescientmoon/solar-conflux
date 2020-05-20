@@ -4,7 +4,7 @@ mod lexer;
 mod parser;
 mod type_checker;
 
-use type_checker::type_::TypeContext;
+use type_checker::type_::get_type_of;
 
 fn main() {
     loop {
@@ -32,14 +32,9 @@ fn main() {
 
         println!("{:?}", result);
 
-        let mut context = TypeContext::new();
-
-        let inferred = context
-            .infer(result)
-            .expect("A type error ocurred while type checking");
+        let inferred = get_type_of(result).expect("A type error ocurred while type checking");
 
         println!("Finished type-checking successfully!");
         println!("The expression has type {:?}", inferred);
-        println!("The final state of the typing context is: {:?}", context)
     }
 }

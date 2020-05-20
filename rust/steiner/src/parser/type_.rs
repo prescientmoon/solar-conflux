@@ -23,7 +23,7 @@ fn parse_non_lambda_type(input: Vec<Token>) -> IResult<Vec<Token>, Type> {
                 let first_char = &string[0..1];
 
                 if first_char == first_char.to_uppercase() {
-                    Type::Constant(string)
+                    Type::constant(&string[..])
                 } else {
                     Type::Variable(string)
                 }
