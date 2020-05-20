@@ -4,6 +4,8 @@ mod lexer;
 mod parser;
 mod type_checker;
 
+use type_checker::type_::{infer, TypeContext};
+
 fn main() {
     loop {
         println!("Enter a string to lex:");
@@ -13,26 +15,30 @@ fn main() {
             .read_line(&mut input)
             .expect("Error reading line");
 
-        match lexer::lex(input[..].as_bytes()) {
-            Ok((_, result)) => {
-                println!("Finished lexing string successfully!");
-                println!("Tokens:");
+        let (_, result) =
+            lexer::lex(input[..].as_bytes()).expect("An error ocurred while parsing!");
 
-                for token in &result {
-                    println!("{:?}", token);
-                }
+        println!("Finished lexing string successfully!");
+        println!("Tokens:");
 
-                match parser::parse_expression(result) {
-                    Ok((_, parsing_result)) => {
-                        println!("Finished parsing successfully");
-
-                        println!("{:?}", parsing_result);
-                    }
-
-                    Err(err) => println!("An error ocurred while parsing {}", err),
-                }
-            }
-            Err(err) => println!("An error ocurred while parsing: {}", err),
+        for token in &result {
+            println!("{:?}", token);
         }
+
+        let (_, result) =
+            parser::parse_expression(result).expect("AN error ocurred while parsing!");
+
+        println!("Finished parsing successfully");
+
+        println!("{:?}", result);
+
+        let mut context = TypeContext::new();
+
+        let inferred =
+            infer(result, &mut context).expect("A type error ocurred while type checking");
+
+        println!("Finished type-checking successfully!");
+        println!("The expression has type {:?}", inferred);
+        println!("The final state of the typing context is: {:?}", context)
     }
 }

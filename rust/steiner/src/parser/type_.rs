@@ -19,16 +19,16 @@ fn parse_non_lambda_type(input: Vec<Token>) -> IResult<Vec<Token>, Type> {
     let parse_identifier = map(identifier!(), |name| {
         let string = String::from_utf8(name.to_vec());
         match string {
-            Ok(s) => {
-                let first_char = &s[0..1];
+            Ok(string) => {
+                let first_char = &string[0..1];
 
                 if first_char == first_char.to_uppercase() {
-                    Type::Constant(name)
+                    Type::Constant(string)
                 } else {
-                    Type::Variable(name)
+                    Type::Variable(string)
                 }
             }
-            Err(_) => Type::Constant(name),
+            Err(_) => panic!("An error ocurred while casting to string"),
         }
     });
 

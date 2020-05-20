@@ -20,7 +20,7 @@ pub enum Ast<'a> {
     Let(VariableName<'a>, Box<Ast<'a>>, Box<Ast<'a>>),
     FunctionCall(Box<Ast<'a>>, Box<Ast<'a>>),
     Lambda(VariableName<'a>, Box<Ast<'a>>),
-    Annotation(Box<Ast<'a>>, Type<'a>),
+    Annotation(Box<Ast<'a>>, Type),
 }
 
 impl<'a> Ast<'a> {
@@ -64,7 +64,7 @@ impl<'a> Ast<'a> {
     }
 
     // annotate an expression with a type
-    pub fn annotate(self: Ast<'a>, annotation: Type<'a>) -> Ast<'a> {
+    pub fn annotate(self: Ast<'a>, annotation: Type) -> Ast<'a> {
         Ast::Annotation(Box::new(self), annotation)
     }
 }
