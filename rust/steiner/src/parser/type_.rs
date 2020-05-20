@@ -16,7 +16,21 @@ fn parse_non_lambda_type(input: Vec<Token>) -> IResult<Vec<Token>, Type> {
         punctuation!(PunctuationKind::CloseParenthesis),
     );
 
-    let parse_identifier = map(identifier!(), Type::Constant);
+    let parse_identifier = map(identifier!(), |name| {
+        let string = String::from_utf8(name.to_vec());
+        match string {
+            Ok(s) => {
+                let first_char = &s[0..1];
+
+                if first_char == first_char.to_uppercase() {
+                    Type::Constant(name)
+                } else {
+                    Type::Variable(name)
+                }
+            }
+            Err(_) => Type::Constant(name),
+        }
+    });
 
     let parse = alt((prase_wrapped, parse_identifier));
 

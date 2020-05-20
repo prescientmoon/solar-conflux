@@ -1,7 +1,10 @@
+use crate::parser::helpers::VariableName;
+
 #[derive(Debug, Clone)]
 pub enum Type<'a> {
-    Constant(&'a [u8]),
+    Constant(VariableName<'a>),
     Lambda(Box<Type<'a>>, Box<Type<'a>>),
+    Variable(VariableName<'a>),
 }
 
 impl<'a> Type<'a> {
