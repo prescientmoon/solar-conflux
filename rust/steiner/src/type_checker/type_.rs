@@ -8,6 +8,17 @@ pub enum Type {
     Variable(String),
 }
 
+pub struct Scheme {
+    variables: Vec<String>,
+    ty: Type,
+}
+
+impl Scheme {
+    pub fn new(ty: Type, variables: Vec<String>) -> Scheme {
+        Scheme { variables, ty }
+    }
+}
+
 impl Type {
     pub fn create_lambda(from: Type, to: Type) -> Type {
         Type::Lambda(Box::new(from), Box::new(to))
@@ -18,6 +29,10 @@ impl Type {
         let string = String::from(name);
 
         Type::Constant(string)
+    }
+
+    pub fn generalize(self: &Type) -> Scheme {
+        Scheme::new(self.clone(), self.clone().freeVariables())
     }
 
     // Constructors
@@ -33,6 +48,7 @@ impl Type {
 #[derive(Debug)]
 pub enum TypeError {
     TypeMismatch(Type, Type),
+    NotInScope(String),
 }
 
 type TypeResult = Result<Type, TypeError>;
@@ -94,6 +110,25 @@ pub fn infer(expression: Ast, context: &mut TypeContext) -> TypeResult {
             context.create_constraint(&type_left, &type_right);
 
             Ok(type_right)
+        }
+        Ast::Variable(name) => {
+            let string = String::from_utf8(name.to_vec()).unwrap();
+            match context.environment.get(&string) {
+                Some(result) => Ok(result.clone()),
+                None => Err(TypeError::NotInScope(string)),
+            }
+        }
+        Ast::FunctionCall(function, argument) => {
+            let return_type = context.fresh();
+            let function_type = infer(*function, context)?;
+            let argument_type = infer(*argument, context)?;
+
+            context.create_constraint(
+                &function_type,
+                &Type::create_lambda(argument_type, return_type.clone()),
+            );
+
+            Ok(return_type)
         }
         _ => todo!(),
     }
