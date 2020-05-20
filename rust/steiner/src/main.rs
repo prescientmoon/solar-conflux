@@ -26,7 +26,7 @@ fn run(input: String) -> Result<(), String> {
         Err(err) => return Err(format!("{}", err)),
     };
 
-    println!("Finished type-checking successfully!");
+    println!("Finished type-checking successfully!\n");
     println!("The expression has type {}", inferred);
 
     return Ok(());

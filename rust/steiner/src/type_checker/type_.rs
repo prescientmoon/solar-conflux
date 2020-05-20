@@ -138,7 +138,7 @@ impl Display for TypeError {
             }
             TypeError::NotInScope(name) => write!(f, "Variable {} is not in scope", name),
             TypeError::RecursiveType(ty) => {
-                write!(f, "Type \n{:?}\n    contains references to itself", ty)
+                write!(f, "Type \n{}\n    contains references to itself", ty)
             }
             TypeError::DifferentLengths(tys1, tys2) => write!(
                 f,
@@ -261,6 +261,7 @@ impl TypeContext {
 
                 let return_type = body_context.infer(*body)?;
 
+                self.next_id = body_context.next_id;
                 self.constraints.append(&mut body_context.constraints);
 
                 Ok(Type::create_lambda(arg_type, return_type))
