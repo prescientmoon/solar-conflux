@@ -1,6 +1,10 @@
 use crate::parser::Ast;
 use std::collections::HashMap;
 use std::iter::FromIterator;
+use std::{
+    fmt,
+    fmt::{Display, Formatter},
+};
 
 #[derive(Debug, Clone)]
 pub struct Scheme {
@@ -87,6 +91,28 @@ pub enum TypeError {
     RecursiveType(Type),
     // This uses Boxes so I don't have to do some random unwrapping in the unify_many function
     DifferentLengths(Vec<Box<Type>>, Vec<Box<Type>>),
+}
+
+impl Display for TypeError {
+    fn fmt(self: &TypeError, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            TypeError::TypeMismatch(t1, t2) => {
+                write!(f, "Cannot match type\n    {:?}\nwith type\n    {:?}", t1, t2)
+            }
+            TypeError::NotInScope(name) => write!(f, "Variable {} is not in scope", name),
+            TypeError::RecursiveType(ty) => {
+                write!(f, "Type \n{:?}\n    contains references to itself", ty)
+            }
+            TypeError::DifferentLengths(tys1, tys2) => write!(
+                f,
+                "Cannot match length {} with {} while trying to unify types\n    {:?}\nwith\n    {:?}",
+                tys1.len(),
+                tys2.len(),
+                tys1,
+                tys2
+            ),
+        }
+    }
 }
 
 type TypeResult<T = Type> = Result<T, TypeError>;

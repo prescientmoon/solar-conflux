@@ -6,6 +6,32 @@ mod type_checker;
 
 use type_checker::type_::get_type_of;
 
+fn run(input: String) -> Result<(), String> {
+    let result = match lexer::lex(input[..].as_bytes()) {
+        Ok((_, value)) => value,
+        Err(err) => return Err(format!("{}", err)),
+    };
+
+    println!("Finished lexing string successfully!");
+
+    let result = match parser::parse_expression(result) {
+        Ok((_, value)) => value,
+        Err(err) => return Err(format!("{}", err)),
+    };
+
+    println!("Finished parsing successfully");
+
+    let inferred = match get_type_of(result) {
+        Ok(v) => v,
+        Err(err) => return Err(format!("{}", err)),
+    };
+
+    println!("Finished type-checking successfully!");
+    println!("The expression has type {:?}", inferred);
+
+    return Ok(());
+}
+
 fn main() {
     loop {
         println!("Enter a string to lex:");
@@ -15,26 +41,8 @@ fn main() {
             .read_line(&mut input)
             .expect("Error reading line");
 
-        let (_, result) =
-            lexer::lex(input[..].as_bytes()).expect("An error ocurred while parsing!");
-
-        println!("Finished lexing string successfully!");
-        println!("Tokens:");
-
-        for token in &result {
-            println!("{:?}", token);
+        if let Err(message) = run(input) {
+            println!("{}", message)
         }
-
-        let (_, result) =
-            parser::parse_expression(result).expect("AN error ocurred while parsing!");
-
-        println!("Finished parsing successfully");
-
-        println!("{:?}", result);
-
-        let inferred = get_type_of(result).expect("A type error ocurred while type checking");
-
-        println!("Finished type-checking successfully!");
-        println!("The expression has type {:?}", inferred);
     }
 }
