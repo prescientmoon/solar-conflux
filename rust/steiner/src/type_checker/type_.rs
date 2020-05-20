@@ -82,15 +82,34 @@ impl Type {
     pub fn generalize(self: &Type) -> Scheme {
         Scheme::new(self.clone(), self.clone().free_variables())
     }
+
+    // Check if a type is a function
+    pub fn is_function(self: &Type) -> bool {
+        if let Type::Constructor { name, args: _ } = self {
+            name == "Function"
+        } else {
+            false
+        }
+    }
 }
 
 impl Display for Type {
     fn fmt(self: &Type, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Type::Variable(name) => write!(f, "{}", name),
-            Type::Constructor { name, args } if name == "Function" => {
-                write!(f, "{} -> {}", args[0], args[1])
-            }
+            Type::Constructor { name, args } if name == "Function" => write!(
+                f,
+                "{} -> {}",
+                {
+                    let ty = &args[0];
+                    if ty.is_function() {
+                        format!("({})", ty)
+                    } else {
+                        format!("{}", ty)
+                    }
+                },
+                args[1]
+            ),
             Type::Constructor { name, args } => {
                 let mut result = String::from(name);
                 for arg in args {
