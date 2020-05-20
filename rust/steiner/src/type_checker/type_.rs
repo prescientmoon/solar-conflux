@@ -125,7 +125,7 @@ impl Display for Type {
 pub enum TypeError {
     TypeMismatch(Type, Type),
     NotInScope(String),
-    RecursiveType(Type),
+    RecursiveType(String, Type),
     // This uses Boxes so I don't have to do some random unwrapping in the unify_many function
     DifferentLengths(Vec<Box<Type>>, Vec<Box<Type>>),
 }
@@ -137,8 +137,8 @@ impl Display for TypeError {
                 write!(f, "Cannot match type\n    {}\nwith type\n    {}", t1, t2)
             }
             TypeError::NotInScope(name) => write!(f, "Variable {} is not in scope", name),
-            TypeError::RecursiveType(ty) => {
-                write!(f, "Type \n{}\n    contains references to itself", ty)
+            TypeError::RecursiveType(name, ty) => {
+                write!(f, "Type \n    {} = {}\ncontains references to itself", name, ty)
             }
             TypeError::DifferentLengths(tys1, tys2) => write!(
                 f,
@@ -388,7 +388,7 @@ fn bind_variable(name: String, ty: Type) -> TypeResult<Substitution> {
         Type::Variable(var_name) if *var_name == name => Ok(Substitution::new()),
         _ => {
             if ty.is_recursive(&name) {
-                Err(TypeError::RecursiveType(ty))
+                Err(TypeError::RecursiveType(name, ty))
             } else {
                 let mut map = HashMap::new();
 
