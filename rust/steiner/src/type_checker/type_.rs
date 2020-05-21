@@ -30,7 +30,7 @@ impl Scheme {
     // The opposite of generalize
     pub fn instantiate(self: Scheme, context: &mut TypeContext) -> Type {
         let new_variables = self.variables.into_iter().map(|var| (var, context.fresh()));
-        let substitution = HashMap::from_iter(new_variables);
+        let substitution = new_variables.collect();
 
         self.ty.apply_substitution(&substitution)
     }
@@ -80,8 +80,15 @@ impl Type {
         self.free_variables().contains(&variable)
     }
 
-    pub fn generalize(self: &Type) -> Scheme {
-        Scheme::new(self.clone(), self.clone().free_variables())
+    pub fn generalize(self: &Type, context: &TypeContext) -> Scheme {
+        let quantifiers = self
+            .clone()
+            .free_variables()
+            .iter()
+            .filter(|variable| context.environment.contains_key(*variable))
+            .map(Clone::clone)
+            .collect();
+        Scheme::new(self.clone(), quantifiers)
     }
 
     // Check if a type is a function
@@ -162,7 +169,6 @@ pub struct TypeContext {
     environment: TypeEnv,
     constraints: Vec<(Type, Type)>,
     next_id: u32,
-    last_substitution: Substitution,
 }
 
 impl TypeContext {
@@ -171,7 +177,6 @@ impl TypeContext {
             environment: TypeEnv::new(),
             constraints: Vec::new(),
             next_id: 0,
-            last_substitution: Substitution::new(),
         }
     }
 
@@ -193,24 +198,29 @@ impl TypeContext {
         Type::Variable(format!("t{}", id))
     }
 
-    pub fn solve_constraints(self: &mut TypeContext) -> TypeResult<Substitution> {
-        match &self.constraints[..] {
-            [] => Ok(self.last_substitution.clone()),
+    fn solve_constraints_with_subst(
+        self: &TypeContext,
+        constraints: &Vec<(Type, Type)>,
+        substitution: Substitution,
+    ) -> TypeResult<Substitution> {
+        match &constraints[..] {
+            [] => Ok(substitution),
             [(left, right), ..] => {
-                self.last_substitution = merge_substitutions(
-                    unify(left.clone(), right.clone())?,
-                    self.last_substitution.clone(),
-                );
-                self.constraints =
-                    Vec::from_iter(self.constraints[1..].iter().map(|(left, right)| {
-                        (
-                            left.clone().apply_substitution(&self.last_substitution),
-                            right.clone().apply_substitution(&self.last_substitution),
-                        )
-                    }));
-                self.solve_constraints()
+                let new_subst =
+                    merge_substitutions(unify(left.clone(), right.clone())?, substitution);
+                let constraints = Vec::from_iter(constraints[1..].iter().map(|(left, right)| {
+                    (
+                        left.clone().apply_substitution(&new_subst),
+                        right.clone().apply_substitution(&new_subst),
+                    )
+                }));
+                self.solve_constraints_with_subst(&constraints, new_subst)
             }
         }
+    }
+
+    pub fn solve_constraints(self: &TypeContext) -> TypeResult<Substitution> {
+        self.solve_constraints_with_subst(&self.constraints, Substitution::new())
     }
 
     // Create a new context based on a new variable
@@ -222,14 +232,23 @@ impl TypeContext {
         context
     }
 
+    // Infer a expression inside a closure
+    pub fn infer_with(
+        self: &mut TypeContext,
+        name: String,
+        scheme: Scheme,
+        ast: Ast,
+    ) -> TypeResult {
+        let mut new_ctx = self.create_closure(name, scheme);
+        let result = new_ctx.infer(ast);
+
+        self.sync(new_ctx);
+
+        result
+    }
+
     // copy stuff over from another context
     pub fn sync(self: &mut TypeContext, other: TypeContext) -> () {
-        self.last_substitution =
-            merge_substitutions(other.last_substitution, self.last_substitution.clone());
-        self.environment = self
-            .environment
-            .clone()
-            .apply_substitution(&self.last_substitution);
         self.constraints.extend(other.constraints);
         self.next_id = max(other.next_id, self.next_id);
     }
@@ -275,10 +294,7 @@ impl TypeContext {
             Ast::Lambda(argument, body) => {
                 let arg_type = self.fresh();
                 let arg_name = String::from_utf8(argument.to_vec()).unwrap();
-                let mut body_context = self.create_closure(arg_name, arg_type.to_scheme());
-                let return_type = body_context.infer(*body)?;
-
-                self.sync(body_context);
+                let return_type = self.infer_with(arg_name, arg_type.to_scheme(), *body)?;
 
                 Ok(Type::create_lambda(arg_type, return_type))
             }
@@ -287,24 +303,30 @@ impl TypeContext {
                 value_ctx.constraints = Vec::new();
                 let value_type = value_ctx.infer(*value)?;
                 let substitution = value_ctx.solve_constraints()?;
-                let scheme = value_type.apply_substitution(&substitution).generalize();
+
+                self.with_substitution(&substitution);
+
+                let scheme = value_type
+                    .apply_substitution(&substitution)
+                    .generalize(self);
 
                 self.sync(value_ctx);
 
-                let mut new_ctx =
-                    self.create_closure(String::from_utf8(Vec::from(name)).unwrap(), scheme);
-
-                let body_type = new_ctx.infer(*body);
-
-                self.sync(new_ctx);
+                let name = String::from_utf8(Vec::from(name)).unwrap();
+                let body_type = self.infer_with(name, scheme, *body);
 
                 body_type
             }
         }
     }
+
+    // Applies a substitution on the current environment
+    pub fn with_substitution(self: &mut Self, substitution: &Substitution) -> () {
+        self.environment = self.environment.clone().apply_substitution(substitution);
+    }
 }
 
-type Substitution = HashMap<String, Type>;
+type Substitution = im::HashMap<String, Type>;
 
 fn merge_substitutions(subst1: Substitution, subst2: Substitution) -> Substitution {
     let mut combination = subst2.apply_substitution(&subst1);
@@ -340,10 +362,9 @@ impl Substituable for Substitution {
     }
 
     fn apply_substitution(self: Self, substitution: &Substitution) -> Substitution {
-        HashMap::from_iter(
-            self.iter()
-                .map(|(key, ty)| (key.clone(), ty.clone().apply_substitution(substitution))),
-        )
+        self.iter()
+            .map(|(key, ty)| (key.clone(), ty.clone().apply_substitution(substitution)))
+            .collect()
     }
 }
 
@@ -368,20 +389,41 @@ impl Substituable for TypeEnv {
     }
 }
 
-// impl Substituable for Scheme {
-//     fn free_variables(self: &Self) -> Vec<String> {
-//         Vec::from_iter(
-//             self.ty
-//                 .free_variables()
-//                 .iter()
-//                 .filter(|v| !self.variables.contains(v)),
-//         )
-//     }
+impl Substituable for TypeContext {
+    fn free_variables(self: &Self) -> Vec<String> {
+        self.environment.free_variables()
+    }
 
-//     fn apply_substitution(self: Self, substitution: &Substitution) -> Self {
-//         todo!()
-//     }
-// }
+    fn apply_substitution(self: Self, substitution: &Substitution) -> TypeContext {
+        TypeContext {
+            environment: self.environment.apply_substitution(substitution),
+            ..self
+        }
+    }
+}
+
+impl Substituable for Scheme {
+    fn free_variables(self: &Self) -> Vec<String> {
+        self.ty
+            .free_variables()
+            .iter()
+            .filter(|v| !self.variables.contains(v))
+            .map(Clone::clone)
+            .collect()
+    }
+
+    fn apply_substitution(self: Self, substitution: &Substitution) -> Self {
+        let substitution = self
+            .variables
+            .iter()
+            .fold(substitution.clone(), |acc, current| acc.without(current));
+
+        Scheme {
+            ty: self.ty.apply_substitution(&substitution),
+            ..self
+        }
+    }
+}
 
 impl Substituable for Type {
     fn free_variables(self: &Type) -> Vec<String> {
@@ -417,7 +459,7 @@ impl Substituable for Type {
 
 fn unify(left: Type, right: Type) -> TypeResult<Substitution> {
     match (left, right) {
-        (left, right) if right == left => Ok(HashMap::new()),
+        (left, right) if right == left => Ok(Substitution::new()),
         (Type::Variable(name), right) => bind_variable(name, right),
         (left, Type::Variable(name)) => bind_variable(name, left),
         (
@@ -459,9 +501,7 @@ fn bind_variable(name: String, ty: Type) -> TypeResult<Substitution> {
             if ty.is_recursive(&name) {
                 Err(TypeError::RecursiveType(name, ty))
             } else {
-                let mut map = HashMap::new();
-
-                map.insert(name, ty);
+                let map = Substitution::new().update(name, ty);
 
                 Ok(map)
             }
