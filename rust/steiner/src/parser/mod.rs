@@ -16,6 +16,7 @@ use std::vec::Vec;
 pub enum Ast<'a> {
     Variable(VariableName<'a>),
     FloatLiteral(f64),
+    StringLiteral(&'a [u8]),
     If(Box<Ast<'a>>, Box<Ast<'a>>, Box<Ast<'a>>),
     Let(VariableName<'a>, Box<Ast<'a>>, Box<Ast<'a>>),
     FunctionCall(Box<Ast<'a>>, Box<Ast<'a>>),
@@ -125,7 +126,7 @@ fn parse_let(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     Ok((remaining, ast))
 }
 
-// Prase a lambda
+// parse a lambda
 fn parse_lambda(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
     let (remaining, (_, parameters, _, body)) = nom::sequence::tuple((
         punctuation!(PunctuationKind::Backslash),
@@ -149,7 +150,7 @@ pub fn parse_expression<'a>(input: Vec<Token<'a>>) -> IResult<Vec<Token>, Ast> {
 }
 
 // Parse the optional type annotation
-pub fn prase_annotation(input: Vec<Token>) -> IResult<Vec<Token>, Type> {
+pub fn parse_annotation(input: Vec<Token>) -> IResult<Vec<Token>, Type> {
     preceded(
         punctuation!(PunctuationKind::DoubleColon),
         type_::parse_type,
@@ -157,7 +158,7 @@ pub fn prase_annotation(input: Vec<Token>) -> IResult<Vec<Token>, Type> {
 }
 
 pub fn parse_atom(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
-    let prase_wrapped = delimited(
+    let parse_wrapped = delimited(
         punctuation!(PunctuationKind::OpenParenthesis),
         parse_expression,
         punctuation!(PunctuationKind::CloseParenthesis),
@@ -165,6 +166,11 @@ pub fn parse_atom(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
 
     let parse_float_literal = map_opt(first(), |input| match input {
         Token::FloatLit(value) => Some(Ast::FloatLiteral(value)),
+        _ => None,
+    });
+
+    let parse_string_literal = map_opt(first(), |input| match input {
+        Token::StringLit(value) => Some(Ast::StringLiteral(value)),
         _ => None,
     });
 
@@ -176,10 +182,11 @@ pub fn parse_atom(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
             parse_let,
             parse_lambda,
             parse_float_literal,
+            parse_string_literal,
             parse_identifier,
-            prase_wrapped,
+            parse_wrapped,
         )),
-        many0(prase_annotation),
+        many0(parse_annotation),
     ));
 
     map(parse, |(expression, annotations)| {

@@ -66,6 +66,11 @@ impl Type {
     }
 
     #[inline]
+    pub fn string() -> Type {
+        Type::constant("String")
+    }
+
+    #[inline]
     pub fn boolean() -> Type {
         Type::constant("Boolean")
     }
@@ -256,6 +261,7 @@ impl TypeContext {
     pub fn infer(self: &mut TypeContext, expression: Ast) -> TypeResult {
         match expression {
             Ast::FloatLiteral(_) => Ok(Type::number()),
+            Ast::StringLiteral(_) => Ok(Type::string()),
             Ast::Annotation(annotated, annotation) => {
                 let inferred = self.infer(*annotated)?;
 

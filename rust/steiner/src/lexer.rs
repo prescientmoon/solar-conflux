@@ -1,10 +1,10 @@
 use nom::branch::alt;
-use nom::bytes::complete::{is_a, tag};
-use nom::character::complete::{alphanumeric1, multispace0, space1};
+use nom::bytes::complete::{escaped, is_a, tag, take_till1};
+use nom::character::complete::{alphanumeric1, multispace0, one_of, space1};
 use nom::combinator::{all_consuming, map, map_opt, value};
 use nom::multi::many0;
 use nom::number::complete::double;
-use nom::sequence::terminated;
+use nom::sequence::{delimited, terminated};
 use nom::IResult;
 
 // This is a simple macro for making parsers which replace a tag with a custom value
@@ -40,6 +40,7 @@ macro_rules! keyword {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Token<'a> {
     FloatLit(f64),
+    StringLit(&'a [u8]),
     Punctuation(PunctuationKind),
     Keyword(KeywordKind),
     Operator(&'a [u8]),
@@ -59,6 +60,17 @@ pub fn lex(input: &[u8]) -> IResult<&[u8], Vec<Token>> {
             tagged!(b"::", PunctuationKind::DoubleColon),
         )),
         Token::Punctuation,
+    );
+
+    let parse_double_quote = tag("\"");
+
+    let parse_string = map(
+        delimited(
+            &parse_double_quote,
+            escaped(take_till1(|v| v == b'"'), '\\', one_of("\"n\\")),
+            &parse_double_quote,
+        ),
+        Token::StringLit,
     );
 
     let parse_keyword = map(
@@ -84,6 +96,7 @@ pub fn lex(input: &[u8]) -> IResult<&[u8], Vec<Token>> {
     let parse = all_consuming(many0(terminated(
         alt((
             parse_float_literal,
+            parse_string,
             parse_punctuation,
             parse_keyword,
             parse_operator,
