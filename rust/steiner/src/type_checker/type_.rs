@@ -226,6 +226,10 @@ impl TypeContext {
     pub fn sync(self: &mut TypeContext, other: TypeContext) -> () {
         self.last_substitution =
             merge_substitutions(other.last_substitution, self.last_substitution.clone());
+        self.environment = self
+            .environment
+            .clone()
+            .apply_substitution(&self.last_substitution);
         self.constraints.extend(other.constraints);
         self.next_id = max(other.next_id, self.next_id);
     }
@@ -342,6 +346,42 @@ impl Substituable for Substitution {
         )
     }
 }
+
+impl Substituable for TypeEnv {
+    fn free_variables(self: &Self) -> Vec<String> {
+        Vec::from_iter(
+            self.values()
+                .flat_map(|scheme| scheme.ty.clone().free_variables()),
+        )
+    }
+
+    fn apply_substitution(self: Self, substitution: &Substitution) -> TypeEnv {
+        HashMap::from_iter(self.iter().map(|(key, scheme)| {
+            (
+                key.clone(),
+                Scheme {
+                    variables: scheme.variables.clone(),
+                    ty: scheme.ty.clone().apply_substitution(substitution),
+                },
+            )
+        }))
+    }
+}
+
+// impl Substituable for Scheme {
+//     fn free_variables(self: &Self) -> Vec<String> {
+//         Vec::from_iter(
+//             self.ty
+//                 .free_variables()
+//                 .iter()
+//                 .filter(|v| !self.variables.contains(v)),
+//         )
+//     }
+
+//     fn apply_substitution(self: Self, substitution: &Substitution) -> Self {
+//         todo!()
+//     }
+// }
 
 impl Substituable for Type {
     fn free_variables(self: &Type) -> Vec<String> {

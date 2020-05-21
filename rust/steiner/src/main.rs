@@ -13,6 +13,9 @@ fn run(input: String) -> Result<(), String> {
     };
 
     println!("Finished lexing string successfully!");
+    // for token in &result {
+    // println!("{:?}", token)
+    // }
 
     let result = match parser::parse_expression(result) {
         Ok((_, value)) => value,
@@ -20,6 +23,7 @@ fn run(input: String) -> Result<(), String> {
     };
 
     println!("Finished parsing successfully");
+    // println!("{:?}", result);
 
     let inferred = match get_type_of(result) {
         Ok(v) => v,

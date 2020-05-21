@@ -99,13 +99,23 @@ fn parse_argument_list(input: Vec<Token>) -> IResult<Vec<Token>, Vec<VariableNam
     many0(identifier!())(input)
 }
 
+fn parse_assignment(input: Vec<Token>) -> IResult<Vec<Token>, (&[u8], Ast)> {
+    map(
+        tuple((
+            identifier!(),
+            many0(identifier!()),
+            operator!(b"="),
+            parse_expression,
+        )),
+        |(name, args, _, body)| (name, body.lambda_chain(args)),
+    )(input)
+}
+
 // This parses a let expression
 fn parse_let(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
-    let (remaining, (_, name, _, value, _, body)) = nom::sequence::tuple((
+    let (remaining, (_, (name, value), _, body)) = nom::sequence::tuple((
         keyword!(KeywordKind::Let),
-        identifier!(),
-        operator!(b"="),
-        parse_expression,
+        parse_assignment,
         keyword!(KeywordKind::In),
         parse_expression,
     ))(input)?;
