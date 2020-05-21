@@ -1,4 +1,5 @@
 use crate::parser::Ast;
+use std::cmp::max;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 use std::{
@@ -212,6 +213,23 @@ impl TypeContext {
         }
     }
 
+    // Create a new context based on a new variable
+    pub fn create_closure(self: &TypeContext, name: String, scheme: Scheme) -> TypeContext {
+        let mut context = self.clone();
+
+        context.environment.insert(name, scheme);
+
+        context
+    }
+
+    // copy stuff over from another context
+    pub fn sync(self: &mut TypeContext, other: TypeContext) -> () {
+        self.last_substitution =
+            merge_substitutions(other.last_substitution, self.last_substitution.clone());
+        self.constraints.extend(other.constraints);
+        self.next_id = max(other.next_id, self.next_id);
+    }
+
     pub fn infer(self: &mut TypeContext, expression: Ast) -> TypeResult {
         match expression {
             Ast::FloatLiteral(_) => Ok(Type::number()),
@@ -252,21 +270,32 @@ impl TypeContext {
             }
             Ast::Lambda(argument, body) => {
                 let arg_type = self.fresh();
-                let mut body_context = self.clone();
                 let arg_name = String::from_utf8(argument.to_vec()).unwrap();
-
-                body_context
-                    .environment
-                    .insert(arg_name, arg_type.to_scheme());
-
+                let mut body_context = self.create_closure(arg_name, arg_type.to_scheme());
                 let return_type = body_context.infer(*body)?;
 
-                self.next_id = body_context.next_id;
-                self.constraints.append(&mut body_context.constraints);
+                self.sync(body_context);
 
                 Ok(Type::create_lambda(arg_type, return_type))
             }
-            _ => todo!(),
+            Ast::Let(name, value, body) => {
+                let mut value_ctx = self.clone();
+                value_ctx.constraints = Vec::new();
+                let value_type = value_ctx.infer(*value)?;
+                let substitution = value_ctx.solve_constraints()?;
+                let scheme = value_type.apply_substitution(&substitution).generalize();
+
+                self.sync(value_ctx);
+
+                let mut new_ctx =
+                    self.create_closure(String::from_utf8(Vec::from(name)).unwrap(), scheme);
+
+                let body_type = new_ctx.infer(*body);
+
+                self.sync(new_ctx);
+
+                body_type
+            }
         }
     }
 }
