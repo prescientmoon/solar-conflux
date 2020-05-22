@@ -1,9 +1,5 @@
 #[macro_use]
-pub mod helpers;
-mod type_;
-
 use crate::type_checker::type_::Type;
-use std::collections::HashSet;
 use std::vec::Vec;
 
 #[derive(Debug, Clone)]
@@ -99,6 +95,19 @@ peg::parser! {
         rule number() -> Ast
             = n:$(['0'..='9']+) { Ast::FloatLiteral(n.parse().unwrap()) }
 
+        rule escape() -> String
+            = "\\" character:$("\"" / "/" / "n" / "r" / "t") {
+                match character {
+                    "n" => "\n",
+                    "r" => "\r",
+                    "t" => "\t",
+                    _ => character,
+                }.to_string()
+            }
+
+        rule string() -> Ast
+            = "\"" string:$((!['"' | '\\'] [_] / escape())*) "\"" { Ast::StringLiteral(string.to_string()) }
+
         rule assignment() -> (String, Vec<String>, Ast)
             = name:variable_name() whitespace()* params:(variable_name() ** (whitespace()*)) whitespace()* "=" whitespace()* value:expression() { (name, params, value) }
 
@@ -119,7 +128,7 @@ peg::parser! {
             = "(" ret:expression() ")" { ret }
 
         rule atom() -> Ast
-            = ret:(if_expr() / let_expr() / lambda() / number() / identifier() / wrapped()) whitespace()* { ret }
+            = ret:(if_expr() / let_expr() / lambda() / number() / string() / identifier() / wrapped()) whitespace()* { ret }
 
         rule unannotated() -> Ast
             = function:atom() args:(atom() ** (whitespace()*)) whitespace()* { Ast::call_chain(function, args) }
