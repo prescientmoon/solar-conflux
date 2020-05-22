@@ -2,47 +2,41 @@
 pub mod helpers;
 mod type_;
 
-use crate::lexer::{KeywordKind, PunctuationKind, Token};
 use crate::type_checker::type_::Type;
-use helpers::{first, VariableName};
-use nom::branch::alt;
-use nom::combinator::{map, map_opt, verify};
-use nom::multi::many0;
-use nom::sequence::{delimited, preceded, tuple};
-use nom::IResult;
+use std::collections::HashSet;
 use std::vec::Vec;
 
 #[derive(Debug, Clone)]
-pub enum Ast<'a> {
-    Variable(VariableName<'a>),
+pub enum Ast {
+    Variable(String),
     FloatLiteral(f64),
-    StringLiteral(&'a [u8]),
-    If(Box<Ast<'a>>, Box<Ast<'a>>, Box<Ast<'a>>),
-    Let(VariableName<'a>, Box<Ast<'a>>, Box<Ast<'a>>),
-    FunctionCall(Box<Ast<'a>>, Box<Ast<'a>>),
-    Lambda(VariableName<'a>, Box<Ast<'a>>),
-    Annotation(Box<Ast<'a>>, Type),
+    StringLiteral(String),
+    If(Box<Ast>, Box<Ast>, Box<Ast>),
+    Let(String, Box<Ast>, Box<Ast>),
+    FunctionCall(Box<Ast>, Box<Ast>),
+    Lambda(String, Box<Ast>),
+    Annotation(Box<Ast>, Type),
 }
 
-impl<'a> Ast<'a> {
+impl Ast {
     // Constructors
-    pub fn new_if(condition: Ast<'a>, left: Ast<'a>, right: Ast<'a>) -> Ast<'a> {
+    pub fn new_if(condition: Ast, left: Ast, right: Ast) -> Ast {
         Ast::If(Box::new(condition), Box::new(left), Box::new(right))
     }
 
-    pub fn new_let(name: VariableName<'a>, value: Ast<'a>, body: Ast<'a>) -> Ast<'a> {
+    pub fn new_let(name: String, value: Ast, body: Ast) -> Ast {
         Ast::Let(name, Box::new(value), Box::new(body))
     }
 
-    pub fn new_call(function: Ast<'a>, argument: Ast<'a>) -> Ast<'a> {
+    pub fn new_call(function: Ast, argument: Ast) -> Ast {
         Ast::FunctionCall(Box::new(function), Box::new(argument))
     }
 
-    pub fn new_lambda(name: VariableName<'a>, body: Ast<'a>) -> Ast<'a> {
+    pub fn new_lambda(name: String, body: Ast) -> Ast {
         Ast::Lambda(name, Box::new(body))
     }
 
-    pub fn call_chain(self: Ast<'a>, arguments: Vec<Ast<'a>>) -> Ast<'a> {
+    pub fn call_chain(self: Ast, arguments: Vec<Ast>) -> Ast {
         let mut result = self;
 
         for argument in arguments {
@@ -52,23 +46,23 @@ impl<'a> Ast<'a> {
         result
     }
 
-    pub fn lambda_chain(self: Ast<'a>, parameters: Vec<VariableName<'a>>) -> Ast<'a> {
+    pub fn lambda_chain(self: Ast, parameters: Vec<String>) -> Ast {
         let mut result = self;
 
         for parameter in parameters.iter().rev() {
-            result = Ast::new_lambda(parameter, result)
+            result = Ast::new_lambda(parameter.clone(), result)
         }
 
         result
     }
 
     // annotate an expression with a type
-    pub fn annotate(self: Ast<'a>, annotation: Type) -> Ast<'a> {
+    pub fn annotate(self: Ast, annotation: Type) -> Ast {
         Ast::Annotation(Box::new(self), annotation)
     }
 
     // annotate with multiple types
-    pub fn annotate_many(self: Ast<'a>, annotations: Vec<Type>) -> Ast<'a> {
+    pub fn annotate_many(self: Ast, annotations: Vec<Type>) -> Ast {
         let mut result = self;
 
         for annotation in annotations {
@@ -79,117 +73,89 @@ impl<'a> Ast<'a> {
     }
 }
 
-// This parses an if statement
-fn parse_if(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
-    let (remaining, (_, condition, _, left, _, right)) = nom::sequence::tuple((
-        keyword!(KeywordKind::If),
-        parse_expression,
-        keyword!(KeywordKind::Then),
-        parse_expression,
-        keyword!(KeywordKind::Else),
-        parse_expression,
-    ))(input)?;
-
-    let ast = Ast::new_if(condition, left, right);
-
-    Ok((remaining, ast))
+// If this is true the string cannot be used as a variable name and stuff
+fn is_reserved(input: &str) -> bool {
+    common_macros::hash_set!["if", "else", "let", "in"].contains(input)
 }
 
-// Parse the argument list for a function
-fn parse_argument_list(input: Vec<Token>) -> IResult<Vec<Token>, Vec<VariableName<'_>>> {
-    many0(identifier!())(input)
+peg::parser! {
+    grammar parse() for str {
+        rule whitespace() = quiet!{[' ' | '\n' | '\t']}
+        rule alphanumeric() -> String
+            = s:$['a'..='z' | 'A'..='Z' | '0'..='9'] { s.to_string() }
+
+        rule variable_name() -> String
+            = name:$((alphanumeric() / "'")+) {?
+                if is_reserved(name) {
+                    Err("Keywords cannot be used as identifiers")
+                } else {
+                    Ok(name.to_string())
+                }
+            }
+
+        rule identifier() -> Ast
+            = name:variable_name() { Ast::Variable(name) }
+
+        rule number() -> Ast
+            = n:$(['0'..='9']+) { Ast::FloatLiteral(n.parse().unwrap()) }
+
+        rule assignment() -> (String, Vec<String>, Ast)
+            = name:variable_name() whitespace()* params:(variable_name() ** (whitespace()*)) whitespace()* "=" whitespace()* value:expression() { (name, params, value) }
+
+        rule lambda() -> Ast
+            = "\\" whitespace()* args:(variable_name() ** (whitespace()*)) whitespace()* "->" whitespace()* body:expression() {
+                Ast::lambda_chain(body, args)
+             }
+
+        rule let_expr() -> Ast
+            = "let" whitespace()+ value:assignment() "in" whitespace()+ body:expression() {
+                Ast::new_let(value.0, Ast::lambda_chain(value.2, value.1), body)
+             }
+
+        rule if_expr() -> Ast
+            = "if" whitespace()+ condition:expression() "then" whitespace()+ left:expression() "else" whitespace()+ right:expression() { Ast::new_if(condition, left, right) }
+
+        rule wrapped() -> Ast
+            = "(" ret:expression() ")" { ret }
+
+        rule atom() -> Ast
+            = ret:(if_expr() / let_expr() / lambda() / number() / identifier() / wrapped()) whitespace()* { ret }
+
+        rule unannotated() -> Ast
+            = function:atom() args:(atom() ** (whitespace()*)) whitespace()* { Ast::call_chain(function, args) }
+
+        // Type level syntax
+        rule t_identifier() -> Type
+            = name:variable_name() {
+                let first_char = &name[0..1];
+
+                if first_char == first_char.to_uppercase() {
+                    Type::constant(&name[..])
+                } else {
+                    Type::Variable(name)
+                }
+             }
+
+        rule t_wrapped() -> Type
+            = "(" whitespace()* ret:t_atom() ")" { ret }
+
+        rule t_non_lambda() -> Type
+            = ret:(t_wrapped() / t_identifier()) whitespace()* { ret }
+
+        rule t_lambda() -> Type
+            = from:t_non_lambda() "->" whitespace()* to:t_atom() { Type::create_lambda(from, to) }
+
+        rule t_atom() -> Type
+            = ret:(t_lambda() / t_non_lambda()) whitespace()* { ret }
+
+        rule annotation() -> Type
+            = "::" whitespace()* ret:t_atom() { ret }
+
+        pub rule expression() -> Ast
+             = expression:unannotated() annotations:annotation()* { expression.annotate_many(annotations) }
+    }
 }
 
-fn parse_assignment(input: Vec<Token>) -> IResult<Vec<Token>, (&[u8], Ast)> {
-    map(
-        tuple((
-            identifier!(),
-            many0(identifier!()),
-            operator!(b"="),
-            parse_expression,
-        )),
-        |(name, args, _, body)| (name, body.lambda_chain(args)),
-    )(input)
-}
-
-// This parses a let expression
-fn parse_let(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
-    let (remaining, (_, (name, value), _, body)) = nom::sequence::tuple((
-        keyword!(KeywordKind::Let),
-        parse_assignment,
-        keyword!(KeywordKind::In),
-        parse_expression,
-    ))(input)?;
-
-    let ast = Ast::new_let(name, value, body);
-
-    Ok((remaining, ast))
-}
-
-// parse a lambda
-fn parse_lambda(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
-    let (remaining, (_, parameters, _, body)) = nom::sequence::tuple((
-        punctuation!(PunctuationKind::Backslash),
-        parse_argument_list,
-        operator!(b"->"),
-        parse_expression,
-    ))(input)?;
-
-    let ast = body.lambda_chain(parameters);
-
-    Ok((remaining, ast))
-}
-
-pub fn parse_expression<'a>(input: Vec<Token<'a>>) -> IResult<Vec<Token>, Ast> {
-    let (rest, expression) = parse_atom(input)?;
-    let (rest, arguments) = many0(parse_atom)(rest)?;
-
-    let ast = expression.call_chain(arguments);
-
-    Ok((rest, ast))
-}
-
-// Parse the optional type annotation
-pub fn parse_annotation(input: Vec<Token>) -> IResult<Vec<Token>, Type> {
-    preceded(
-        punctuation!(PunctuationKind::DoubleColon),
-        type_::parse_type,
-    )(input)
-}
-
-pub fn parse_atom(input: Vec<Token>) -> IResult<Vec<Token>, Ast> {
-    let parse_wrapped = delimited(
-        punctuation!(PunctuationKind::OpenParenthesis),
-        parse_expression,
-        punctuation!(PunctuationKind::CloseParenthesis),
-    );
-
-    let parse_float_literal = map_opt(first(), |input| match input {
-        Token::FloatLit(value) => Some(Ast::FloatLiteral(value)),
-        _ => None,
-    });
-
-    let parse_string_literal = map_opt(first(), |input| match input {
-        Token::StringLit(value) => Some(Ast::StringLiteral(value)),
-        _ => None,
-    });
-
-    let parse_identifier = map(identifier!(), Ast::Variable);
-
-    let parse = tuple((
-        alt((
-            parse_if,
-            parse_let,
-            parse_lambda,
-            parse_float_literal,
-            parse_string_literal,
-            parse_identifier,
-            parse_wrapped,
-        )),
-        many0(parse_annotation),
-    ));
-
-    map(parse, |(expression, annotations)| {
-        expression.annotate_many(annotations)
-    })(input)
+pub fn parse_expression(value: &String) -> Result<Ast, peg::error::ParseError<peg::str::LineCol>> {
+    parse::expression(value)
 }

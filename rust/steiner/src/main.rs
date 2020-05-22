@@ -7,18 +7,8 @@ mod type_checker;
 use type_checker::type_::get_type_of;
 
 fn run(input: String) -> Result<(), String> {
-    let result = match lexer::lex(input[..].as_bytes()) {
-        Ok((_, value)) => value,
-        Err(err) => return Err(format!("{}", err)),
-    };
-
-    println!("Finished lexing string successfully!");
-    // for token in &result {
-    // println!("{:?}", token)
-    // }
-
-    let result = match parser::parse_expression(result) {
-        Ok((_, value)) => value,
+    let result = match parser::parse_expression(&input) {
+        Ok(value) => value,
         Err(err) => return Err(format!("{}", err)),
     };
 

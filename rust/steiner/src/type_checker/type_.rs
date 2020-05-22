@@ -278,13 +278,10 @@ impl TypeContext {
 
                 Ok(type_right)
             }
-            Ast::Variable(name) => {
-                let string = String::from_utf8(name.to_vec()).unwrap();
-                match self.environment.get(&string) {
-                    Some(result) => Ok(result.clone().instantiate(self)),
-                    None => Err(TypeError::NotInScope(string)),
-                }
-            }
+            Ast::Variable(name) => match self.environment.get(&name) {
+                Some(result) => Ok(result.clone().instantiate(self)),
+                None => Err(TypeError::NotInScope(name)),
+            },
             Ast::FunctionCall(function, argument) => {
                 let return_type = self.fresh();
                 let function_type = self.infer(*function)?;
@@ -299,8 +296,7 @@ impl TypeContext {
             }
             Ast::Lambda(argument, body) => {
                 let arg_type = self.fresh();
-                let arg_name = String::from_utf8(argument.to_vec()).unwrap();
-                let return_type = self.infer_with(arg_name, arg_type.to_scheme(), *body)?;
+                let return_type = self.infer_with(argument, arg_type.to_scheme(), *body)?;
 
                 Ok(Type::create_lambda(arg_type, return_type))
             }
