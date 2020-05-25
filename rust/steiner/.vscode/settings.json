@@ -1,3 +1,17 @@
 {
-  "cSpell.words": ["ADTS", "Lexing", "Substituable", "combinator", "multispace"]
+  "cSpell.words": [
+    "ADTS",
+    "Kindable",
+    "Lexing",
+    "Substituable",
+    "combinator",
+    "hashset",
+    "kinded",
+    "multispace",
+    "un",
+    "un kinded variable",
+    "unkinded",
+    "unkinded variable",
+    "variable"
+  ]
 }

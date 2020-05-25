@@ -141,15 +141,18 @@ peg::parser! {
                 if first_char == first_char.to_uppercase() {
                     Type::constant(&name[..])
                 } else {
-                    Type::Variable(name)
+                    Type::UnkindedVariable(name)
                 }
              }
+
+        rule t_small() -> Type
+            = ret:(t_wrapped() / t_identifier()) whitespace()* { ret }
 
         rule t_wrapped() -> Type
             = "(" whitespace()* ret:t_atom() ")" { ret }
 
         rule t_non_lambda() -> Type
-            = ret:(t_wrapped() / t_identifier()) whitespace()* { ret }
+            = fun:t_small() args:(t_small()*) { fun.app_chain(args) }
 
         rule t_lambda() -> Type
             = from:t_non_lambda() "->" whitespace()* to:t_atom() { Type::create_lambda(from, to) }
