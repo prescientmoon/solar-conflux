@@ -71,7 +71,7 @@ impl Ast {
 
 // If this is true the string cannot be used as a variable name and stuff
 fn is_reserved(input: &str) -> bool {
-    common_macros::hash_set!["if", "else", "let", "in"].contains(input)
+    common_macros::hash_set!["if", "then", "else", "let", "in"].contains(input)
 }
 
 peg::parser! {
