@@ -1,5 +1,5 @@
 #[macro_use]
-use crate::type_checker::type_::Type;
+use crate::type_checker::type_::{Type, SchemeVar, VarName};
 use std::vec::Vec;
 
 #[derive(Debug, Clone)]
@@ -71,12 +71,14 @@ impl Ast {
 
 // If this is true the string cannot be used as a variable name and stuff
 fn is_reserved(input: &str) -> bool {
-    common_macros::hash_set!["if", "then", "else", "let", "in"].contains(input)
+    common_macros::hash_set!["if", "then", "else", "let", "in", "forall"].contains(input)
 }
 
 peg::parser! {
     grammar parse() for str {
         rule whitespace() = quiet!{[' ' | '\n' | '\t']}
+        rule _ () = whitespace()*
+        rule __ () = whitespace()+
         rule alphanumeric() -> String
             = s:$['a'..='z' | 'A'..='Z' | '0'..='9'] { s.to_string() }
 
@@ -141,7 +143,7 @@ peg::parser! {
                 if first_char == first_char.to_uppercase() {
                     Type::constant(&name[..])
                 } else {
-                    Type::UnkindedVariable(name)
+                    Type::Variable(name)
                 }
              }
 
@@ -157,8 +159,20 @@ peg::parser! {
         rule t_lambda() -> Type
             = from:t_non_lambda() "->" whitespace()* to:t_atom() { Type::create_lambda(from, to) }
 
+        rule t_bounded_var() -> SchemeVar
+            = "(" _ name:variable_name() _ "::" _  ty:t_atom() _ ")" _ { SchemeVar::Bounded(VarName { kind: Box::new(ty), name }) }
+
+        rule t_unbounded_var() -> SchemeVar
+            = name:variable_name() _ { SchemeVar::Unbounded(name) }
+
+        rule t_forall_var() -> SchemeVar
+            = t_bounded_var() / t_unbounded_var()
+
+        rule t_forall() -> Type
+            = "forall" __ variables:(t_forall_var()+) _ "." _ ty:t_atom() { Type::Scheme { variables, ty: Box::new(ty) } }
+
         rule t_atom() -> Type
-            = ret:(t_lambda() / t_non_lambda()) whitespace()* { ret }
+            = ret:(t_forall() / t_lambda() / t_non_lambda()) _ { ret }
 
         rule annotation() -> Type
             = "::" whitespace()* ret:t_atom() { ret }

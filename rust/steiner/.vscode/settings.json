@@ -5,6 +5,7 @@
     "Lexing",
     "Substituable",
     "combinator",
+    "forall",
     "hashset",
     "kinded",
     "multispace",
