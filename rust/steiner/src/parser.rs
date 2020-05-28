@@ -1,5 +1,4 @@
-#[macro_use]
-use crate::type_checker::type_::{Type, SchemeVar, VarName};
+use crate::type_checker::type_::{SchemeVar, Type, VarName};
 use std::vec::Vec;
 
 #[derive(Debug, Clone)]
@@ -83,7 +82,7 @@ peg::parser! {
             = s:$['a'..='z' | 'A'..='Z' | '0'..='9'] { s.to_string() }
 
         rule variable_name() -> String
-            = name:$((alphanumeric() / "'")+) {?
+            = name:$((alphanumeric() / "'" / "*")+) {?
                 if is_reserved(name) {
                     Err("Keywords cannot be used as identifiers")
                 } else {
@@ -143,7 +142,7 @@ peg::parser! {
                 if first_char == first_char.to_uppercase() {
                     Type::constant(&name[..])
                 } else {
-                    Type::Variable(name)
+                    Type::Variable(VarName { name, kind: Box::new(Type::NoKind) })
                 }
              }
 

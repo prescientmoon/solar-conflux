@@ -14,6 +14,16 @@ pub struct VarName {
     pub kind: Box<Type>,
 }
 
+impl Display for VarName {
+    fn fmt(self: &Self, f: &mut Formatter<'_>) -> fmt::Result {
+        if *self.kind == Type::NoKind {
+            write!(f, "{}", self.name)
+        } else {
+            write!(f, "({} :: {})", self.name, self.kind)
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum SchemeVar {
     Bounded(VarName),
@@ -21,10 +31,17 @@ pub enum SchemeVar {
 }
 
 impl SchemeVar {
-    fn name(self: &SchemeVar) -> String {
+    pub fn name(self: &SchemeVar) -> String {
         match self {
             SchemeVar::Bounded(VarName { name, kind: _ }) => name.clone(),
             SchemeVar::Unbounded(name) => name.clone(),
+        }
+    }
+
+    pub fn kind(self: &SchemeVar) -> Option<Type> {
+        match self {
+            SchemeVar::Bounded(VarName { name: _, kind }) => Some(*kind.clone()),
+            SchemeVar::Unbounded(_) => None,
         }
     }
 }
@@ -42,9 +59,10 @@ impl Display for SchemeVar {
 pub enum Type {
     Constructor(VarName),
     TApply(Box<Type>, Box<Type>),
-    Variable(String),
+    Variable(VarName),
+    NoKind,
     // The reason this exists is because its definition needs itself to exist
-    Lambda(Box<Type>, Box<Type>),
+    ArrowKind,
     Scheme {
         variables: Vec<SchemeVar>,
         ty: Box<Type>,
@@ -52,42 +70,11 @@ pub enum Type {
 }
 
 impl Type {
-    // Type which can take and kind
-    pub fn any() -> Type {
-        let var_name = "a".to_string();
-        Type::Scheme {
-            variables: vec![SchemeVar::Unbounded(var_name.clone())],
-            ty: Box::new(Type::Variable(var_name)),
-        }
-    }
-
     // Kind of all types with a runtime value
     pub fn star() -> Type {
         Type::Constructor(VarName {
             name: "*".to_string(),
-            kind: Box::new(Type::any()),
-        })
-    }
-
-    // This should only be used internally inside lambda
-    fn raw_lambda(from: Type, to: Type) -> Type {
-        Type::Lambda(Box::new(from), Box::new(to))
-    }
-
-    // Constructors and stuff
-    pub fn lambda() -> Type {
-        let var_name = "a".to_string();
-        let var_type = Type::Variable(var_name.clone());
-
-        Type::Constructor(VarName {
-            name: "Function".to_string(),
-            kind: Box::new(Type::Scheme {
-                variables: vec![SchemeVar::Unbounded(var_name)],
-                ty: Box::new(Type::raw_lambda(
-                    var_type.clone(),
-                    Type::raw_lambda(var_type.clone(), var_type),
-                )),
-            }),
+            kind: Box::new(Type::NoKind),
         })
     }
 
@@ -106,6 +93,13 @@ impl Type {
         Type::TApply(Box::new(self.clone()), Box::new(other))
     }
 
+    pub fn from_string(name: String) -> Type {
+        Type::Variable(VarName {
+            name,
+            kind: Box::new(Type::NoKind),
+        })
+    }
+
     pub fn to_scheme(self: &Type, variables: Vec<SchemeVar>) -> Type {
         Type::Scheme {
             variables,
@@ -115,7 +109,7 @@ impl Type {
 
     #[inline]
     pub fn create_lambda(from: Type, to: Type) -> Type {
-        Type::lambda().apply(from).apply(to)
+        Type::ArrowKind.apply(from).apply(to)
     }
 
     #[inline]
@@ -145,7 +139,7 @@ impl Type {
     pub fn is_recursive(self: &Type, variable: &String) -> bool {
         self.free_variables()
             .iter()
-            .find(|name| name == &variable)
+            .find(|name| &name.name == variable)
             .is_some()
     }
 
@@ -165,8 +159,14 @@ impl Type {
             .clone()
             .free_variables()
             .iter()
-            .filter(|variable| !context.environment.contains_key(variable.clone()))
-            .map(|var| SchemeVar::Unbounded(var.clone()))
+            .filter(|variable| !context.environment.contains_key(&variable.name))
+            .map(|var| {
+                if *var.kind == Type::NoKind {
+                    SchemeVar::Unbounded(var.name.clone())
+                } else {
+                    SchemeVar::Bounded(var.clone())
+                }
+            })
             .collect();
 
         self.to_scheme(quantifiers)
@@ -176,12 +176,8 @@ impl Type {
     pub fn unwrap_function(self: &Type) -> Option<(Type, Type)> {
         if let Type::TApply(first, to) = self {
             if let Type::TApply(fun, from) = *first.clone() {
-                if let Type::Constructor(VarName { name, kind: _ }) = *fun {
-                    if name == "Function".to_string() {
-                        Some((*from, *to.clone()))
-                    } else {
-                        None
-                    }
+                if *fun == Type::ArrowKind {
+                    Some((*from, *to.clone()))
                 } else {
                     None
                 }
@@ -198,6 +194,7 @@ impl Display for Type {
     fn fmt(self: &Type, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Type::Variable(name) => write!(f, "{}", name),
+            Type::NoKind => write!(f, "[no kind]"),
             ty if ty.unwrap_function().is_some() => {
                 let (from, to) = ty.unwrap_function().unwrap();
 
@@ -215,7 +212,7 @@ impl Display for Type {
                 }
             }
             Type::Constructor(VarName { name, kind: _ }) => write!(f, "{}", name),
-            Type::Lambda(from, to) => write!(f, "lam({} -> {})", from, to),
+            Type::ArrowKind => write!(f, "kind(->)"),
             Type::Scheme { variables, ty } => {
                 if variables.len() == 0 {
                     write!(f, "{}", ty)
@@ -297,7 +294,11 @@ pub struct TypeContext {
 impl TypeContext {
     pub fn new() -> TypeContext {
         TypeContext {
-            environment: TypeEnv::new(),
+            environment: {
+                let mut map = TypeEnv::new();
+                map.insert("Type".to_string(), Type::star());
+                map
+            },
             constraints: Vec::new(),
             next_id: 0,
         }
@@ -324,9 +325,13 @@ impl TypeContext {
     }
 
     // Generate a new unique type variable
-    pub fn fresh(self: &mut TypeContext) -> Type {
+    pub fn fresh(self: &mut TypeContext, kind: Option<Type>) -> Type {
         let id = self.get_id();
-        Type::Variable(format!("t{}", id))
+        let name = format!("t{}", id);
+        Type::Variable(VarName {
+            kind: Box::new(kind.unwrap_or(Type::NoKind)),
+            name,
+        })
     }
 
     // Replace all quantifiers with fresh variables
@@ -335,7 +340,7 @@ impl TypeContext {
             Type::Scheme { variables, ty } => {
                 let new_variables = variables
                     .into_iter()
-                    .map(|name| (name.to_string(), self.fresh()));
+                    .map(|var| (var.name(), self.fresh(var.kind())));
                 let substitution = new_variables.collect();
 
                 ty.clone().apply_substitution(&substitution)
@@ -354,12 +359,15 @@ impl TypeContext {
             [constraint, ..] => {
                 let new_subst = match constraint {
                     TypeConstraint::Unify(left, right) => {
-                        merge_substitutions(self.unify(left.clone(), right.clone())?, substitution)
+                        let left = self.kind_unkinded(left.clone());
+                        let right = self.kind_unkinded(right.clone());
+                        merge_substitutions(self.unify(left, right)?, substitution)
                     }
-                    TypeConstraint::Match(left, right) => merge_substitutions(
-                        self.match_types(left.clone(), right.clone())?,
-                        substitution,
-                    ),
+                    TypeConstraint::Match(left, right) => {
+                        let left = self.kind_unkinded(left.clone());
+                        let right = self.kind_unkinded(right.clone());
+                        merge_substitutions(self.match_types(left, right)?, substitution)
+                    }
                 };
                 let constraints = constraints[1..].to_vec().apply_substitution(&new_subst);
                 self.solve_constraints_with_subst(&constraints, new_subst)
@@ -368,7 +376,11 @@ impl TypeContext {
     }
 
     pub fn solve_constraints(self: &mut TypeContext) -> TypeResult<Substitution> {
-        self.solve_constraints_with_subst(&self.constraints.clone(), Substitution::new())
+        let initial_constraints = self.constraints.clone();
+
+        self.constraints = vec![];
+
+        self.solve_constraints_with_subst(&initial_constraints, Substitution::new())
     }
 
     // Create a new context based on a new variable
@@ -406,7 +418,7 @@ impl TypeContext {
 
                 self.should_match(&inferred, &annotation);
 
-                Ok(annotation)
+                Ok(inferred)
             }
             Ast::If(condition, right, left) => {
                 let type_condition = self.infer(*condition)?;
@@ -417,12 +429,12 @@ impl TypeContext {
 
                 Ok(type_right)
             }
-            Ast::Variable(name) => match self.environment.get(&name) {
-                Some(result) => Ok(self.clone().instantiate(result)),
+            Ast::Variable(name) => match self.environment.clone().get(&name) {
+                Some(result) => Ok(self.instantiate(result)),
                 None => Err(TypeError::NotInScope(name)),
             },
             Ast::FunctionCall(function, argument) => {
-                let return_type = self.fresh();
+                let return_type = self.fresh(None);
                 let function_type = self.infer(*function)?;
                 let argument_type = self.infer(*argument)?;
 
@@ -434,7 +446,7 @@ impl TypeContext {
                 Ok(return_type)
             }
             Ast::Lambda(argument, body) => {
-                let arg_type = self.fresh();
+                let arg_type = self.fresh(None);
                 let return_type = self.infer_with(argument, arg_type.clone(), *body)?;
 
                 Ok(Type::create_lambda(arg_type, return_type))
@@ -462,9 +474,20 @@ impl TypeContext {
         self.environment = self.environment.clone().apply_substitution(substitution);
     }
 
+    pub fn constrain_type_application(self: &mut Self, func: Type, input: Type) -> (Type, Type) {
+        let k_ret = self.fresh(None);
+        let k_fun = self.get_kind(func);
+        let k_input = self.get_kind(input);
+
+        (k_fun, Type::create_lambda(k_input, k_ret.clone()))
+    }
+
     // Matching is like unification but variables can only be bound on 1 side
     pub fn match_types(self: &mut Self, left: Type, right: Type) -> TypeResult<Substitution> {
         match (&left, &right) {
+            (left, right) if left == right => Ok(Substitution::new()),
+            (Type::NoKind, _) => Ok(Substitution::new()),
+            (_, Type::NoKind) => Ok(Substitution::new()),
             (
                 Type::Constructor(VarName {
                     name: name_left,
@@ -485,25 +508,37 @@ impl TypeContext {
                 let instantiated = self.instantiate(scheme);
                 self.match_types(other.clone(), instantiated)
             }
-            (Type::Variable(name), right) => self.bind_type_variable(name.clone(), right.clone()),
+            (Type::Variable(var), right) => {
+                self.bind_type_variable(var.name.clone(), Some(*var.kind.clone()), right.clone())
+            }
             (Type::TApply(fun_left, input_left), Type::TApply(fun_right, input_right)) => {
                 let fun_subst = self.match_types(*fun_left.clone(), *fun_right.clone())?;
                 let input_subst = self.match_types(*input_left.clone(), *input_right.clone())?;
 
-                safe_merge_substitution(fun_subst, input_subst)
-            }
-            (Type::Lambda(from_left, to_left), Type::Lambda(from_right, to_right)) => {
-                let from_subst = self.match_types(*from_left.clone(), *from_right.clone())?;
-                let to_subst = self.match_types(*to_left.clone(), *to_right.clone())?;
+                let constraint_left =
+                    self.constrain_type_application(*fun_left.clone(), *input_left.clone());
+                let constraint_right =
+                    self.constrain_type_application(*fun_right.clone(), *input_right.clone());
 
-                safe_merge_substitution(from_subst, to_subst)
+                safe_merge_substitution(
+                    safe_merge_substitution(
+                        self.unify(constraint_left.0, constraint_left.1)?,
+                        self.unify(constraint_right.0, constraint_right.1)?,
+                    )?,
+                    safe_merge_substitution(fun_subst, input_subst)?,
+                )
             }
+            (Type::ArrowKind, Type::ArrowKind) => Ok(Substitution::new()),
             (left, right) => Err(TypeError::MatchingError(left.clone(), right.clone())),
         }
     }
 
+    // UNIFY TYPES
     pub fn unify(self: &mut Self, left: Type, right: Type) -> TypeResult<Substitution> {
         match (&left, &right) {
+            (left, right) if left == right => Ok(Substitution::new()),
+            (Type::NoKind, _) => Ok(Substitution::new()),
+            (_, Type::NoKind) => Ok(Substitution::new()),
             (
                 Type::Constructor(VarName {
                     name: name_left,
@@ -522,18 +557,33 @@ impl TypeContext {
                 let instantiated = self.instantiate(scheme);
                 self.unify(instantiated, other.clone())
             }
-            (Type::Variable(name), right) => self.bind_type_variable(name.clone(), right.clone()),
-            (left, Type::Variable(name)) => self.bind_type_variable(name.clone(), left.clone()),
-            (Type::TApply(fun_left, input_left), Type::TApply(fun_right, input_right)) => self
-                .unify_many(
-                    vec![*fun_left.clone(), *input_left.clone()],
-                    vec![*fun_right.clone(), *input_right.clone()],
-                ),
-            (Type::Lambda(from_left, to_left), Type::Lambda(from_right, to_right)) => self
-                .unify_many(
-                    vec![*from_left.clone(), *to_left.clone()],
-                    vec![*from_right.clone(), *to_right.clone()],
-                ),
+            (Type::Variable(var), right) => {
+                self.bind_type_variable(var.name.clone(), Some(*var.kind.clone()), right.clone())
+            }
+            (left, Type::Variable(var)) => {
+                self.bind_type_variable(var.name.clone(), Some(*var.kind.clone()), left.clone())
+            }
+            (Type::TApply(fun_left, input_left), Type::TApply(fun_right, input_right)) => {
+                let constraint_left =
+                    self.constrain_type_application(*fun_left.clone(), *input_left.clone());
+                let constraint_right =
+                    self.constrain_type_application(*fun_right.clone(), *input_right.clone());
+
+                self.unify_many(
+                    vec![
+                        constraint_left.0,
+                        constraint_right.0,
+                        *fun_left.clone(),
+                        *input_left.clone(),
+                    ],
+                    vec![
+                        constraint_left.1,
+                        constraint_right.1,
+                        *fun_right.clone(),
+                        *input_right.clone(),
+                    ],
+                )
+            }
             (left, right) => Err(TypeError::UnificationError(left.clone(), right.clone())),
         }
     }
@@ -561,17 +611,64 @@ impl TypeContext {
         }
     }
 
-    // Bind a type variable to a type
-    pub fn bind_type_variable(self: &mut Self, name: String, ty: Type) -> TypeResult<Substitution> {
-        match &ty {
-            Type::Variable(var_name) if *var_name == name => Ok(Substitution::new()),
-            _ => {
-                if ty.is_recursive(&name) {
-                    Err(TypeError::RecursiveType(name, ty))
-                } else {
-                    let map = Substitution::new().update(name, ty.clone());
+    // Get the kind of a type generating constraints on the ways
+    pub fn get_kind(self: &mut Self, ty: Type) -> Type {
+        match ty {
+            scheme if scheme.is_scheme() => {
+                let instantiated = self.instantiate(&scheme);
 
-                    Ok(map)
+                self.get_kind(instantiated)
+            }
+            Type::Constructor(VarName { name: _, kind }) => *kind.clone(),
+            Type::Variable(VarName { name: _, kind }) => *kind.clone(),
+            Type::ArrowKind => {
+                let k = Type::NoKind;
+                Type::create_lambda(k.clone(), Type::create_lambda(k.clone(), k)).generalize(self)
+            }
+            Type::TApply(fun, input) => {
+                let k_ret = self.fresh(None);
+                let k_input = self.get_kind(*input.clone());
+                let k_fun = self.get_kind(*fun.clone());
+
+                self.should_unify(&k_fun, &Type::create_lambda(k_input, k_ret.clone()));
+
+                k_ret
+            }
+            Type::NoKind => Type::NoKind,
+            other => panic!("Cannot get kind of type {}", other),
+        }
+    }
+
+    // Todo: remove
+    pub fn kind_unkinded(self: &mut Self, ty: Type) -> Type {
+        ty.clone()
+    }
+
+    // Bind a type variable to a type
+    pub fn bind_type_variable(
+        self: &mut Self,
+        var_name: String,
+        var_kind: Option<Type>,
+        ty: Type,
+    ) -> TypeResult<Substitution> {
+        match &ty {
+            Type::Variable(other_var) if *other_var.name == var_name => match var_kind {
+                None => Ok(Substitution::new().update(var_name, ty)),
+                Some(kind) => self.unify(*other_var.kind.clone(), kind.clone()),
+            },
+            other => {
+                if ty.is_recursive(&var_name) {
+                    Err(TypeError::RecursiveType(var_name, ty))
+                } else {
+                    match var_kind {
+                        None => Ok(Substitution::new().update(var_name, ty)),
+                        Some(var_kind) => {
+                            let k_other = self.get_kind(other.clone());
+                            let subst = self.unify(k_other, var_kind.clone())?;
+                            let map = subst.update(var_name, ty.apply_substitution(&subst));
+                            Ok(map)
+                        }
+                    }
                 }
             }
         }
@@ -584,17 +681,11 @@ fn merge_substitutions(subst1: Substitution, subst2: Substitution) -> Substituti
     subst2.apply_substitution(&subst1).union(subst1)
 }
 
-/*
-if agree then return (s1 ++ s2) else fail “merge fails”
-where agree = all (\v → apply s1 (TVar v) == apply s2 (TVar v))
-(map fst s1 ‘intersect‘ map fst s2)
-*/
-
 // This merges substitutions without duplicate keys
 fn safe_merge_substitution(subst1: Substitution, subst2: Substitution) -> TypeResult<Substitution> {
     for key in subst1.clone().intersection(subst2.clone()).keys() {
-        let left = Type::Variable(key.clone()).apply_substitution(&subst1);
-        let right = Type::Variable(key.clone()).apply_substitution(&subst2);
+        let left = Type::from_string(key.clone()).apply_substitution(&subst1);
+        let right = Type::from_string(key.clone()).apply_substitution(&subst2);
         if left != right {
             return Err(TypeError::SubstitutionConflict(key.clone(), left, right));
         }
@@ -604,12 +695,12 @@ fn safe_merge_substitution(subst1: Substitution, subst2: Substitution) -> TypeRe
 }
 
 pub trait Substituable {
-    fn free_variables(self: &Self) -> HashSet<String>;
+    fn free_variables(self: &Self) -> HashSet<VarName>;
     fn apply_substitution(self: Self, substitution: &Substitution) -> Self;
 }
 
 impl<T: Substituable + Clone> Substituable for Vec<T> {
-    fn free_variables(self: &Self) -> HashSet<String> {
+    fn free_variables(self: &Self) -> HashSet<VarName> {
         self.iter()
             .flat_map(|ty| ty.clone().free_variables())
             .collect()
@@ -626,7 +717,7 @@ impl<T: Substituable + Clone> Substituable for Vec<T> {
 }
 
 impl Substituable for TypeConstraint {
-    fn free_variables(self: &Self) -> HashSet<String> {
+    fn free_variables(self: &Self) -> HashSet<VarName> {
         let (left, right) = match self {
             TypeConstraint::Match(left, right) => (left, right),
             TypeConstraint::Unify(left, right) => (left, right),
@@ -650,7 +741,7 @@ impl Substituable for TypeConstraint {
 }
 
 impl Substituable for Substitution {
-    fn free_variables(self: &Substitution) -> HashSet<String> {
+    fn free_variables(self: &Substitution) -> HashSet<VarName> {
         self.values()
             .flat_map(|ty| ty.clone().free_variables())
             .collect()
@@ -664,7 +755,7 @@ impl Substituable for Substitution {
 }
 
 impl Substituable for TypeEnv {
-    fn free_variables(self: &Self) -> HashSet<String> {
+    fn free_variables(self: &Self) -> HashSet<VarName> {
         self.values()
             .flat_map(|ty| ty.clone().free_variables())
             .collect()
@@ -680,7 +771,7 @@ impl Substituable for TypeEnv {
 }
 
 impl Substituable for TypeContext {
-    fn free_variables(self: &Self) -> HashSet<String> {
+    fn free_variables(self: &Self) -> HashSet<VarName> {
         self.environment.free_variables()
     }
 
@@ -693,16 +784,15 @@ impl Substituable for TypeContext {
 }
 
 impl Substituable for Type {
-    fn free_variables(self: &Type) -> HashSet<String> {
+    fn free_variables(self: &Type) -> HashSet<VarName> {
         match self {
             Type::Variable(name) => hashset![name.clone()],
             Type::TApply(fun, input) => fun.free_variables().union(input.free_variables()),
-            Type::Lambda(from, to) => from.free_variables().union(to.free_variables()),
             Type::Scheme { variables, ty } => {
                 let quantifier_names: Vec<_> = variables.iter().map(|v| v.name()).collect();
                 ty.free_variables()
                     .iter()
-                    .filter(|v| !quantifier_names.contains(v))
+                    .filter(|v| !quantifier_names.contains(&v.name))
                     .map(Clone::clone)
                     .collect()
             }
@@ -712,7 +802,7 @@ impl Substituable for Type {
 
     fn apply_substitution(self: Type, substitution: &Substitution) -> Type {
         match &self {
-            Type::Variable(name) => match substitution.get(name) {
+            Type::Variable(VarName { name, kind: _ }) => match substitution.get(name) {
                 Some(new_type) => new_type.clone(),
                 None => self,
             },
