@@ -25,37 +25,6 @@ impl Display for VarName {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum SchemeVar {
-    Bounded(VarName),
-    Unbounded(String),
-}
-
-impl SchemeVar {
-    pub fn name(self: &SchemeVar) -> String {
-        match self {
-            SchemeVar::Bounded(VarName { name, kind: _ }) => name.clone(),
-            SchemeVar::Unbounded(name) => name.clone(),
-        }
-    }
-
-    pub fn kind(self: &SchemeVar) -> Option<Type> {
-        match self {
-            SchemeVar::Bounded(VarName { name: _, kind }) => Some(*kind.clone()),
-            SchemeVar::Unbounded(_) => None,
-        }
-    }
-}
-
-impl Display for SchemeVar {
-    fn fmt(self: &SchemeVar, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            SchemeVar::Unbounded(name) => write!(f, "{}", name),
-            SchemeVar::Bounded(VarName { name, kind }) => write!(f, "({} :: {})", name, kind),
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Type {
     Constructor(VarName),
     TApply(Box<Type>, Box<Type>),
@@ -64,7 +33,7 @@ pub enum Type {
     // The reason this exists is because its definition needs itself to exist
     ArrowKind,
     Scheme {
-        variables: Vec<SchemeVar>,
+        variables: Vec<VarName>,
         ty: Box<Type>,
     },
 }
@@ -100,7 +69,7 @@ impl Type {
         })
     }
 
-    pub fn to_scheme(self: &Type, variables: Vec<SchemeVar>) -> Type {
+    pub fn to_scheme(self: &Type, variables: Vec<VarName>) -> Type {
         Type::Scheme {
             variables,
             ty: Box::new(self.clone()),
@@ -160,13 +129,7 @@ impl Type {
             .free_variables()
             .iter()
             .filter(|variable| !context.environment.contains_key(&variable.name))
-            .map(|var| {
-                if *var.kind == Type::NoKind {
-                    SchemeVar::Unbounded(var.name.clone())
-                } else {
-                    SchemeVar::Bounded(var.clone())
-                }
-            })
+            .map(Clone::clone)
             .collect();
 
         self.to_scheme(quantifiers)
@@ -193,7 +156,7 @@ impl Type {
 impl Display for Type {
     fn fmt(self: &Type, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Type::Variable(name) => write!(f, "{}", name),
+            Type::Variable(name) => write!(f, "{}", name.name),
             Type::NoKind => write!(f, "[no kind]"),
             ty if ty.unwrap_function().is_some() => {
                 let (from, to) = ty.unwrap_function().unwrap();
@@ -325,11 +288,11 @@ impl TypeContext {
     }
 
     // Generate a new unique type variable
-    pub fn fresh(self: &mut TypeContext, kind: Option<Type>) -> Type {
+    pub fn fresh(self: &mut TypeContext, kind: Type) -> Type {
         let id = self.get_id();
         let name = format!("t{}", id);
         Type::Variable(VarName {
-            kind: Box::new(kind.unwrap_or(Type::NoKind)),
+            kind: Box::new(kind),
             name,
         })
     }
@@ -340,7 +303,7 @@ impl TypeContext {
             Type::Scheme { variables, ty } => {
                 let new_variables = variables
                     .into_iter()
-                    .map(|var| (var.name(), self.fresh(var.kind())));
+                    .map(|var| (var.name.clone(), self.fresh(*var.kind.clone())));
                 let substitution = new_variables.collect();
 
                 ty.clone().apply_substitution(&substitution)
@@ -380,7 +343,17 @@ impl TypeContext {
 
         self.constraints = vec![];
 
-        self.solve_constraints_with_subst(&initial_constraints, Substitution::new())
+        let subst = self.solve_constraints_with_subst(&initial_constraints, Substitution::new())?;
+
+        if self.constraints.len() > 0 {
+            println!("Found more constraints, continuing to solve");
+            self.constraints = self.constraints.clone().apply_substitution(&subst);
+            let subst2 = self.solve_constraints()?;
+
+            Ok(merge_substitutions(subst2, subst))
+        } else {
+            Ok(subst)
+        }
     }
 
     // Create a new context based on a new variable
@@ -434,7 +407,7 @@ impl TypeContext {
                 None => Err(TypeError::NotInScope(name)),
             },
             Ast::FunctionCall(function, argument) => {
-                let return_type = self.fresh(None);
+                let return_type = self.fresh(Type::NoKind);
                 let function_type = self.infer(*function)?;
                 let argument_type = self.infer(*argument)?;
 
@@ -446,7 +419,7 @@ impl TypeContext {
                 Ok(return_type)
             }
             Ast::Lambda(argument, body) => {
-                let arg_type = self.fresh(None);
+                let arg_type = self.fresh(Type::NoKind);
                 let return_type = self.infer_with(argument, arg_type.clone(), *body)?;
 
                 Ok(Type::create_lambda(arg_type, return_type))
@@ -475,7 +448,7 @@ impl TypeContext {
     }
 
     pub fn constrain_type_application(self: &mut Self, func: Type, input: Type) -> (Type, Type) {
-        let k_ret = self.fresh(None);
+        let k_ret = self.fresh(Type::NoKind);
         let k_fun = self.get_kind(func);
         let k_input = self.get_kind(input);
 
@@ -512,21 +485,29 @@ impl TypeContext {
                 self.bind_type_variable(var.name.clone(), Some(*var.kind.clone()), right.clone())
             }
             (Type::TApply(fun_left, input_left), Type::TApply(fun_right, input_right)) => {
-                let fun_subst = self.match_types(*fun_left.clone(), *fun_right.clone())?;
-                let input_subst = self.match_types(*input_left.clone(), *input_right.clone())?;
-
                 let constraint_left =
                     self.constrain_type_application(*fun_left.clone(), *input_left.clone());
                 let constraint_right =
                     self.constrain_type_application(*fun_right.clone(), *input_right.clone());
 
-                safe_merge_substitution(
-                    safe_merge_substitution(
-                        self.unify(constraint_left.0, constraint_left.1)?,
-                        self.unify(constraint_right.0, constraint_right.1)?,
-                    )?,
+                let subst2 = self.unify_many(
+                    vec![constraint_left.0, constraint_right.0],
+                    vec![constraint_left.1, constraint_right.1],
+                )?;
+
+                let fun_subst = self.match_types(
+                    fun_left.clone().apply_substitution(&subst2),
+                    fun_right.clone().apply_substitution(&subst2),
+                )?;
+                let input_subst = self.match_types(
+                    input_left.clone().apply_substitution(&subst2),
+                    input_right.clone().apply_substitution(&subst2),
+                )?;
+
+                Ok(merge_substitutions(
+                    subst2,
                     safe_merge_substitution(fun_subst, input_subst)?,
-                )
+                ))
             }
             (Type::ArrowKind, Type::ArrowKind) => Ok(Substitution::new()),
             (left, right) => Err(TypeError::MatchingError(left.clone(), right.clone())),
@@ -626,13 +607,18 @@ impl TypeContext {
                 Type::create_lambda(k.clone(), Type::create_lambda(k.clone(), k)).generalize(self)
             }
             Type::TApply(fun, input) => {
-                let k_ret = self.fresh(None);
-                let k_input = self.get_kind(*input.clone());
-                let k_fun = self.get_kind(*fun.clone());
+                if *fun == Type::ArrowKind {
+                    // Type::create_lambda(Type::NoKind, Type::NoKind).generalize(self)
+                    Type::NoKind
+                } else {
+                    let k_ret = self.fresh(Type::NoKind);
+                    let k_input = self.get_kind(*input.clone());
+                    let k_fun = self.get_kind(*fun.clone());
 
-                self.should_unify(&k_fun, &Type::create_lambda(k_input, k_ret.clone()));
+                    self.should_unify(&k_fun, &Type::create_lambda(k_input, k_ret.clone()));
 
-                k_ret
+                    k_ret
+                }
             }
             Type::NoKind => Type::NoKind,
             other => panic!("Cannot get kind of type {}", other),
@@ -789,7 +775,7 @@ impl Substituable for Type {
             Type::Variable(name) => hashset![name.clone()],
             Type::TApply(fun, input) => fun.free_variables().union(input.free_variables()),
             Type::Scheme { variables, ty } => {
-                let quantifier_names: Vec<_> = variables.iter().map(|v| v.name()).collect();
+                let quantifier_names: Vec<_> = variables.iter().map(|v| v.name.clone()).collect();
                 ty.free_variables()
                     .iter()
                     .filter(|v| !quantifier_names.contains(&v.name))

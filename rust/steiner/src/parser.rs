@@ -1,4 +1,4 @@
-use crate::type_checker::type_::{SchemeVar, Type, VarName};
+use crate::type_checker::type_::{Type, VarName};
 use std::vec::Vec;
 
 #[derive(Debug, Clone)]
@@ -158,13 +158,13 @@ peg::parser! {
         rule t_lambda() -> Type
             = from:t_non_lambda() "->" whitespace()* to:t_atom() { Type::create_lambda(from, to) }
 
-        rule t_bounded_var() -> SchemeVar
-            = "(" _ name:variable_name() _ "::" _  ty:t_atom() _ ")" _ { SchemeVar::Bounded(VarName { kind: Box::new(ty), name }) }
+        rule t_bounded_var() -> VarName
+            = "(" _ name:variable_name() _ "::" _  ty:t_atom() _ ")" _ { VarName { kind: Box::new(ty), name } }
 
-        rule t_unbounded_var() -> SchemeVar
-            = name:variable_name() _ { SchemeVar::Unbounded(name) }
+        rule t_unbounded_var() -> VarName
+            = name:variable_name() _ { VarName { name, kind: Box::new(Type::NoKind) } }
 
-        rule t_forall_var() -> SchemeVar
+        rule t_forall_var() -> VarName
             = t_bounded_var() / t_unbounded_var()
 
         rule t_forall() -> Type
