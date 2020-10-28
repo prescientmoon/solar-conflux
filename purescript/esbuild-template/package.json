@@ -1,5 +1,5 @@
 {
-  "name": "lunarflow",
+  "name": "purescript-project",
   "version": "0.0.0",
   "scripts": {
     "test": "spago test",
@@ -33,9 +33,6 @@
     "postcss-simple-vars": "^6.0.1",
     "semantic-release": "^17.1.2"
   },
-  "dependencies": {
-    "@thi.ng/geom": "^1.13.0",
-    "@thi.ng/hiccup-canvas": "^1.1.10"
-  },
+  "dependencies": {},
   "sideEffects": false
 }

@@ -1,20 +1,18 @@
 {
   "cSpell.words": [
-    "Lunarflow",
     "codegen",
     "corefn",
     "dhall",
     "esbuild",
     "outdir",
     "pcss",
-    "peaceiris",
     "pnpm",
     "postbuild",
     "purescript",
     "purs",
     "spago",
     "thomashoneyman"
-],
+  ],
   "scss.lint.unknownAtRules": "ignore",
   "files.associations": {
     "*.pcss": "scss"

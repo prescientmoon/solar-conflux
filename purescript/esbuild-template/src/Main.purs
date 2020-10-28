@@ -1,8 +1,8 @@
-module Test.Main where
+module Main where
 
 import Prelude
 import Effect (Effect)
 import Effect.Console as Console
 
 main :: Effect Unit
-main = Console.log "No tests yet :("
+main = Console.log "hello world"

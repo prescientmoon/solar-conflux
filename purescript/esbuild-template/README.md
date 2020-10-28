@@ -1,33 +1,7 @@
-# Lunarflow
+# Purescript esbuild template
 
-Tool for beginners to learn lambda calculus using an intuitive (or so I hope) visualisation.
+How to use:
 
-This is still in a super early stage, so maybe start this repo and come back in a few months :D
-
-Try it out [here](https://lunarcast.github.io/lunarflow).
-
-> This project is in such an early stage that link probably leads to a blank page.
-
-## Setup
-
-- Clone the repo
-- Run:
-  ```sh
-  pnpm install
-  ```
-
-### Dev server
-
-- Run
-
-  ```sh
-  pnpm dev
-  ```
-
-### Build for production
-
-- Run
-
-  ```sh
-  pnpm build
-  ```
+1. Press "use template"
+2. Clone the repo
+3. Enjoy!
