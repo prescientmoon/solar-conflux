@@ -42,7 +42,10 @@ function parseQuestions(fileObject) {
       answer = question.structure.options.map((o) => removeTags(o.text));
     }
 
-    const questionStr = removeTags(question.structure.query.text);
+    const questionStr =
+      question.structure.query.text === ""
+        ? question.structure.query.media[0].url
+        : removeTags(question.structure.query.text);
 
     allAnswers[questionStr] = answer;
   }
@@ -65,6 +68,8 @@ async function main(id) {
 
   const sorted = Object.entries(answers).sort();
 
+  console.log(answers);
+
   render(renderQuestions(sorted), rootElement);
 }
 
@@ -77,13 +82,15 @@ inputElement.addEventListener("keypress", (e) => {
   }
 });
 
-console.log("here");
-
 const renderQuestions = (questions) => {
   return html`${questions.map(([question, answer]) => {
     return html`
       <div class="question-container">
-        <div class="question">${question}</div>
+        <div class="question">
+          ${question.startsWith("http")
+            ? html`<img src=${question} />`
+            : question}
+        </div>
         ${Array.isArray(answer)
           ? html`
               <ul>
