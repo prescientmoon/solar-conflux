@@ -1,6 +1,6 @@
 import { render, html } from "https://cdn.skypack.dev/lit-html";
 
-const tags = ["p", "strong", "em", "sub", "sup", "span", "br"];
+const tags = ["p", "strong", "em", "sub", "sup", "span", "br", "sub"];
 
 function removeTags(input) {
   let copy = input.replace('"', '\\"');
