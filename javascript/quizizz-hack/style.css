@@ -1,0 +1,41 @@
+body,
+html {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  background: #241b2f;
+}
+
+#input-container {
+  color: white;
+  padding: 1rem;
+  font-size: 1.7rem;
+  display: flex;
+  align-items: center;
+}
+
+#id {
+  margin: 1rem;
+  padding: 0.5rem;
+  background: transparent;
+  border: 1px solid white;
+  outline: none;
+  color: white;
+}
+
+.question-container {
+  padding: 0.7rem;
+}
+
+.question-container .question {
+  color: #1ad6d9;
+}
+
+.question-container .answer {
+  margin-top: 0.5rem;
+  color: #23e30e;
+}
+
+.answer.answer-single {
+  margin-left: 1.5rem;
+}

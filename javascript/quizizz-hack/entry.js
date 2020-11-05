@@ -1,16 +1,6 @@
-const fetch = require("node-fetch");
-const chalk = require("chalk");
-const { default: readline } = require("readline-promise");
+import { render, html } from "https://cdn.skypack.dev/lit-html";
 
-const id = process.argv[2];
-
-const rlp = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  terminal: true,
-});
-
-const tags = ["p", "strong", "em"];
+const tags = ["p", "strong", "em", "sub", "sup", "span", "br"];
 
 function removeTags(input) {
   let copy = input.replace('"', '\\"');
@@ -23,7 +13,7 @@ function removeTags(input) {
 
 // Here is the function to parse the json object.
 // It returns object with key/value pair where key is the question and value is the answer
-function parseFile(fileObject) {
+function parseQuestions(fileObject) {
   const allAnswers = {};
 
   for (const question of fileObject.data.quiz.info.questions) {
@@ -59,51 +49,51 @@ function parseFile(fileObject) {
 
   return allAnswers;
 }
-
-function printQuestion(question) {
-  console.log(chalk.italic(chalk.blue(question[0])));
-  console.log(chalk.green(question[1]));
-}
-
-async function repl(o) {
-  const answer = await rlp.questionAsync(">");
-
-  if (answer === "all") {
-    for (const question of o) {
-      printQuestion(question);
-    }
-  } else {
-    console.log(chalk.underline(answer));
-
-    for (const question of o) {
-      let ok = true;
-
-      for (let i = 0; i < question[0].length; i++) {
-        if (answer[i] === undefined) break;
-
-        if (question[0][i] !== answer[i]) {
-          ok = false;
-          break;
-        }
-      }
-
-      if (ok) {
-        printQuestion(question);
-      }
-    }
-  }
-
-  repl(o);
-}
-
-async function main() {
-  const res = await fetch(`https://quizizz.com/quiz/${id}`);
+async function main(id) {
+  const res = await fetch(
+    `https://api.allorigins.win/get?url=${encodeURIComponent(
+      `https://quizizz.com/quiz/${id}`
+    )}`,
+    {}
+  );
   const jsonObject = await res.json();
-  const answers = parseFile(jsonObject);
+  const parsedJson = JSON.parse(jsonObject.contents);
+
+  console.log(parsedJson.data);
+
+  const answers = parseQuestions(parsedJson);
 
   const sorted = Object.entries(answers).sort();
 
-  repl(sorted);
+  render(renderQuestions(sorted), rootElement);
 }
 
-main();
+const inputElement = document.getElementById("id");
+const rootElement = document.getElementById("root");
+
+inputElement.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    main(e.target.value).catch(console.error);
+  }
+});
+
+console.log("here");
+
+const renderQuestions = (questions) => {
+  return html`${questions.map(([question, answer]) => {
+    return html`
+      <div class="question-container">
+        <div class="question">${question}</div>
+        ${Array.isArray(answer)
+          ? html`
+              <ul>
+                ${answer.map((correct) => {
+                  return html`<li class="answer">${correct}</li> `;
+                })}
+              </ul>
+            `
+          : html` <div class="answer answer-single">${answer}</div> `}
+      </div>
+    `;
+  })}`;
+};
