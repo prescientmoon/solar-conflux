@@ -5,12 +5,13 @@ import Prelude
 import Data.Array (length, mapWithIndex)
 import Data.Array as Array
 import Data.Either (Either)
-import Data.Foldable (for_, minimum)
+import Data.Foldable (foldMap, for_, minimum)
 import Data.FoldableWithIndex (forWithIndex_)
 import Data.Generic.Rep (class Generic)
 import Data.HashMap (HashMap)
 import Data.HashMap as HashMap
 import Data.HashMap as Map
+import Data.HashSet as HashSet
 import Data.Int (toNumber)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
@@ -20,15 +21,18 @@ import Data.Maybe (Maybe(..), fromJust, fromMaybe)
 import Data.Number (infinity)
 import Data.Show.Generic (genericShow)
 import Data.Traversable (for)
-import Data.Tuple (Tuple(..), uncurry)
+import Data.Tuple (Tuple(..), fst, uncurry)
 import Data.Tuple.Nested (type (/\), (/\))
-import Functorio.Lens (getAt, modifyAt)
+import Functorio.Lens (modifyAt)
+import Math (sin)
 import Partial.Unsafe (unsafeCrashWith, unsafePartial)
 import Run (Run, extract)
 import Run.Except (EXCEPT, fail, runExcept)
 import Run.Fail.Extra (traverseFail)
 import Run.Reader (READER, ask, runReader)
+import Run.Reader.Extra (fromState')
 import Run.State (STATE, runState)
+import Run.Supply (SUPPLY, generate, runSupply)
 import Type.Proxy (Proxy(..))
 import Type.Row (type (+))
 import Visited (VISITED, once, runVisited)
@@ -57,27 +61,33 @@ type Factory = HashMap MachineId Machine
 
 ---------- Some configs
 yellowBelt :: BeltConfig
-yellowBelt = { speed: 15.0, delay: 1.0/3.0 }
+yellowBelt = { speed: 15.0, delay: 4.0/3.0 }
 
 redBelt :: BeltConfig
-redBelt = { speed: 30.0, delay: 1.0/6.0 }
+redBelt = { speed: 30.0, delay: 4.0/6.0 }
 
 blueBelt :: BeltConfig
-blueBelt = { speed: 45.0, delay: 1.0/8.0 }
+blueBelt = { speed: 45.0, delay: 4.0/8.0 }
 
 -- | Example factory
 myFactory :: Factory
 myFactory = Map.fromArray machines
     where
     machines = mapWithIndex Tuple 
-        [ Provider [0, 1, 2] $ const 80.0
+        [ Provider [0, 1] $ startsAtZero $ \t -> 40.0 + 10.0 * sin t
         , Belt { input: 0, output: 3, config: yellowBelt }
         , Belt { input: 1, output: 4, config: redBelt }
-        , Belt { input: 2, output: 5, config: blueBelt }
+        -- , Belt { input: 2, output: 5, config: blueBelt }
         , Consumer 3
         , Consumer 4
-        , Consumer 5
         ]
+
+---------- Helpers for real functions
+type Endomorphism a = a -> a
+
+startsAtZero :: Endomorphism RealFunction
+startsAtZero f x | x >= 0.0 = f x
+                 | otherwise = 0.0
 
 ---------- Monad for factory solving
 type PortData =
@@ -105,37 +115,43 @@ data ThroughputConstraint
 type Constraints = Array ThroughputConstraint
 
 type SolveState = 
-    { constraints :: Constraints 
-    , lastId :: Int }
+    { constraints :: Constraints }
 
 type SolveM = Run 
     ( EXCEPT String 
     + STATE SolveState 
     + READER Factory
+    + SUPPLY Int
     + () )
 
 runSolveM :: forall a. Factory -> SolveM a -> Either String (Tuple SolveState a)
-runSolveM factory = runReader factory >>> runState initialState >>> runExcept >>> extract
-
-initialState :: SolveState
-initialState = { constraints: [], lastId: 0 }
+runSolveM factory = runReader factory >>> runState mempty >>> runExcept >>> runSupply ((+) 1) 0 >>> extract
 
 focusBiRelationship :: PortId /\ PortSide -> BiRelationship -> Maybe BiRelationship
 focusBiRelationship place relationship | relationship.p1 == place = Just relationship
                                        | relationship.p2 == place = Just $ flipBiRelationship relationship
                                        | otherwise = Nothing 
 
+focusBiRelationshipWithoutSide :: PortId -> BiRelationship -> Maybe BiRelationship
+focusBiRelationshipWithoutSide id relationship | fst relationship.p1 == id = Just relationship
+                                               | fst relationship.p2 == id = Just $ flipBiRelationship relationship
+                                               | otherwise = Nothing
+
 flipBiRelationship :: BiRelationship -> BiRelationship 
 flipBiRelationship { p1, p2, p1top2, p2top1 } = { p1: p2, p2: p1, p1top2: p2top1, p2top1: p1top2 }
+
+factoryPorts :: Factory -> HashSet.HashSet PortId
+factoryPorts = foldMap case _ of
+    Belt { input, output } -> HashSet.fromArray [input, output]
+    Provider outputs _ -> HashSet.fromArray outputs
+    Chest { inputs, outputs } -> HashSet.fromArray (inputs <> outputs)
+    Consumer input -> HashSet.singleton input
 
 ---------- System solving algorithm
 constrain :: ThroughputConstraint -> SolveM Unit
 constrain constraint = modifyAt _constraints $ push constraint
     where
     push = flip Array.snoc
-
-getId :: SolveM Int
-getId = modifyAt _lastId ((+) 1) *> getAt _lastId
 
 collectConstraints :: SolveM Unit
 collectConstraints = do
@@ -157,6 +173,12 @@ evalExpr = case _ of
 tryFindBound :: forall r. PortId /\ PortSide -> Run (READER Constraints r) RealFunction
 tryFindBound at = tryFindBoundImpl at <#> \f time -> extract $ runVisited $ f time 
 
+tryFindBoundSolveM :: PortId /\ PortSide -> SolveM RealFunction
+tryFindBoundSolveM at = fromState' _constraints $ tryFindBound at
+
+tryFindBoundPure :: PortId /\ PortSide -> Constraints -> RealFunction
+tryFindBoundPure at constraints = extract $ runReader constraints $ tryFindBound at
+
 tryFindBoundImpl :: forall r k. 
     PortId /\ PortSide -> 
     Run (READER Constraints r) (Number -> Run (VISITED BiRelationshipId k) Number) 
@@ -174,7 +196,29 @@ tryFindBoundImpl (targetId /\ targetSide) = do
         # runReader constraints 
         <#> minimum'
     where
-    minimum' = minimum >>> fromMaybe infinity
+    minimum' = minimum >>> fromMaybe 0.0
+
+tryFindValue :: forall r. PortId -> Run (READER Constraints r) RealFunction
+tryFindValue at = tryFindValueImpl at <#> \f time -> extract $ runVisited $ f time 
+
+tryFindValueImpl :: forall r k. PortId -> Run (READER Constraints r) (Number -> Run (VISITED BiRelationshipId k) Number)
+tryFindValueImpl targetId = do
+    constraints <- ask
+    pure \time -> constraints
+        # traverseFail case _ of
+            Limit expr _ id | id == targetId -> evalExpr expr <*> pure time 
+            BiRelationship id raw 
+                | Just relationship <- focusBiRelationshipWithoutSide targetId raw -> do
+                    f <- once id fail $ tryFindValueImpl $ fst relationship.p2 
+                    f (relationship.p1top2 time)
+            _ -> fail
+        # runReader constraints 
+        <#> minimum'
+    where
+    minimum' = minimum >>> fromMaybe 0.0
+
+tryFindValuePure :: PortId -> Constraints -> RealFunction
+tryFindValuePure at constraints = extract $ runReader constraints $ tryFindValue at
 
 collectConstraintsImpl :: MachineId -> Machine -> SolveM Unit
 collectConstraintsImpl at = case _ of
@@ -204,9 +248,10 @@ collectConstraintsImpl at = case _ of
                 | otherwise = head.maxOutput time
         outputsImpl _ _ _ = Nil
 
-    Consumer for -> pure unit
+    Consumer for -> do
+        constrain $ Limit (Literal infinity) Output for
     Belt { input, output, config } -> do
-        biId <- getId
+        biId <- generate
 
         constrain $ BiRelationship biId 
             { p1: input /\ Output
@@ -220,9 +265,6 @@ collectConstraintsImpl at = case _ of
     _ -> unsafeCrashWith "unimplemented"
 
 ---------- Lenses
-_lastId :: Lens' SolveState Int
-_lastId = prop (Proxy :: _ "lastId")
-
 _constraints :: Lens' SolveState (Array ThroughputConstraint) 
 _constraints = prop (Proxy :: _ "constraints")
 
