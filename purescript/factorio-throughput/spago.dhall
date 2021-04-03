@@ -10,7 +10,12 @@ You can edit this file as you like.
   , "filterable"
   , "profunctor-lenses"
   , "psci-support"
+  , "quickcheck"
+  , "quickcheck-laws"
   , "run"
+  , "spec"
+  , "spec-discovery"
+  , "spec-quickcheck"
   , "strings"
   , "unordered-collections"
   ]
