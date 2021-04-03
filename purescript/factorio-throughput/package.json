@@ -1,0 +1,13 @@
+{
+  "name": "moontorio",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "calculess": "^1.0.2",
+    "esbuild": "^0.11.4",
+    "esbuild-plugin-purescript": "^1.0.0",
+    "events": "^3.3.0",
+    "function-plot": "^1.22.7"
+  }
+}
