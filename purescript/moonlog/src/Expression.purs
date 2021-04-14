@@ -22,7 +22,6 @@ import Run (Run)
 import Run.State (STATE, evalState, get, modify)
 import Run.Supply (SUPPLY, generate, localSupply)
 import Type.Proxy (Proxy(..))
-import Undefined (undefined)
 import Type.Row (type (+))
 
 type Constructor a = { span :: Cst.SourceSpan, name :: String, arguments :: Array a }
@@ -53,7 +52,7 @@ fromCst (Cst.Term t) = t # match
     { var: \s -> Var (sourceSpan s) (withoutSpan s)
     , pattern: \c -> Constructor $ constructorFromCst c
     , natural: fromNatural
-    , list: \_ -> someAst }
+    , list: fromList  }
     where
     fromList :: Cst.List -> Expression
     fromList { span, elements, tail } = go (List.fromFoldable elements) 
@@ -79,8 +78,6 @@ fromCst (Cst.Term t) = t # match
         succ :: Expression -> Expression
         succ previous = Constructor { span, name: "S", arguments: [previous]  }
 
-    someAst :: Expression
-    someAst = undefined
 
 ---------- Helpers
 -- TODO: remove the boilerplate from these 2

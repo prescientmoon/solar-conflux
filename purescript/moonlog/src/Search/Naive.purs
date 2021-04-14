@@ -57,7 +57,7 @@ solve goals = do
 
 printResults :: Array Substitution -> Array String -> String
 printResults [] _ = "false"
-printResults solutions freeVars = joinWith "\n" $ 
+printResults solutions freeVars = joinWith "\n====================\n" $ 
     solutions # filter (HashMap.isEmpty >>> not) <#> 
         \solution -> joinWith "\n" $ freeVars <#> 
             \var -> "    " <> var <> " = " <> maybe "???" show (HashMap.lookup var solution)

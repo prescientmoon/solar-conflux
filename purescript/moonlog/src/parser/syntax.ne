@@ -24,6 +24,12 @@ term
     | identifier {% ([a]) => var_(a) %} 
     | patternName {% ([a]) => pattern(constructor(a, [])) %}
     | "(" _ termInParens _ ")" {% i => i[2] %}
+    | ("[" {% convertTokenId %}) _ (term _ {% id %}):? ("," _ term _ {% a => a[2] %}):* ("|" _ term _ {% a => a[2] %}):? ("]" {% convertTokenId %}) 
+        {% ([open,,first, rest, tail, close]) => list(
+            { start: open.span.start, end: close.span.end }, 
+            first === null ? [] : [first, ...rest],
+            tail
+        ) %}
 
 termInParens
     -> pattern {% ([c]) => pattern(c) %} 

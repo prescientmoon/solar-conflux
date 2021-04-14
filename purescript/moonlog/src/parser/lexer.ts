@@ -7,7 +7,7 @@ import type { SourcePosition, Token } from "./ast";
 const mooLexer = moo.compile({
   whitespace: /[ \t]+/,
   newline: { match: /(?:\r\n?|\n)+/, lineBreaks: true },
-  punctuation: [",", "(", ")"],
+  punctuation: [",", "(", ")", "[", "]", "|"],
   natural: /[0-9]+/,
   identifier: { match: /[a-z_]['\-_a-zA-Z0-9]*/ },
   constructor: { match: /[A-Z]['\-_a-zA-Z0-9]*/ },

@@ -1,5 +1,5 @@
-Add (S n) b c 
-    Add n (S b) c
+Add (S n) b (S c) 
+    Add n b c
 Add 0 b b   
 
 Sub a 0 a
@@ -7,3 +7,12 @@ Sub (S a) (S b) c
     Sub a b c
 
 Eq a a
+
+
+Append [] a a
+Append [head | tail] a [head | b]
+    Append tail a b
+
+Member a [a | tail]
+Member a [b | tail]
+    Member a tail
