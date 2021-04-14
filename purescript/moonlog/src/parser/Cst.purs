@@ -87,8 +87,15 @@ instance hasSpanTerm :: HasSpan Term where
         , list: _.span 
         } t
 
+instance showSourceSpan :: Show SourceSpan where
+    show _ = "{...}"
+
 ---------- FFI
 foreign import parseImpl :: String -> Array Rule
+foreign import parseConstructorImpl :: String -> Pattern
 
 parse :: String -> Either ParsingError (Array Rule)
 parse = catchErrors parseImpl
+
+parseConstructor :: String -> Either ParsingError Pattern
+parseConstructor = catchErrors parseConstructorImpl

@@ -1,17 +1,19 @@
-import { parse } from "./parser/parser";
+import { main } from "./Main.purs";
 
-const util = require("util");
+main();
 
-const log = (o) =>
-  console.log(util.inspect(o, { showHidden: false, depth: null }));
+// const util = require("util");
 
-log(
-  parse(`
-Add (S n) b c
-    Add n (S b) c
-Add 0 b b
+// const log = (o) =>
+//   console.log(util.inspect(o, { showHidden: false, depth: null }));
 
-Sub a 0 a
-Sub (S a) (S b) c
-    Sub a b c`)
-);
+// log(
+//   parse(`
+// Add (S n) b c
+//     Add n (S b) c
+// Add 0 b b
+
+// Sub a 0 a
+// Sub (S a) (S b) c
+//     Sub a b c`)
+// );

@@ -2,12 +2,17 @@
 import syntax from "./syntax.ne";
 import { Grammar, Parser } from "nearley";
 
-const grammar = Grammar.fromCompiled(syntax);
+const mkParser = (start: string) => {
+  const grammar = Grammar.fromCompiled({ ...syntax, ParserStart: start });
 
-export const parse = (input: string) => {
-  const parser = new Parser(grammar);
+  return (input: string) => {
+    const parser = new Parser(grammar);
 
-  parser.feed(input);
+    parser.feed(input);
 
-  return parser.results[0];
+    return parser.results[0];
+  };
 };
+
+export const parse = mkParser("expression");
+export const parseConstructor = mkParser("pattern");
