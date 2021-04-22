@@ -1,0 +1,12 @@
+{
+  "name": "wave38",
+  "scripts": {
+    "dev": "cp public/* dist/ -r && node ./build"
+  },
+  "author": "Matei Adriel",
+  "devDependencies": {
+    "esbuild": "^0.11.12",
+    "live-server": "^1.2.1",
+    "typescript": "^4.2.4"
+  }
+}
