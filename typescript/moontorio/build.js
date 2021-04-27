@@ -7,6 +7,6 @@ esbuild
     bundle: true,
     entryPoints: ["src/index.ts"],
     watch: !production,
-    outdir: "dist",
+    outdir: "public/dist",
   })
   .catch((e) => process.exit(0));
