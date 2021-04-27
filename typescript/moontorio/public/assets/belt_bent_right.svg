@@ -1,15 +1,14 @@
-<svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="51" height="51" viewBox="0 0 51 51" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g clip-path="url(#clip0)">
-<rect width="50" height="50" transform="translate(0.00231934 50.0023) rotate(-90)" fill="white"/>
-<rect x="0.00231934" y="50.0023" width="50" height="50" transform="rotate(-90 0.00231934 50.0023)" fill="#EEE500"/>
-<path d="M5.00232 45.0023L5.00232 0.00231934L50.0023 0.00231934L50.0023 45.0023L5.00232 45.0023Z" fill="#C4C4C4"/>
-<rect x="45.0023" y="5.00232" width="5" height="5" transform="rotate(-90 45.0023 5.00232)" fill="#EEE500"/>
-<path d="M21.951 42.0023L18.2932 15.9424L44.5328 17.9386L40.427 22.3138L24.8561 22.101L26.0568 37.6271L21.951 42.0023Z" fill="#EEE500"/>
+<rect width="50" height="50" transform="translate(50.0023 0.00231934) rotate(90)" fill="white"/>
+<rect x="50.0023" y="0.00231934" width="50" height="50" transform="rotate(90 50.0023 0.00231934)" fill="#EEE500"/>
+<path d="M45.0023 5.00232L45.0023 50.0023L0.00231934 50.0023L0.00231934 5.00232L45.0023 5.00232Z" fill="#C4C4C4"/>
+<rect x="5.00232" y="45.0023" width="5" height="5" transform="rotate(90 5.00232 45.0023)" fill="#EEE500"/>
+<path d="M28.0537 8.00232L31.7114 34.0623L5.47184 32.066L9.57763 27.6908L25.1486 27.9036L23.9479 12.3775L28.0537 8.00232Z" fill="#EEE500"/>
 </g>
 <defs>
 <clipPath id="clip0">
-<rect width="50" height="50" fill="white" transform="translate(0.00231934 50.0023) rotate(-90)"/>
+<rect width="50" height="50" fill="white" transform="translate(50.0023 0.00231934) rotate(90)"/>
 </clipPath>
 </defs>
 </svg>
-

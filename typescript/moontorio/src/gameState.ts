@@ -9,7 +9,7 @@ import type {
   Vec2,
 } from "./utils/types";
 
-export type Item = number;
+export type Item = string;
 
 export type Machine = ADT<{
   belt: {
@@ -31,6 +31,11 @@ export type Chunk = Nullable<Tile>[][];
 
 export interface GameMap {
   chunkMap: Nullable<Chunk>[][];
+  outputBelts: Vec2[];
+}
+
+export interface ItemConfig {
+  texture: Image;
 }
 
 export interface GameState {
@@ -42,8 +47,10 @@ export interface GameState {
   keyboard: KeyboardState;
   player: Player;
   map: GameMap;
+  items: Record<Item, ItemConfig>;
   settings: {
     tileSize: number;
+    itemOnBeltSize: number;
   };
 }
 

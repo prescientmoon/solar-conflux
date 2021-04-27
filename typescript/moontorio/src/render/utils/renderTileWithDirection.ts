@@ -1,32 +1,29 @@
 import { Image } from "../../gameState";
-import { Direction, Pair, Vec2 } from "../../utils/types";
+import { Direction, Lazy, Pair, Vec2 } from "../../utils/types";
 
 export const renderTileWithDirection = (
   ctx: CanvasRenderingContext2D,
   direction: Direction,
-  tile: Image,
   position: Vec2,
-  size: number
+  size: number,
+  draw: Lazy<void>
 ) => {
-  if (direction === Direction.Up) {
-    ctx.drawImage(tile, ...position, size, size);
-  } else if (direction === Direction.Down) {
-    ctx.save();
+  ctx.save();
+  if (direction === Direction.Down) {
+    ctx.translate(...position);
+    draw();
+  } else if (direction === Direction.Up) {
     ctx.translate(position[0] + size, position[1] + size);
     ctx.rotate(Math.PI);
-    ctx.drawImage(tile, 0, 0, size, size);
-    ctx.restore();
-  } else if (direction === Direction.Right) {
-    ctx.save();
+    draw();
+  } else if (direction === Direction.Left) {
     ctx.translate(position[0] + size, position[1]);
     ctx.rotate(Math.PI / 2);
-    ctx.drawImage(tile, 0, 0, size, size);
-    ctx.restore();
-  } else if (direction === Direction.Left) {
-    ctx.save();
+    draw();
+  } else if (direction === Direction.Right) {
     ctx.translate(position[0], position[1] + size);
     ctx.rotate(-Math.PI / 2);
-    ctx.drawImage(tile, 0, 0, size, size);
-    ctx.restore();
+    draw();
   }
+  ctx.restore();
 };

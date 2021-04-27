@@ -39,12 +39,33 @@ export const beltRenderer: Renderer = {
       renderTileWithDirection(
         state.ctx,
         tile.machine.direction,
-        texture,
         [
           position[0] * state.settings.tileSize,
           position[1] * state.settings.tileSize,
         ],
-        state.settings.tileSize
+        state.settings.tileSize,
+        () => {
+          state.ctx.drawImage(
+            texture,
+            0,
+            0,
+            state.settings.tileSize,
+            state.settings.tileSize
+          );
+
+          const xPos =
+            (state.settings.tileSize - state.settings.itemOnBeltSize) / 2;
+
+          for (const { item, position } of tile.machine.items) {
+            state.ctx.drawImage(
+              state.items[item].texture,
+              xPos,
+              (position * state.settings.tileSize) / 100,
+              state.settings.itemOnBeltSize,
+              state.settings.itemOnBeltSize
+            );
+          }
+        }
       );
     }
   },
