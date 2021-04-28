@@ -28,6 +28,7 @@ const state: GameState = {
       [createChunk(), createChunk()],
     ],
     outputBelts: [],
+    allBelts: [],
   },
   items,
 };
@@ -35,12 +36,24 @@ const state: GameState = {
 MoveBeltItems.addBelt(state, [3, 3], Direction.Down, item("yellowBelt"));
 MoveBeltItems.addBelt(state, [3, 4], Direction.Down, item("yellowBelt"));
 MoveBeltItems.addBelt(state, [3, 5], Direction.Right, item("yellowBelt"));
+MoveBeltItems.addBelt(state, [4, 5], Direction.Up, item("yellowBelt"));
+MoveBeltItems.addBelt(state, [4, 4], Direction.Up, item("yellowBelt"));
+MoveBeltItems.addBelt(state, [4, 3], Direction.Left, item("yellowBelt"));
+
 MoveBeltItems.addBelt(state, [7, 5], Direction.Right, item("yellowBelt"));
 MoveBeltItems.addBelt(state, [8, 5], Direction.Up, item("yellowBelt"));
 MoveBeltItems.addBelt(state, [8, 4], Direction.Left, item("yellowBelt"));
 MoveBeltItems.addBelt(state, [7, 4], Direction.Down, item("yellowBelt"));
 
-state.map.chunkMap[0][0]![3][3]?.machine.items.push(
+state.map.chunkMap[0][0]![3][3]?.machine.items[0].push(
+  ...Array(10)
+    .fill(1)
+    .map((_, index) => ({
+      item: item("ironPlate"),
+      position: index * 5,
+    }))
+);
+state.map.chunkMap[0][0]![3][3]?.machine.items[1].push(
   ...Array(10)
     .fill(1)
     .map((_, index) => ({

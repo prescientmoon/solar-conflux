@@ -2,18 +2,10 @@ import { settings } from "../constants";
 import { loadAsset, Renderer, Tile } from "../gameState";
 import { next, prev } from "../utils/direction";
 import { allTiles } from "../utils/traversals";
-import { Nullable, Vec2 } from "../utils/types";
+import { Nullable, Pair, Vec2 } from "../utils/types";
 import { renderTileWithDirection } from "./utils/renderTileWithDirection";
 import { add2, mul2, mulN2, mulS2, sub2 } from "@thi.ng/vectors";
-
-/**
- * All the possible directions a belt can be curved in.
- */
-const enum BeltCurve {
-  NoCurve,
-  Left,
-  Right,
-}
+import { BeltCurve, getBeltCurve, getBeltLength } from "../systems/beltCurving";
 
 /**
  * Represents the path items should take through a belt.
@@ -31,15 +23,29 @@ const enum BeltCurve {
  */
 type BeltPath = Array<[number, Vec2]>;
 
-const straightBeltPath: BeltPath = [
-  [0, [settings.tileSize / 2, 0]],
-  [100, [settings.tileSize / 2, settings.tileSize]],
+const halfTile = settings.tileSize / 2;
+
+const straightBeltLeftSidePath: BeltPath = [
+  [0, [halfTile - settings.sideFromMiddle, 0]],
+  [100, [halfTile - settings.sideFromMiddle, settings.tileSize]],
 ];
 
-const bentRightPath: BeltPath = [
-  [0, [0, settings.tileSize / 2]],
-  [50, [settings.tileSize / 2, settings.tileSize / 2]],
-  [100, [settings.tileSize / 2, settings.tileSize]],
+const bentRightInnerSidePath: BeltPath = [
+  [0, [0, halfTile + settings.sideFromMiddle]],
+  [
+    50,
+    [halfTile - settings.sideFromMiddle, halfTile + settings.sideFromMiddle],
+  ],
+  [100, [halfTile - settings.sideFromMiddle, settings.tileSize]],
+];
+
+const bentRightOuterSidePath: BeltPath = [
+  [0, [0, halfTile - settings.sideFromMiddle]],
+  [
+    50,
+    [halfTile + settings.sideFromMiddle, halfTile - settings.sideFromMiddle],
+  ],
+  [100, [halfTile + settings.sideFromMiddle, settings.tileSize]],
 ];
 
 /** Mirros a belt path on the y-axis */
@@ -49,31 +55,24 @@ const mirrorBeltPath = (path: BeltPath): BeltPath =>
     [settings.tileSize - position[0], position[1]],
   ]);
 
-const beltPaths: Record<BeltCurve, BeltPath> = {
-  [BeltCurve.NoCurve]: straightBeltPath,
-  [BeltCurve.Right]: bentRightPath,
-  [BeltCurve.Left]: mirrorBeltPath(bentRightPath),
+const curvedPaths: Pair<BeltPath> = [
+  bentRightOuterSidePath,
+  bentRightInnerSidePath,
+];
+
+const beltPaths: Record<BeltCurve, Pair<BeltPath>> = {
+  [BeltCurve.NoCurve]: [
+    straightBeltLeftSidePath,
+    mirrorBeltPath(straightBeltLeftSidePath),
+  ],
+  [BeltCurve.Right]: curvedPaths,
+  [BeltCurve.Left]: curvedPaths.map(mirrorBeltPath) as Pair<BeltPath>,
 };
 
 const textures = {
   [BeltCurve.NoCurve]: loadAsset("assets/belt_straight.svg"),
   [BeltCurve.Left]: loadAsset("assets/belt_bent_left.svg"),
   [BeltCurve.Right]: loadAsset("assets/belt_bent_right.svg"),
-};
-
-/**
- * Check whether (and in what direction) a belt is curved.
- * @param tile The belt to get the curve of.
- */
-const getBeltCurve = (tile: Tile): BeltCurve => {
-  if (tile.machine.inputs.length === 1) {
-    if (next(tile.machine.direction) === tile.machine.inputs[0])
-      return BeltCurve.Right;
-    if (prev(tile.machine.direction) === tile.machine.inputs[0])
-      return BeltCurve.Left;
-  }
-
-  return BeltCurve.NoCurve;
 };
 
 export const beltRenderer: Renderer = {
@@ -115,59 +114,63 @@ export const beltitemRenderer: Renderer = {
         [position[0] * settings.tileSize, position[1] * settings.tileSize],
         settings.tileSize,
         (rotation) => {
-          const xPos = (settings.tileSize - settings.itemOnBeltSize) / 2;
-
           const beltCurve = getBeltCurve(tile);
-          const beltPath = beltPaths[beltCurve];
 
-          for (const item of tile.machine.items) {
-            let position: Nullable<Vec2> = null;
+          for (let side: 0 | 1 = 0; side < 2; side++) {
+            const beltPath = beltPaths[beltCurve][side];
+            for (const item of tile.machine.items[side]) {
+              let position: Nullable<Vec2> = null;
+              const squishedPosition =
+                (100 * item.position) / getBeltLength(side as 0 | 1, tile); // squish the position between 0 and 100
 
-            for (let index = 0; index < beltPath.length; index++) {
-              if (item.position === beltPath[index][0]) {
-                position = beltPath[index][1];
+              for (let index = 0; index < beltPath.length; index++) {
+                const current = beltPath[index];
+                const next = beltPath[index + 1];
+
+                if (squishedPosition === current[0]) {
+                  position = current[1];
+                  break;
+                }
+
+                if (squishedPosition >= next[0]) continue;
+
+                const delta = sub2(
+                  [],
+                  beltPath[index + 1][1],
+                  beltPath[index][1]
+                ) as Vec2;
+
+                // position = current + delta * (item - current) / (next - current)
+                position = add2(
+                  null,
+                  mulN2(
+                    null,
+                    delta,
+                    (squishedPosition - current[0]) / (next[0] - current[0])
+                  ),
+                  current[1]
+                ) as Vec2;
+
                 break;
               }
-              if (item.position >= beltPath[index + 1][0]) continue;
 
-              const current = beltPath[index];
-              const next = beltPath[index + 1];
+              if (position === null)
+                throw new Error(`Invalid path ${beltPath}`);
 
-              const delta = sub2(
-                [],
-                beltPath[index + 1][1],
-                beltPath[index][1]
-              ) as Vec2;
+              state.ctx.save();
+              state.ctx.translate(...position);
+              state.ctx.rotate(-rotation);
 
-              // position = current + delta * (item - current) / (next - current)
-              position = add2(
-                null,
-                mulN2(
-                  null,
-                  delta,
-                  (item.position - current[0]) / (next[0] - current[0])
-                ),
-                current[1]
-              ) as Vec2;
+              state.ctx.drawImage(
+                state.items[item.item].texture,
+                -settings.itemOnBeltSize / 2,
+                -settings.itemOnBeltSize / 2,
+                settings.itemOnBeltSize,
+                settings.itemOnBeltSize
+              );
 
-              break;
+              state.ctx.restore();
             }
-
-            if (position === null) throw new Error(`Invalid path ${beltPath}`);
-
-            state.ctx.save();
-            state.ctx.translate(...position);
-            state.ctx.rotate(-rotation);
-
-            state.ctx.drawImage(
-              state.items[item.item].texture,
-              -settings.itemOnBeltSize / 2,
-              -settings.itemOnBeltSize / 2,
-              settings.itemOnBeltSize,
-              settings.itemOnBeltSize
-            );
-
-            state.ctx.restore();
           }
         }
       );

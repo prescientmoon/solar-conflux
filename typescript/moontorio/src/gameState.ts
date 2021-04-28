@@ -15,10 +15,13 @@ export type Machine = ADT<{
   belt: {
     direction: Direction;
     inputs: Direction[];
-    items: Array<{
-      item: Item;
-      position: number;
-    }>;
+    items: Pair<
+      Array<{
+        // This is a pair because we have 2 lanes.
+        item: Item;
+        position: number;
+      }>
+    >;
   };
 }> & { item: Item };
 
@@ -32,6 +35,9 @@ export type Chunk = Nullable<Tile>[][];
 export interface GameMap {
   chunkMap: Nullable<Chunk>[][];
   outputBelts: Vec2[];
+
+  // TODO: find a better way to handle cycles
+  allBelts: Vec2[];
 }
 
 export interface ItemConfig {
