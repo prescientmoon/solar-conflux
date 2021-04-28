@@ -2,11 +2,12 @@ import { Mat23Like, scale23, transform23 } from "@thi.ng/matrices";
 import { GameState, loadAsset } from "./gameState";
 import { pressedKeys } from "./keyboard";
 import { createChunk } from "./map";
-import { beltRenderer } from "./render/belts";
+import { beltitemRenderer, beltRenderer } from "./render/belts";
 import { renderPlayer, updatePlayer } from "./player";
 import { Direction } from "./utils/types";
 import { item, items } from "./items";
 import * as MoveBeltItems from "./systems/moveBeltItems";
+import { replicate } from "./utils/array";
 
 const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -28,10 +29,6 @@ const state: GameState = {
     ],
     outputBelts: [],
   },
-  settings: {
-    tileSize: 50,
-    itemOnBeltSize: 25,
-  },
   items,
 };
 
@@ -42,6 +39,15 @@ MoveBeltItems.addBelt(state, [7, 5], Direction.Right, item("yellowBelt"));
 MoveBeltItems.addBelt(state, [8, 5], Direction.Up, item("yellowBelt"));
 MoveBeltItems.addBelt(state, [8, 4], Direction.Left, item("yellowBelt"));
 MoveBeltItems.addBelt(state, [7, 4], Direction.Down, item("yellowBelt"));
+
+state.map.chunkMap[0][0]![3][3]?.machine.items.push(
+  ...Array(10)
+    .fill(1)
+    .map((_, index) => ({
+      item: item("ironPlate"),
+      position: index * 5,
+    }))
+);
 
 console.log(state);
 
@@ -65,10 +71,12 @@ const clear = () => {
 const main = () => {
   clear();
   updatePlayer(state);
+  MoveBeltItems.updateItems(state);
 
   ctx.translate(state.camera.translation[0], state.camera.translation[1]);
 
   beltRenderer.render(state);
+  beltitemRenderer.render(state);
   renderPlayer(state);
 
   ctx.resetTransform();

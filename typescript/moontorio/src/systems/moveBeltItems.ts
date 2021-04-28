@@ -1,9 +1,11 @@
 import { GameState, Tile } from "../gameState";
 import { chunkSize } from "../map";
 import { removeIndex } from "../utils/array";
-import { opposite } from "../utils/direction";
+import { next, opposite } from "../utils/direction";
 import { allTiles } from "../utils/traversals";
 import { Direction, Pair, Vec2 } from "../utils/types";
+
+const hashPosition = ([x, y]: Vec2) => (x << 16) | y;
 
 const tileAt = (state: GameState, position: Vec2): Tile | null =>
   state.map.chunkMap[Math.floor(position[0] / chunkSize)]?.[
@@ -83,4 +85,65 @@ export const addBelt = (
   }
 
   if (nextTile === null) state.map.outputBelts.push(position);
+};
+
+export const updateItems = (state: GameState) => {
+  const updated = new Set<number>();
+  const speed = 1;
+  const spacePerItem = 10;
+
+  const update = (pos: Vec2): Tile | null => {
+    const num = hashPosition(pos);
+
+    if (updated.has(num)) return null;
+    updated.add(num);
+
+    const tile = tileAt(state, pos);
+
+    if (tile?.machine.type !== "belt") return null;
+
+    const next = tileAt(state, addDirection(pos, tile.machine.direction));
+
+    // We have to update the items in reverse order in order to prevent pointless collisions
+    for (let index = tile.machine.items.length - 1; index >= 0; index--) {
+      const item = tile.machine.items[index];
+
+      const bound =
+        index !== tile.machine.items.length - 1
+          ? tile.machine.items[index + 1].position - spacePerItem
+          : next?.machine.type !== "belt"
+          ? 100
+          : next.machine.items.length === 0
+          ? 200
+          : 100 + next.machine.items[0].position - spacePerItem;
+
+      const newPosition = Math.min(item.position + speed, bound);
+
+      if (newPosition <= 100) item.position = newPosition;
+      else {
+        tile.machine.items.pop(); // TODO: verify if this is safe
+        next!.machine.items.unshift({
+          item: item.item,
+          position: newPosition - 100,
+        });
+      }
+    }
+
+    return tile;
+  };
+
+  // TODO: use an actual queue implementation
+  const updateQueue = [...state.map.outputBelts];
+
+  while (updateQueue.length) {
+    const toUpdate = updateQueue.pop()!;
+
+    const updated = update(toUpdate);
+
+    if (updated === null) continue;
+
+    updateQueue.unshift(
+      ...updated.machine.inputs.map((d) => addDirection(toUpdate, d))
+    );
+  }
 };

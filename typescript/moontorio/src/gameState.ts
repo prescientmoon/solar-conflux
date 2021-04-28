@@ -48,10 +48,6 @@ export interface GameState {
   player: Player;
   map: GameMap;
   items: Record<Item, ItemConfig>;
-  settings: {
-    tileSize: number;
-    itemOnBeltSize: number;
-  };
 }
 
 export type Renderer = {
