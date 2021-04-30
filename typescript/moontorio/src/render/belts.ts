@@ -1,11 +1,20 @@
 import { settings } from "../constants";
-import { loadAsset, Renderer, Tile } from "../gameState";
+import {
+  Belt,
+  BeltItem,
+  GameState,
+  loadAsset,
+  Renderer,
+  Tile,
+} from "../gameState";
 import { next, prev } from "../utils/direction";
 import { allTiles } from "../utils/traversals";
-import { Nullable, Pair, Vec2 } from "../utils/types";
+import { Direction, Nullable, Pair, Vec2 } from "../utils/types";
 import { renderTileWithDirection } from "./utils/renderTileWithDirection";
 import { add2, mul2, mulN2, mulS2, sub2 } from "@thi.ng/vectors";
 import { BeltCurve, getBeltCurve, getBeltLength } from "../systems/beltCurving";
+import { isBelt } from "../utils/machines";
+import { reversed } from "../utils/array";
 
 /**
  * Represents the path items should take through a belt.
@@ -75,38 +84,65 @@ const textures = {
   [BeltCurve.Right]: loadAsset("assets/belt_bent_right.svg"),
 };
 
-export const beltRenderer: Renderer = {
-  z: 0,
-  render: (state) => {
-    for (const [tile, position] of allTiles(state)) {
-      if (tile?.machine.type !== "belt") continue;
+export const beltRenderer = (state: GameState, tile: Belt, position: Vec2) => {
+  let texture = textures[getBeltCurve(tile)];
 
-      let texture = textures[getBeltCurve(tile)];
-
-      renderTileWithDirection(
-        state.ctx,
-        tile.machine.direction,
-        [position[0] * settings.tileSize, position[1] * settings.tileSize],
-        settings.tileSize,
-        () => {
-          state.ctx.drawImage(
-            texture,
-            0,
-            0,
-            settings.tileSize,
-            settings.tileSize
-          );
-        }
-      );
+  renderTileWithDirection(
+    state.ctx,
+    tile.machine.direction,
+    [position[0] * settings.tileSize, position[1] * settings.tileSize],
+    settings.tileSize,
+    () => {
+      state.ctx.drawImage(texture, 0, 0, settings.tileSize, settings.tileSize);
     }
-  },
+  );
+};
+
+const itemRenderOrder = function* (
+  direction: Direction,
+  curve: BeltCurve,
+  items: Array<BeltItem>,
+  maxPosition: number
+): Generator<BeltItem, any, undefined> {
+  if (curve === BeltCurve.NoCurve) {
+    if (direction === Direction.Down || direction === Direction.Right) {
+      yield* items;
+    } else if (direction === Direction.Up || direction === Direction.Left) {
+      yield* reversed(items);
+    }
+  } else {
+    const firstHalf = itemRenderOrder(
+      curve === BeltCurve.Left ? next(direction) : prev(direction),
+      BeltCurve.NoCurve,
+      items.filter((i) => i.position < maxPosition / 2),
+      maxPosition
+    );
+
+    const secondHalf = itemRenderOrder(
+      direction,
+      BeltCurve.NoCurve,
+      items.filter((i) => i.position >= maxPosition / 2),
+      maxPosition
+    );
+
+    const inRenderDirection =
+      direction === Direction.Down || direction === Direction.Right;
+
+    if (inRenderDirection) {
+      yield* firstHalf;
+      yield* secondHalf;
+    } else {
+      yield* secondHalf;
+      yield* firstHalf;
+    }
+  }
 };
 
 export const beltitemRenderer: Renderer = {
   z: 1,
   render: (state) => {
     for (const [tile, position] of allTiles(state)) {
-      if (tile?.machine.type !== "belt") continue;
+      if (!isBelt(tile)) continue;
 
       renderTileWithDirection(
         state.ctx,
@@ -118,10 +154,16 @@ export const beltitemRenderer: Renderer = {
 
           for (let side: 0 | 1 = 0; side < 2; side++) {
             const beltPath = beltPaths[beltCurve][side];
-            for (const item of tile.machine.items[side]) {
+            const maxLength = getBeltLength(side as 0 | 1, tile);
+
+            for (const item of itemRenderOrder(
+              tile.machine.direction,
+              beltCurve,
+              tile.machine.items[side],
+              maxLength
+            )) {
               let position: Nullable<Vec2> = null;
-              const squishedPosition =
-                (100 * item.position) / getBeltLength(side as 0 | 1, tile); // squish the position between 0 and 100
+              const squishedPosition = (100 * item.position) / maxLength; // squish the position between 0 and 100
 
               for (let index = 0; index < beltPath.length; index++) {
                 const current = beltPath[index];

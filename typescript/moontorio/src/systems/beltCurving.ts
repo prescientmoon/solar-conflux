@@ -1,4 +1,4 @@
-import { Tile } from "../gameState";
+import type { Belt, Tile } from "../gameState";
 import { next, prev } from "../utils/direction";
 
 /**
@@ -14,7 +14,7 @@ export const enum BeltCurve {
  * Check whether (and in what direction) a belt is curved.
  * @param tile The belt to get the curve of.
  */
-export const getBeltCurve = (tile: Tile): BeltCurve => {
+export const getBeltCurve = (tile: Belt): BeltCurve => {
   if (tile.machine.inputs.length === 1) {
     if (next(tile.machine.direction) === tile.machine.inputs[0])
       return BeltCurve.Right;
@@ -33,22 +33,12 @@ export const getBeltCurve = (tile: Tile): BeltCurve => {
  * @param tile The tile to measure
  * @returns How long the particular side is.
  */
-export const getBeltLength = (side: 0 | 1, tile: Tile): number => {
+export const getBeltLength = (side: 0 | 1, tile: Belt): number => {
   const curve = getBeltCurve(tile);
 
   // Straight:
   if (curve === BeltCurve.NoCurve) return 100; // full size
 
-  // Inner side of curve:
-  if (
-    // Can also be written as
-    // curve + side == 2
-    // but I think that's more confusing
-    (curve === BeltCurve.Left && side) ||
-    (curve === BeltCurve.Right && !side)
-  )
-    return 50; // half the size
-
-  // Outer side of curve
-  return 150; // extra size
+  // Inner side < outer side
+  return side ? 50 : 150;
 };

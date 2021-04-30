@@ -14,3 +14,10 @@ export const removeIndex = <T>(array: T[], index: number) => {
     array[index] = array.pop()!;
   }
 };
+
+/** Generator for the reverse of an array */
+export function* reversed<T>(array: T[]) {
+  for (let index = array.length - 1; index >= 0; index--) {
+    yield array[index];
+  }
+}

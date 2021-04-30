@@ -11,8 +11,8 @@ export const allTiles = function* (
 
       if (chunk === null) continue;
 
-      for (let tileY = 0; tileY < chunkSize; tileY++) {
-        for (let tileX = 0; tileX < chunkSize; tileX++) {
+      for (let tileX = 0; tileX < chunkSize; tileX++) {
+        for (let tileY = 0; tileY < chunkSize; tileY++) {
           const tile = chunk[tileX][tileY];
 
           yield [

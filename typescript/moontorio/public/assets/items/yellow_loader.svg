@@ -1,0 +1,24 @@
+<svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="50" height="50" transform="translate(50 50) rotate(-180)" fill="white"/>
+<rect x="50" y="50" width="50" height="50" transform="rotate(-180 50 50)" fill="#EEE500"/>
+<rect x="45" y="50" width="40" height="50" transform="rotate(-180 45 50)" fill="#C4C4C4"/>
+<path d="M41 4.5L24.5 25L8 4.5H14L24.5 16L35 4.5H41Z" fill="#EEE500"/>
+<path d="M45.5 20L5 20.5V50H45L45.5 20Z" fill="url(#paint0_linear)"/>
+<path d="M4.5 50L5 20.5L3 15L1.5 50H4.5Z" fill="url(#paint1_linear)"/>
+<path d="M45 50L45.5 20.5L47 15L48.5 50H45Z" fill="url(#paint2_linear)"/>
+<path d="M5 15H3L5 20.5H45.5L47 15H45L43.7058 19H7L5 15Z" fill="#B8B21E"/>
+<defs>
+<linearGradient id="paint0_linear" x1="25.5" y1="20" x2="25.5" y2="50" gradientUnits="userSpaceOnUse">
+<stop stop-color="#E0D700"/>
+<stop offset="1" stop-color="#EEE500"/>
+</linearGradient>
+<linearGradient id="paint1_linear" x1="4.5" y1="20.5" x2="9.5" y2="46.5" gradientUnits="userSpaceOnUse">
+<stop stop-color="#E0D700"/>
+<stop offset="1" stop-color="#E0D700" stop-opacity="0"/>
+</linearGradient>
+<linearGradient id="paint2_linear" x1="48" y1="32.5" x2="46.5" y2="50.5" gradientUnits="userSpaceOnUse">
+<stop stop-color="#E0D700"/>
+<stop offset="1" stop-color="#E0D700" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>

@@ -17,4 +17,9 @@ export const enum Direction {
   Up,
 }
 
+export const enum Side {
+  Left,
+  Right,
+}
+
 export type Neighbour = Pair<-1 | 0 | 1>;
