@@ -78,7 +78,7 @@ export interface ItemComponents<T = Machine> {
       belt: P;
       item: BeltItem;
       side: Side;
-    }) => void;
+    }) => boolean;
   };
 }
 

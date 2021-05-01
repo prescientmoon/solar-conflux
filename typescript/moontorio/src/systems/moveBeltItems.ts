@@ -3,6 +3,7 @@ import {
   BeltItem,
   GameState,
   getComponent,
+  Item,
   ItemComponents,
   Tile,
 } from "../gameState";
@@ -15,84 +16,79 @@ import { getBeltLength } from "./beltCurving";
 
 const hashPosition = ([x, y]: Vec2) => (x << 16) | y;
 
-const speed = 1;
-const spacePerItem = 10;
+// TODO: make these configurable on a per-item basis
+export const speed = 1;
+export const spacePerItem = 10;
 
-interface ItemMove<P> {
+interface ItemPushEnv<P> {
   state: GameState;
   belt: P;
   side: Side;
   position: Vec2;
   item: BeltItem;
   newPosition: number;
-  moveInPlace: (item: BeltItem) => void;
-  moveToNext: () => void;
+  maxLength: number;
 }
 
-const moveItem = <P extends Belt>({
+export interface BeltLike {
+  machine: Pick<Belt["machine"], "items" | "direction">;
+}
+
+export const pushItemOut = <P extends BeltLike>({
   belt,
   side,
   position,
   item,
   state,
-  moveInPlace,
-  moveToNext,
   newPosition,
-}: ItemMove<P>) => {
-  const maxLength = getBeltLength(side, belt);
+  maxLength,
+}: ItemPushEnv<P>): boolean => {
+  const nextPosition = addDirection(position, belt.machine.direction);
 
-  if (newPosition >= maxLength) {
-    const nextPosition = addDirection(position, belt.machine.direction);
-    const next = tileAt(state, nextPosition);
+  if (newPosition < 0) return false;
 
-    if (next !== null) {
-      const beltLike = getComponent(state, next.machine.item, "beltLike");
+  const next = tileAt(state, nextPosition);
 
-      if (beltLike !== null) {
-        beltLike.push({
-          state,
-          belt: next,
-          item: {
-            item: item.item,
-            position: newPosition - maxLength,
-          },
-          position: nextPosition,
-          side,
-        });
+  if (next !== null && newPosition > maxLength) {
+    const beltLike = getComponent(state, next.machine.item, "beltLike");
 
-        moveToNext();
+    if (beltLike !== null) {
+      const pushed = beltLike.push({
+        state,
+        belt: next,
+        item: {
+          item: item.item,
+          position: newPosition - maxLength,
+        },
+        position: nextPosition,
+        side,
+      });
 
-        return;
-      }
+      return pushed;
     }
   }
 
-  moveInPlace({
-    item: item.item,
-    position: Math.min(newPosition, maxLength),
-  });
+  return false;
 };
 
 export const implBeltForBelt: ItemComponents<Belt>["beltLike"] = {
-  push({ state, belt, item, side, position }) {
+  push({ belt, item, side }) {
     const sideItems = belt.machine.items[side];
     const maxLength = getBeltLength(side, belt);
 
     const bound =
       sideItems.length === 0 ? maxLength : sideItems[0].position - spacePerItem;
 
-    moveItem({
-      belt,
-      side,
-      position,
-      item,
-      state,
-      newPosition: Math.min(bound, item.position),
-      moveInPlace(item) {
-        sideItems.unshift(item);
-      },
-      moveToNext() {},
+    const newPosition = Math.min(bound, item.position);
+
+    if (newPosition < 0) return false;
+
+    belt.machine.items[side].unshift({
+      item: item.item,
+      position: newPosition,
     });
+
+    return true;
   },
 };
 
@@ -180,7 +176,45 @@ export const addBelt = (
   state.map.allBelts.push(position);
 };
 
-export const updateItems = (state: GameState) => {
+interface ItemMoveEnv<P extends BeltLike> {
+  tile: P;
+  maxLengths: Pair<number>;
+  moveOut(side: Side, item: BeltItem, newPosition: number): boolean;
+}
+
+export const moveAllItemsOnBelt = <T extends BeltLike>({
+  tile,
+  moveOut,
+  maxLengths,
+}: ItemMoveEnv<T>) => {
+  for (let sideIndex: Side = 0; sideIndex < 2; sideIndex++) {
+    const side = tile.machine.items[sideIndex];
+    const maxLength = maxLengths[sideIndex];
+
+    // We have to update the items in reverse order in order to prevent pointless collisions
+    for (let index = side.length - 1; index >= 0; index--) {
+      const item = side[index];
+
+      const bound =
+        index !== side.length - 1
+          ? side[index + 1].position - spacePerItem
+          : Infinity;
+
+      const newPosition = Math.min(item.position + speed, bound);
+
+      if (newPosition > maxLength) {
+        const succesful = moveOut(sideIndex, item, newPosition);
+
+        if (succesful) side.pop();
+        else item.position = maxLength;
+      } else {
+        item.position = Math.min(newPosition, maxLength);
+      }
+    }
+  }
+};
+
+export const updateAllItemsOnBelts = (state: GameState) => {
   const updated = new Set<number>();
   const everyBelt = new Set(state.map.allBelts.map(hashPosition));
 
@@ -195,36 +229,24 @@ export const updateItems = (state: GameState) => {
 
     if (!isBelt(tile)) return null;
 
-    for (let sideIndex: Side = 0; sideIndex < 2; sideIndex++) {
-      const side = tile.machine.items[sideIndex];
-
-      // We have to update the items in reverse order in order to prevent pointless collisions
-      for (let index = side.length - 1; index >= 0; index--) {
-        const item = side[index];
-
-        const bound =
-          index !== side.length - 1
-            ? side[index + 1].position - spacePerItem
-            : Infinity;
-
-        const newPosition = Math.min(item.position + speed, bound);
-
-        moveItem({
+    moveAllItemsOnBelt({
+      tile,
+      maxLengths: [
+        getBeltLength(Side.Left, tile),
+        getBeltLength(Side.Right, tile),
+      ],
+      moveOut(side, item, newPosition) {
+        return pushItemOut({
           state,
           belt: tile,
           newPosition,
           item,
-          side: sideIndex,
+          side,
           position: pos,
-          moveInPlace(newItem) {
-            item.position = newItem.position;
-          },
-          moveToNext() {
-            side.pop();
-          },
+          maxLength: getBeltLength(side, tile),
         });
-      }
-    }
+      },
+    });
 
     return tile;
   };

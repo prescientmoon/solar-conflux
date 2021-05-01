@@ -2,7 +2,7 @@ import { Mat23Like, scale23, transform23 } from "@thi.ng/matrices";
 import { Belt, GameState, loadAsset } from "./gameState";
 import { pressedKeys } from "./keyboard";
 import { createChunk } from "./map";
-import { beltitemRenderer, beltRenderer } from "./render/belts";
+import { beltItemRenderer, beltRenderer } from "./render/belts";
 import { renderPlayer, updatePlayer } from "./player";
 import { Direction } from "./utils/types";
 import { item, items } from "./items";
@@ -11,6 +11,11 @@ import { replicate } from "./utils/array";
 import { allTiles } from "./utils/traversals";
 import { isBelt, machineIs } from "./utils/machines";
 import { renderSimpleTile } from "./render/simpleTile";
+import {
+  updateLoader,
+  loaderRenderer,
+  loaderItemRenderer,
+} from "./systems/loaders";
 
 const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -51,13 +56,23 @@ MoveBeltItems.addBelt(state, [7, 4], Direction.Right, item("yellowBelt"));
 MoveBeltItems.addBelt(state, [10, 4], Direction.Down, item("yellowBelt"));
 MoveBeltItems.addBelt(state, [10, 5], Direction.Down, item("yellowBelt"));
 MoveBeltItems.addBelt(state, [10, 6], Direction.Down, item("yellowBelt"));
-MoveBeltItems.addBelt(state, [9, 7], Direction.Down, item("yellowBelt"));
-MoveBeltItems.addBelt(state, [11, 7], Direction.Down, item("yellowBelt"));
-MoveBeltItems.addBelt(state, [10, 7], Direction.Down, item("distributor"));
+// MoveBeltItems.addBelt(state, [9, 7], Direction.Down, item("yellowBelt"));
+// MoveBeltItems.addBelt(state, [11, 7], Direction.Down, item("yellowBelt"));
+
+state.map.chunkMap[0][0]![10][7] = {
+  subTile: [0, 0],
+  machine: {
+    type: "loader",
+    direction: Direction.Down,
+    item: item("yellowLoader"),
+    items: [[], []],
+  },
+};
 
 const testBelts = [
   state.map.chunkMap[0][0]![3][3],
   state.map.chunkMap[0][0]![7][5],
+  state.map.chunkMap[0][0]![10][4],
 ] as Belt[];
 
 for (const belt of testBelts) {
@@ -100,20 +115,34 @@ const clear = () => {
 
 const main = () => {
   clear();
-  updatePlayer(state);
-  MoveBeltItems.updateItems(state);
 
+  // Update stage:
+  updatePlayer(state);
+  MoveBeltItems.updateAllItemsOnBelts(state);
+
+  for (const [tile, position] of allTiles(state)) {
+    if (tile === null) continue;
+    if (machineIs("loader", tile)) updateLoader(state, tile);
+  }
+
+  // Actual rendering:
   ctx.translate(state.camera.translation[0], state.camera.translation[1]);
 
   for (const [tile, position] of allTiles(state)) {
     if (tile === null) continue;
     if (isBelt(tile)) beltRenderer(state, tile, position);
+    else if (machineIs("loader", tile)) loaderRenderer(state, tile, position);
     else {
       renderSimpleTile(state, tile, position);
     }
   }
 
-  beltitemRenderer.render(state);
+  for (const [tile, position] of allTiles(state)) {
+    if (tile === null) continue;
+    if (isBelt(tile)) beltItemRenderer(state, tile, position);
+    else if (machineIs("loader", tile))
+      loaderItemRenderer(state, tile, position);
+  }
   renderPlayer(state);
 
   ctx.resetTransform();

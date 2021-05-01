@@ -9,8 +9,8 @@ export const renderSimpleTile = (
 ) => {
   state.ctx.drawImage(
     state.items[tile.machine.item].texture,
-    position[0],
-    position[1],
+    position[0] * settings.tileSize,
+    position[1] * settings.tileSize,
     settings.tileSize,
     settings.tileSize
   );

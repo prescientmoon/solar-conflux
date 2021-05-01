@@ -1,15 +1,8 @@
 import { settings } from "../constants";
-import {
-  Belt,
-  BeltItem,
-  GameState,
-  loadAsset,
-  Renderer,
-  Tile,
-} from "../gameState";
+import { Belt, BeltItem, GameState, loadAsset, Renderer } from "../gameState";
 import { next, prev } from "../utils/direction";
 import { allTiles } from "../utils/traversals";
-import { Direction, Nullable, Pair, Vec2 } from "../utils/types";
+import { Direction, Nullable, Pair, Side, Vec2 } from "../utils/types";
 import { renderTileWithDirection } from "./utils/renderTileWithDirection";
 import { add2, mul2, mulN2, mulS2, sub2 } from "@thi.ng/vectors";
 import { BeltCurve, getBeltCurve, getBeltLength } from "../systems/beltCurving";
@@ -138,84 +131,80 @@ const itemRenderOrder = function* (
   }
 };
 
-export const beltitemRenderer: Renderer = {
-  z: 1,
-  render: (state) => {
-    for (const [tile, position] of allTiles(state)) {
-      if (!isBelt(tile)) continue;
+export const beltItemRenderer = (
+  state: GameState,
+  tile: Belt,
+  position: Vec2
+) => {
+  renderTileWithDirection(
+    state.ctx,
+    tile.machine.direction,
+    [position[0] * settings.tileSize, position[1] * settings.tileSize],
+    settings.tileSize,
+    (rotation) => {
+      const beltCurve = getBeltCurve(tile);
 
-      renderTileWithDirection(
-        state.ctx,
-        tile.machine.direction,
-        [position[0] * settings.tileSize, position[1] * settings.tileSize],
-        settings.tileSize,
-        (rotation) => {
-          const beltCurve = getBeltCurve(tile);
+      for (let side: Side = 0; side < 2; side++) {
+        const beltPath = beltPaths[beltCurve][side];
+        const maxLength = getBeltLength(side, tile);
 
-          for (let side: 0 | 1 = 0; side < 2; side++) {
-            const beltPath = beltPaths[beltCurve][side];
-            const maxLength = getBeltLength(side as 0 | 1, tile);
+        for (const item of itemRenderOrder(
+          tile.machine.direction,
+          beltCurve,
+          tile.machine.items[side],
+          maxLength
+        )) {
+          let position: Nullable<Vec2> = null;
+          const squishedPosition = (100 * item.position) / maxLength; // squish the position between 0 and 100
 
-            for (const item of itemRenderOrder(
-              tile.machine.direction,
-              beltCurve,
-              tile.machine.items[side],
-              maxLength
-            )) {
-              let position: Nullable<Vec2> = null;
-              const squishedPosition = (100 * item.position) / maxLength; // squish the position between 0 and 100
+          for (let index = 0; index < beltPath.length; index++) {
+            const current = beltPath[index];
+            const next = beltPath[index + 1];
 
-              for (let index = 0; index < beltPath.length; index++) {
-                const current = beltPath[index];
-                const next = beltPath[index + 1];
-
-                if (squishedPosition === current[0]) {
-                  position = current[1];
-                  break;
-                }
-
-                if (squishedPosition >= next[0]) continue;
-
-                const delta = sub2(
-                  [],
-                  beltPath[index + 1][1],
-                  beltPath[index][1]
-                ) as Vec2;
-
-                // position = current + delta * (item - current) / (next - current)
-                position = add2(
-                  null,
-                  mulN2(
-                    null,
-                    delta,
-                    (squishedPosition - current[0]) / (next[0] - current[0])
-                  ),
-                  current[1]
-                ) as Vec2;
-
-                break;
-              }
-
-              if (position === null)
-                throw new Error(`Invalid path ${beltPath}`);
-
-              state.ctx.save();
-              state.ctx.translate(...position);
-              state.ctx.rotate(-rotation);
-
-              state.ctx.drawImage(
-                state.items[item.item].texture,
-                -settings.itemOnBeltSize / 2,
-                -settings.itemOnBeltSize / 2,
-                settings.itemOnBeltSize,
-                settings.itemOnBeltSize
-              );
-
-              state.ctx.restore();
+            if (squishedPosition === current[0]) {
+              position = current[1];
+              break;
             }
+
+            if (squishedPosition >= next[0]) continue;
+
+            const delta = sub2(
+              [],
+              beltPath[index + 1][1],
+              beltPath[index][1]
+            ) as Vec2;
+
+            // position = current + delta * (item - current) / (next - current)
+            position = add2(
+              null,
+              mulN2(
+                null,
+                delta,
+                (squishedPosition - current[0]) / (next[0] - current[0])
+              ),
+              current[1]
+            ) as Vec2;
+
+            break;
           }
+
+          if (position === null) throw new Error(`Invalid path ${beltPath}`);
+
+          state.ctx.save();
+          state.ctx.translate(...position);
+          state.ctx.rotate(-rotation);
+
+          state.ctx.drawImage(
+            state.items[item.item].texture,
+            -settings.itemOnBeltSize / 2,
+            -settings.itemOnBeltSize / 2,
+            settings.itemOnBeltSize,
+            settings.itemOnBeltSize
+          );
+
+          state.ctx.restore();
         }
-      );
+      }
     }
-  },
+  );
 };
