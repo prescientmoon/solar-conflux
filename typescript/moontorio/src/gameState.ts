@@ -1,6 +1,16 @@
 import type { KeyboardState } from "./keyboard";
+import { chunkSize } from "./map";
 import type { Player } from "./player";
-import type { ADT, Direction, Nullable, Pair, Side, Vec2 } from "./utils/types";
+import { EventEmitter } from "./utils/events";
+import type {
+  TaggedUnion,
+  Direction,
+  Nullable,
+  Pair,
+  Side,
+  Vec2,
+  Directional,
+} from "./utils/types";
 
 export type Item = string;
 
@@ -17,12 +27,14 @@ export interface BeltItem {
   position: number;
 }
 
+export type TransportLine<T = BeltItem> = Pair<T[]>;
+
 export interface TimedItem {
   item: Item;
-  elapsed: number;
+  birth: number;
 }
 
-export type Machine = ADT<{
+type MachineImpl = TaggedUnion<{
   belt: {
     direction: Direction;
     inputs: Direction[];
@@ -37,55 +49,65 @@ export type Machine = ADT<{
     items: Storage<TimedItem>;
   };
   distributor: {
-    items: Pair<
-      Array<{
-        item: Item;
-        elapsed: TimedItem;
-      }>
-    >;
+    items: Pair<Array<TimedItem>>;
+  };
+  junction: {
+    items: Directional<TransportLine<TimedItem>>;
   };
   chest: {
     storage: Storage<Nullable<Item>>;
   };
 }> & { item: Item };
 
-export type Tile<T extends Machine["type"] = Machine["type"]> = {
+export type Machine<
+  T extends MachineImpl["type"] = MachineImpl["type"]
+> = MachineImpl & { type: T };
+
+export type Tile<T extends MachineImpl["type"] = MachineImpl["type"]> = {
   subTile: Vec2;
-  machine: Machine & { type: T };
+  machine: Machine<T>;
 };
 
 // Aliases for different machines
 export type Belt = Tile<"belt">;
 export type Loader = Tile<"loader">;
+export type Junction = Tile<"junction">;
 
 export type Chunk = Nullable<Tile>[][];
 
 export interface GameMap {
   chunkMap: Nullable<Chunk>[][];
-  outputBelts: Vec2[];
-
-  // TODO: find a better way to handle cycles
-  allBelts: Vec2[];
 }
 
-export interface ItemComponents<T = Machine> {
+export interface BeltLikePushArgumens<T> {
+  state: GameState;
+  position: Vec2;
+  belt: T;
+  item: BeltItem;
+  side: Side;
+  direction: Direction;
+}
+
+export interface MachineComponents<T> {
   beltLike: {
     // This generic is a buggy workaround
     // typescript' lack of existential types
-    push: <P extends T>(args: {
-      state: GameState;
-      position: Vec2;
-      belt: P;
-      item: BeltItem;
-      side: Side;
-    }) => boolean;
+    push: (args: BeltLikePushArgumens<T>) => boolean;
+    outputs(self: T): Array<Direction>;
   };
 }
 
 export interface ItemConfig {
   texture: Image;
   stackSize: number;
-  components?: Partial<ItemComponents>;
+  tileTexture?: Image;
+}
+
+export interface GameEvents {
+  machineCreated: {
+    machine: Machine;
+    position: Vec2;
+  };
 }
 
 export interface GameState {
@@ -98,6 +120,13 @@ export interface GameState {
   player: Player;
   map: GameMap;
   items: Record<Item, ItemConfig>;
+  machineInterfaces: Partial<
+    {
+      [T in Machine["type"]]: MachineComponents<Tile<T>>;
+    }
+  >;
+  tick: number;
+  emitter: EventEmitter<GameEvents>;
 }
 
 export type Renderer = {
@@ -128,14 +157,37 @@ export const loadAsset = (src: string): Image => {
 
 // ========== Helpers
 export const getComponent = <
-  T = Tile,
-  K extends keyof ItemComponents<T> = keyof ItemComponents<T>
+  M extends MachineImpl["type"] = MachineImpl["type"],
+  K extends keyof MachineComponents<Tile<M>> = keyof MachineComponents<Tile<M>>
 >(
   state: GameState,
-  item: string,
+  machine: M,
   componentName: K
-): ItemComponents<T>[K] | null => {
-  const component = state.items[item]?.components?.[componentName];
+): MachineComponents<Tile<M>>[K] | null => {
+  const component = state.machineInterfaces[machine]?.[componentName];
 
-  return (component as ItemComponents<T>[K] | undefined) ?? null;
+  return (component as MachineComponents<Tile<M>>[K] | undefined) ?? null;
+};
+
+export const splitPosition = (position: Vec2): Pair<Vec2> => [
+  [Math.floor(position[0] / chunkSize), Math.floor(position[1] / chunkSize)],
+  [position[0] % chunkSize, position[1] % chunkSize],
+];
+
+export const addMachine = (
+  state: GameState,
+  position: Vec2,
+  machine: Machine
+) => {
+  const [chunkPos, subPos] = splitPosition(position);
+
+  state.map.chunkMap[chunkPos[0]][chunkPos[1]]![subPos[0]][subPos[1]] = {
+    subTile: [0, 0],
+    machine,
+  };
+
+  state.emitter.emit("machineCreated", {
+    position,
+    machine,
+  });
 };

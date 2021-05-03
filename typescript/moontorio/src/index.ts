@@ -1,21 +1,26 @@
-import { Mat23Like, scale23, transform23 } from "@thi.ng/matrices";
-import { Belt, GameState, loadAsset } from "./gameState";
+import { addMachine, Belt, GameState } from "./gameState";
 import { pressedKeys } from "./keyboard";
 import { createChunk } from "./map";
 import { beltItemRenderer, beltRenderer } from "./render/belts";
 import { renderPlayer, updatePlayer } from "./player";
-import { Direction } from "./utils/types";
+import { Direction, Side } from "./utils/types";
 import { item, items } from "./items";
 import * as MoveBeltItems from "./systems/moveBeltItems";
-import { replicate } from "./utils/array";
 import { allTiles } from "./utils/traversals";
 import { isBelt, machineIs } from "./utils/machines";
-import { renderSimpleTile } from "./render/simpleTile";
 import {
   updateLoader,
   loaderRenderer,
   loaderItemRenderer,
+  implBeltForLoader,
 } from "./systems/loaders";
+import {
+  implBeltForJunction,
+  renderJunction,
+  updateJunction,
+} from "./systems/junction";
+import { EventEmitter } from "./utils/events";
+import { getBeltLength } from "./systems/beltCurving";
 
 const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -35,39 +40,79 @@ const state: GameState = {
       [createChunk(), createChunk()],
       [createChunk(), createChunk()],
     ],
-    outputBelts: [],
-    allBelts: [],
+  },
+  machineInterfaces: {
+    belt: {
+      beltLike: MoveBeltItems.implBeltForBelt,
+    },
+    junction: {
+      beltLike: implBeltForJunction,
+    },
+    loader: {
+      beltLike: implBeltForLoader,
+    },
   },
   items,
+  tick: 0,
+  emitter: new EventEmitter(),
 };
 
-MoveBeltItems.addBelt(state, [3, 3], Direction.Down, item("yellowBelt"));
-MoveBeltItems.addBelt(state, [3, 4], Direction.Down, item("yellowBelt"));
-MoveBeltItems.addBelt(state, [3, 5], Direction.Right, item("yellowBelt"));
-MoveBeltItems.addBelt(state, [4, 5], Direction.Up, item("yellowBelt"));
-MoveBeltItems.addBelt(state, [4, 4], Direction.Up, item("yellowBelt"));
-MoveBeltItems.addBelt(state, [4, 3], Direction.Left, item("yellowBelt"));
+state.emitter.on("machineCreated", (d) => {
+  MoveBeltItems.addBeltLike(state, d.machine, d.position);
+  MoveBeltItems.addBelt(state, d.machine, d.position);
+});
 
-MoveBeltItems.addBelt(state, [7, 5], Direction.Up, item("yellowBelt"));
-MoveBeltItems.addBelt(state, [8, 5], Direction.Left, item("yellowBelt"));
-MoveBeltItems.addBelt(state, [8, 4], Direction.Down, item("yellowBelt"));
-MoveBeltItems.addBelt(state, [7, 4], Direction.Right, item("yellowBelt"));
+addMachine(state, [3, 4], {
+  type: "junction",
+  item: item("yellowJunction"),
+  items: [
+    [[], []],
+    [[], []],
+    [[], []],
+    [[], []],
+  ],
+});
 
-MoveBeltItems.addBelt(state, [10, 4], Direction.Down, item("yellowBelt"));
-MoveBeltItems.addBelt(state, [10, 5], Direction.Down, item("yellowBelt"));
-MoveBeltItems.addBelt(state, [10, 6], Direction.Down, item("yellowBelt"));
-// MoveBeltItems.addBelt(state, [9, 7], Direction.Down, item("yellowBelt"));
-// MoveBeltItems.addBelt(state, [11, 7], Direction.Down, item("yellowBelt"));
+addMachine(state, [3, 3], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
+addMachine(state, [3, 5], MoveBeltItems.mkBelt(Direction.Right, "yellowBelt"));
+addMachine(state, [4, 5], MoveBeltItems.mkBelt(Direction.Right, "yellowBelt"));
+addMachine(state, [5, 5], MoveBeltItems.mkBelt(Direction.Up, "yellowBelt"));
+addMachine(state, [5, 4], MoveBeltItems.mkBelt(Direction.Up, "yellowBelt"));
+addMachine(state, [5, 3], MoveBeltItems.mkBelt(Direction.Left, "yellowBelt"));
 
-state.map.chunkMap[0][0]![10][7] = {
-  subTile: [0, 0],
-  machine: {
-    type: "loader",
-    direction: Direction.Down,
-    item: item("yellowLoader"),
-    items: [[], []],
-  },
-};
+addMachine(state, [2, 2], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
+addMachine(state, [2, 3], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
+addMachine(state, [2, 4], MoveBeltItems.mkBelt(Direction.Right, "yellowBelt"));
+addMachine(state, [4, 4], MoveBeltItems.mkBelt(Direction.Up, "yellowBelt"));
+addMachine(state, [4, 2], MoveBeltItems.mkBelt(Direction.Left, "yellowBelt"));
+addMachine(state, [3, 2], MoveBeltItems.mkBelt(Direction.Left, "yellowBelt"));
+
+addMachine(state, [4, 3], {
+  type: "junction",
+  item: item("yellowJunction"),
+  items: [
+    [[], []],
+    [[], []],
+    [[], []],
+    [[], []],
+  ],
+});
+
+addMachine(state, [7, 5], MoveBeltItems.mkBelt(Direction.Up, "yellowBelt"));
+addMachine(state, [8, 5], MoveBeltItems.mkBelt(Direction.Left, "yellowBelt"));
+addMachine(state, [8, 4], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
+addMachine(state, [7, 4], MoveBeltItems.mkBelt(Direction.Right, "yellowBelt"));
+
+addMachine(state, [10, 4], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
+addMachine(state, [10, 5], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
+addMachine(state, [10, 6], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
+
+addMachine(state, [10, 7], {
+  type: "loader",
+  direction: Direction.Down,
+  item: item("yellowLoader"),
+  items: [[], []],
+});
 
 const testBelts = [
   state.map.chunkMap[0][0]![3][3],
@@ -94,6 +139,25 @@ for (const belt of testBelts) {
   );
 }
 
+const testBelt2 = state.map.chunkMap[0][0]![2][2] as Belt;
+
+testBelt2.machine.items[0].push(
+  ...Array(10)
+    .fill(1)
+    .map((_, index) => ({
+      item: item("ironPlate"),
+      position: index * 5,
+    }))
+);
+testBelt2.machine.items[1].push(
+  ...Array(10)
+    .fill(1)
+    .map((_, index) => ({
+      item: item("ironPlate"),
+      position: index * 5,
+    }))
+);
+
 console.log(state);
 
 ctx.imageSmoothingEnabled = false;
@@ -116,13 +180,16 @@ const clear = () => {
 const main = () => {
   clear();
 
+  state.tick++;
+
   // Update stage:
   updatePlayer(state);
-  MoveBeltItems.updateAllItemsOnBelts(state);
 
   for (const [tile, position] of allTiles(state)) {
     if (tile === null) continue;
+    if (isBelt(tile)) MoveBeltItems.updteBelt(state, tile, position);
     if (machineIs("loader", tile)) updateLoader(state, tile);
+    if (machineIs("junction", tile)) updateJunction(state, tile, position);
   }
 
   // Actual rendering:
@@ -132,9 +199,6 @@ const main = () => {
     if (tile === null) continue;
     if (isBelt(tile)) beltRenderer(state, tile, position);
     else if (machineIs("loader", tile)) loaderRenderer(state, tile, position);
-    else {
-      renderSimpleTile(state, tile, position);
-    }
   }
 
   for (const [tile, position] of allTiles(state)) {
@@ -143,6 +207,12 @@ const main = () => {
     else if (machineIs("loader", tile))
       loaderItemRenderer(state, tile, position);
   }
+
+  for (const [tile, position] of allTiles(state)) {
+    if (tile === null) continue;
+    else if (machineIs("junction", tile)) renderJunction(state, position);
+  }
+
   renderPlayer(state);
 
   ctx.resetTransform();

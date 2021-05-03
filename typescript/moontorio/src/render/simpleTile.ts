@@ -7,8 +7,12 @@ export const renderSimpleTile = (
   tile: Tile,
   position: Vec2
 ) => {
+  const texture = state.items[tile.machine.item].tileTexture;
+
+  if (texture === undefined) return;
+
   state.ctx.drawImage(
-    state.items[tile.machine.item].texture,
+    texture,
     position[0] * settings.tileSize,
     position[1] * settings.tileSize,
     settings.tileSize,

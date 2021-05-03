@@ -1,7 +1,7 @@
 {
   "name": "functorio",
   "scripts": {
-    "dev": "node ./build"
+    "dev": "node ./build & live-server public"
   },
   "author": "Matei Adriel",
   "devDependencies": {

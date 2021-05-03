@@ -1,4 +1,5 @@
 import { Image, Item, ItemConfig, loadAsset, Machine } from "./gameState";
+import { implBeltForJunction } from "./systems/junction";
 import { implBeltForLoader } from "./systems/loaders";
 import { implBeltForBelt } from "./systems/moveBeltItems";
 
@@ -18,23 +19,22 @@ export const items = ensureAllAreConfigs({
   yellowBelt: {
     texture: notMadeYet,
     stackSize: 200,
-    components: {
-      beltLike: implBeltForBelt,
-    },
   },
   yellowLoader: {
     texture: loadItem("yellow_loader"),
     stackSize: 50,
-    components: {
-      beltLike: implBeltForLoader,
-    },
   },
   yellowUnloder: {
     texture: loadItem("yellow_unloader"),
     stackSize: 50,
   },
-  distributor: {
-    texture: loadItem("distributor"),
+  yellowDistributor: {
+    texture: notMadeYet,
+    stackSize: 50,
+    tileTexture: loadAsset("assets/yellow_distributor.svg"),
+  },
+  yellowJunction: {
+    texture: loadItem("yellow_junction"),
     stackSize: 50,
   },
   woodBox: {

@@ -1,12 +1,10 @@
 import { settings } from "../constants";
 import { Belt, BeltItem, GameState, loadAsset, Renderer } from "../gameState";
 import { next, prev } from "../utils/direction";
-import { allTiles } from "../utils/traversals";
 import { Direction, Nullable, Pair, Side, Vec2 } from "../utils/types";
 import { renderTileWithDirection } from "./utils/renderTileWithDirection";
 import { add2, mul2, mulN2, mulS2, sub2 } from "@thi.ng/vectors";
 import { BeltCurve, getBeltCurve, getBeltLength } from "../systems/beltCurving";
-import { isBelt } from "../utils/machines";
 import { reversed } from "../utils/array";
 
 /**

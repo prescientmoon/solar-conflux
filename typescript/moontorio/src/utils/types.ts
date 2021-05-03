@@ -1,6 +1,6 @@
 export type Nullable<T> = T | null;
 export type Vec2 = [number, number];
-export type ADT<T> = {
+export type TaggedUnion<T> = {
   [K in keyof T]: {
     type: K;
   } & T[K];
@@ -23,3 +23,6 @@ export const enum Side {
 }
 
 export type Neighbour = Pair<-1 | 0 | 1>;
+
+/** Keep a T for every direction. The elements can then be accessed as element[Direction.Blah] */
+export type Directional<T> = Record<Direction, T>;

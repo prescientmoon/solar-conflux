@@ -3,7 +3,7 @@ import { settings } from "../constants";
 import {
   Belt,
   GameState,
-  ItemComponents,
+  MachineComponents,
   loadAsset,
   Loader,
 } from "../gameState";
@@ -18,7 +18,7 @@ const textures = {
   loaderRoof: loadAsset("assets/yellow_loader_roof.svg"),
 };
 
-export const implBeltForLoader: ItemComponents<Loader>["beltLike"] = {
+export const implBeltForLoader: MachineComponents<Loader>["beltLike"] = {
   push({ belt, item, side }) {
     const sideItems = belt.machine.items[side];
     const maxLength = 100;
@@ -36,6 +36,10 @@ export const implBeltForLoader: ItemComponents<Loader>["beltLike"] = {
     });
 
     return true;
+  },
+
+  outputs() {
+    return [];
   },
 };
 

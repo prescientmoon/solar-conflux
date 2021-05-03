@@ -10,7 +10,6 @@ export const enum BeltCurve {
   Right,
 }
 /**
- *
  * Check whether (and in what direction) a belt is curved.
  * @param tile The belt to get the curve of.
  */
@@ -40,5 +39,5 @@ export const getBeltLength = (side: 0 | 1, tile: Belt): number => {
   if (curve === BeltCurve.NoCurve) return 100; // full size
 
   // Inner side < outer side
-  return side ? 50 : 150;
+  return side ? 85 : 115;
 };
