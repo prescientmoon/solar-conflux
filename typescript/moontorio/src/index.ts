@@ -28,7 +28,7 @@ const state: GameState = {
     ctx,
     camera: {
         translation: [canvas.width / 2, canvas.height / 2],
-        scale: 20,
+        scale: 1,
     },
     keyboard: pressedKeys(),
     player: {
@@ -163,12 +163,19 @@ testBelt2.machine.items[1].push(
 
 ctx.imageSmoothingEnabled = false;
 const adjustCamera = () => {
-    state.camera.translation[0] = Math.floor(
-        canvas.width / 2 - state.player.position[0]
-    );
-    state.camera.translation[1] = Math.floor(
-        canvas.height / 2 - state.player.position[1]
-    );
+    state.ctx.scale(state.camera.scale, state.camera.scale);
+    state.camera.translation[0] =
+        Math.floor(
+            (canvas.width / (2 * state.camera.scale) -
+                state.player.position[0]) *
+                1000
+        ) / 1000;
+    state.camera.translation[1] =
+        Math.floor(
+            (canvas.height / (2 * state.camera.scale) -
+                state.player.position[1]) *
+                1000
+        ) / 1000;
 };
 
 const resize = () => {
@@ -193,6 +200,7 @@ const main = () => {
 
     // Update stage:
     updatePlayer(state);
+    adjustCamera();
 
     for (const [tile, position] of allTiles(state)) {
         if (tile === null) continue;
@@ -224,13 +232,19 @@ const main = () => {
     }
 
     renderPlayer(state);
-    adjustCamera();
 
     ctx.resetTransform();
 
     requestAnimationFrame(main);
 };
-
+// CAMERA ZOOMING
+window.addEventListener("wheel", (e) => {
+    if (state.camera.scale < 5 && e.deltaY < 0)
+        state.camera.scale -= e.deltaY / 1000;
+    if (state.camera.scale > 0.5 && e.deltaY > 0)
+        state.camera.scale -= e.deltaY / 1000;
+});
 window.onresize = resize;
+
 resize();
 main();
