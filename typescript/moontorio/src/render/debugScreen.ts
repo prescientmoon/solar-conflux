@@ -21,4 +21,15 @@ export const renderDebugger = async (state: GameState) => {
     );
 
     renderFixedText(20, "Arial", 2, 0, state, `FPS: ${getFPS(state)}`, "blue");
+    renderFixedText(
+        20,
+        "Arial",
+        3,
+        0,
+        state,
+        `X: ${Math.floor(state.player.position[0] * 100) / 100} Y: ${
+            Math.floor(state.player.position[1] * 100) / 100
+        }`,
+        "blue"
+    );
 };
