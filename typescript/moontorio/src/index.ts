@@ -23,6 +23,9 @@ import { EventEmitter } from "./utils/events";
 import { getBeltLength } from "./systems/beltCurving";
 
 import { renderDebugger } from "./render/debugScreen";
+import { renderIndicator } from "./render/mouseIndicator";
+import { getHoveredTile, fixMousePosition } from "./utils/mouse";
+import { settings } from "./constants";
 
 export const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -54,6 +57,9 @@ const state: GameState = {
         loader: {
             beltLike: implBeltForLoader,
         },
+    },
+    mouse: {
+        position: [0, 0],
     },
     items,
     tick: 0,
@@ -87,7 +93,13 @@ addMachine(state, [5, 5], MoveBeltItems.mkBelt(Direction.Up, "yellowBelt"));
 addMachine(state, [5, 4], MoveBeltItems.mkBelt(Direction.Up, "yellowBelt"));
 addMachine(state, [5, 3], MoveBeltItems.mkBelt(Direction.Left, "yellowBelt"));
 
-addMachine(state, [2, 2], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
+addMachine(state, [0, 0], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
+
+addMachine(
+    state,
+    [2, 2],
+    MoveBeltItems.mkBelt(Direction.Down, "yellowJunction")
+);
 addMachine(state, [2, 3], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
 addMachine(state, [2, 4], MoveBeltItems.mkBelt(Direction.Right, "yellowBelt"));
 addMachine(state, [4, 4], MoveBeltItems.mkBelt(Direction.Up, "yellowBelt"));
@@ -243,6 +255,7 @@ const main = () => {
 
         renderPlayer(state);
         renderDebugger(state);
+        renderIndicator(getHoveredTile(state.mouse.position), state);
         ctx.resetTransform();
 
         requestAnimationFrame(main);
@@ -253,10 +266,12 @@ const main = () => {
 };
 // CAMERA ZOOMING
 window.addEventListener("wheel", (e) => {
-    if (state.camera.scale < 5 && e.deltaY < 0)
+    if (state.camera.scale < 5 && e.deltaY < 0) {
         state.camera.scale -= e.deltaY / 1000;
-    if (state.camera.scale > 0.5 && e.deltaY > 0)
+    }
+    if (state.camera.scale > 0.5 && e.deltaY > 0) {
         state.camera.scale -= e.deltaY / 1000;
+    }
 });
 window.onresize = resize;
 
@@ -273,6 +288,13 @@ window.onfocus = () => {
         console.log("unpaused");
     }
 };
+
+window.addEventListener("mousemove", (e) => {
+    state.mouse.position = [
+        e.clientX / state.camera.scale - state.camera.translation[0],
+        e.clientY / state.camera.scale - state.camera.translation[1],
+    ];
+});
 
 resize();
 main();

@@ -110,6 +110,10 @@ export interface GameEvents {
     };
 }
 
+export interface Mouse {
+    position: [number, number];
+}
+
 export interface GameState {
     ctx: CanvasRenderingContext2D;
     camera: {
@@ -125,6 +129,7 @@ export interface GameState {
             [T in Machine["type"]]: MachineComponents<Tile<T>>;
         }
     >;
+    mouse: Mouse;
     tick: number;
     time: number;
     paused: boolean;

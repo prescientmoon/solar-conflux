@@ -1,4 +1,5 @@
 import { GameState, loadAsset } from "./gameState";
+import { fixMousePosition } from "./utils/mouse";
 
 export interface Player {
     position: [number, number];
@@ -36,6 +37,14 @@ export const updatePlayer = (state: GameState) => {
             Math.cos(state.player.rotation) * state.player.speedMultiplier;
         state.player.position[1] +=
             Math.sin(state.player.rotation) * state.player.speedMultiplier;
+
+        // adjust mouse position on the canvas
+        state.mouse.position = [
+            state.mouse.position[0] +
+                Math.cos(state.player.rotation) * state.player.speedMultiplier,
+            state.mouse.position[1] +
+                Math.sin(state.player.rotation) * state.player.speedMultiplier,
+        ];
     }
 
     if (state.keyboard.pressed.has("s")) {
@@ -43,6 +52,14 @@ export const updatePlayer = (state: GameState) => {
             Math.cos(state.player.rotation) * state.player.speedMultiplier;
         state.player.position[1] -=
             Math.sin(state.player.rotation) * state.player.speedMultiplier;
+
+        // adjust mouse position on the canvas
+        state.mouse.position = [
+            state.mouse.position[0] -
+                Math.cos(state.player.rotation) * state.player.speedMultiplier,
+            state.mouse.position[1] -
+                Math.sin(state.player.rotation) * state.player.speedMultiplier,
+        ];
     }
 
     if (state.keyboard.pressed.has("a")) {
