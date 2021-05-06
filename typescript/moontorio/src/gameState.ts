@@ -1,9 +1,9 @@
 import type { KeyboardState } from "./keyboard";
 import { chunkSize } from "./map";
 import type { Player } from "./player";
-import { TransportLineConfig } from "./systems/belts";
+import { TransportLine, TransportLineConfig } from "./systems/belts";
 import { splitPosition } from "./systems/world";
-import { Entity, IPosition } from "./utils/entity";
+import { Entity, IPosition, IUpdate } from "./utils/entity";
 import { EventEmitter } from "./utils/events";
 import type {
   Direction,
@@ -21,7 +21,7 @@ export interface TimedItem {
   birth: number;
 }
 
-export type Machine = Entity & IPosition;
+export type Machine = Entity & IPosition & IUpdate;
 
 export type Tile = {
   subTile: Vec2;
@@ -36,6 +36,7 @@ export interface GameMap {
 
 export type ItemOptions = TaggedUnion<{
   conveyorBelt: TransportLineConfig;
+  loader: TransportLineConfig;
 }>;
 
 export interface ItemConfig {

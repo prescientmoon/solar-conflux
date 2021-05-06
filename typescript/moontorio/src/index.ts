@@ -6,21 +6,11 @@ import { renderPlayer, updatePlayer } from "./player";
 import { Direction, Side } from "./utils/types";
 import { item, items } from "./items";
 import { allTiles } from "./utils/traversals";
-import {
-  updateLoader,
-  loaderRenderer,
-  loaderItemRenderer,
-  implBeltForLoader,
-} from "./systems/loaders";
-import {
-  implBeltForJunction,
-  renderJunction,
-  updateJunction,
-} from "./systems/junction";
 import { EventEmitter } from "./utils/events";
 
 import { renderDebugger } from "./render/debugScreen";
 import { addBelt, addBeltLike, ConveyorBelt } from "./systems/belts";
+import { Loader } from "./systems/loaders";
 
 export const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -81,6 +71,10 @@ addMachine(new ConveyorBelt(state, Direction.Up, [4, 4], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Left, [4, 2], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Left, [3, 2], "yellowBelt"));
 
+addMachine(new ConveyorBelt(state, Direction.Right, [10, 10], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Right, [11, 10], "yellowBelt"));
+addMachine(new Loader(state, Direction.Right, [12, 10], "yellowLoader"));
+
 /* addMachine(state, [4, 3], {
   type: "junction",
   item: item("yellowJunction"),
@@ -111,8 +105,7 @@ addMachine(state, [10, 6], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt")); 
 const testBelts = [
   state.map.chunkMap[0][0]![3][3]?.machine,
   state.map.chunkMap[0][0]![2][2]?.machine,
-  /*   state.map.chunkMap[0][0]![7][5]?.machine,
-  state.map.chunkMap[0][0]![10][4]?.machine, */
+  state.map.chunkMap[0][0]![10][10]?.machine,
 ] as ConveyorBelt[];
 
 for (const belt of testBelts) {
@@ -179,9 +172,7 @@ const main = () => {
 
     for (const [tile, position] of allTiles(state)) {
       if (tile === null) continue;
-      if (tile.machine instanceof ConveyorBelt) tile.machine.update();
-      /*     if (machineIs("loader", tile)) updateLoader(state, tile);
-    if (machineIs("junction", tile)) updateJunction(state, tile, position); */
+      tile.machine.update();
     }
 
     // Actual rendering:
@@ -191,15 +182,14 @@ const main = () => {
       if (tile === null) continue;
       if (tile.machine instanceof ConveyorBelt)
         beltRenderer(state, tile.machine);
-      // else if (machineIs("loader", tile)) loaderRenderer(state, tile, position);
+      else if (tile.machine instanceof Loader) tile.machine.renderGround();
     }
 
     for (const [tile, position] of allTiles(state)) {
       if (tile === null) continue;
       if (tile.machine instanceof ConveyorBelt)
         beltItemRenderer(state, tile.machine);
-      /*     else if (machineIs("loader", tile))
-      loaderItemRenderer(state, tile, position); */
+      if (tile.machine instanceof Loader) tile.machine.renderBuilding();
     }
 
     for (const [tile, position] of allTiles(state)) {

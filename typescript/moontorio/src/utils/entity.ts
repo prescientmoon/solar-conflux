@@ -9,6 +9,7 @@ export interface IPosition {
   position: Vec2;
 }
 
+// TODO: maybe some sort of prop to disable updating walls and stuff
 export interface IUpdate {
   update(): void;
 }

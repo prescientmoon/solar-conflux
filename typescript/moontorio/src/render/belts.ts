@@ -1,11 +1,23 @@
 import { settings } from "../constants";
 import { GameState, loadAsset, Renderer } from "../gameState";
 import { next, prev } from "../utils/direction";
-import { Direction, Nullable, Pair, Side, Vec2 } from "../utils/types";
+import {
+  Direction,
+  Directional,
+  Nullable,
+  Pair,
+  Side,
+  Vec2,
+} from "../utils/types";
 import { renderTileWithDirection } from "./utils/renderTileWithDirection";
 import { add2, mul2, mulN2, mulS2, sub2 } from "@thi.ng/vectors";
 import { reversed } from "../utils/array";
-import { BeltCurve, BeltItem, ConveyorBelt } from "../systems/belts";
+import {
+  BeltCurve,
+  BeltItem,
+  ConveyorBelt,
+  TransportLine,
+} from "../systems/belts";
 
 /**
  * Represents the path items should take through a belt.
@@ -75,7 +87,18 @@ const textures = {
   [BeltCurve.Right]: loadAsset("assets/belt_bent_right.svg"),
 };
 
-export const beltRenderer = (state: GameState, belt: ConveyorBelt) => {
+/**
+ * Objects containing all the belt related data we need for rendering
+ */
+export type ConveyorBeltLike = {
+  length(side: Side): number;
+  curve(): BeltCurve;
+  transportLine: TransportLine;
+  direction: Direction;
+  position: Vec2;
+};
+
+export const beltRenderer = (state: GameState, belt: ConveyorBeltLike) => {
   let texture = textures[belt.curve()];
 
   renderTileWithDirection(
@@ -132,7 +155,7 @@ const itemRenderOrder = function* (
   }
 };
 
-export const beltItemRenderer = (state: GameState, belt: ConveyorBelt) => {
+export const beltItemRenderer = (state: GameState, belt: ConveyorBeltLike) => {
   renderTileWithDirection(
     state.ctx,
     belt.direction,

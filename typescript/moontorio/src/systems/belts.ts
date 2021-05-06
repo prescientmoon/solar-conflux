@@ -89,6 +89,25 @@ export class TransportLine {
       }
     }
   }
+
+  public pushItem(item: BeltItem, side: Side, length: number) {
+    const sideItems = this.items[side];
+
+    const upperBound =
+      sideItems.length === 0
+        ? length
+        : sideItems[0].position - this.config.itemSpacing;
+
+    const newPosition = Math.min(upperBound, item.position);
+
+    // Cannot handle negative coordinates
+    if (newPosition < 0) return false;
+
+    item.position = newPosition;
+    this.items[side].unshift(item);
+
+    return true;
+  }
 }
 
 // ========== Generic helpers
@@ -113,7 +132,6 @@ export class ConveyorBelt
   implements IBeltInput, IBeltOutput, IPosition, IUpdate {
   public inputs: Direction[] = [];
 
-  public config: TransportLineConfig;
   public transportLine;
   public constructor(
     state: GameState,
@@ -128,21 +146,17 @@ export class ConveyorBelt
     if (config === null)
       throw new Error(`Cannot find conveyor belt config for item ${item}`);
 
-    this.config = config;
-    this.transportLine = new TransportLine(
-      this.config,
-      (side, item, position) => {
-        return tryPushItem(
-          this,
-          this.direction,
-          {
-            id: item.id,
-            position: position - this.length(side),
-          },
-          side
-        );
-      }
-    );
+    this.transportLine = new TransportLine(config, (side, item, position) => {
+      return tryPushItem(
+        this,
+        this.direction,
+        {
+          id: item.id,
+          position: position - this.length(side),
+        },
+        side
+      );
+    });
   }
 
   /**
@@ -172,23 +186,7 @@ export class ConveyorBelt
     // This means something is trying to push from the opposite direction
     if (direction === this.direction) return false;
 
-    const sideItems = this.transportLine.items[side];
-    const maxLength = this.length(side);
-
-    const upperBound =
-      sideItems.length === 0
-        ? maxLength
-        : sideItems[0].position - this.config.itemSpacing;
-
-    const newPosition = Math.min(upperBound, item.position);
-
-    // Cannot handle negative coordinates
-    if (newPosition < 0) return false;
-
-    item.position = newPosition;
-    this.transportLine.items[side].unshift(item);
-
-    return true;
+    return this.transportLine.pushItem(item, side, this.length(side));
   }
 
   public beltOutputs() {

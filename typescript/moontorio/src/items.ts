@@ -1,4 +1,5 @@
 import { Image, Item, ItemConfig, loadAsset, Machine } from "./gameState";
+import { TransportLineConfig } from "./systems/belts";
 
 const notMadeYet: Image = null as any;
 
@@ -7,6 +8,11 @@ const loadItem = (name: string) => loadAsset(`assets/items/${name}.svg`);
 const ensureAllAreConfigs = <T extends string>(
   configs: Record<T, ItemConfig>
 ) => configs;
+
+const yellowTransportLine: TransportLineConfig = {
+  itemSpacing: 10,
+  speed: 1,
+};
 
 export const items = ensureAllAreConfigs({
   ironPlate: {
@@ -18,13 +24,16 @@ export const items = ensureAllAreConfigs({
     stackSize: 200,
     options: {
       type: `conveyorBelt`,
-      itemSpacing: 10,
-      speed: 1,
+      ...yellowTransportLine,
     },
   },
   yellowLoader: {
     texture: loadItem("yellow_loader"),
     stackSize: 50,
+    options: {
+      type: `loader`,
+      ...yellowTransportLine,
+    },
   },
   yellowUnloder: {
     texture: loadItem("yellow_unloader"),

@@ -1,105 +1,83 @@
 import { mulN2 } from "@thi.ng/vectors";
 import { settings } from "../constants";
-import {
-    Belt,
-    GameState,
-    MachineComponents,
-    loadAsset,
-    Loader,
-} from "../gameState";
+import { GameState, getOptions, loadAsset } from "../gameState";
 import { beltItemRenderer, beltRenderer } from "../render/belts";
 import { renderSimpleTile } from "../render/simpleTile";
 import { renderTileWithDirection } from "../render/utils/renderTileWithDirection";
-import { Vec2 } from "../utils/types";
-import { getBeltCurve } from "./beltCurving";
-import { moveAllItemsOnBelt, spacePerItem } from "./moveBeltItems";
+import { opposite, relativeTo } from "../utils/direction";
+import { Entity, IUpdate } from "../utils/entity";
+import { Direction, Directional, Side, Vec2 } from "../utils/types";
+import { BeltCurve, BeltItem, IBeltInput, TransportLine } from "./belts";
 
 const textures = {
-    loaderRoof: loadAsset("assets/yellow_loader_roof.svg"),
+  loaderRoof: loadAsset("assets/yellow_loader_roof.svg"),
 };
 
-export const implBeltForLoader: MachineComponents<Loader>["beltLike"] = {
-    push({ belt, item, side }) {
-        const sideItems = belt.machine.items[side];
-        const maxLength = 100;
+const loaderLength = 100;
 
-        const bound =
-            sideItems.length === 0
-                ? maxLength
-                : sideItems[0].position - spacePerItem;
+export class Loader extends Entity implements IBeltInput, IUpdate {
+  public transportLine: TransportLine;
 
-        const newPosition = Math.min(bound, item.position);
+  public constructor(
+    state: GameState,
+    public direction: Direction,
+    public position: Vec2,
+    public item: string
+  ) {
+    super(state);
 
-        if (newPosition < 0) return false;
+    const config = getOptions(state, item, `loader`);
 
-        belt.machine.items[side].unshift({
-            item: item.item,
-            position: newPosition,
-        });
+    if (config === null)
+      throw new Error(`Cannot find loader config for item ${item}`);
 
-        return true;
-    },
+    this.transportLine = new TransportLine(config, () => {
+      console.log(`Item pushed out of loader`);
 
-    outputs() {
-        return [];
-    },
-};
-
-export const updateLoader = (state: GameState, loader: Loader) => {
-    moveAllItemsOnBelt({
-        tile: loader,
-        maxLengths: [75, 75],
-        moveOut(side, item, newPosition) {
-            // console.log(`Hooray! An item was moved out of a loader:`);
-            // console.log({ side, item, newPosition });
-
-            return true;
-        },
+      return true;
     });
-};
+  }
 
-export const loaderRenderer = (
-    state: GameState,
-    loader: Loader,
-    position: Vec2
-) => {
-    // TODO: generalize this so we dont have to do the spread
-    const beltLike: Belt = {
-        subTile: [0, 0],
-        machine: {
-            ...loader.machine,
-            type: "belt",
-            inputs: [],
-        },
-    };
+  //   TODO: allow some form of side loading
+  public pushItem(item: BeltItem, side: Side, from: Vec2) {
+    const direction = relativeTo(this.position, from);
 
-    beltRenderer(state, beltLike, position);
-};
+    // We currently only allow items to come from the input side only
+    if (direction !== opposite(this.direction)) return false;
 
-export const loaderItemRenderer = (
-    state: GameState,
-    loader: Loader,
-    position: Vec2
-) => {
-    // TODO: generalize this so we dont have to do the spread
-    const beltLike: Belt = {
-        subTile: [0, 0],
-        machine: {
-            ...loader.machine,
-            type: "belt",
-            inputs: [],
-        },
-    };
+    return this.transportLine.pushItem(item, side, loaderLength);
+  }
 
-    beltItemRenderer(state, beltLike, position);
+  public update() {
+    this.transportLine.update([loaderLength, loaderLength]);
+  }
+
+  // Here in order to reuse the belt renderer
+  public curve() {
+    return BeltCurve.NoCurve;
+  }
+
+  // Here in order to reuse the belt renderer
+  public length() {
+    // Only used for rendering, increased to remove a glitch where the items would render over the roof
+    return loaderLength * 1.2;
+  }
+
+  public renderGround() {
+    beltRenderer(this.world, this);
+  }
+
+  public renderBuilding() {
+    beltItemRenderer(this.world, this);
 
     renderTileWithDirection(
-        state.ctx,
-        loader.machine.direction,
-        mulN2([], position, settings.tileSize) as Vec2,
-        settings.tileSize,
-        () => {
-            state.ctx.drawImage(textures.loaderRoof, 0, 0);
-        }
+      this.world.ctx,
+      this.direction,
+      mulN2([], this.position, settings.tileSize) as Vec2,
+      settings.tileSize,
+      () => {
+        this.world.ctx.drawImage(textures.loaderRoof, 0, 0);
+      }
     );
-};
+  }
+}
