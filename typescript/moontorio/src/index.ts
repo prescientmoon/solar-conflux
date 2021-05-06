@@ -58,6 +58,9 @@ const state: GameState = {
     items,
     tick: 0,
     time: 0,
+    paused: false,
+    pausedTimeDifference: 0,
+    lastPausedAt: 0,
     emitter: new EventEmitter(),
 };
 
@@ -196,49 +199,57 @@ const clear = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 
-const main = (time: number) => {
-    clear();
+const main = () => {
+    if (!state.paused) {
+        clear();
 
-    state.tick++;
-    state.time = time;
+        state.tick++;
+        state.time = performance.now() - state.pausedTimeDifference;
 
-    // Update stage:
-    updatePlayer(state);
-    adjustCamera();
+        // Update stage:
+        updatePlayer(state);
+        adjustCamera();
 
-    for (const [tile, position] of allTiles(state)) {
-        if (tile === null) continue;
-        if (isBelt(tile)) MoveBeltItems.updteBelt(state, tile, position);
-        if (machineIs("loader", tile)) updateLoader(state, tile);
-        if (machineIs("junction", tile)) updateJunction(state, tile, position);
+        for (const [tile, position] of allTiles(state)) {
+            if (tile === null) continue;
+            if (isBelt(tile)) MoveBeltItems.updteBelt(state, tile, position);
+            if (machineIs("loader", tile)) updateLoader(state, tile);
+            if (machineIs("junction", tile))
+                updateJunction(state, tile, position);
+        }
+
+        // Actual rendering:
+        ctx.translate(state.camera.translation[0], state.camera.translation[1]);
+
+        for (const [tile, position] of allTiles(state)) {
+            if (tile === null) continue;
+            if (isBelt(tile)) beltRenderer(state, tile, position);
+            else if (machineIs("loader", tile))
+                loaderRenderer(state, tile, position);
+        }
+
+        for (const [tile, position] of allTiles(state)) {
+            if (tile === null) continue;
+            if (isBelt(tile)) beltItemRenderer(state, tile, position);
+            else if (machineIs("loader", tile))
+                loaderItemRenderer(state, tile, position);
+        }
+
+        for (const [tile, position] of allTiles(state)) {
+            if (tile === null) continue;
+            else if (machineIs("junction", tile))
+                renderJunction(state, position);
+        }
+
+        renderPlayer(state);
+        renderDebugger(state);
+        ctx.resetTransform();
+
+        requestAnimationFrame(main);
+    } else {
+        requestAnimationFrame(main);
+        state.time = performance.now();
     }
-
-    // Actual rendering:
-    ctx.translate(state.camera.translation[0], state.camera.translation[1]);
-
-    for (const [tile, position] of allTiles(state)) {
-        if (tile === null) continue;
-        if (isBelt(tile)) beltRenderer(state, tile, position);
-        else if (machineIs("loader", tile))
-            loaderRenderer(state, tile, position);
-    }
-
-    for (const [tile, position] of allTiles(state)) {
-        if (tile === null) continue;
-        if (isBelt(tile)) beltItemRenderer(state, tile, position);
-        else if (machineIs("loader", tile))
-            loaderItemRenderer(state, tile, position);
-    }
-
-    for (const [tile, position] of allTiles(state)) {
-        if (tile === null) continue;
-        else if (machineIs("junction", tile)) renderJunction(state, position);
-    }
-
-    renderPlayer(state);
-    renderDebugger(state);
-    ctx.resetTransform();
-    requestAnimationFrame(main);
 };
 // CAMERA ZOOMING
 window.addEventListener("wheel", (e) => {
@@ -249,5 +260,19 @@ window.addEventListener("wheel", (e) => {
 });
 window.onresize = resize;
 
+window.onblur = () => {
+    state.paused = true;
+    state.lastPausedAt = performance.now();
+    console.log("paused");
+};
+
+window.onfocus = () => {
+    if (state.paused) {
+        state.paused = false;
+        state.pausedTimeDifference += performance.now() - state.lastPausedAt;
+        console.log("unpaused");
+    }
+};
+
 resize();
-main(0);
+main();

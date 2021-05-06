@@ -127,6 +127,9 @@ export interface GameState {
     >;
     tick: number;
     time: number;
+    paused: boolean;
+    pausedTimeDifference: number;
+    lastPausedAt: number;
     emitter: EventEmitter<GameEvents>;
 }
 
