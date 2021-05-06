@@ -215,9 +215,9 @@ const main = () => {
             // else if (machineIs("junction", tile)) renderJunction(state, position);
         }
 
-        renderPlayer(state);
-        renderDebugger(state);
         renderIndicator(getHoveredTile(state.mouse.position), state);
+        renderDebugger(state);
+        renderPlayer(state);
         ctx.resetTransform();
         requestAnimationFrame(main);
     } else {
