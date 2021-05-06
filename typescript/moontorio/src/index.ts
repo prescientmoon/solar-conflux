@@ -1,13 +1,11 @@
-import { addMachine, Belt, GameState } from "./gameState";
+import { addMachine, GameState } from "./gameState";
 import { pressedKeys } from "./keyboard";
 import { createChunk } from "./map";
 import { beltItemRenderer, beltRenderer } from "./render/belts";
 import { renderPlayer, updatePlayer } from "./player";
 import { Direction, Side } from "./utils/types";
 import { item, items } from "./items";
-import * as MoveBeltItems from "./systems/moveBeltItems";
 import { allTiles } from "./utils/traversals";
-import { isBelt, machineIs } from "./utils/machines";
 import {
     updateLoader,
     loaderRenderer,
@@ -20,12 +18,12 @@ import {
     updateJunction,
 } from "./systems/junction";
 import { EventEmitter } from "./utils/events";
-import { getBeltLength } from "./systems/beltCurving";
 
 import { renderDebugger } from "./render/debugScreen";
 import { renderIndicator } from "./render/mouseIndicator";
 import { getHoveredTile, fixMousePosition } from "./utils/mouse";
 import { settings } from "./constants";
+import { addBelt, addBeltLike, ConveyorBelt } from "./systems/belts";
 
 export const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -47,17 +45,6 @@ const state: GameState = {
             [createChunk(), createChunk()],
         ],
     },
-    machineInterfaces: {
-        belt: {
-            beltLike: MoveBeltItems.implBeltForBelt,
-        },
-        junction: {
-            beltLike: implBeltForJunction,
-        },
-        loader: {
-            beltLike: implBeltForLoader,
-        },
-    },
     mouse: {
         position: [0, 0],
     },
@@ -71,111 +58,87 @@ const state: GameState = {
 };
 
 state.emitter.on("machineCreated", (d) => {
-    MoveBeltItems.addBeltLike(state, d.machine, d.position);
-    MoveBeltItems.addBelt(state, d.machine, d.position);
+    addBeltLike(state, d.machine, d.position);
+    addBelt(state, d.machine, d.position);
 });
 
-addMachine(state, [3, 4], {
-    type: "junction",
-    item: item("yellowJunction"),
-    items: [
-        [[], []],
-        [[], []],
-        [[], []],
-        [[], []],
-    ],
-});
+/* addMachine(state, [3, 4], {
+  type: "junction",
+  item: item("yellowJunction"),
+  items: [
+    [[], []],
+    [[], []],
+    [[], []],
+    [[], []],
+  ],
+}); */
 
-addMachine(state, [3, 3], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
-addMachine(state, [3, 5], MoveBeltItems.mkBelt(Direction.Right, "yellowBelt"));
-addMachine(state, [4, 5], MoveBeltItems.mkBelt(Direction.Right, "yellowBelt"));
-addMachine(state, [5, 5], MoveBeltItems.mkBelt(Direction.Up, "yellowBelt"));
-addMachine(state, [5, 4], MoveBeltItems.mkBelt(Direction.Up, "yellowBelt"));
-addMachine(state, [5, 3], MoveBeltItems.mkBelt(Direction.Left, "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [3, 3], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Right, [3, 5], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Right, [4, 5], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Up, [5, 5], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Up, [5, 4], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [5, 3], "yellowBelt"));
 
-addMachine(state, [0, 0], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [2, 2], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [2, 3], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Right, [2, 4], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Up, [4, 4], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [4, 2], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [3, 2], "yellowBelt"));
 
-addMachine(
-    state,
-    [2, 2],
-    MoveBeltItems.mkBelt(Direction.Down, "yellowJunction")
-);
-addMachine(state, [2, 3], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
-addMachine(state, [2, 4], MoveBeltItems.mkBelt(Direction.Right, "yellowBelt"));
-addMachine(state, [4, 4], MoveBeltItems.mkBelt(Direction.Up, "yellowBelt"));
-addMachine(state, [4, 2], MoveBeltItems.mkBelt(Direction.Left, "yellowBelt"));
-addMachine(state, [3, 2], MoveBeltItems.mkBelt(Direction.Left, "yellowBelt"));
+/* addMachine(state, [4, 3], {
+  type: "junction",
+  item: item("yellowJunction"),
+  items: [
+    [[], []],
+    [[], []],
+    [[], []],
+    [[], []],
+  ],
+}); */
 
-addMachine(state, [4, 3], {
-    type: "junction",
-    item: item("yellowJunction"),
-    items: [
-        [[], []],
-        [[], []],
-        [[], []],
-        [[], []],
-    ],
-});
-
-addMachine(state, [7, 5], MoveBeltItems.mkBelt(Direction.Up, "yellowBelt"));
+/* addMachine(state, [7, 5], MoveBeltItems.mkBelt(Direction.Up, "yellowBelt"));
 addMachine(state, [8, 5], MoveBeltItems.mkBelt(Direction.Left, "yellowBelt"));
 addMachine(state, [8, 4], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
 addMachine(state, [7, 4], MoveBeltItems.mkBelt(Direction.Right, "yellowBelt"));
 
 addMachine(state, [10, 4], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
 addMachine(state, [10, 5], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
-addMachine(state, [10, 6], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
+addMachine(state, [10, 6], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt")); */
 
-addMachine(state, [10, 7], {
-    type: "loader",
-    direction: Direction.Down,
-    item: item("yellowLoader"),
-    items: [[], []],
-});
+/* addMachine(state, [10, 7], {
+  type: "loader",
+  direction: Direction.Down,
+  item: item("yellowLoader"),
+  items: [[], []],
+}); */
 
 const testBelts = [
-    state.map.chunkMap[0][0]![3][3],
-    state.map.chunkMap[0][0]![7][5],
-    state.map.chunkMap[0][0]![10][4],
-] as Belt[];
+    state.map.chunkMap[0][0]![3][3]?.machine,
+    state.map.chunkMap[0][0]![2][2]?.machine,
+    /*   state.map.chunkMap[0][0]![7][5]?.machine,
+  state.map.chunkMap[0][0]![10][4]?.machine, */
+] as ConveyorBelt[];
 
 for (const belt of testBelts) {
-    belt.machine.items[0].push(
+    belt.transportLine.items[0].push(
         ...Array(10)
             .fill(1)
             .map((_, index) => ({
-                item: item("ironPlate"),
+                id: item("ironPlate"),
                 position: index * 5,
             }))
     );
-    belt.machine.items[1].push(
+    belt.transportLine.items[1].push(
         ...Array(10)
             .fill(1)
             .map((_, index) => ({
-                item: item("ironPlate"),
+                id: item("ironPlate"),
                 position: index * 5,
             }))
     );
 }
-
-const testBelt2 = state.map.chunkMap[0][0]![2][2] as Belt;
-
-testBelt2.machine.items[0].push(
-    ...Array(10)
-        .fill(1)
-        .map((_, index) => ({
-            item: item("ironPlate"),
-            position: index * 5,
-        }))
-);
-testBelt2.machine.items[1].push(
-    ...Array(10)
-        .fill(1)
-        .map((_, index) => ({
-            item: item("ironPlate"),
-            position: index * 5,
-        }))
-);
 
 // console.log(state);
 
@@ -224,10 +187,9 @@ const main = () => {
 
         for (const [tile, position] of allTiles(state)) {
             if (tile === null) continue;
-            if (isBelt(tile)) MoveBeltItems.updteBelt(state, tile, position);
-            if (machineIs("loader", tile)) updateLoader(state, tile);
-            if (machineIs("junction", tile))
-                updateJunction(state, tile, position);
+            if (tile.machine instanceof ConveyorBelt) tile.machine.update();
+            /*     if (machineIs("loader", tile)) updateLoader(state, tile);
+    if (machineIs("junction", tile)) updateJunction(state, tile, position); */
         }
 
         // Actual rendering:
@@ -235,29 +197,28 @@ const main = () => {
 
         for (const [tile, position] of allTiles(state)) {
             if (tile === null) continue;
-            if (isBelt(tile)) beltRenderer(state, tile, position);
-            else if (machineIs("loader", tile))
-                loaderRenderer(state, tile, position);
+            if (tile.machine instanceof ConveyorBelt)
+                beltRenderer(state, tile.machine);
+            // else if (machineIs("loader", tile)) loaderRenderer(state, tile, position);
         }
 
         for (const [tile, position] of allTiles(state)) {
             if (tile === null) continue;
-            if (isBelt(tile)) beltItemRenderer(state, tile, position);
-            else if (machineIs("loader", tile))
-                loaderItemRenderer(state, tile, position);
+            if (tile.machine instanceof ConveyorBelt)
+                beltItemRenderer(state, tile.machine);
+            /*     else if (machineIs("loader", tile))
+      loaderItemRenderer(state, tile, position); */
         }
 
         for (const [tile, position] of allTiles(state)) {
             if (tile === null) continue;
-            else if (machineIs("junction", tile))
-                renderJunction(state, position);
+            // else if (machineIs("junction", tile)) renderJunction(state, position);
         }
 
         renderPlayer(state);
         renderDebugger(state);
         renderIndicator(getHoveredTile(state.mouse.position), state);
         ctx.resetTransform();
-
         requestAnimationFrame(main);
     } else {
         requestAnimationFrame(main);
