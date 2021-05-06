@@ -11,6 +11,7 @@ import { EventEmitter } from "./utils/events";
 import { renderDebugger } from "./render/debugScreen";
 import { addBelt, addBeltLike, ConveyorBelt } from "./systems/belts";
 import { Loader } from "./systems/loaders";
+import { Junction } from "./systems/junction";
 
 export const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -46,23 +47,23 @@ state.emitter.on("machineCreated", (d) => {
   addBelt(state, d.machine, d.position);
 });
 
-/* addMachine(state, [3, 4], {
-  type: "junction",
-  item: item("yellowJunction"),
-  items: [
-    [[], []],
-    [[], []],
-    [[], []],
-    [[], []],
-  ],
-}); */
+addMachine(new ConveyorBelt(state, Direction.Right, [3, 13], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Right, [4, 13], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Up, [3, 14], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Up, [3, 15], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [4, 15], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [5, 15], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [5, 14], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [5, 13], "yellowBelt"));
 
-addMachine(new ConveyorBelt(state, Direction.Down, [3, 3], "yellowBelt"));
-addMachine(new ConveyorBelt(state, Direction.Right, [3, 5], "yellowBelt"));
-addMachine(new ConveyorBelt(state, Direction.Right, [4, 5], "yellowBelt"));
-addMachine(new ConveyorBelt(state, Direction.Up, [5, 5], "yellowBelt"));
-addMachine(new ConveyorBelt(state, Direction.Up, [5, 4], "yellowBelt"));
-addMachine(new ConveyorBelt(state, Direction.Left, [5, 3], "yellowBelt"));
+addMachine(new Junction(state, [3, 4], item(`yellowJunction`)));
+
+addMachine(new ConveyorBelt(state, Direction.Right, [3, 3], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Up, [3, 5], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [4, 5], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [5, 5], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [5, 4], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [5, 3], "yellowBelt"));
 
 addMachine(new ConveyorBelt(state, Direction.Down, [2, 2], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Down, [2, 3], "yellowBelt"));
@@ -75,37 +76,13 @@ addMachine(new ConveyorBelt(state, Direction.Right, [10, 10], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Right, [11, 10], "yellowBelt"));
 addMachine(new Loader(state, Direction.Right, [12, 10], "yellowLoader"));
 
-/* addMachine(state, [4, 3], {
-  type: "junction",
-  item: item("yellowJunction"),
-  items: [
-    [[], []],
-    [[], []],
-    [[], []],
-    [[], []],
-  ],
-}); */
-
-/* addMachine(state, [7, 5], MoveBeltItems.mkBelt(Direction.Up, "yellowBelt"));
-addMachine(state, [8, 5], MoveBeltItems.mkBelt(Direction.Left, "yellowBelt"));
-addMachine(state, [8, 4], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
-addMachine(state, [7, 4], MoveBeltItems.mkBelt(Direction.Right, "yellowBelt"));
-
-addMachine(state, [10, 4], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
-addMachine(state, [10, 5], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt"));
-addMachine(state, [10, 6], MoveBeltItems.mkBelt(Direction.Down, "yellowBelt")); */
-
-/* addMachine(state, [10, 7], {
-  type: "loader",
-  direction: Direction.Down,
-  item: item("yellowLoader"),
-  items: [[], []],
-}); */
+addMachine(new Junction(state, [4, 3], item(`yellowJunction`)));
 
 const testBelts = [
   state.map.chunkMap[0][0]![3][3]?.machine,
   state.map.chunkMap[0][0]![2][2]?.machine,
   state.map.chunkMap[0][0]![10][10]?.machine,
+  state.map.chunkMap[0][0]![4][13]?.machine,
 ] as ConveyorBelt[];
 
 for (const belt of testBelts) {
@@ -127,9 +104,8 @@ for (const belt of testBelts) {
   );
 }
 
-// console.log(state);
-
 ctx.imageSmoothingEnabled = false;
+
 const adjustCamera = () => {
   state.ctx.scale(state.camera.scale, state.camera.scale);
   state.camera.translation[0] =
@@ -178,23 +154,23 @@ const main = () => {
     // Actual rendering:
     ctx.translate(state.camera.translation[0], state.camera.translation[1]);
 
-    for (const [tile, position] of allTiles(state)) {
+    for (const [tile] of allTiles(state)) {
       if (tile === null) continue;
       if (tile.machine instanceof ConveyorBelt)
         beltRenderer(state, tile.machine);
       else if (tile.machine instanceof Loader) tile.machine.renderGround();
     }
 
-    for (const [tile, position] of allTiles(state)) {
+    for (const [tile] of allTiles(state)) {
       if (tile === null) continue;
       if (tile.machine instanceof ConveyorBelt)
         beltItemRenderer(state, tile.machine);
       if (tile.machine instanceof Loader) tile.machine.renderBuilding();
     }
 
-    for (const [tile, position] of allTiles(state)) {
+    for (const [tile] of allTiles(state)) {
       if (tile === null) continue;
-      // else if (machineIs("junction", tile)) renderJunction(state, position);
+      else if (tile.machine instanceof Junction) tile.machine.renderBuilding();
     }
 
     renderPlayer(state);
@@ -206,6 +182,7 @@ const main = () => {
     state.time = performance.now();
   }
 };
+
 // CAMERA ZOOMING
 window.addEventListener("wheel", (e) => {
   if (state.camera.scale < 5 && e.deltaY < 0)

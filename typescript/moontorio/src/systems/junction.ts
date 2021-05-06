@@ -1,68 +1,98 @@
 import { settings } from "../constants";
 import {
+  JunctionConfig,
   GameState,
-  MachineComponents,
-  Junction,
+  getOptions,
   loadAsset,
+  TimedItem,
 } from "../gameState";
-import { opposite } from "../utils/direction";
-import { Direction, Pair, Side, Vec2 } from "../utils/types";
-import { tryPushItem } from "./moveBeltItems";
-
-// TODO: abstract this on a per-item basis
-const delay = 30; // ticks
-const maxCapacity = 10;
-
-export const implBeltForJunction: MachineComponents<Junction>["beltLike"] = {
-  push({ direction, belt, item, side, state }) {
-    const transportLine = belt.machine.items[opposite(direction)];
-
-    if (transportLine[side].length >= maxCapacity) return false;
-
-    transportLine[side].push({
-      birth: state.tick + (item.position * delay) / 100,
-      item: item.item,
-    });
-
-    return true;
-  },
-
-  outputs() {
-    return [Direction.Up, Direction.Left, Direction.Down, Direction.Right];
-  },
-};
-
-export const updateJunction = (
-  state: GameState,
-  junction: Junction,
-  position: Vec2
-) => {
-  for (let direction: Direction = 0; direction < 4; direction++) {
-    for (let side: Side = 0; side < 2; side++) {
-      for (const item of junction.machine.items[direction][side]) {
-        if (item.birth + delay > state.tick) break;
-
-        const succesful = tryPushItem(position, direction, {
-          item: {
-            position: 0,
-            item: item.item,
-          },
-          side,
-          state,
-        });
-
-        if (succesful) junction.machine.items[direction][side].shift();
-      }
-    }
-  }
-};
+import { directions, opposite, relativeTo } from "../utils/direction";
+import { Entity, IPosition, IUpdate } from "../utils/entity";
+import {
+  Direction,
+  Directional,
+  Pair,
+  Side,
+  Sided,
+  Vec2,
+} from "../utils/types";
+import { BeltItem, IBeltInput, IBeltOutput, tryPushItem } from "./belts";
 
 const texture = loadAsset("assets/junction.svg");
 
-export const renderJunction = (state: GameState, position: Vec2) => {
-  state.ctx.drawImage(
-    texture,
-    position[0] * settings.tileSize,
-    position[1] * settings.tileSize
-  );
-};
+export class Junction
+  extends Entity
+  implements IBeltInput, IBeltOutput, IUpdate, IPosition {
+  public transportLines: Directional<
+    Sided<TimedItem[]>
+  > = directions.map(() => [[], []]) as any;
+
+  public config: JunctionConfig;
+
+  public constructor(
+    state: GameState,
+    public position: Vec2,
+    public item: string
+  ) {
+    super(state);
+
+    const config = getOptions(state, item, `junction`);
+
+    if (config === null)
+      throw new Error(`Cannot find loader config for item ${item}`);
+
+    this.config = config;
+  }
+
+  public beltOutputs() {
+    return directions;
+  }
+
+  public pushItem(item: BeltItem, side: Side, from: Vec2) {
+    const direction = relativeTo(this.position, from);
+
+    if (direction === null) return false;
+
+    const line = this.transportLines[opposite(direction)][side];
+
+    // Make sure we don't take more than we are allowed to handle
+    if (line.length >= this.config.capacity) return false;
+
+    line.push({
+      id: item.id,
+      birth: this.world.tick + (item.position * this.config.delay) / 100,
+    });
+
+    return true;
+  }
+
+  public update() {
+    for (let direction: Direction = 0; direction < 4; direction++) {
+      for (let side: Side = 0; side < 2; side++) {
+        for (const item of this.transportLines[direction][side]) {
+          if (item.birth + this.config.delay > this.world.tick) break;
+
+          const succesful = tryPushItem(
+            this,
+            direction,
+            {
+              position: 0,
+              id: item.id,
+            },
+            side
+          );
+
+          if (succesful) this.transportLines[direction][side].shift();
+        }
+      }
+    }
+  }
+
+  public renderBuilding() {
+    this.world.ctx.drawImage(
+      texture,
+      this.position[0] * settings.tileSize,
+      this.position[1] * settings.tileSize
+    );
+  }
+}

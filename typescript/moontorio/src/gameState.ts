@@ -17,7 +17,7 @@ import type {
 export type Item = string;
 
 export interface TimedItem {
-  item: Item;
+  id: Item;
   birth: number;
 }
 
@@ -34,9 +34,15 @@ export interface GameMap {
   chunkMap: Nullable<Chunk>[][];
 }
 
+export interface JunctionConfig {
+  delay: number;
+  capacity: number;
+}
+
 export type ItemOptions = TaggedUnion<{
   conveyorBelt: TransportLineConfig;
   loader: TransportLineConfig;
+  junction: JunctionConfig;
 }>;
 
 export interface ItemConfig {

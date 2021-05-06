@@ -173,7 +173,10 @@ export class ConveyorBelt
     if (curve === BeltCurve.NoCurve) return 100; // full size
 
     // Inner side < outer side
-    return side ? 85 : 115;
+    return (side === Side.Right && curve === BeltCurve.Right) ||
+      (side === Side.Left && curve === BeltCurve.Left)
+      ? 115
+      : 85;
   }
 
   // TODO: handle side loading

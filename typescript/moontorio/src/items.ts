@@ -47,6 +47,11 @@ export const items = ensureAllAreConfigs({
   yellowJunction: {
     texture: loadItem("yellow_junction"),
     stackSize: 50,
+    options: {
+      type: `junction`,
+      capacity: 20,
+      delay: 30,
+    },
   },
   woodBox: {
     texture: notMadeYet,

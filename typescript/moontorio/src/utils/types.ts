@@ -26,3 +26,6 @@ export type Neighbour = Pair<-1 | 0 | 1>;
 
 /** Keep a T for every direction. The elements can then be accessed as element[Direction.Blah] */
 export type Directional<T> = Record<Direction, T>;
+
+/** Keep a pair of Ts, one for each side. The elements can then be accessed as element[Side.Blah] */
+export type Sided<T> = Record<Side, T>;
