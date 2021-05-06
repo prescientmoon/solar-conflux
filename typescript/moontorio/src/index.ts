@@ -22,7 +22,9 @@ import {
 import { EventEmitter } from "./utils/events";
 import { getBeltLength } from "./systems/beltCurving";
 
-const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
+import { renderDebugger } from "./render/debugScreen";
+
+export const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
 const state: GameState = {
     ctx,
@@ -55,6 +57,7 @@ const state: GameState = {
     },
     items,
     tick: 0,
+    time: 0,
     emitter: new EventEmitter(),
 };
 
@@ -193,10 +196,11 @@ const clear = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 
-const main = () => {
+const main = (time: number) => {
     clear();
 
     state.tick++;
+    state.time = time;
 
     // Update stage:
     updatePlayer(state);
@@ -232,9 +236,8 @@ const main = () => {
     }
 
     renderPlayer(state);
-
+    renderDebugger(state);
     ctx.resetTransform();
-
     requestAnimationFrame(main);
 };
 // CAMERA ZOOMING
@@ -247,4 +250,4 @@ window.addEventListener("wheel", (e) => {
 window.onresize = resize;
 
 resize();
-main();
+main(0);

@@ -126,6 +126,7 @@ export interface GameState {
         }
     >;
     tick: number;
+    time: number;
     emitter: EventEmitter<GameEvents>;
 }
 
