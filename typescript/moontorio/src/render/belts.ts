@@ -1,11 +1,11 @@
 import { settings } from "../constants";
-import { Belt, BeltItem, GameState, loadAsset, Renderer } from "../gameState";
+import { GameState, loadAsset, Renderer } from "../gameState";
 import { next, prev } from "../utils/direction";
 import { Direction, Nullable, Pair, Side, Vec2 } from "../utils/types";
 import { renderTileWithDirection } from "./utils/renderTileWithDirection";
 import { add2, mul2, mulN2, mulS2, sub2 } from "@thi.ng/vectors";
-import { BeltCurve, getBeltCurve, getBeltLength } from "../systems/beltCurving";
 import { reversed } from "../utils/array";
+import { BeltCurve, BeltItem, ConveyorBelt } from "../systems/belts";
 
 /**
  * Represents the path items should take through a belt.
@@ -75,13 +75,16 @@ const textures = {
   [BeltCurve.Right]: loadAsset("assets/belt_bent_right.svg"),
 };
 
-export const beltRenderer = (state: GameState, tile: Belt, position: Vec2) => {
-  let texture = textures[getBeltCurve(tile)];
+export const beltRenderer = (state: GameState, belt: ConveyorBelt) => {
+  let texture = textures[belt.curve()];
 
   renderTileWithDirection(
     state.ctx,
-    tile.machine.direction,
-    [position[0] * settings.tileSize, position[1] * settings.tileSize],
+    belt.direction,
+    [
+      belt.position[0] * settings.tileSize,
+      belt.position[1] * settings.tileSize,
+    ],
     settings.tileSize,
     () => {
       state.ctx.drawImage(texture, 0, 0, settings.tileSize, settings.tileSize);
@@ -129,27 +132,26 @@ const itemRenderOrder = function* (
   }
 };
 
-export const beltItemRenderer = (
-  state: GameState,
-  tile: Belt,
-  position: Vec2
-) => {
+export const beltItemRenderer = (state: GameState, belt: ConveyorBelt) => {
   renderTileWithDirection(
     state.ctx,
-    tile.machine.direction,
-    [position[0] * settings.tileSize, position[1] * settings.tileSize],
+    belt.direction,
+    [
+      belt.position[0] * settings.tileSize,
+      belt.position[1] * settings.tileSize,
+    ],
     settings.tileSize,
     (rotation) => {
-      const beltCurve = getBeltCurve(tile);
+      const beltCurve = belt.curve();
 
       for (let side: Side = 0; side < 2; side++) {
         const beltPath = beltPaths[beltCurve][side];
-        const maxLength = getBeltLength(side, tile);
+        const maxLength = belt.length(side);
 
         for (const item of itemRenderOrder(
-          tile.machine.direction,
+          belt.direction,
           beltCurve,
-          tile.machine.items[side],
+          belt.transportLine.items[side],
           maxLength
         )) {
           let position: Nullable<Vec2> = null;
@@ -193,7 +195,7 @@ export const beltItemRenderer = (
           state.ctx.rotate(-rotation);
 
           state.ctx.drawImage(
-            state.items[item.item].texture,
+            state.items[item.id].texture,
             -settings.itemOnBeltSize / 2,
             -settings.itemOnBeltSize / 2,
             settings.itemOnBeltSize,

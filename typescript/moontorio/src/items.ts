@@ -1,7 +1,4 @@
 import { Image, Item, ItemConfig, loadAsset, Machine } from "./gameState";
-import { implBeltForJunction } from "./systems/junction";
-import { implBeltForLoader } from "./systems/loaders";
-import { implBeltForBelt } from "./systems/moveBeltItems";
 
 const notMadeYet: Image = null as any;
 
@@ -19,6 +16,11 @@ export const items = ensureAllAreConfigs({
   yellowBelt: {
     texture: notMadeYet,
     stackSize: 200,
+    options: {
+      type: `conveyorBelt`,
+      itemSpacing: 10,
+      speed: 1,
+    },
   },
   yellowLoader: {
     texture: loadItem("yellow_loader"),
