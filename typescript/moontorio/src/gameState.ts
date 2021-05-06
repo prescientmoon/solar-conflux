@@ -64,6 +64,9 @@ export interface GameState {
   items: Record<Item, ItemConfig>;
   tick: number;
   time: number;
+  paused: boolean;
+  pausedTimeDifference: number;
+  lastPausedAt: number;
   emitter: EventEmitter<GameEvents>;
 }
 
