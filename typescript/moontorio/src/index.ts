@@ -195,9 +195,9 @@ const main = () => {
       else if (tile.machine instanceof Junction) tile.machine.renderBuilding();
     }
 
-        renderPlayer(state);
-        renderDebugger(state);
         renderIndicator(getHoveredTile(state.mouse.position), state);
+        renderDebugger(state);
+        renderPlayer(state);
         ctx.resetTransform();
         requestAnimationFrame(main);
     } else {
