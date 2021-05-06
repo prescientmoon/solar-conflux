@@ -1,5 +1,4 @@
 import { GameState, loadAsset } from "./gameState";
-import { fixMousePosition } from "./utils/mouse";
 
 export interface Player {
     position: [number, number];
