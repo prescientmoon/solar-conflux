@@ -3,3 +3,7 @@ export const settings = {
   itemOnBeltSize: 25,
   sideFromMiddle: 7.5,
 };
+
+export const debugFlags = {
+  showBeltItemPaths: false,
+};

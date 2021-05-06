@@ -1,4 +1,4 @@
-import { settings } from "../constants";
+import { debugFlags, settings } from "../constants";
 import { GameState, loadAsset, Renderer } from "../gameState";
 import { next, prev } from "../utils/direction";
 import {
@@ -77,7 +77,7 @@ const beltPaths: Record<BeltCurve, Pair<BeltPath>> = {
     straightBeltLeftSidePath,
     mirrorBeltPath(straightBeltLeftSidePath),
   ],
-  [BeltCurve.Right]: curvedPaths,
+  [BeltCurve.Right]: [curvedPaths[1], curvedPaths[0]],
   [BeltCurve.Left]: curvedPaths.map(mirrorBeltPath) as Pair<BeltPath>,
 };
 
@@ -226,6 +226,19 @@ export const beltItemRenderer = (state: GameState, belt: ConveyorBeltLike) => {
           );
 
           state.ctx.restore();
+        }
+
+        if (debugFlags.showBeltItemPaths) {
+          state.ctx.strokeStyle = side === Side.Left ? `blue` : `red`;
+          state.ctx.beginPath();
+
+          state.ctx.moveTo(...beltPath[0][1]);
+
+          for (let index = 1; index < beltPath.length; index++) {
+            state.ctx.lineTo(...beltPath[index][1]);
+          }
+
+          state.ctx.stroke();
         }
       }
     }
