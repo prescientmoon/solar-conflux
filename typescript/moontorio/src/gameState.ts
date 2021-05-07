@@ -6,92 +6,94 @@ import { splitPosition } from "./systems/world";
 import { Entity, ITransform, IUpdate } from "./utils/entity";
 import { EventEmitter } from "./utils/events";
 import type {
-  Direction,
-  Nullable,
-  Pair,
-  Side,
-  TaggedUnion,
-  Vec2,
+    Direction,
+    Nullable,
+    Pair,
+    Side,
+    TaggedUnion,
+    Vec2,
 } from "./utils/types";
 
 export type Item = string;
 
 export interface TimedItem {
-  id: Item;
-  birth: number;
+    id: Item;
+    birth: number;
 }
 
 export type Machine = Entity & ITransform & IUpdate;
 
 export type Tile = {
-  subTile: Vec2;
-  machine: Machine;
+    subTile: Vec2;
+    machine: Machine;
 };
 
 export type Chunk = Nullable<Tile>[][];
 
+export type DirectionChunkMatrixes = Nullable<Chunk>[][];
+
 export interface GameMap {
-  chunkMap: Nullable<Chunk>[][];
+    chunkMap: DirectionChunkMatrixes[][];
 }
 
 export interface JunctionConfig {
-  delay: number;
-  capacity: number;
+    delay: number;
+    capacity: number;
 }
 
 export interface RouterConfig extends JunctionConfig {
-  /** Size in tiles a side of the router should take.
-   * Eg: a size of 2 will create a 2x2 tile
-   */
-  size: number;
+    /** Size in tiles a side of the router should take.
+     * Eg: a size of 2 will create a 2x2 tile
+     */
+    size: number;
 }
 
 export type ItemOptions = TaggedUnion<{
-  conveyorBelt: TransportLineConfig;
-  loader: TransportLineConfig;
-  junction: JunctionConfig;
-  router: RouterConfig;
+    conveyorBelt: TransportLineConfig;
+    loader: TransportLineConfig;
+    junction: JunctionConfig;
+    router: RouterConfig;
 }>;
 
 export interface ItemConfig {
-  texture: Image;
-  stackSize: number;
-  tileTexture?: Image;
-  options?: ItemOptions;
+    texture: Image;
+    stackSize: number;
+    tileTexture?: Image;
+    options?: ItemOptions;
 }
 
 export interface GameEvents {
-  machineCreated: {
-    machine: Machine;
-  };
+    machineCreated: {
+        machine: Machine;
+    };
 }
 
 export interface Mouse {
-  position: [number, number];
+    position: [number, number];
 }
 
 export interface GameState {
-  ctx: CanvasRenderingContext2D;
-  camera: {
-    translation: [number, number];
-    scale: number;
-  };
-  keyboard: KeyboardState;
-  player: Player;
-  map: GameMap;
-  items: Record<Item, ItemConfig>;
-  mouse: Mouse;
-  tick: number;
-  time: number;
-  paused: boolean;
-  pausedTimeDifference: number;
-  lastPausedAt: number;
-  emitter: EventEmitter<GameEvents>;
+    ctx: CanvasRenderingContext2D;
+    camera: {
+        translation: [number, number];
+        scale: number;
+    };
+    keyboard: KeyboardState;
+    player: Player;
+    map: GameMap;
+    items: Record<Item, ItemConfig>;
+    mouse: Mouse;
+    tick: number;
+    time: number;
+    paused: boolean;
+    pausedTimeDifference: number;
+    lastPausedAt: number;
+    emitter: EventEmitter<GameEvents>;
 }
 
 export type Renderer = {
-  render: (state: GameState) => void;
-  z: number;
+    render: (state: GameState) => void;
+    z: number;
 };
 
 // ========== Asset stuff
@@ -100,52 +102,60 @@ export type Image = HTMLImageElement;
 let imageMap = new Map<string, Image>();
 
 export const loadAsset = (src: string): Image => {
-  if (imageMap.has(src)) return imageMap.get(src)!;
+    if (imageMap.has(src)) return imageMap.get(src)!;
 
-  const result = new Image();
-  result.src = src;
+    const result = new Image();
+    result.src = src;
 
-  result.onload = () => {
-    result.height = result.naturalHeight;
-    result.width = result.naturalWidth;
-  };
+    result.onload = () => {
+        result.height = result.naturalHeight;
+        result.width = result.naturalWidth;
+    };
 
-  imageMap.set(src, result);
+    imageMap.set(src, result);
 
-  return result;
+    return result;
 };
 
 // ========== Helpers
 export const addMachine = (machine: Machine) => {
-  const { position, world } = machine;
-  const [chunkPos, subPos] = splitPosition(position);
+    // console.log(machine);
 
-  const chunk = world.map.chunkMap[chunkPos[0]][chunkPos[1]];
+    const { position, world } = machine;
+    const [chunkPos, subPos, chunkDirection] = splitPosition(position);
 
-  if (!chunk) return;
+    // console.log({ chunkPos, subPos, chunkDirection });
 
-  for (let i = 0; i < machine.size[0]; i++) {
-    for (let j = 0; j < machine.size[1]; j++) {
-      chunk[subPos[0] + i][subPos[1] + j] = {
-        subTile: [i, j],
-        machine,
-      };
+    const chunk =
+        world.map.chunkMap[chunkDirection[0]][chunkDirection[1]][chunkPos[0]][
+            chunkPos[1]
+        ];
+    // console.log(chunk);
+
+    if (!chunk) return;
+
+    for (let i = 0; i < machine.size[0]; i++) {
+        for (let j = 0; j < machine.size[1]; j++) {
+            chunk[subPos[0] + i][subPos[1] + j] = {
+                subTile: [i, j],
+                machine,
+            };
+        }
     }
-  }
 
-  world.emitter.emit("machineCreated", {
-    machine,
-  });
+    world.emitter.emit("machineCreated", {
+        machine,
+    });
 };
 
 export const getOptions = <T extends ItemOptions[`type`]>(
-  state: GameState,
-  item: string,
-  kind: T
+    state: GameState,
+    item: string,
+    kind: T
 ): (ItemOptions & { type: T }) | null => {
-  const config = state.items[item].options;
+    const config = state.items[item].options;
 
-  if (config === undefined) return null;
+    if (config === undefined) return null;
 
-  return config.type === kind ? (config as any) : null;
+    return config.type === kind ? (config as any) : null;
 };
