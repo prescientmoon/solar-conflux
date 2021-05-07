@@ -69,7 +69,7 @@ export class TransportLine {
     public onMoveOut: OnMoveOut
   ) {}
 
-  public update(maxLengths: Pair<number>, spaceTilNext: Pair<number> = [0, 0]) {
+  public update(maxLengths: Pair<number>, spaceTilNext: Vec2 = [0, 0]) {
     for (let sideIndex: Side = 0; sideIndex < 2; sideIndex++) {
       const side = this.items[sideIndex];
       const maxLength = maxLengths[sideIndex];
@@ -151,6 +151,9 @@ export const tryPushItem = <T extends Entity & ITransform>(
   return next.pushItem(item, side, from);
 };
 
+/**
+ * Returns how much empty space there is until the first item on the next conveyor belt.
+ */
 export const emptySpaceTil = <
   T extends Machine & { direction: Direction; transportLine: TransportLine }
 >(
@@ -161,6 +164,7 @@ export const emptySpaceTil = <
     self.world,
     addDirection(self.position, self.direction)
   );
+
   const spacing = self.transportLine.config.itemSpacing;
   const result =
     next === null || !hasIBeltInput(next)
