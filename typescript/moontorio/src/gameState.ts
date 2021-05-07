@@ -46,11 +46,17 @@ export interface RouterConfig extends JunctionConfig {
   size: number;
 }
 
+export interface ChestConfig {
+  slots: number;
+  size: number;
+}
+
 export type ItemOptions = TaggedUnion<{
   conveyorBelt: TransportLineConfig;
   loader: TransportLineConfig;
   junction: JunctionConfig;
   router: RouterConfig;
+  chest: ChestConfig;
 }>;
 
 export interface ItemConfig {

@@ -14,6 +14,10 @@ const yellowTransportLine: TransportLineConfig = {
   speed: 1,
 };
 
+const chestSizes = {
+  wood: 10,
+};
+
 export const items = ensureAllAreConfigs({
   ironPlate: {
     texture: loadItem("iron_plate"),
@@ -71,18 +75,32 @@ export const items = ensureAllAreConfigs({
   woodBox: {
     texture: notMadeYet,
     stackSize: 25,
-  },
-  ironBox: {
-    texture: notMadeYet,
-    stackSize: 25,
+    tileTexture: loadAsset("assets/wood_crate.svg"),
+    options: {
+      type: `chest`,
+      size: 1,
+      slots: chestSizes.wood,
+    },
   },
   woodChest: {
     texture: notMadeYet,
     stackSize: 10,
+    tileTexture: loadAsset("assets/wood_crate.svg"),
+    options: {
+      type: `chest`,
+      size: 2,
+      slots: 4 * chestSizes.wood,
+    },
   },
   woodWarehouse: {
     texture: notMadeYet,
     stackSize: 3,
+    tileTexture: loadAsset("assets/wood_crate.svg"),
+    options: {
+      type: `chest`,
+      size: 3,
+      slots: 9 * chestSizes.wood,
+    },
   },
 });
 

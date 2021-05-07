@@ -11,10 +11,11 @@ import { EventEmitter } from "./utils/events";
 import { renderDebugger } from "./render/debugScreen";
 import { renderIndicator } from "./render/mouseIndicator";
 import { getHoveredTile } from "./utils/mouse";
-import { addBelt, addBeltLike, ConveyorBelt } from "./systems/belts";
+import { addBelt, addBeltLike, BeltCurve, ConveyorBelt } from "./systems/belts";
 import { Loader } from "./systems/loaders";
 import { Junction } from "./systems/junction";
 import { Router } from "./systems/router";
+import { Chest } from "./systems/chest";
 
 export const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -128,6 +129,10 @@ addMachine(new ConveyorBelt(state, Direction.Right, [8, 3], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Left, [8, 2], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Left, [7, 2], "yellowBelt"));
 
+addMachine(new Chest(state, [14, 4], item(`woodBox`)));
+addMachine(new Chest(state, [13, 6], item(`woodChest`)));
+addMachine(new Chest(state, [16, 4], item(`woodWarehouse`)));
+
 const testBelts = [
   state.map.chunkMap[0][0]![3][3]?.machine,
   state.map.chunkMap[0][0]![2][2]?.machine,
@@ -222,8 +227,12 @@ const main = () => {
 
     for (const [tile] of allTiles(state)) {
       if (tile === null || tile.subTile[0] || tile.subTile[1]) continue;
-      else if (tile.machine instanceof Junction) tile.machine.renderBuilding();
-      else if (tile.machine instanceof Router) tile.machine.renderBuilding();
+      else if (
+        tile.machine instanceof Junction ||
+        tile.machine instanceof Router ||
+        tile.machine instanceof Chest
+      )
+        tile.machine.renderBuilding();
     }
 
     renderIndicator(getHoveredTile(state.mouse.position), state);

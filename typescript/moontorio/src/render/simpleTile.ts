@@ -1,21 +1,17 @@
 import { settings } from "../constants";
-import { GameState, Tile } from "../gameState";
+import { GameState, Machine, Tile } from "../gameState";
 import { Vec2 } from "../utils/types";
 
-export const renderSimpleTile = (
-  state: GameState,
-  tile: Tile,
-  position: Vec2
-) => {
-  const texture = state.items[tile.machine.item].tileTexture;
+export const renderSimpleTile = (self: Machine, item: string) => {
+  const texture = self.world.items[item].tileTexture;
 
   if (texture === undefined) return;
 
-  state.ctx.drawImage(
+  self.world.ctx.drawImage(
     texture,
-    position[0] * settings.tileSize,
-    position[1] * settings.tileSize,
-    settings.tileSize,
-    settings.tileSize
+    self.position[0] * settings.tileSize,
+    self.position[1] * settings.tileSize,
+    self.size[0] * settings.tileSize,
+    self.size[1] * settings.tileSize
   );
 };
