@@ -33,14 +33,14 @@ export class Router
     const config = getOptions(state, item, `router`);
 
     if (config === null)
-      throw new Error(`Cannot find loader config for item ${item}`);
+      throw new Error(`Cannot find router config for item ${item}`);
 
     this.config = config;
     this.size = [config.size, config.size];
   }
 
   public beltOutputs() {
-    return [...neighbours(this.position, [this.config.size, this.config.size])];
+    return [...neighbours(this.position, this.size)];
   }
 
   public pushItem(item: BeltItem, side: Side, from: Vec2) {
@@ -65,7 +65,7 @@ export class Router
         if (item.birth + this.config.delay > this.world.tick) break;
 
         const beltItem = {
-          position: 0,
+          position: -settings.itemOnBeltSize,
           id: item.id,
         };
 

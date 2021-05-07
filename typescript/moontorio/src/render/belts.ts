@@ -1,23 +1,11 @@
 import { debugFlags, settings } from "../constants";
-import { GameState, loadAsset, Renderer } from "../gameState";
+import { GameState, loadAsset } from "../gameState";
 import { next, prev } from "../utils/direction";
-import {
-  Direction,
-  Directional,
-  Nullable,
-  Pair,
-  Side,
-  Vec2,
-} from "../utils/types";
+import { Direction, Nullable, Pair, Side, Vec2 } from "../utils/types";
 import { renderTileWithDirection } from "./utils/renderTileWithDirection";
-import { add2, mul2, mulN2, mulS2, sub2 } from "@thi.ng/vectors";
+import { add2, dist2, mulN2, sub2 } from "@thi.ng/vectors";
 import { reversed } from "../utils/array";
-import {
-  BeltCurve,
-  BeltItem,
-  ConveyorBelt,
-  TransportLine,
-} from "../systems/belts";
+import { BeltCurve, BeltItem, TransportLine } from "../systems/belts";
 
 /**
  * Represents the path items should take through a belt.

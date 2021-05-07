@@ -101,7 +101,7 @@ export class TransportLine {
     const newPosition = Math.min(upperBound, item.position);
 
     // Cannot handle negative coordinates
-    if (newPosition < 0) return false;
+    // if (newPosition < 0) return false;
 
     item.position = newPosition;
     this.items[side].unshift(item);
@@ -176,8 +176,8 @@ export class ConveyorBelt
     // Inner side < outer side
     return (side === Side.Right && curve === BeltCurve.Right) ||
       (side === Side.Left && curve === BeltCurve.Left)
-      ? 115
-      : 85;
+      ? 130
+      : 70;
   }
 
   // TODO: handle side loading

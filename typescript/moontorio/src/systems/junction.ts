@@ -83,7 +83,7 @@ export class Junction
             this,
             addDirection(this.position, direction),
             {
-              position: 0,
+              position: -settings.itemOnBeltSize,
               id: item.id,
             },
             side
