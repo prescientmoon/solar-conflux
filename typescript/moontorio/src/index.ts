@@ -22,56 +22,56 @@ import { debugFlags } from "./constants";
 export const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
 const state: GameState = {
-    ctx,
-    camera: {
-        translation: [canvas.width / 2, canvas.height / 2],
-        scale: 1,
-    },
-    keyboard: pressedKeys(),
-    player: {
-        position: [0, 0],
-        rotation: 0,
-        speedMultiplier: 3,
-    },
-    map: {
-        chunkMap: [
-            [
-                [
-                    [createChunk(), createChunk()],
-                    [createChunk(), createChunk()],
-                ],
-                [
-                    [createChunk(), createChunk()],
-                    [createChunk(), createChunk()],
-                ],
-            ],
-            [
-                [
-                    [createChunk(), createChunk()],
-                    [createChunk(), createChunk()],
-                ],
-                [
-                    [createChunk(), createChunk()],
-                    [createChunk(), createChunk()],
-                ],
-            ],
+  ctx,
+  camera: {
+    translation: [canvas.width / 2, canvas.height / 2],
+    scale: 1,
+  },
+  keyboard: pressedKeys(),
+  player: {
+    position: [0, 0],
+    rotation: 0,
+    speedMultiplier: 3,
+  },
+  map: {
+    chunkMap: [
+      [
+        [
+          [createChunk(), createChunk()],
+          [createChunk(), createChunk()],
         ],
-    },
-    mouse: {
-        position: [0, 0],
-    },
-    items,
-    tick: 0,
-    time: 0,
-    paused: false,
-    pausedTimeDifference: 0,
-    lastPausedAt: 0,
-    emitter: new EventEmitter(),
+        [
+          [createChunk(), createChunk()],
+          [createChunk(), createChunk()],
+        ],
+      ],
+      [
+        [
+          [createChunk(), createChunk()],
+          [createChunk(), createChunk()],
+        ],
+        [
+          [createChunk(), createChunk()],
+          [createChunk(), createChunk()],
+        ],
+      ],
+    ],
+  },
+  mouse: {
+    position: [0, 0],
+  },
+  items,
+  tick: 0,
+  time: 0,
+  paused: false,
+  pausedTimeDifference: 0,
+  lastPausedAt: 0,
+  emitter: new EventEmitter(),
 };
 
 state.emitter.on("machineCreated", (d) => {
-    addBeltLike(state, d.machine);
-    addBelt(state, d.machine);
+  addBeltLike(state, d.machine);
+  addBelt(state, d.machine);
 });
 
 // ========== Demo scene
@@ -155,7 +155,7 @@ addMachine(new ConveyorBelt(state, Direction.Down, [8, 8], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Down, [8, 9], "yellowBelt"));
 
 for (let i = 1; i < 9; i++) {
-    addMachine(new ConveyorBelt(state, Direction.Left, [i, 10], "yellowBelt"));
+  addMachine(new ConveyorBelt(state, Direction.Left, [i, 10], "yellowBelt"));
 }
 
 addMachine(new ConveyorBelt(state, Direction.Up, [0, 8], "yellowBelt"));
@@ -200,164 +200,162 @@ addMachine(new ConveyorBelt(state, Direction.Up, [-2, 1], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Right, [-2, 0], "yellowBelt"));
 
 const testBelts = [
-    tileAt(state, [3, 3])?.machine,
-    tileAt(state, [2, 2])?.machine,
-    tileAt(state, [10, 10])?.machine,
-    tileAt(state, [4, 13])?.machine,
-    tileAt(state, [-3, -13])?.machine,
-    tileAt(state, [-8, -15])?.machine,
-    tileAt(state, [-1, -3])?.machine,
-    tileAt(state, [0, 7])?.machine,
-    tileAt(state, [9, 0])?.machine,
+  tileAt(state, [3, 3])?.machine,
+  tileAt(state, [2, 2])?.machine,
+  tileAt(state, [10, 10])?.machine,
+  tileAt(state, [4, 13])?.machine,
+  tileAt(state, [-3, -13])?.machine,
+  tileAt(state, [-8, -15])?.machine,
+  tileAt(state, [-1, -3])?.machine,
+  tileAt(state, [0, 7])?.machine,
+  tileAt(state, [9, 0])?.machine,
 ] as ConveyorBelt[];
 
 for (const belt of testBelts) {
-    belt.transportLine.items[0].push(
-        ...Array(12)
-            .fill(1)
-            .map((_, index) => ({
-                id: item("ironPlate"),
-                position: index * 5,
-            }))
-    );
-    belt.transportLine.items[1].push(
-        ...Array(12)
-            .fill(1)
-            .map((_, index) => ({
-                id: item("ironPlate"),
-                position: index * 5,
-            }))
-    );
+  belt.transportLine.items[0].push(
+    ...Array(12)
+      .fill(1)
+      .map((_, index) => ({
+        id: item("ironPlate"),
+        position: index * 5,
+      }))
+  );
+  belt.transportLine.items[1].push(
+    ...Array(12)
+      .fill(1)
+      .map((_, index) => ({
+        id: item("ironPlate"),
+        position: index * 5,
+      }))
+  );
 }
 
 ctx.imageSmoothingEnabled = false;
 
 const adjustCamera = () => {
-    state.ctx.scale(state.camera.scale, state.camera.scale);
-    state.camera.translation[0] =
-        Math.floor(
-            (canvas.width / (2 * state.camera.scale) -
-                state.player.position[0]) *
-                1000
-        ) / 1000;
-    state.camera.translation[1] =
-        Math.floor(
-            (canvas.height / (2 * state.camera.scale) -
-                state.player.position[1]) *
-                1000
-        ) / 1000;
+  state.ctx.scale(state.camera.scale, state.camera.scale);
+  state.camera.translation[0] =
+    Math.floor(
+      (canvas.width / (2 * state.camera.scale) - state.player.position[0]) *
+        1000
+    ) / 1000;
+  state.camera.translation[1] =
+    Math.floor(
+      (canvas.height / (2 * state.camera.scale) - state.player.position[1]) *
+        1000
+    ) / 1000;
 };
 
 const resize = () => {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+  const width = window.innerWidth;
+  const height = window.innerHeight;
 
-    canvas.height = height;
-    canvas.width = width;
+  canvas.height = height;
+  canvas.width = width;
 
-    canvas.style.width = String(width);
-    canvas.style.height = String(height);
+  canvas.style.width = String(width);
+  canvas.style.height = String(height);
 };
 
 const clear = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 
 const main = () => {
-    if (!state.paused) {
-        clear();
+  if (!state.paused) {
+    clear();
 
-        state.tick++;
-        state.time = performance.now() - state.pausedTimeDifference;
+    state.tick++;
+    state.time = performance.now() - state.pausedTimeDifference;
 
-        // Update stage:
-        updatePlayer(state);
-        adjustCamera();
+    // Update stage:
+    updatePlayer(state);
+    adjustCamera();
 
-        for (const [tile] of allTiles(state)) {
-            if (tile === null) continue;
-            tile.machine.update();
-        }
-
-        // Actual rendering:
-        ctx.translate(state.camera.translation[0], state.camera.translation[1]);
-
-        for (const [tile] of allTiles(state)) {
-            if (tile === null || tile.subTile[0] || tile.subTile[1]) continue;
-            if (tile.machine instanceof ConveyorBelt)
-                beltRenderer(state, tile.machine);
-            else if (
-                tile.machine instanceof Loader ||
-                tile.machine instanceof Unloader
-            )
-                tile.machine.renderGround();
-        }
-
-        for (const [tile] of allTiles(state)) {
-            if (tile === null || tile.subTile[0] || tile.subTile[1]) continue;
-            if (tile.machine instanceof ConveyorBelt)
-                beltItemRenderer(state, tile.machine);
-            else if (
-                tile.machine instanceof Loader ||
-                tile.machine instanceof Unloader
-            )
-                tile.machine.renderItems();
-        }
-
-        for (const [tile] of allTiles(state)) {
-            if (tile === null || tile.subTile[0] || tile.subTile[1]) continue;
-            else if (
-                tile.machine instanceof Junction ||
-                tile.machine instanceof Router ||
-                tile.machine instanceof Loader ||
-                tile.machine instanceof Unloader ||
-                tile.machine instanceof Chest
-            )
-                tile.machine.renderBuilding();
-        }
-
-        renderIndicator(getHoveredTile(state.mouse.position), state);
-        if (debugFlags.showDebugText) renderDebugger(state);
-        renderPlayer(state);
-        ctx.resetTransform();
-        requestAnimationFrame(main);
-    } else {
-        requestAnimationFrame(main);
-        state.time = performance.now();
+    for (const [tile] of allTiles(state)) {
+      if (tile === null) continue;
+      tile.machine.update();
     }
+
+    // Actual rendering:
+    ctx.translate(state.camera.translation[0], state.camera.translation[1]);
+
+    for (const [tile] of allTiles(state)) {
+      if (tile === null || tile.subTile[0] || tile.subTile[1]) continue;
+      if (tile.machine instanceof ConveyorBelt)
+        beltRenderer(state, tile.machine);
+      else if (
+        tile.machine instanceof Loader ||
+        tile.machine instanceof Unloader
+      )
+        tile.machine.renderGround();
+    }
+
+    for (const [tile] of allTiles(state)) {
+      if (tile === null || tile.subTile[0] || tile.subTile[1]) continue;
+      if (tile.machine instanceof ConveyorBelt)
+        beltItemRenderer(state, tile.machine);
+      else if (
+        tile.machine instanceof Loader ||
+        tile.machine instanceof Unloader
+      )
+        tile.machine.renderItems();
+    }
+
+    for (const [tile] of allTiles(state)) {
+      if (tile === null || tile.subTile[0] || tile.subTile[1]) continue;
+      else if (
+        tile.machine instanceof Junction ||
+        tile.machine instanceof Router ||
+        tile.machine instanceof Loader ||
+        tile.machine instanceof Unloader ||
+        tile.machine instanceof Chest
+      )
+        tile.machine.renderBuilding();
+    }
+
+    renderIndicator(getHoveredTile(state.mouse.position), state);
+    if (debugFlags.showDebugText) renderDebugger(state);
+    renderPlayer(state);
+    ctx.resetTransform();
+    requestAnimationFrame(main);
+  } else {
+    requestAnimationFrame(main);
+    state.time = performance.now();
+  }
 };
 
 // CAMERA ZOOMING
 window.addEventListener("wheel", (e) => {
-    if (state.camera.scale < 5 && e.deltaY < 0) {
-        state.camera.scale -= e.deltaY / 1000;
-    }
-    if (state.camera.scale > 0.5 && e.deltaY > 0) {
-        state.camera.scale -= e.deltaY / 1000;
-    }
+  if (state.camera.scale < 5 && e.deltaY < 0) {
+    state.camera.scale -= e.deltaY / 1000;
+  }
+  if (state.camera.scale > 0.5 && e.deltaY > 0) {
+    state.camera.scale -= e.deltaY / 1000;
+  }
 });
 
 window.onresize = resize;
 
 window.onblur = () => {
-    state.paused = true;
-    state.lastPausedAt = performance.now();
-    console.log("paused");
+  state.paused = true;
+  state.lastPausedAt = performance.now();
+  console.log("paused");
 };
 
 window.onfocus = () => {
-    if (state.paused) {
-        state.paused = false;
-        state.pausedTimeDifference += performance.now() - state.lastPausedAt;
-        console.log("unpaused");
-    }
+  if (state.paused) {
+    state.paused = false;
+    state.pausedTimeDifference += performance.now() - state.lastPausedAt;
+    console.log("unpaused");
+  }
 };
 
 window.addEventListener("mousemove", (e) => {
-    state.mouse.position = [
-        e.clientX / state.camera.scale - state.camera.translation[0],
-        e.clientY / state.camera.scale - state.camera.translation[1],
-    ];
+  state.mouse.position = [
+    e.clientX / state.camera.scale - state.camera.translation[0],
+    e.clientY / state.camera.scale - state.camera.translation[1],
+  ];
 });
 
 resize();
