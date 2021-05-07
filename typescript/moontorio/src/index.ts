@@ -16,6 +16,7 @@ import { Loader, Unloader } from "./systems/loaders";
 import { Junction } from "./systems/junction";
 import { Router } from "./systems/router";
 import { Chest } from "./systems/chest";
+import { tileAt } from "./systems/world";
 
 export const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -33,8 +34,26 @@ const state: GameState = {
   },
   map: {
     chunkMap: [
-      [createChunk(), createChunk()],
-      [createChunk(), createChunk()],
+      [
+        [
+          [createChunk(), createChunk()],
+          [createChunk(), createChunk()],
+        ],
+        [
+          [createChunk(), createChunk()],
+          [createChunk(), createChunk()],
+        ],
+      ],
+      [
+        [
+          [createChunk(), createChunk()],
+          [createChunk(), createChunk()],
+        ],
+        [
+          [createChunk(), createChunk()],
+          [createChunk(), createChunk()],
+        ],
+      ],
     ],
   },
   mouse: {
@@ -48,6 +67,10 @@ const state: GameState = {
   lastPausedAt: 0,
   emitter: new EventEmitter(),
 };
+console.log(state.map.chunkMap[0][0]);
+console.log(state.map.chunkMap[1][0]);
+console.log(state.map.chunkMap[0][1]);
+console.log(state.map.chunkMap[1][1]);
 
 state.emitter.on("machineCreated", (d) => {
   addBeltLike(state, d.machine);
@@ -63,6 +86,24 @@ addMachine(new ConveyorBelt(state, Direction.Left, [4, 15], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Left, [5, 15], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Down, [5, 14], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Down, [5, 13], "yellowBelt"));
+
+addMachine(new ConveyorBelt(state, Direction.Up, [-3, -13], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Right, [-4, -13], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Up, [-3, -14], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [-3, -15], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [-4, -15], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [-5, -15], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [-5, -14], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Right, [-5, -13], "yellowBelt"));
+
+addMachine(new ConveyorBelt(state, Direction.Left, [-7, -13], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [-8, -13], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [-7, -14], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [-7, -15], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Right, [-8, -15], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Right, [-9, -15], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Up, [-9, -14], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Up, [-9, -13], "yellowBelt"));
 
 addMachine(new Junction(state, [3, 4], item(`junction`)));
 
@@ -137,13 +178,34 @@ addMachine(new Chest(state, [14, 4], item(`woodBox`)));
 addMachine(new Chest(state, [13, 6], item(`woodChest`)));
 addMachine(new Chest(state, [16, 4], item(`woodWarehouse`)));
 
+addMachine(new Router(state, [-1, -1], item(`distributor`)));
+addMachine(new ConveyorBelt(state, Direction.Down, [-1, -2], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [-1, -3], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [-3, -1], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [-4, -1], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [-2, -1], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Up, [0, -2], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Right, [0, -3], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [1, -3], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [1, -2], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [1, -1], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [1, 0], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [1, 1], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Up, [0, 1], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Left, [-1, 1], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Up, [-2, 1], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Right, [-2, 0], "yellowBelt"));
+
 const testBelts = [
-  state.map.chunkMap[0][0]![3][3]?.machine,
-  state.map.chunkMap[0][0]![2][2]?.machine,
-  state.map.chunkMap[0][0]![10][10]?.machine,
-  state.map.chunkMap[0][0]![4][13]?.machine,
-  state.map.chunkMap[0][0]![0][7]?.machine,
-  state.map.chunkMap[0][0]![9][0]?.machine,
+  tileAt(state, [3, 3])?.machine,
+  tileAt(state, [2, 2])?.machine,
+  tileAt(state, [10, 10])?.machine,
+  tileAt(state, [4, 13])?.machine,
+  tileAt(state, [-3, -13])?.machine,
+  tileAt(state, [-8, -15])?.machine,
+  tileAt(state, [-1, -3])?.machine,
+  tileAt(state, [0, 7])?.machine,
+  tileAt(state, [9, 0])?.machine,
 ] as ConveyorBelt[];
 
 for (const belt of testBelts) {

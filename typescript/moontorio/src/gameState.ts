@@ -22,8 +22,10 @@ export type Tile = {
 
 export type Chunk = Nullable<Tile>[][];
 
+export type DirectionChunkMatrixes = Nullable<Chunk>[][];
+
 export interface GameMap {
-  chunkMap: Nullable<Chunk>[][];
+  chunkMap: DirectionChunkMatrixes[][];
 }
 
 export interface JunctionConfig {
@@ -116,10 +118,18 @@ export const loadAsset = (src: string): Image => {
 
 // ========== Helpers
 export const addMachine = (machine: Machine) => {
-  const { position, world } = machine;
-  const [chunkPos, subPos] = splitPosition(position);
+  // console.log(machine);
 
-  const chunk = world.map.chunkMap[chunkPos[0]][chunkPos[1]];
+  const { position, world } = machine;
+  const [chunkPos, subPos, chunkDirection] = splitPosition(position);
+
+  // console.log({ chunkPos, subPos, chunkDirection });
+
+  const chunk =
+    world.map.chunkMap[chunkDirection[0]][chunkDirection[1]][chunkPos[0]][
+      chunkPos[1]
+    ];
+  // console.log(chunk);
 
   if (!chunk) return;
 
