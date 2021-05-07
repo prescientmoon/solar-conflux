@@ -12,7 +12,7 @@ import { renderDebugger } from "./render/debugScreen";
 import { renderIndicator } from "./render/mouseIndicator";
 import { getHoveredTile } from "./utils/mouse";
 import { addBelt, addBeltLike, BeltCurve, ConveyorBelt } from "./systems/belts";
-import { Loader } from "./systems/loaders";
+import { Loader, Unloader } from "./systems/loaders";
 import { Junction } from "./systems/junction";
 import { Router } from "./systems/router";
 import { Chest } from "./systems/chest";
@@ -83,6 +83,10 @@ addMachine(new ConveyorBelt(state, Direction.Left, [3, 2], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Right, [10, 10], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Right, [11, 10], "yellowBelt"));
 addMachine(new Loader(state, Direction.Right, [12, 10], "yellowLoader"));
+addMachine(new Chest(state, [13, 10], item(`woodChest`)));
+addMachine(new Unloader(state, Direction.Right, [15, 10], `yellowUnloder`));
+addMachine(new ConveyorBelt(state, Direction.Right, [16, 10], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Right, [17, 10], "yellowBelt"));
 
 addMachine(new Junction(state, [4, 3], item(`junction`)));
 
@@ -215,14 +219,22 @@ const main = () => {
       if (tile === null || tile.subTile[0] || tile.subTile[1]) continue;
       if (tile.machine instanceof ConveyorBelt)
         beltRenderer(state, tile.machine);
-      else if (tile.machine instanceof Loader) tile.machine.renderGround();
+      else if (
+        tile.machine instanceof Loader ||
+        tile.machine instanceof Unloader
+      )
+        tile.machine.renderGround();
     }
 
     for (const [tile] of allTiles(state)) {
       if (tile === null || tile.subTile[0] || tile.subTile[1]) continue;
       if (tile.machine instanceof ConveyorBelt)
         beltItemRenderer(state, tile.machine);
-      if (tile.machine instanceof Loader) tile.machine.renderBuilding();
+      else if (
+        tile.machine instanceof Loader ||
+        tile.machine instanceof Unloader
+      )
+        tile.machine.renderItems();
     }
 
     for (const [tile] of allTiles(state)) {
@@ -230,6 +242,8 @@ const main = () => {
       else if (
         tile.machine instanceof Junction ||
         tile.machine instanceof Router ||
+        tile.machine instanceof Loader ||
+        tile.machine instanceof Unloader ||
         tile.machine instanceof Chest
       )
         tile.machine.renderBuilding();
@@ -281,3 +295,7 @@ window.addEventListener("mousemove", (e) => {
 
 resize();
 main();
+
+// for debugging
+// @ts-ignore
+window.state = state;

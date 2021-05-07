@@ -177,7 +177,8 @@ export const beltItemRenderer = (state: GameState, belt: ConveyorBeltLike) => {
               break;
             }
 
-            if (squishedPosition >= next[0]) continue;
+            if (squishedPosition >= next[0] && index !== beltPath.length - 2)
+              continue;
 
             const delta = sub2(
               [],

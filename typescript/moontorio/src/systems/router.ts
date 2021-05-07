@@ -57,6 +57,10 @@ export class Router
     return true;
   }
 
+  public emptyStartingSpace() {
+    return settings.itemOnBeltSize;
+  }
+
   public update() {
     const outputs = [...neighboursWithSource(this.position, this.size)];
 

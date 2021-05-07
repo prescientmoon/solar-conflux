@@ -73,6 +73,10 @@ export class Junction
     return true;
   }
 
+  public emptyStartingSpace(side: Side) {
+    return settings.itemOnBeltSize;
+  }
+
   public update() {
     for (let direction: Direction = 0; direction < 4; direction++) {
       for (let side: Side = 0; side < 2; side++) {

@@ -15,6 +15,7 @@ import { eq2, equals2 } from "@thi.ng/vectors";
 // ========== Interfaces:
 export interface IBeltInput {
   pushItem(item: BeltItem, side: Side, from: Vec2): boolean;
+  emptyStartingSpace(side: Side): number;
 }
 
 export interface IBeltOutput {
@@ -57,12 +58,18 @@ export type OnMoveOut = (
 export class TransportLine {
   public items: Record<Side, BeltItem[]> = [[], []];
 
+  /**
+   * If set to true, items might have negative positions (aka be behind the belt visually)
+   * Enabled by default for rendering purpouses (smooth items coming out of building animations).
+   */
+  public allowNegativePositions = true;
+
   public constructor(
     public config: TransportLineConfig,
     public onMoveOut: OnMoveOut
   ) {}
 
-  public update(maxLengths: Pair<number>) {
+  public update(maxLengths: Pair<number>, spaceTilNext: Pair<number> = [0, 0]) {
     for (let sideIndex: Side = 0; sideIndex < 2; sideIndex++) {
       const side = this.items[sideIndex];
       const maxLength = maxLengths[sideIndex];
@@ -78,30 +85,49 @@ export class TransportLine {
 
         const newPosition = Math.min(item.position + this.config.speed, bound);
 
-        if (newPosition > maxLength) {
+        if (newPosition >= maxLength) {
           const succesful = this.onMoveOut(sideIndex, item, newPosition);
 
-          if (succesful) side.pop();
-          else item.position = maxLength;
-        } else {
-          item.position = Math.min(newPosition, maxLength);
+          if (succesful) {
+            side.pop();
+
+            continue;
+          }
         }
+
+        item.position = Math.min(
+          newPosition,
+          maxLengths[sideIndex] + Math.min(spaceTilNext[sideIndex], 0)
+        );
       }
     }
   }
 
-  public pushItem(item: BeltItem, side: Side, length: number) {
+  /**
+   * Compute how much empty space the belt starts with on a particular side.
+   *
+   * Examples:
+   * - An empty belt will return its length.
+   * - A non empty belt will return the space til the first item.
+   *
+   * @param side The side to get the empty space of.
+   */
+  public emptyStartingSpace(length: number, side: Side) {
     const sideItems = this.items[side];
 
-    const upperBound =
-      sideItems.length === 0
-        ? length
-        : sideItems[0].position - this.config.itemSpacing;
+    return sideItems.length === 0
+      ? length
+      : sideItems[0].position - this.config.itemSpacing;
+  }
 
-    const newPosition = Math.min(upperBound, item.position);
+  public pushItem(item: BeltItem, side: Side, length: number) {
+    const newPosition = Math.min(
+      this.emptyStartingSpace(length, side),
+      item.position
+    );
 
-    // Cannot handle negative coordinates
-    // if (newPosition < 0) return false;
+    // Handle negative coordinaes
+    if (!this.allowNegativePositions && newPosition < 0) return false;
 
     item.position = newPosition;
     this.items[side].unshift(item);
@@ -123,6 +149,25 @@ export const tryPushItem = <T extends Entity & ITransform>(
   if (next === null || !hasIBeltInput(next)) return false;
 
   return next.pushItem(item, side, from);
+};
+
+export const emptySpaceTil = <
+  T extends Machine & { direction: Direction; transportLine: TransportLine }
+>(
+  self: T,
+  side: Side
+) => {
+  const next = machineAt(
+    self.world,
+    addDirection(self.position, self.direction)
+  );
+  const spacing = self.transportLine.config.itemSpacing;
+  const result =
+    next === null || !hasIBeltInput(next)
+      ? -spacing
+      : next.emptyStartingSpace(side);
+
+  return result;
 };
 
 // ========== Conveyor belts
@@ -193,6 +238,10 @@ export class ConveyorBelt
     return this.transportLine.pushItem(item, side, this.length(side));
   }
 
+  public emptyStartingSpace(side: Side) {
+    return this.transportLine.emptyStartingSpace(this.length(side), side);
+  }
+
   public beltOutputs() {
     return [addDirection(this.position, this.direction)];
   }
@@ -204,10 +253,10 @@ export class ConveyorBelt
   }
 
   public update() {
-    this.transportLine.update([
-      this.length(Side.Left),
-      this.length(Side.Right),
-    ]);
+    this.transportLine.update(
+      [this.length(Side.Left), this.length(Side.Right)],
+      [emptySpaceTil(this, Side.Left), emptySpaceTil(this, Side.Right)]
+    );
   }
 
   /**
@@ -221,6 +270,10 @@ export class ConveyorBelt
     }
 
     return BeltCurve.NoCurve;
+  }
+
+  public next() {
+    return machineAt(this.world, addDirection(this.position, this.direction));
   }
 }
 

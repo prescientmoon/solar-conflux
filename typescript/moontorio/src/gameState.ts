@@ -1,18 +1,10 @@
 import type { KeyboardState } from "./keyboard";
-import { chunkSize } from "./map";
 import type { Player } from "./player";
-import { TransportLine, TransportLineConfig } from "./systems/belts";
+import { TransportLineConfig } from "./systems/belts";
 import { splitPosition } from "./systems/world";
 import { Entity, ITransform, IUpdate } from "./utils/entity";
 import { EventEmitter } from "./utils/events";
-import type {
-  Direction,
-  Nullable,
-  Pair,
-  Side,
-  TaggedUnion,
-  Vec2,
-} from "./utils/types";
+import type { Nullable, TaggedUnion, Vec2 } from "./utils/types";
 
 export type Item = string;
 
@@ -54,6 +46,7 @@ export interface ChestConfig {
 export type ItemOptions = TaggedUnion<{
   conveyorBelt: TransportLineConfig;
   loader: TransportLineConfig;
+  unloader: TransportLineConfig;
   junction: JunctionConfig;
   router: RouterConfig;
   chest: ChestConfig;
@@ -149,9 +142,12 @@ export const getOptions = <T extends ItemOptions[`type`]>(
   item: string,
   kind: T
 ): (ItemOptions & { type: T }) | null => {
-  const config = state.items[item].options;
+  const config = state.items[item]?.options;
 
   if (config === undefined) return null;
 
   return config.type === kind ? (config as any) : null;
 };
+
+export const getStackSize = (state: GameState, item: Item) =>
+  state.items[item].stackSize ?? 0;

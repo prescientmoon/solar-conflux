@@ -42,6 +42,10 @@ export const items = ensureAllAreConfigs({
   yellowUnloder: {
     texture: notMadeYet,
     stackSize: 50,
+    options: {
+      type: `unloader`,
+      ...yellowTransportLine,
+    },
   },
   junction: {
     texture: notMadeYet,
