@@ -6,8 +6,14 @@ import {
   loadAsset,
   TimedItem,
 } from "../gameState";
-import { directions, opposite, relativeTo } from "../utils/direction";
-import { Entity, IPosition, IUpdate } from "../utils/entity";
+import {
+  addDirection,
+  directions,
+  opposite,
+  relativeTo,
+} from "../utils/direction";
+import { Entity, ITransform, IUpdate } from "../utils/entity";
+import { neighbours } from "../utils/machine";
 import {
   Direction,
   Directional,
@@ -22,10 +28,11 @@ const texture = loadAsset("assets/junction.svg");
 
 export class Junction
   extends Entity
-  implements IBeltInput, IBeltOutput, IUpdate, IPosition {
+  implements IBeltInput, IBeltOutput, IUpdate, ITransform {
   public transportLines: Directional<
     Sided<TimedItem[]>
   > = directions.map(() => [[], []]) as any;
+  public size: Vec2 = [1, 1];
 
   public config: JunctionConfig;
 
@@ -45,7 +52,7 @@ export class Junction
   }
 
   public beltOutputs() {
-    return directions;
+    return directions.map((d) => addDirection(this.position, d));
   }
 
   public pushItem(item: BeltItem, side: Side, from: Vec2) {
@@ -74,7 +81,7 @@ export class Junction
 
           const succesful = tryPushItem(
             this,
-            direction,
+            addDirection(this.position, direction),
             {
               position: 0,
               id: item.id,

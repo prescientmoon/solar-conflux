@@ -17,6 +17,7 @@ const loaderLength = 100;
 
 export class Loader extends Entity implements IBeltInput, IUpdate {
   public transportLine: TransportLine;
+  public size: Vec2 = [1, 1];
 
   public constructor(
     state: GameState,
@@ -60,7 +61,7 @@ export class Loader extends Entity implements IBeltInput, IUpdate {
   // Here in order to reuse the belt renderer
   public length() {
     // Only used for rendering, increased to remove a glitch where the items would render over the roof
-    return loaderLength * 1.2;
+    return loaderLength * 1.3;
   }
 
   public renderGround() {

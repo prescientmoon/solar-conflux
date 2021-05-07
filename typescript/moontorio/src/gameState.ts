@@ -3,7 +3,7 @@ import { chunkSize } from "./map";
 import type { Player } from "./player";
 import { TransportLine, TransportLineConfig } from "./systems/belts";
 import { splitPosition } from "./systems/world";
-import { Entity, IPosition, IUpdate } from "./utils/entity";
+import { Entity, ITransform, IUpdate } from "./utils/entity";
 import { EventEmitter } from "./utils/events";
 import type {
   Direction,
@@ -21,7 +21,7 @@ export interface TimedItem {
   birth: number;
 }
 
-export type Machine = Entity & IPosition & IUpdate;
+export type Machine = Entity & ITransform & IUpdate;
 
 export type Tile = {
   subTile: Vec2;
@@ -39,10 +39,18 @@ export interface JunctionConfig {
   capacity: number;
 }
 
+export interface RouterConfig extends JunctionConfig {
+  /** Size in tiles a side of the router should take.
+   * Eg: a size of 2 will create a 2x2 tile
+   */
+  size: number;
+}
+
 export type ItemOptions = TaggedUnion<{
   conveyorBelt: TransportLineConfig;
   loader: TransportLineConfig;
   junction: JunctionConfig;
+  router: RouterConfig;
 }>;
 
 export interface ItemConfig {
@@ -54,8 +62,7 @@ export interface ItemConfig {
 
 export interface GameEvents {
   machineCreated: {
-    machine: Entity;
-    position: Vec2;
+    machine: Machine;
   };
 }
 
@@ -113,13 +120,20 @@ export const addMachine = (machine: Machine) => {
   const { position, world } = machine;
   const [chunkPos, subPos] = splitPosition(position);
 
-  world.map.chunkMap[chunkPos[0]][chunkPos[1]]![subPos[0]][subPos[1]] = {
-    subTile: [0, 0],
-    machine,
-  };
+  const chunk = world.map.chunkMap[chunkPos[0]][chunkPos[1]];
+
+  if (!chunk) return;
+
+  for (let i = 0; i < machine.size[0]; i++) {
+    for (let j = 0; j < machine.size[1]; j++) {
+      chunk[subPos[0] + i][subPos[1] + j] = {
+        subTile: [i, j],
+        machine,
+      };
+    }
+  }
 
   world.emitter.emit("machineCreated", {
-    position,
     machine,
   });
 };

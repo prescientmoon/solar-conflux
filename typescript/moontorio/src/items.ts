@@ -28,7 +28,7 @@ export const items = ensureAllAreConfigs({
     },
   },
   yellowLoader: {
-    texture: loadItem("yellow_loader"),
+    texture: notMadeYet,
     stackSize: 50,
     options: {
       type: `loader`,
@@ -36,21 +36,36 @@ export const items = ensureAllAreConfigs({
     },
   },
   yellowUnloder: {
-    texture: loadItem("yellow_unloader"),
-    stackSize: 50,
-  },
-  yellowDistributor: {
     texture: notMadeYet,
     stackSize: 50,
-    tileTexture: loadAsset("assets/yellow_distributor.svg"),
   },
-  yellowJunction: {
-    texture: loadItem("yellow_junction"),
+  junction: {
+    texture: notMadeYet,
     stackSize: 50,
     options: {
       type: `junction`,
       capacity: 20,
       delay: 30,
+    },
+  },
+  router: {
+    texture: notMadeYet,
+    stackSize: 50,
+    options: {
+      type: `router`,
+      capacity: 20,
+      delay: 60,
+      size: 1,
+    },
+  },
+  distributor: {
+    texture: notMadeYet,
+    stackSize: 10,
+    options: {
+      type: `router`,
+      capacity: 80,
+      delay: 120,
+      size: 2,
     },
   },
   woodBox: {

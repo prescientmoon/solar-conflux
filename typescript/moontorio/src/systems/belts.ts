@@ -1,4 +1,4 @@
-import { GameState, getOptions, Item } from "../gameState";
+import { GameState, getOptions, Item, Machine } from "../gameState";
 import {
   addDirection,
   directions,
@@ -8,8 +8,9 @@ import {
   relativeTo,
 } from "../utils/direction";
 import { Direction, Pair, Side, Vec2 } from "../utils/types";
-import { Entity, IPosition, IUpdate } from "../utils/entity";
+import { Entity, ITransform, IUpdate } from "../utils/entity";
 import { machineAt, tileAt } from "./world";
+import { eq2, equals2 } from "@thi.ng/vectors";
 
 // ========== Interfaces:
 export interface IBeltInput {
@@ -17,8 +18,7 @@ export interface IBeltInput {
 }
 
 export interface IBeltOutput {
-  // TODO: support multi-tile machines
-  beltOutputs(): Direction[];
+  beltOutputs(): Vec2[];
 }
 
 export const hasIBeltInput = (e: Entity): e is IBeltInput & Entity =>
@@ -111,28 +111,29 @@ export class TransportLine {
 }
 
 // ========== Generic helpers
-export const tryPushItem = <T extends Entity & IPosition>(
+export const tryPushItem = <T extends Entity & ITransform>(
   self: T,
-  direction: Direction,
+  nextPosition: Vec2,
   item: BeltItem,
-  side: Side
+  side: Side,
+  from: Vec2 = self.position
 ) => {
-  const nextPosition = addDirection(self.position, direction);
   const next = machineAt(self.world, nextPosition);
 
   if (next === null || !hasIBeltInput(next)) return false;
 
-  // TODO: adapt this to multi tile machines
-  return next.pushItem(item, side, self.position);
+  return next.pushItem(item, side, from);
 };
 
 // ========== Conveyor belts
 export class ConveyorBelt
   extends Entity
-  implements IBeltInput, IBeltOutput, IPosition, IUpdate {
+  implements IBeltInput, IBeltOutput, ITransform, IUpdate {
   public inputs: Direction[] = [];
+  public size: Vec2 = [1, 1];
 
   public transportLine;
+
   public constructor(
     state: GameState,
     public direction: Direction,
@@ -149,7 +150,7 @@ export class ConveyorBelt
     this.transportLine = new TransportLine(config, (side, item, position) => {
       return tryPushItem(
         this,
-        this.direction,
+        addDirection(this.position, this.direction),
         {
           id: item.id,
           position: position - this.length(side),
@@ -193,7 +194,7 @@ export class ConveyorBelt
   }
 
   public beltOutputs() {
-    return [this.direction];
+    return [addDirection(this.position, this.direction)];
   }
 
   public addInput(direction: Direction) {
@@ -224,38 +225,40 @@ export class ConveyorBelt
 }
 
 // ========== Event handlers
-export const addBeltLike = (
-  state: GameState,
-  machine: Entity,
-  position: Vec2
-) => {
+export const addBeltLike = (state: GameState, machine: Machine) => {
   if (!hasIBeltOutput(machine)) return null;
 
   const outputs = machine.beltOutputs();
 
-  for (const direction of outputs) {
-    const neighbourPosition = addDirection(position, direction);
+  for (const neighbourPosition of outputs) {
     const neighbour = machineAt(state, neighbourPosition);
 
     if (neighbour instanceof ConveyorBelt) {
-      neighbour.addInput(opposite(direction));
+      const direction = relativeTo(neighbourPosition, machine.position);
+      if (direction === null) continue;
+
+      neighbour.addInput(direction);
     }
   }
 };
 
-export const addBelt = (state: GameState, machine: Entity, position: Vec2) => {
+export const addBelt = (state: GameState, machine: Entity) => {
   if (!(machine instanceof ConveyorBelt)) return;
 
   const inputs = directions
     .map((possibleDirection) => {
       if (possibleDirection === machine.direction) return null;
 
-      const neighbourPosition = addDirection(position, possibleDirection);
+      const neighbourPosition = addDirection(
+        machine.position,
+        possibleDirection
+      );
+
       const neighbour = machineAt(state, neighbourPosition);
 
       if (neighbour === null || !hasIBeltOutput(neighbour)) return null;
 
-      if (!neighbour.beltOutputs().includes(opposite(possibleDirection)))
+      if (!neighbour.beltOutputs().some((p) => equals2(p, machine.position)))
         return null;
 
       return possibleDirection;
