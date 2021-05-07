@@ -1,7 +1,7 @@
 import type { KeyboardState } from "./keyboard";
 import type { Player } from "./player";
 import { TransportLineConfig } from "./systems/belts";
-import { splitPosition } from "./systems/world";
+import { setTileAt, splitPosition } from "./systems/world";
 import { Entity, ITransform, IUpdate } from "./utils/entity";
 import { EventEmitter } from "./utils/events";
 import type { Nullable, TaggedUnion, Vec2 } from "./utils/types";
@@ -121,24 +121,25 @@ export const addMachine = (machine: Machine) => {
   // console.log(machine);
 
   const { position, world } = machine;
-  const [chunkPos, subPos, chunkDirection] = splitPosition(position);
 
-  // console.log({ chunkPos, subPos, chunkDirection });
+  // Ensure chunk exists
+  {
+    const [chunkPos, , chunkDirection] = splitPosition(position);
 
-  const chunk =
-    world.map.chunkMap[chunkDirection[0]][chunkDirection[1]][chunkPos[0]][
-      chunkPos[1]
-    ];
-  // console.log(chunk);
+    const chunk =
+      world.map.chunkMap[chunkDirection[0]][chunkDirection[1]][chunkPos[0]][
+        chunkPos[1]
+      ];
 
-  if (!chunk) return;
+    if (!chunk) return;
+  }
 
   for (let i = 0; i < machine.size[0]; i++) {
     for (let j = 0; j < machine.size[1]; j++) {
-      chunk[subPos[0] + i][subPos[1] + j] = {
+      setTileAt(world, [position[0] + i, position[1] + j], {
         subTile: [i, j],
         machine,
-      };
+      });
     }
   }
 

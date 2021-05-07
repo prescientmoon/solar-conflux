@@ -6,4 +6,5 @@ export const settings = {
 
 export const debugFlags = {
   showBeltItemPaths: false,
+  showDebugText: true,
 };

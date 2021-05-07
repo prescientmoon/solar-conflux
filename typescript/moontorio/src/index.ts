@@ -17,6 +17,7 @@ import { Junction } from "./systems/junction";
 import { Router } from "./systems/router";
 import { Chest } from "./systems/chest";
 import { tileAt } from "./systems/world";
+import { debugFlags } from "./constants";
 
 export const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -128,6 +129,12 @@ addMachine(new Chest(state, [13, 10], item(`woodChest`)));
 addMachine(new Unloader(state, Direction.Right, [15, 10], `yellowUnloder`));
 addMachine(new ConveyorBelt(state, Direction.Right, [16, 10], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Right, [17, 10], "yellowBelt"));
+addMachine(new Unloader(state, Direction.Right, [15, 11], `yellowUnloder`));
+addMachine(new ConveyorBelt(state, Direction.Right, [16, 11], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Right, [17, 11], "yellowBelt"));
+addMachine(new Unloader(state, Direction.Down, [14, 12], `yellowUnloder`));
+addMachine(new ConveyorBelt(state, Direction.Down, [14, 13], "yellowBelt"));
+addMachine(new ConveyorBelt(state, Direction.Down, [14, 14], "yellowBelt"));
 
 addMachine(new Junction(state, [4, 3], item(`junction`)));
 
@@ -312,7 +319,7 @@ const main = () => {
     }
 
     renderIndicator(getHoveredTile(state.mouse.position), state);
-    renderDebugger(state);
+    if (debugFlags.showDebugText) renderDebugger(state);
     renderPlayer(state);
     ctx.resetTransform();
     requestAnimationFrame(main);
