@@ -1,10 +1,18 @@
 import { mulN2 } from "@thi.ng/vectors";
 import { settings } from "../constants";
-import { GameState, getOptions, loadAsset } from "../gameState";
+import type { GameState } from "../gameState";
 import { beltItemRenderer, beltRenderer } from "../render/belts";
 import { renderTileWithDirection } from "../render/utils/renderTileWithDirection";
 import { addDirection, opposite, relativeTo } from "../utils/direction";
 import { Entity, IUpdate } from "../utils/entity";
+import {
+  decodeDirection,
+  decodeDirectional,
+  decodeRecord,
+  decodeString,
+  IToJson,
+  Json,
+} from "../utils/json";
 import { Direction, Directional, Side, Vec2 } from "../utils/types";
 import {
   BeltCurve,
@@ -16,7 +24,8 @@ import {
   tryPushItem,
 } from "./belts";
 import { hasIItemInput, hasIItemOutput } from "./chest";
-import { machineAt, tileAt } from "./world";
+import { getOptions, machineAt, tileAt } from "./world";
+import { loadAsset } from "./assets";
 
 const textures = {
   loaderRoof: loadAsset("assets/yellow_loader_roof.svg"),
@@ -27,7 +36,32 @@ const loaderLength = 100;
 // Only used for rendering, increased to remove a glitch where the items would render over the roof
 const visualLoaderStretchFactor = 1.3;
 
-export class Loader extends Entity implements IBeltInput, IUpdate {
+// Helpers for serialization
+const encodeLoaderLike = (self: Loader | Unloader): Json => ({
+  item: self.item,
+  transportLine: self.transportLine.encode(),
+  direction: self.direction,
+});
+
+const deocdeLoaderLike = (class_: typeof Loader | typeof Unloader) => (
+  json: Json,
+  world: GameState,
+  position: Vec2
+) => {
+  const { item, transportLine, direction } = decodeRecord({
+    item: decodeString,
+    direction: decodeDirection,
+    transportLine: (a) => a,
+  })(json);
+
+  const self = new class_(world, direction, position, item);
+
+  self.transportLine.decode(transportLine);
+
+  return self;
+};
+
+export class Loader extends Entity implements IBeltInput, IUpdate, IToJson {
   public transportLine: TransportLine;
   public size: Vec2 = [1, 1];
 
@@ -103,6 +137,17 @@ export class Loader extends Entity implements IBeltInput, IUpdate {
       }
     );
   }
+
+  // ========== Json serialization
+  public encode() {
+    return {
+      item: this.item,
+      transportLine: this.transportLine.encode(),
+      direction: this.direction,
+    };
+  }
+
+  public static decode = deocdeLoaderLike(Loader);
 }
 
 // TODO: maybe create an internal belt
@@ -202,4 +247,11 @@ export class Unloader extends Entity implements IBeltOutput, IUpdate {
       }
     );
   }
+
+  // ========== Json serialization
+  public encode() {
+    return encodeLoaderLike(this);
+  }
+
+  public static decode = deocdeLoaderLike(Unloader);
 }

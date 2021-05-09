@@ -1,23 +1,23 @@
-import { addMachine, GameState } from "./gameState";
+import type { GameState } from "./gameState";
 import { pressedKeys } from "./keyboard";
 import { createChunk } from "./map";
 import { beltItemRenderer, beltRenderer } from "./render/belts";
 import { renderPlayer, updatePlayer } from "./player";
-import { Direction, Side } from "./utils/types";
+import { Direction } from "./utils/types";
 import { item, items } from "./items";
 import { allTiles } from "./utils/traversals";
 import { EventEmitter } from "./utils/events";
-
 import { renderDebugger } from "./render/debugScreen";
 import { renderIndicator } from "./render/mouseIndicator";
 import { getHoveredTile } from "./utils/mouse";
-import { addBelt, addBeltLike, BeltCurve, ConveyorBelt } from "./systems/belts";
+import { addBelt, addBeltLike, ConveyorBelt } from "./systems/belts";
 import { Loader, Unloader } from "./systems/loaders";
 import { Junction } from "./systems/junction";
 import { Router } from "./systems/router";
 import { Chest } from "./systems/chest";
-import { tileAt } from "./systems/world";
+import { addMachine, tileAt } from "./systems/world";
 import { debugFlags } from "./constants";
+import "./systems/serialize";
 
 export const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;

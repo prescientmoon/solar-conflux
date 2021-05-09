@@ -1,9 +1,12 @@
-import { Image, Item, ItemConfig, loadAsset, Machine } from "./gameState";
-import { TransportLineConfig } from "./systems/belts";
+import type { Image, Item, ItemConfig } from "./gameState";
+import type { TransportLineConfig } from "./systems/belts";
+import { loadAsset } from "./systems/assets";
 
 const notMadeYet: Image = null as any;
 
 const loadItem = (name: string) => loadAsset(`assets/items/${name}.svg`);
+// const loadAsset = (name: string) => notMadeYet;
+// const loadItem = (name: string) => notMadeYet;
 
 const ensureAllAreConfigs = <T extends string>(
   configs: Record<T, ItemConfig>

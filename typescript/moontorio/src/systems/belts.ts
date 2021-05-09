@@ -1,16 +1,27 @@
-import { GameState, getOptions, Item, Machine } from "../gameState";
+import type { GameState, Item, Machine } from "../gameState";
 import {
   addDirection,
   directions,
   next,
-  opposite,
   prev,
   relativeTo,
 } from "../utils/direction";
 import { Direction, Pair, Side, Vec2 } from "../utils/types";
 import { Entity, ITransform, IUpdate } from "../utils/entity";
-import { machineAt, tileAt } from "./world";
-import { eq2, equals2 } from "@thi.ng/vectors";
+import { getOptions, machineAt } from "./world";
+import { equals2 } from "@thi.ng/vectors";
+import {
+  decodeArray,
+  decodeBoolean,
+  decodeDirection,
+  decodeNumber,
+  decodePair,
+  Decoder,
+  decodeRecord,
+  decodeString,
+  IToJson,
+  Json,
+} from "../utils/json";
 
 // ========== Interfaces:
 export interface IBeltInput {
@@ -34,6 +45,11 @@ export type BeltItem = {
   id: Item;
 };
 
+export const decodeBeltItem: Decoder<BeltItem> = decodeRecord({
+  position: decodeNumber,
+  id: decodeString,
+});
+
 /**
  * All the possible directions a belt can be curved in.
  */
@@ -55,7 +71,7 @@ export type OnMoveOut = (
   position: number
 ) => boolean;
 
-export class TransportLine {
+export class TransportLine implements IToJson {
   public items: Record<Side, BeltItem[]> = [[], []];
 
   /**
@@ -134,6 +150,24 @@ export class TransportLine {
 
     return true;
   }
+
+  // ========== Json serialization
+  public encode() {
+    return {
+      items: this.items,
+      allowNegativePositions: this.allowNegativePositions,
+    };
+  }
+
+  public decode(json: Json) {
+    const { items, allowNegativePositions } = decodeRecord({
+      items: decodePair(decodeArray(decodeBeltItem)),
+      allowNegativePositions: decodeBoolean,
+    })(json);
+
+    this.items = items;
+    this.allowNegativePositions = allowNegativePositions;
+  }
 }
 
 // ========== Generic helpers
@@ -177,7 +211,7 @@ export const emptySpaceTil = <
 // ========== Conveyor belts
 export class ConveyorBelt
   extends Entity
-  implements IBeltInput, IBeltOutput, ITransform, IUpdate {
+  implements IBeltInput, IBeltOutput, ITransform, IUpdate, IToJson {
   public inputs: Direction[] = [];
   public size: Vec2 = [1, 1];
 
@@ -278,6 +312,34 @@ export class ConveyorBelt
 
   public next() {
     return machineAt(this.world, addDirection(this.position, this.direction));
+  }
+
+  // ========== Json serialization
+  public encode() {
+    return {
+      transportLine: this.transportLine.encode(),
+      direction: this.direction,
+      position: this.position,
+      item: this.item,
+      inputs: this.inputs,
+    };
+  }
+
+  public static decode(json: Json, state: GameState) {
+    const { direction, position, item, transportLine, inputs } = decodeRecord({
+      direction: decodeDirection,
+      position: decodePair(decodeNumber),
+      item: decodeString,
+      inputs: decodeArray(decodeDirection),
+      transportLine: (a) => a,
+    })(json);
+
+    const self = new ConveyorBelt(state, direction, position, item);
+
+    self.inputs = inputs;
+    self.transportLine.decode(transportLine);
+
+    return self;
   }
 }
 

@@ -1,11 +1,5 @@
 import { settings } from "../constants";
-import {
-  JunctionConfig,
-  GameState,
-  getOptions,
-  loadAsset,
-  TimedItem,
-} from "../gameState";
+import type { JunctionConfig, GameState, TimedItem } from "../gameState";
 import {
   addDirection,
   directions,
@@ -13,22 +7,25 @@ import {
   relativeTo,
 } from "../utils/direction";
 import { Entity, ITransform, IUpdate } from "../utils/entity";
-import { neighbours } from "../utils/machine";
 import {
-  Direction,
-  Directional,
-  Pair,
-  Side,
-  Sided,
-  Vec2,
-} from "../utils/types";
+  decodeArray,
+  decodeDirectional,
+  decodePair,
+  decodeRecord,
+  decodeString,
+  IToJson,
+  Json,
+} from "../utils/json";
+import { Direction, Directional, Side, Sided, Vec2 } from "../utils/types";
 import { BeltItem, IBeltInput, IBeltOutput, tryPushItem } from "./belts";
+import { decodeTimedItem, getOptions } from "./world";
+import { loadAsset } from "./assets";
 
 const texture = loadAsset("assets/junction.svg");
 
 export class Junction
   extends Entity
-  implements IBeltInput, IBeltOutput, IUpdate, ITransform {
+  implements IBeltInput, IBeltOutput, IUpdate, ITransform, IToJson {
   public transportLines: Directional<
     Sided<TimedItem[]>
   > = directions.map(() => [[], []]) as any;
@@ -105,5 +102,28 @@ export class Junction
       this.position[0] * settings.tileSize,
       this.position[1] * settings.tileSize
     );
+  }
+
+  // ========== Json serialization
+  public encode() {
+    return ({
+      transportLines: this.transportLines,
+      item: this.item,
+    } as any) as Json; // god knows why ts doesnt allow me to use this directly
+  }
+
+  public static decode(json: Json, state: GameState, position: Vec2) {
+    const { transportLines, item } = decodeRecord({
+      item: decodeString,
+      transportLines: decodeDirectional(
+        decodePair(decodeArray(decodeTimedItem))
+      ),
+    })(json);
+
+    const self = new Junction(state, position, item);
+
+    self.transportLines = transportLines;
+
+    return self;
   }
 }

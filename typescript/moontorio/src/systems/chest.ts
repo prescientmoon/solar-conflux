@@ -1,13 +1,17 @@
-import {
-  ChestConfig,
-  GameState,
-  getOptions,
-  getStackSize,
-  Item,
-} from "../gameState";
+import type { ChestConfig, GameState, Item } from "../gameState";
 import { renderSimpleTile } from "../render/simpleTile";
 import { Entity, ITransform, IUpdate } from "../utils/entity";
+import {
+  decodeArray,
+  decodeNullable,
+  decodeNumber,
+  decodeRecord,
+  decodeString,
+  IToJson,
+  Json,
+} from "../utils/json";
 import { Nullable, Vec2 } from "../utils/types";
+import { getOptions, getStackSize } from "./world";
 
 // ========= Interfaces
 export interface IItemInput {
@@ -25,7 +29,7 @@ export const hasIItemOutput = (e: Entity): e is IItemOutput & Entity =>
   typeof (e as Entity & IItemOutput).takeItems === "function";
 
 // Reusable bare bones inventory
-export class Storage implements IItemInput, IItemOutput {
+export class Storage implements IItemInput, IItemOutput, IToJson {
   public items: Nullable<{ stackSize: number; id: Item; amount: number }>[];
 
   public constructor(public world: GameState, public slots: number) {
@@ -73,11 +77,30 @@ export class Storage implements IItemInput, IItemOutput {
 
     return result;
   }
+
+  // ========== Json serialization
+  public encode() {
+    return this.items;
+  }
+
+  public decode(json: Json) {
+    const items = decodeArray(
+      decodeNullable(
+        decodeRecord({
+          stackSize: decodeNumber,
+          amount: decodeNumber,
+          id: decodeString,
+        })
+      )
+    )(json);
+
+    this.items = items;
+  }
 }
 
 export class Chest
   extends Entity
-  implements ITransform, IUpdate, IItemInput, IItemOutput {
+  implements ITransform, IUpdate, IItemInput, IItemOutput, IToJson {
   public config: ChestConfig;
   public size: Vec2;
   public storage: Storage;
@@ -108,5 +131,26 @@ export class Chest
 
   public renderBuilding() {
     renderSimpleTile(this, this.item);
+  }
+
+  // ========== Json serialization
+  public encode() {
+    return {
+      item: this.item,
+      storage: this.storage.encode(),
+    };
+  }
+
+  public static decode(json: Json, world: GameState, position: Vec2) {
+    const { item, storage } = decodeRecord({
+      item: decodeString,
+      storage: (a) => a,
+    })(json);
+
+    const self = new Chest(world, position, item);
+
+    self.storage.decode(storage);
+
+    return self;
   }
 }

@@ -4,6 +4,7 @@ import { TransportLineConfig } from "./systems/belts";
 import { setTileAt, splitPosition } from "./systems/world";
 import { Entity, ITransform, IUpdate } from "./utils/entity";
 import { EventEmitter } from "./utils/events";
+import { IToJson } from "./utils/json";
 import type { Nullable, TaggedUnion, Vec2 } from "./utils/types";
 
 export type Item = string;
@@ -13,7 +14,7 @@ export interface TimedItem {
   birth: number;
 }
 
-export type Machine = Entity & ITransform & IUpdate;
+export type Machine = Entity & ITransform & IUpdate & IToJson;
 
 export type Tile = {
   subTile: Vec2;
@@ -97,68 +98,3 @@ export type Renderer = {
 
 // ========== Asset stuff
 export type Image = HTMLImageElement;
-
-let imageMap = new Map<string, Image>();
-
-export const loadAsset = (src: string): Image => {
-  if (imageMap.has(src)) return imageMap.get(src)!;
-
-  const result = new Image();
-  result.src = src;
-
-  result.onload = () => {
-    result.height = result.naturalHeight;
-    result.width = result.naturalWidth;
-  };
-
-  imageMap.set(src, result);
-
-  return result;
-};
-
-// ========== Helpers
-export const addMachine = (machine: Machine) => {
-  // console.log(machine);
-
-  const { position, world } = machine;
-
-  // Ensure chunk exists
-  {
-    const [chunkPos, , chunkDirection] = splitPosition(position);
-
-    const chunk =
-      world.map.chunkMap[chunkDirection[0]][chunkDirection[1]][chunkPos[0]][
-        chunkPos[1]
-      ];
-
-    if (!chunk) return;
-  }
-
-  for (let i = 0; i < machine.size[0]; i++) {
-    for (let j = 0; j < machine.size[1]; j++) {
-      setTileAt(world, [position[0] + i, position[1] + j], {
-        subTile: [i, j],
-        machine,
-      });
-    }
-  }
-
-  world.emitter.emit("machineCreated", {
-    machine,
-  });
-};
-
-export const getOptions = <T extends ItemOptions[`type`]>(
-  state: GameState,
-  item: string,
-  kind: T
-): (ItemOptions & { type: T }) | null => {
-  const config = state.items[item]?.options;
-
-  if (config === undefined) return null;
-
-  return config.type === kind ? (config as any) : null;
-};
-
-export const getStackSize = (state: GameState, item: Item) =>
-  state.items[item].stackSize ?? 0;

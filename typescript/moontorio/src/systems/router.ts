@@ -1,21 +1,26 @@
 import { settings } from "../constants";
-import {
-  GameState,
-  getOptions,
-  loadAsset,
-  TimedItem,
-  RouterConfig,
-} from "../gameState";
+import type { GameState, TimedItem, RouterConfig } from "../gameState";
 import { Entity, ITransform, IUpdate } from "../utils/entity";
+import {
+  decodeArray,
+  decodeNumber,
+  decodePair,
+  decodeRecord,
+  decodeString,
+  IToJson,
+  Json,
+} from "../utils/json";
 import { neighbours, neighboursWithSource } from "../utils/machine";
-import { Direction, Side, Sided, Vec2 } from "../utils/types";
+import { Side, Sided, Vec2 } from "../utils/types";
 import { BeltItem, IBeltInput, IBeltOutput, tryPushItem } from "./belts";
+import { decodeTimedItem, getOptions } from "./world";
+import { loadAsset } from "./assets";
 
 const texture = loadAsset("assets/router.svg");
 
 export class Router
   extends Entity
-  implements IBeltInput, IBeltOutput, IUpdate, ITransform {
+  implements IBeltInput, IBeltOutput, IUpdate, ITransform, IToJson {
   public items: Sided<TimedItem[]> = [[], []];
 
   private directionClock: Sided<number> = [0, 0];
@@ -104,5 +109,29 @@ export class Router
       settings.tileSize * this.config.size,
       settings.tileSize * this.config.size
     );
+  }
+
+  // ========== Json serialization
+  public encode() {
+    return ({
+      items: this.items,
+      item: this.item,
+      directionClock: this.directionClock,
+    } as any) as Json; // god knows why ts doesnt allow me to use this directly
+  }
+
+  public static decode(json: Json, state: GameState, position: Vec2) {
+    const { items, item, directionClock } = decodeRecord({
+      item: decodeString,
+      directionClock: decodePair(decodeNumber),
+      items: decodePair(decodeArray(decodeTimedItem)),
+    })(json);
+
+    const self = new Router(state, position, item);
+
+    self.items = items;
+    self.directionClock = directionClock;
+
+    return self;
   }
 }
