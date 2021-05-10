@@ -1,11 +1,11 @@
 import type { KeyboardState } from "./keyboard";
 import type { Player } from "./player";
-import { TransportLineConfig } from "./systems/belts";
-import { setTileAt, splitPosition } from "./systems/world";
-import { Entity, ITransform, IUpdate } from "./utils/entity";
-import { EventEmitter } from "./utils/events";
-import { IToJson } from "./utils/json";
-import type { Nullable, TaggedUnion, Vec2 } from "./utils/types";
+import type { TransportLineConfig } from "./systems/belts";
+import type { Entity, ITransform, IUpdate } from "./utils/entity";
+import type { EventEmitter } from "./utils/events";
+import type { IToJson } from "./utils/json";
+import type { FiniteMatrix, InfiniteMatrix } from "./utils/matrix";
+import type { TaggedUnion, Vec2 } from "./utils/types";
 
 export type Item = string;
 
@@ -21,12 +21,10 @@ export type Tile = {
   machine: Machine;
 };
 
-export type Chunk = Nullable<Tile>[][];
-
-export type DirectionChunkMatrixes = Nullable<Chunk>[][];
+export type Chunk = FiniteMatrix<Tile | null>;
 
 export interface GameMap {
-  chunkMap: DirectionChunkMatrixes[][];
+  chunkMap: InfiniteMatrix<Chunk>;
 }
 
 export interface JunctionConfig {

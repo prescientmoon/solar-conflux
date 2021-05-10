@@ -1,12 +1,9 @@
 import type { GameState } from "./gameState";
-import { pressedKeys } from "./keyboard";
-import { createChunk } from "./map";
 import { beltItemRenderer, beltRenderer } from "./render/belts";
 import { renderPlayer, updatePlayer } from "./player";
 import { Direction } from "./utils/types";
 import { item, items } from "./items";
 import { allTiles } from "./utils/traversals";
-import { EventEmitter } from "./utils/events";
 import { renderDebugger } from "./render/debugScreen";
 import { renderIndicator } from "./render/mouseIndicator";
 import { getHoveredTile } from "./utils/mouse";
@@ -15,59 +12,15 @@ import { Loader, Unloader } from "./systems/loaders";
 import { Junction } from "./systems/junction";
 import { Router } from "./systems/router";
 import { Chest } from "./systems/chest";
-import { addMachine, tileAt } from "./systems/world";
+import { addMachine, initialState, tileAt } from "./systems/world";
 import { debugFlags } from "./constants";
 import "./systems/serialize";
+import "./utils/matrix";
+import { addChunk } from "./map";
 
 export const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
-const state: GameState = {
-  ctx,
-  camera: {
-    translation: [canvas.width / 2, canvas.height / 2],
-    scale: 1,
-  },
-  keyboard: pressedKeys(),
-  player: {
-    position: [0, 0],
-    rotation: 0,
-    speedMultiplier: 3,
-  },
-  map: {
-    chunkMap: [
-      [
-        [
-          [createChunk(), createChunk()],
-          [createChunk(), createChunk()],
-        ],
-        [
-          [createChunk(), createChunk()],
-          [createChunk(), createChunk()],
-        ],
-      ],
-      [
-        [
-          [createChunk(), createChunk()],
-          [createChunk(), createChunk()],
-        ],
-        [
-          [createChunk(), createChunk()],
-          [createChunk(), createChunk()],
-        ],
-      ],
-    ],
-  },
-  mouse: {
-    position: [0, 0],
-  },
-  items,
-  tick: 0,
-  time: 0,
-  paused: false,
-  pausedTimeDifference: 0,
-  lastPausedAt: 0,
-  emitter: new EventEmitter(),
-};
+const state: GameState = initialState(ctx, items);
 
 state.emitter.on("machineCreated", (d) => {
   addBeltLike(state, d.machine);
@@ -75,6 +28,11 @@ state.emitter.on("machineCreated", (d) => {
 });
 
 // ========== Demo scene
+addChunk(state, [0, 0]);
+addChunk(state, [-1, 0]);
+addChunk(state, [0, -1]);
+addChunk(state, [-1, -1]);
+
 addMachine(new ConveyorBelt(state, Direction.Right, [3, 13], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Right, [4, 13], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Up, [3, 14], "yellowBelt"));
@@ -212,6 +170,8 @@ const testBelts = [
 ] as ConveyorBelt[];
 
 for (const belt of testBelts) {
+  if (!belt) continue;
+
   belt.transportLine.items[0].push(
     ...Array(12)
       .fill(1)
@@ -272,7 +232,7 @@ const main = () => {
     updatePlayer(state);
     adjustCamera();
 
-    for (const [tile] of allTiles(state)) {
+    for (const tile of allTiles(state)) {
       if (tile === null) continue;
       tile.machine.update();
     }
@@ -280,7 +240,7 @@ const main = () => {
     // Actual rendering:
     ctx.translate(state.camera.translation[0], state.camera.translation[1]);
 
-    for (const [tile] of allTiles(state)) {
+    for (const tile of allTiles(state)) {
       if (tile === null || tile.subTile[0] || tile.subTile[1]) continue;
       if (tile.machine instanceof ConveyorBelt)
         beltRenderer(state, tile.machine);
@@ -291,7 +251,7 @@ const main = () => {
         tile.machine.renderGround();
     }
 
-    for (const [tile] of allTiles(state)) {
+    for (const tile of allTiles(state)) {
       if (tile === null || tile.subTile[0] || tile.subTile[1]) continue;
       if (tile.machine instanceof ConveyorBelt)
         beltItemRenderer(state, tile.machine);
@@ -302,7 +262,7 @@ const main = () => {
         tile.machine.renderItems();
     }
 
-    for (const [tile] of allTiles(state)) {
+    for (const tile of allTiles(state)) {
       if (tile === null || tile.subTile[0] || tile.subTile[1]) continue;
       else if (
         tile.machine instanceof Junction ||

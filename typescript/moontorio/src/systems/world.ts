@@ -1,3 +1,4 @@
+import { settings } from "../constants";
 import type {
   GameState,
   Machine,
@@ -5,10 +6,9 @@ import type {
   ItemOptions,
   Item,
   TimedItem,
+  ItemConfig,
 } from "../gameState";
 import { pressedKeys } from "../keyboard";
-import { chunkSize } from "../map";
-import type { Entity } from "../utils/entity";
 import { EventEmitter } from "../utils/events";
 import {
   decodeNumber,
@@ -16,23 +16,42 @@ import {
   decodeRecord,
   decodeString,
 } from "../utils/json";
+import { InfiniteMatrix, Isomorphism } from "../utils/matrix";
 import type { Vec2 } from "../utils/types";
+import { createChunkmapElement } from "./serialize";
 
-export const splitPosition = (position: Vec2): [Vec2, Vec2, Vec2] => [
-  [
-    Math.abs(Math.floor(position[0] / chunkSize)),
-    Math.abs(Math.floor(position[1] / chunkSize)),
-  ],
-  [Math.abs(position[0] % chunkSize), Math.abs(position[1] % chunkSize)],
-  [position[0] >= 0 ? 0 : 1, position[1] >= 0 ? 0 : 1],
-];
+const absMod = (a: number, mod: number) => {
+  if (a < 0) return mod + (a % mod);
 
-export const tileAt = (state: GameState, position: Vec2): Tile | null =>
-  state.map.chunkMap[position[0] >= 0 ? 0 : 1][position[1] >= 0 ? 0 : 1][
-    Math.abs(Math.floor(position[0] / chunkSize))
-  ][Math.abs(Math.floor(position[1] / chunkSize))]?.[
-    Math.abs(position[0] % chunkSize)
-  ][Math.abs(position[1] % chunkSize)] ?? null;
+  return a % mod;
+};
+
+export const absoluteToSplit: Isomorphism<Vec2, { chunk: Vec2; tile: Vec2 }> = {
+  do(input: Vec2) {
+    return {
+      chunk: [
+        Math.floor(input[0] / settings.chunkSize),
+        Math.floor(input[1] / settings.chunkSize),
+      ],
+      tile: [
+        absMod(input[0], settings.chunkSize),
+        absMod(input[1], settings.chunkSize),
+      ],
+    };
+  },
+  undo({ chunk, tile }) {
+    return [
+      tile[0] + chunk[0] * settings.chunkSize,
+      tile[1] + chunk[1] * settings.chunkSize,
+    ];
+  },
+};
+
+export const tileAt = (state: GameState, position: Vec2): Tile | null => {
+  const { chunk, tile } = absoluteToSplit.do(position);
+
+  return state.map.chunkMap.get(chunk)?.get(tile) ?? null;
+};
 
 /**
  * Sets the tile at an absolute position. Assume the chunk exists.
@@ -40,13 +59,11 @@ export const tileAt = (state: GameState, position: Vec2): Tile | null =>
 export const setTileAt = (
   state: GameState,
   position: Vec2,
-  tile: Tile | null
+  value: Tile | null
 ) => {
-  state.map.chunkMap[position[0] >= 0 ? 0 : 1][position[1] >= 0 ? 0 : 1][
-    Math.abs(Math.floor(position[0] / chunkSize))
-  ][Math.abs(Math.floor(position[1] / chunkSize))]![
-    Math.abs(position[0] % chunkSize)
-  ][Math.abs(position[1] % chunkSize)] = tile;
+  const { chunk, tile } = absoluteToSplit.do(position);
+
+  state.map.chunkMap.get(chunk)?.set(tile, value);
 };
 
 export const machineAt = (state: GameState, position: Vec2): Machine | null => {
@@ -60,15 +77,11 @@ export const machineAt = (state: GameState, position: Vec2): Machine | null => {
 // ========== Helpers
 export const addMachine = (machine: Machine) => {
   const { position, world } = machine;
+  const split = absoluteToSplit.do(position);
 
   // Ensure chunk exists
   {
-    const [chunkPos, , chunkDirection] = splitPosition(position);
-
-    const chunk =
-      world.map.chunkMap[chunkDirection[0]][chunkDirection[1]][chunkPos[0]][
-        chunkPos[1]
-      ];
+    const chunk = world.map.chunkMap.get(split.chunk);
 
     if (!chunk) return;
   }
@@ -108,32 +121,36 @@ export const decodeTimedItem: Decoder<TimedItem> = decodeRecord({
   birth: decodeNumber,
 });
 
-export const initialState = (ctx: CanvasRenderingContext2D): GameState => ({
-  ctx,
-  camera: {
-    translation: [ctx.canvas.width / 2, ctx.canvas.height / 2],
-    scale: 1,
-  },
-  keyboard: pressedKeys(),
-  player: {
-    position: [0, 0],
-    rotation: 0,
-    speedMultiplier: 3,
-  },
-  map: {
-    chunkMap: [
-      [[], []],
-      [[], []],
-    ],
-  },
-  mouse: {
-    position: [0, 0],
-  },
-  items: {},
-  tick: 0,
-  time: 0,
-  paused: false,
-  pausedTimeDifference: 0,
-  lastPausedAt: 0,
-  emitter: new EventEmitter(),
-});
+export const initialState = (
+  ctx: CanvasRenderingContext2D,
+  items: Record<string, ItemConfig>
+) => {
+  const world: GameState = {
+    ctx,
+    camera: {
+      translation: [ctx.canvas.width / 2, ctx.canvas.height / 2],
+      scale: 1,
+    },
+    keyboard: pressedKeys(),
+    player: {
+      position: [0, 0],
+      rotation: 0,
+      speedMultiplier: 3,
+    },
+    map: {
+      chunkMap: new InfiniteMatrix(createChunkmapElement(() => world)),
+    },
+    mouse: {
+      position: [0, 0],
+    },
+    items,
+    tick: 0,
+    time: 0,
+    paused: false,
+    pausedTimeDifference: 0,
+    lastPausedAt: 0,
+    emitter: new EventEmitter(),
+  };
+
+  return world;
+};

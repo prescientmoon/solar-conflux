@@ -1,7 +1,7 @@
-import { Chunk, Tile } from "./gameState";
-import { replicate } from "./utils/array";
+import { GameState } from "./gameState";
+import { creteChunk } from "./systems/serialize";
+import { Vec2 } from "./utils/types";
 
-export const chunkSize = 32;
-
-export const createChunk = (): Chunk =>
-  replicate(() => replicate(() => null, chunkSize), chunkSize);
+export const addChunk = (world: GameState, position: Vec2) => {
+  world.map.chunkMap.set(position, creteChunk(world, position));
+};

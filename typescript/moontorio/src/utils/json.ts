@@ -5,10 +5,15 @@ export type Json = number | boolean | string | null | Json[] | JsonObject;
 export interface JsonObject extends Record<string, Json> {}
 
 export type Decoder<T> = Fn<Json, T>;
+export type Encoder<T> = Fn<T, Json>;
 type Undecode<T> = T extends Decoder<infer R> ? R : never;
 
 export interface IToJson {
   encode(): Json;
+}
+
+export interface IFromJson {
+  decode(json: Json): void;
 }
 
 // Only use this internally in this module!!!
@@ -54,11 +59,17 @@ export const decodePair = <T>(inner: Decoder<T>) =>
 export const decodeDirectional = <T>(inner: Decoder<T>) =>
   (decodeFixedArray(4, inner) as unknown) as Decoder<Directional<T>>;
 
+const isObject = (val: Json): val is JsonObject => {
+  if (typeof val !== `object` || val === null || Array.isArray(val))
+    return false;
+
+  return true;
+};
+
 export const decodeRecord = <T extends Record<string, Decoder<unknown>>>(
   decoders: T
 ): Decoder<{ [K in keyof T]: Undecode<T[K]> }> => (val) => {
-  if (typeof val !== `object` || val === null || Array.isArray(val))
-    throw new Error(`${val} is not an object`);
+  if (!isObject(val)) throw new Error(`Expected ${val} to be an object`);
 
   const result: Record<string, any> = {};
 
@@ -94,8 +105,9 @@ export const decodeOptionalField = <T>(
   name: string,
   inner: Decoder<T>
 ): Decoder<T | null> => (value) => {
-  const obj: JsonObject = decodeRecord({})(value);
-  const prop = obj[name];
+  if (!isObject(value)) throw new Error(`Expected ${value} to be an object`);
+
+  const prop = value[name];
 
   if (prop === undefined) return null;
 
@@ -103,15 +115,21 @@ export const decodeOptionalField = <T>(
 };
 
 export const oneOf = <T>(...decoders: Decoder<T>[]): Decoder<T> => (json) => {
+  const errors: string[] = [];
   for (const decoder of decoders) {
     try {
       const decoded = decoder(json);
 
       return decoded;
-    } catch {
+    } catch (e) {
+      errors.push(e.message);
       continue;
     }
   }
 
-  throw new Error(`Un-decodeable json ${json}`);
+  throw new Error(
+    `Un-decodeable json ${json}.\nThe following errors occured:\n${errors.join(
+      `\n`
+    )}`
+  );
 };

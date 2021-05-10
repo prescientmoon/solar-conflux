@@ -1,13 +1,7 @@
-import type {
-  Chunk,
-  DirectionChunkMatrixes,
-  GameState,
-  Machine,
-} from "../gameState";
-import { chunkSize } from "../map";
+import { sub2 } from "@thi.ng/vectors";
+import { settings } from "../constants";
+import type { Chunk, GameState, Machine, Tile } from "../gameState";
 import {
-  decodeFixedMatrix,
-  decodeMatrix,
   decodeNumber,
   decodeOptionalField,
   decodePair,
@@ -15,34 +9,17 @@ import {
   Json,
   oneOf,
 } from "../utils/json";
-import { Vec2 } from "../utils/types";
+import { FiniteMatrix } from "../utils/matrix";
+import { Lazy, Nullable, Vec2 } from "../utils/types";
 import { ConveyorBelt } from "./belts";
 import { Chest } from "./chest";
 import { Junction } from "./junction";
 import { Loader, Unloader } from "./loaders";
 import { Router } from "./router";
-import { machineAt } from "./world";
+import { absoluteToSplit, machineAt } from "./world";
 
 export const encodeWorld = (world: GameState): Json => {
-  const map = world.map.chunkMap.map((i) =>
-    i.map((i) =>
-      i.map((i) =>
-        i.map((i) =>
-          i?.map((i) =>
-            i.map((i) => {
-              if (i === null) return null;
-              if (i.subTile[0] || i.subTile[1]) return { subTile: i.subTile };
-
-              return {
-                subTile: i.subTile,
-                machine: i.machine.encode(),
-              };
-            })
-          )
-        )
-      )
-    )
-  );
+  const map = world.map.chunkMap.encode();
 
   return {
     tick: world.tick,
@@ -50,6 +27,74 @@ export const encodeWorld = (world: GameState): Json => {
     camera: world.camera,
     map,
   };
+};
+
+const encodeTile = (tile: Nullable<Tile>): Json => {
+  if (tile === null) return null;
+
+  if (tile.subTile[0] || tile.subTile[1]) return { subTile: tile.subTile };
+
+  return {
+    subTile: tile.subTile,
+    machine: tile.machine.encode(),
+  };
+};
+
+export const decodeTile = (
+  tileJson: Json,
+  world: GameState,
+  tilePosition: Vec2,
+  chunkPosition: Vec2
+) => {
+  if (tileJson === null) return null;
+
+  const { subTile } = decodeRecord({
+    subTile: decodePair(decodeNumber),
+  })(tileJson);
+
+  const position = absoluteToSplit.undo({
+    chunk: chunkPosition,
+    tile: tilePosition,
+  });
+
+  const machine = decodeOptionalField(
+    `machine`,
+    oneOf<Machine>(
+      (json) => ConveyorBelt.decode(json, world),
+      (json) => Router.decode(json, world, position),
+      (json) => Junction.decode(json, world, position),
+      (json) => Chest.decode(json, world, position),
+      (json) => Loader.decode(json, world, position),
+      (json) => Unloader.decode(json, world, position)
+    )
+  )(tileJson);
+
+  if (position[0] === 1 && position[1] === 0) {
+    console.log({ position, tilePosition, chunkPosition, tileJson, machine });
+    console.log(world.map.chunkMap.get([0, 0])?.elements);
+  }
+
+  return {
+    subTile,
+    machine:
+      machine ?? machineAt(world, sub2(null, position, subTile) as Vec2)!,
+  };
+};
+
+export const creteChunk = (world: GameState, chunkPosition: Vec2) => {
+  return new FiniteMatrix(
+    settings.chunkSize,
+    settings.chunkSize,
+    encodeTile,
+    (element, tilePosition) =>
+      decodeTile(element, world, tilePosition, chunkPosition)
+  );
+};
+
+export const createChunkmapElement = (lworld: Lazy<GameState>) => (
+  chunkPosition: Vec2
+): Chunk => {
+  return creteChunk(lworld(), chunkPosition);
 };
 
 export const decodeWorld = (json: Json, world: GameState) => {
@@ -70,82 +115,5 @@ export const decodeWorld = (json: Json, world: GameState) => {
   world.camera = camera;
   world.player = player;
   world.tick = tick;
-
-  const chunkMapJson = decodeFixedMatrix(2, (a) => a)(map);
-  const chunks: DirectionChunkMatrixes[][] = [
-    [[], []],
-    [[], []],
-  ];
-
-  world.map = { chunkMap: chunks };
-
-  for (const chunkDirectionX of [0, 1]) {
-    for (const chunkDirectionY of [0, 1]) {
-      const chunkGroup = decodeMatrix((a) => a)(
-        chunkMapJson[chunkDirectionX][chunkDirectionY]
-      );
-
-      for (let chunkX = 0; chunkX < chunkGroup.length; chunkX++) {
-        if (chunks[chunkDirectionX][chunkDirectionY][chunkX] === undefined)
-          chunks[chunkDirectionX][chunkDirectionY][chunkX] = [];
-
-        for (let chunkY = 0; chunkY < chunkGroup[chunkX].length; chunkY++) {
-          if (chunkGroup[chunkX][chunkY] === null) {
-            chunks[chunkDirectionX][chunkDirectionY][chunkX][chunkY] = null;
-            continue;
-          }
-
-          const chunkJson = decodeFixedMatrix(
-            chunkSize,
-            (a) => a
-          )(chunkGroup[chunkX][chunkY]);
-
-          const chunk: Chunk = [];
-          chunks[chunkDirectionX][chunkDirectionY][chunkX][chunkY] = chunk;
-
-          for (let tileX = 0; tileX < chunkSize; tileX++) {
-            for (let tileY = 0; tileY < chunkSize; tileY++) {
-              const tileJson = chunkJson[tileX][tileY];
-
-              if (tileJson === null) {
-                chunk[tileX][tileY] = null;
-                continue;
-              }
-
-              const { subTile } = decodeRecord({
-                subTile: decodePair(decodeNumber),
-              })(tileJson);
-
-              const position: Vec2 = [
-                (chunkDirectionX === 0 ? -1 : 1) * (chunkX * chunkSize + tileX),
-                (chunkDirectionY === 0 ? -1 : 1) * (chunkY * chunkSize + tileY),
-              ];
-
-              const machine = decodeOptionalField(
-                `machine`,
-                oneOf<Machine>(
-                  (json) => ConveyorBelt.decode(json, world),
-                  (json) => Router.decode(json, world, position),
-                  (json) => Junction.decode(json, world, position),
-                  (json) => Chest.decode(json, world, position),
-                  (json) => Loader.decode(json, world, position),
-                  (json) => Unloader.decode(json, world, position)
-                )
-              )(tileJson);
-
-              chunk[tileX][tileY] = {
-                subTile,
-                machine: machine ?? machineAt(world, position)!,
-              };
-            }
-          }
-        }
-      }
-    }
-  }
+  world.map.chunkMap.decode(map);
 };
-
-// @ts-ignore
-window.save = encodeWorld;
-// @ts-ignore
-window.decode = decodeWorld;
