@@ -8,6 +8,7 @@ import type {
   TimedItem,
   ItemConfig,
 } from "../gameState";
+import { recipes } from "../items";
 import { pressedKeys } from "../keyboard";
 import { EventEmitter } from "../utils/events";
 import {
@@ -144,6 +145,7 @@ export const initialState = (
       position: [0, 0],
     },
     items,
+    recipes: recipes,
     tick: 0,
     time: 0,
     paused: false,

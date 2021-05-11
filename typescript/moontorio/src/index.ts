@@ -12,11 +12,12 @@ import { Loader, Unloader } from "./systems/loaders";
 import { Junction } from "./systems/junction";
 import { Router } from "./systems/router";
 import { Chest } from "./systems/chest";
-import { addMachine, initialState, tileAt } from "./systems/world";
+import { addMachine, initialState, machineAt, tileAt } from "./systems/world";
 import { debugFlags } from "./constants";
 import "./systems/serialize";
 import "./utils/matrix";
 import { addChunk } from "./map";
+import { Assembler } from "./systems/assembler";
 
 export const canvas = document.getElementById("canvas")! as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -157,16 +158,28 @@ addMachine(new ConveyorBelt(state, Direction.Left, [-1, 1], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Up, [-2, 1], "yellowBelt"));
 addMachine(new ConveyorBelt(state, Direction.Right, [-2, 0], "yellowBelt"));
 
+addMachine(new ConveyorBelt(state, Direction.Up, [-9, 4], item(`yellowBelt`)));
+addMachine(new ConveyorBelt(state, Direction.Up, [-9, 3], item(`yellowBelt`)));
+addMachine(new ConveyorBelt(state, Direction.Up, [-9, 2], item(`yellowBelt`)));
+addMachine(new Loader(state, Direction.Up, [-9, 1], item(`yellowLoader`)));
+addMachine(
+  new Assembler(state, [-10, -2], item(`assembler`)).setRecipe(state.recipes[0])
+);
+addMachine(new Unloader(state, Direction.Up, [-9, -3], item(`yellowUnloder`)));
+addMachine(new ConveyorBelt(state, Direction.Up, [-9, -4], item(`yellowBelt`)));
+addMachine(new ConveyorBelt(state, Direction.Up, [-9, -5], item(`yellowBelt`)));
+addMachine(new ConveyorBelt(state, Direction.Up, [-9, -6], item(`yellowBelt`)));
+
 const testBelts = [
-  tileAt(state, [3, 3])?.machine,
-  tileAt(state, [2, 2])?.machine,
-  tileAt(state, [10, 10])?.machine,
-  tileAt(state, [4, 13])?.machine,
-  tileAt(state, [-3, -13])?.machine,
-  tileAt(state, [-8, -15])?.machine,
-  tileAt(state, [-1, -3])?.machine,
-  tileAt(state, [0, 7])?.machine,
-  tileAt(state, [9, 0])?.machine,
+  machineAt(state, [3, 3]),
+  machineAt(state, [2, 2]),
+  machineAt(state, [10, 10]),
+  machineAt(state, [4, 13]),
+  machineAt(state, [-3, -13]),
+  machineAt(state, [-8, -15]),
+  machineAt(state, [-1, -3]),
+  machineAt(state, [0, 7]),
+  machineAt(state, [9, 0]),
 ] as ConveyorBelt[];
 
 for (const belt of testBelts) {
@@ -189,6 +202,23 @@ for (const belt of testBelts) {
       }))
   );
 }
+
+(machineAt(state, [-9, 2]) as ConveyorBelt).transportLine.items[0].push(
+  ...Array(4)
+    .fill(1)
+    .map((_, index) => ({
+      id: item("ironPlate"),
+      position: index * 5,
+    }))
+);
+(machineAt(state, [-9, 2]) as ConveyorBelt).transportLine.items[1].push(
+  ...Array(12)
+    .fill(1)
+    .map((_, index) => ({
+      id: item(`copperPlate`),
+      position: index * 5,
+    }))
+);
 
 ctx.imageSmoothingEnabled = false;
 
@@ -233,7 +263,7 @@ const main = () => {
     adjustCamera();
 
     for (const tile of allTiles(state)) {
-      if (tile === null) continue;
+      if (tile === null || tile.subTile[0] || tile.subTile[1]) continue;
       tile.machine.update();
     }
 
@@ -269,7 +299,8 @@ const main = () => {
         tile.machine instanceof Router ||
         tile.machine instanceof Loader ||
         tile.machine instanceof Unloader ||
-        tile.machine instanceof Chest
+        tile.machine instanceof Chest ||
+        tile.machine instanceof Assembler
       )
         tile.machine.renderBuilding();
     }

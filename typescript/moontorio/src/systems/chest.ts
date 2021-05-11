@@ -32,7 +32,11 @@ export const hasIItemOutput = (e: Entity): e is IItemOutput & Entity =>
 export class Storage implements IItemInput, IItemOutput, IToJson {
   public items: Nullable<{ stackSize: number; id: Item; amount: number }>[];
 
-  public constructor(public world: GameState, public slots: number) {
+  public constructor(
+    public world: GameState,
+    public slots: number,
+    public resetIds = true
+  ) {
     this.items = Array(slots).fill(null);
   }
 
@@ -65,17 +69,29 @@ export class Storage implements IItemInput, IItemOutput, IToJson {
       const slot = this.items[slotIndex];
 
       if (slot === null) continue;
+      if (slot.amount === 0) continue;
 
-      while (amount-- && slot.amount--) {
+      while (amount && slot.amount) {
+        amount--;
+        slot.amount--;
         result.push(slot.id);
       }
 
-      if (slot.amount === 0) {
+      if (slot.amount === 0 && this.resetIds) {
         this.items[slotIndex] = null;
       }
     }
 
     return result;
+  }
+
+  // TODO: handle items already inside the storage
+  public setSlots(items: Record<Item, number>) {
+    this.items = Object.entries(items).map(([id, amount]) => ({
+      amount: 0,
+      id,
+      stackSize: getStackSize(this.world, id),
+    }));
   }
 
   // ========== Json serialization

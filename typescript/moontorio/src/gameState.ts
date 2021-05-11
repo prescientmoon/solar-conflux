@@ -44,6 +44,11 @@ export interface ChestConfig {
   size: number;
 }
 
+export interface AssemblerConfig {
+  size: number;
+  speed: number;
+}
+
 export type ItemOptions = TaggedUnion<{
   conveyorBelt: TransportLineConfig;
   loader: TransportLineConfig;
@@ -51,6 +56,7 @@ export type ItemOptions = TaggedUnion<{
   junction: JunctionConfig;
   router: RouterConfig;
   chest: ChestConfig;
+  assembler: AssemblerConfig;
 }>;
 
 export interface ItemConfig {
@@ -80,6 +86,7 @@ export interface GameState {
   player: Player;
   map: GameMap;
   items: Record<Item, ItemConfig>;
+  recipes: Array<Recipe>;
   mouse: Mouse;
   tick: number;
   time: number;
@@ -89,10 +96,15 @@ export interface GameState {
   emitter: EventEmitter<GameEvents>;
 }
 
-export type Renderer = {
-  render: (state: GameState) => void;
-  z: number;
-};
+export interface Recipe {
+  inputs: Record<Item, number>;
+  outputs: Record<Item, number>;
+
+  /**
+   * Time it takes to create the outputs (in ticks)
+   */
+  time: number;
+}
 
 // ========== Asset stuff
 export type Image = HTMLImageElement;

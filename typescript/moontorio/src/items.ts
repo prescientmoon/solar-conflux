@@ -1,4 +1,4 @@
-import type { Image, Item, ItemConfig } from "./gameState";
+import type { GameState, Image, Item, ItemConfig } from "./gameState";
 import type { TransportLineConfig } from "./systems/belts";
 import { loadAsset } from "./systems/assets";
 
@@ -24,6 +24,18 @@ const chestSizes = {
 export const items = ensureAllAreConfigs({
   ironPlate: {
     texture: loadItem("iron_plate"),
+    stackSize: 200,
+  },
+  copperPlate: {
+    texture: loadItem("copper_plate"),
+    stackSize: 200,
+  },
+  steelPlate: {
+    texture: loadItem("steel_plate"),
+    stackSize: 200,
+  },
+  ironStick: {
+    texture: loadItem("iron_stick"),
     stackSize: 200,
   },
   yellowBelt: {
@@ -109,9 +121,32 @@ export const items = ensureAllAreConfigs({
       slots: 9 * chestSizes.wood,
     },
   },
+  assembler: {
+    texture: notMadeYet,
+    stackSize: 50,
+    options: {
+      type: `assembler`,
+      size: 3,
+      speed: 1,
+    },
+  },
 });
 
 /**
  * Ensures you reference an existing item
  */
 export const item = <T extends keyof typeof items>(key: T): Item => key;
+
+export const recipes: GameState[`recipes`] = [
+  {
+    time: 300,
+    inputs: {
+      [item(`ironPlate`)]: 4,
+      [item(`copperPlate`)]: 12,
+    },
+    outputs: {
+      [item(`ironStick`)]: 10,
+      [item(`steelPlate`)]: 7,
+    },
+  },
+];
