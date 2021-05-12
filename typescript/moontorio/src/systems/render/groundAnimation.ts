@@ -1,13 +1,12 @@
-import { components, ecs, Env } from "../../ecs";
+import { components, createGroup, Env } from "../../ecs";
 import { tileSize } from "../../settings";
-import { add2, addN2, mul2, mulN2, Vec2Like } from "@thi.ng/vectors";
+import { addN2, mulN2, Vec2Like } from "@thi.ng/vectors";
 import { rotateAround } from "../../utils/rotateAround";
 
-const group = ecs.defGroup([
-  components.groundAnimation,
-  components.position,
-  components.direction,
-]);
+const group = createGroup(
+  [components.groundAnimation, components.position, components.direction],
+  `Ground animating`
+);
 
 export const update = (env: Env) => {
   group.forEach((entity) => {
@@ -21,7 +20,7 @@ export const update = (env: Env) => {
     rotateAround(
       env.ctx,
       addN2([], position, tileSize / 2) as Vec2Like,
-      (entity.direction * Math.PI) / 2
+      (entity.direction.direction * Math.PI) / 2
     );
 
     env.ctx.drawImage(
