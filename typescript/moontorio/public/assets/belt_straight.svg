@@ -1,8 +1,0 @@
-<svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="50" height="50" transform="translate(50 50) rotate(-180)" fill="white"/>
-<rect x="50" y="50" width="50" height="50" transform="rotate(-180 50 50)" fill="#EEE500"/>
-<rect x="45" y="50" width="40" height="50" transform="rotate(-180 45 50)" fill="#C4C4C4"/>
-<path d="M41 26.5L24.5 47L8 26.5H14L24.5 38L35 26.5H41Z" fill="#EEE500"/>
-<path d="M41 4.5L24.5 25L8 4.5H14L24.5 16L35 4.5H41Z" fill="#EEE500"/>
-</svg>
-

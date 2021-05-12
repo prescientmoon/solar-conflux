@@ -1,6 +1,5 @@
-import type { Image } from "../gameState";
+export type Image = HTMLImageElement;
 
-// ========== Asset stuff
 let imageMap = new Map<string, Image>();
 
 export const loadAsset = (src: string): Image => {
