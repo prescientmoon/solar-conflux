@@ -15,6 +15,7 @@ import { items } from "./items";
 import { pressedKeys } from "./keyboard";
 import { entityAt } from "./systems/positioning";
 import { setupNewCurves } from "./systems/beltCurving";
+import { renderItemsOnBelts } from "./systems/render/itemsOnBelt";
 
 const canvas = document.getElementById(`canvas`) as HTMLCanvasElement;
 const ctx = canvas.getContext(`2d`)!;
@@ -80,6 +81,7 @@ const main = () => {
   if (debugFlags.showTransportLines)
     showTransportLines(env, transportLineSystem);
 
+  // renderItemsOnBelts(env, transportLineSystem);
   renderPreview(env);
   outlineHoveredTile(env);
 

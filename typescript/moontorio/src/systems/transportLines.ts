@@ -363,6 +363,6 @@ export class TransportLineSystem {
     const second = this.getLine(secondId);
     const bridge = fromPositions(first.end, second.start);
 
-    if (bridge !== null) this.merge(firstId, secondId);
+    if (bridge) this.updateEntity(second.entities[0]);
   }
 }
