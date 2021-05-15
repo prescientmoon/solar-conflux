@@ -33,9 +33,20 @@ export const addDirection = (
   throw new Error(`Invalid direction ${direction}`);
 };
 
+/**
+ * Rotates a direction reltive to another.
+ * Assuming each direction adds pi/2 on the previous one:
+ * - Right = 0
+ * - Down = pi/2
+ * - Left = pi
+ * - Up = 3*pi/2
+ */
+export const relativeTo = (first: Direction, second: Direction) =>
+  (first + second) % 4;
+
 // Attempts to find a direction leading from origin -> point
 // Assumes the points are different
-export const relativeTo = (
+export const fromPositions = (
   origin: Vec2Like,
   point: Vec2Like
 ): Direction | null => {

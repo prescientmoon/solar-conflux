@@ -11,7 +11,9 @@ export const renderAnimation = (
   tilePosition: Vec2Like,
   direction: Direction
 ) => {
-  const frame = Math.floor(env.tick / animation.speed) % animation.length;
+  const frame =
+    Math.floor((env.tick - animation.start) / animation.speed) %
+    animation.length;
 
   const position = mulN22([], tilePosition, tileSize);
 

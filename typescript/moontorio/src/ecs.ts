@@ -1,4 +1,4 @@
-import { ECS, EVENT_ADDED } from "@thi.ng/ecs";
+import { ComponentID, ECS, EVENT_ADDED, Group, IComponent } from "@thi.ng/ecs";
 import { Vec2Like } from "@thi.ng/vectors";
 import { Image } from "./utils/assets";
 import { Direction } from "./utils/direction";
@@ -10,6 +10,13 @@ export interface Animation {
   spritesheet: Image;
   speed: number;
   length: number;
+  start: number;
+}
+
+export const enum BeltCurve {
+  NoCurve,
+  Left,
+  Right,
 }
 
 export type Components = {
@@ -21,6 +28,12 @@ export type Components = {
   };
   transportLine: {
     id: number | null;
+  };
+  beltCurve: {
+    curve: BeltCurve;
+  };
+  beltOutputs: {
+    ports: Direction[];
   };
 };
 
@@ -40,6 +53,12 @@ export const components = {
   })!,
   transportLine: ecs.defComponent({
     id: `transportLine`,
+  })!,
+  beltCurve: ecs.defComponent({
+    id: `beltCurve`,
+  })!,
+  beltOutputs: ecs.defComponent({
+    id: `beltOutputs`,
   })!,
 };
 
@@ -70,7 +89,11 @@ type ComponentDef = typeof components[keyof typeof components];
 
 const owned = new Set<ComponentDef>();
 
-export const createGroup = (include: ComponentDef[], name: string) => {
+export const createGroup = <T extends ComponentID<Components>>(
+  includeRaw: IComponent<T, any, any, any>[],
+  name: string
+): Group<Components, T> => {
+  const include = includeRaw as any as ComponentDef[];
   const toOwn: ComponentDef[] = [];
 
   for (const component of include) {
@@ -80,5 +103,5 @@ export const createGroup = (include: ComponentDef[], name: string) => {
     owned.add(component);
   }
 
-  return ecs.defGroup(include, toOwn, { id: name });
+  return ecs.defGroup(includeRaw, toOwn as any, { id: name });
 };

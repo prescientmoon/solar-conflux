@@ -1,13 +1,7 @@
 import { debugFlags, screenHeight } from "./settings";
-import { loadAsset } from "./utils/assets";
-import { Components, ecs, Env, onEntityCreated } from "./ecs";
+import { BeltCurve, Components, ecs, Env, onEntityCreated } from "./ecs";
 import * as RenderGroundAnimation from "./systems/render/groundAnimation";
 import { Direction, next, prev } from "./utils/direction";
-import {
-  beltCurvedLeft,
-  beltCurvedRight,
-  straightBelt,
-} from "./utils/assets/beltAnimations";
 import { TransportLineSystem } from "./systems/transportLines";
 import { showTransportLines } from "./systems/render/debugTransportLines";
 import { identity23, Mat23Like } from "@thi.ng/matrices";
@@ -20,6 +14,7 @@ import { renderPreview } from "./systems/render/renderPreview";
 import { items } from "./items";
 import { pressedKeys } from "./keyboard";
 import { entityAt } from "./systems/positioning";
+import { setupNewCurves } from "./systems/beltCurving";
 
 const canvas = document.getElementById(`canvas`) as HTMLCanvasElement;
 const ctx = canvas.getContext(`2d`)!;
@@ -41,58 +36,16 @@ const env: Env = {
 };
 
 const transportLineSystem = new TransportLineSystem();
-onEntityCreated(ecs, (id) => transportLineSystem.onEntityCreated(id));
-
-ecs.defEntity({
-  groundAnimation: straightBelt,
-  position: new Int32Array([0, 0]),
-  direction: { direction: Direction.Right },
-  transportLine: {
-    id: null,
-  },
+onEntityCreated(ecs, (id) => {
+  setupNewCurves(id);
 });
-
-ecs.defEntity({
-  groundAnimation: straightBelt,
-  position: new Int32Array([1, 0]),
-  direction: { direction: Direction.Right },
-  transportLine: { id: null },
-});
-ecs.defEntity({
-  groundAnimation: beltCurvedRight,
-  position: new Int32Array([2, 0]),
-  direction: { direction: Direction.Down },
-  transportLine: { id: null },
-});
-ecs.defEntity({
-  groundAnimation: beltCurvedLeft,
-  position: new Int32Array([2, 1]),
-  direction: { direction: Direction.Right },
-  transportLine: { id: null },
-});
-ecs.defEntity({
-  groundAnimation: straightBelt,
-  position: new Int32Array([3, 1]),
-  direction: { direction: Direction.Right },
-  transportLine: { id: null },
-});
-ecs.defEntity({
-  groundAnimation: straightBelt,
-  position: new Int32Array([8, 1]),
-  direction: { direction: Direction.Left },
-  transportLine: { id: null },
-});
-ecs.defEntity({
-  groundAnimation: straightBelt,
-  position: new Int32Array([7, 1]),
-  direction: { direction: Direction.Left },
-  transportLine: { id: null },
-});
-ecs.defEntity({
-  groundAnimation: straightBelt,
-  position: new Int32Array([6, 1]),
-  direction: { direction: Direction.Left },
-  transportLine: { id: null },
+onEntityCreated(ecs, (id) => {
+  try {
+    transportLineSystem.updateEntity(id);
+  } catch (e) {
+    console.log(transportLineSystem);
+    throw e;
+  }
 });
 
 // ========= Rendering stuff
@@ -155,10 +108,13 @@ canvas.addEventListener(`mousedown`, (e) => {
     position: new Int32Array(position),
   };
 
+  if (item.onBuild.autoInit.direction) components.transportLine = { id: null };
+
   if (item.onBuild.autoInit.direction)
     components.direction = { direction: env.player.holding.direction };
 
-  if (item.onBuild.autoInit.direction) components.transportLine = { id: null };
+  if (item.onBuild.autoInit.beltCurving)
+    components.beltCurve = { curve: BeltCurve.NoCurve };
 
   ecs.defEntity(components);
 });
@@ -171,4 +127,10 @@ env.keyboard.emitter.on("r", (e) => {
   env.player.holding.direction = e.shiftKey
     ? prev(env.player.holding.direction)
     : next(env.player.holding.direction);
+});
+
+env.keyboard.emitter.on(`d`, (e) => {
+  for (let key in debugFlags) {
+    debugFlags[key as keyof typeof debugFlags] = e.shiftKey;
+  }
 });

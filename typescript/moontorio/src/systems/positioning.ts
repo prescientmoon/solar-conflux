@@ -1,5 +1,6 @@
 import { Vec2Like } from "@thi.ng/vectors";
 import { components, createGroup, ecs } from "../ecs";
+import { addDirection, directions } from "../utils/direction";
 
 const group = createGroup([components.position], `Entity positioning`);
 
@@ -14,4 +15,18 @@ export const entityAt = (position: Vec2Like): number | null => {
   }
 
   return null;
+};
+
+export const neighbours = (id: number) => {
+  const position = components.position.get(id);
+
+  if (position === undefined) return [];
+
+  return directions
+    .map((direction) => {
+      const neighbour = entityAt(addDirection(position, direction));
+
+      return { direction, id: neighbour };
+    })
+    .filter((d) => d !== null) as { id: number; direction: number }[];
 };
