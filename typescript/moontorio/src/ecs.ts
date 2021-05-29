@@ -65,7 +65,6 @@ export const components = {
 export interface Env {
   ctx: CanvasRenderingContext2D;
   tick: number;
-  mousePosition: Vec2Like;
   keyboard: KeyboardState;
   camera: Mat23Like;
   screenToPixelRatio: number;
@@ -76,6 +75,10 @@ export interface Env {
     };
   };
   items: Record<number, Item>;
+
+  // Mouse related stuff
+  mousePosition: Vec2Like;
+  dragStart: Vec2Like;
 }
 
 export const onEntityCreated = <T>(

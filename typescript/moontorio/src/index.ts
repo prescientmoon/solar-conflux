@@ -1,13 +1,17 @@
 import { debugFlags, screenHeight } from "./settings";
 import { BeltCurve, Components, ecs, Env, onEntityCreated } from "./ecs";
 import * as RenderGroundAnimation from "./systems/render/groundAnimation";
-import { Direction, next, prev } from "./utils/direction";
+import { Direction, next, onXAxis, onYAxis, prev } from "./utils/direction";
 import { TransportLineSystem } from "./systems/transportLines";
-import { showTransportLines } from "./systems/render/debugTransportLines";
+import {
+  showTransportLinePaths,
+  showTransportLines,
+} from "./systems/render/debugTransportLines";
 import { identity23, Mat23Like } from "@thi.ng/matrices";
 import {
   hoveredPosition,
   outlineHoveredTile,
+  tileAt,
 } from "./systems/render/outlineHoveredTile";
 import { divN2, Vec2Like } from "@thi.ng/vectors";
 import { renderPreview } from "./systems/render/renderPreview";
@@ -15,7 +19,8 @@ import { items } from "./items";
 import { pressedKeys } from "./keyboard";
 import { entityAt } from "./systems/positioning";
 import { setupNewCurves } from "./systems/beltCurving";
-import { renderItemsOnBelts } from "./systems/render/itemsOnBelt";
+import { isPressed, MouseButton } from "./utils/mouse";
+import { renderItemsOnTrasnportLines } from "./systems/render/itemsOnTransportLines";
 
 const canvas = document.getElementById(`canvas`) as HTMLCanvasElement;
 const ctx = canvas.getContext(`2d`)!;
@@ -23,7 +28,6 @@ const ctx = canvas.getContext(`2d`)!;
 const env: Env = {
   tick: 0,
   ctx,
-  mousePosition: [0, 0],
   camera: identity23([]) as Mat23Like,
   screenToPixelRatio: 1,
   player: {
@@ -34,12 +38,16 @@ const env: Env = {
   },
   items,
   keyboard: pressedKeys(),
+  mousePosition: [0, 0],
+  dragStart: [0, 0],
 };
 
 const transportLineSystem = new TransportLineSystem();
+
 onEntityCreated(ecs, (id) => {
   setupNewCurves(id);
 });
+
 onEntityCreated(ecs, (id) => {
   try {
     transportLineSystem.updateEntity(id);
@@ -74,6 +82,8 @@ resize();
 const main = () => {
   env.tick++;
 
+  transportLineSystem.update(env);
+
   clear();
 
   RenderGroundAnimation.update(env);
@@ -81,7 +91,10 @@ const main = () => {
   if (debugFlags.showTransportLines)
     showTransportLines(env, transportLineSystem);
 
-  // renderItemsOnBelts(env, transportLineSystem);
+  if (debugFlags.showTransportLinePaths)
+    showTransportLinePaths(env, transportLineSystem);
+
+  renderItemsOnTrasnportLines(env, transportLineSystem);
   renderPreview(env);
   outlineHoveredTile(env);
 
@@ -89,6 +102,14 @@ const main = () => {
 };
 
 main();
+
+canvas.addEventListener(`mousedown`, (e) => {
+  env.dragStart = divN2(
+    null,
+    [e.clientX, e.clientY],
+    env.screenToPixelRatio
+  ) as Vec2Like;
+});
 
 canvas.addEventListener(`mousemove`, (e) => {
   env.mousePosition = divN2(
@@ -98,33 +119,55 @@ canvas.addEventListener(`mousemove`, (e) => {
   ) as Vec2Like;
 });
 
-canvas.addEventListener(`mousedown`, (e) => {
+const addEntity = () => {
   const position = hoveredPosition(env);
+  const item = env.items[env.player.holding.item];
+
+  if (item.onBuild === null) return;
+
+  if (item.onBuild.straight) {
+    const tile = tileAt(env.dragStart);
+
+    if (onYAxis(env.player.holding.direction)) position[0] = tile[0];
+    else position[1] = tile[1];
+  }
 
   if (entityAt(position) !== null) return;
 
-  const item = env.items[env.player.holding.item];
-
   const components: Partial<Components> = {
     ...item.onBuild.static,
-    position: new Int32Array(position),
   };
 
   if (item.onBuild.autoInit.direction) components.transportLine = { id: null };
 
-  if (item.onBuild.autoInit.direction)
+  if (item.onBuild.autoInit.direction) {
     components.direction = { direction: env.player.holding.direction };
+  }
 
   if (item.onBuild.autoInit.beltCurving)
     components.beltCurve = { curve: BeltCurve.NoCurve };
 
+  components.position = new Int32Array(position);
+
   ecs.defEntity(components);
+};
+
+canvas.addEventListener(`mousedown`, (e) => {
+  if (!isPressed(MouseButton.Left, e.buttons)) return;
+
+  addEntity();
+});
+
+canvas.addEventListener(`mousemove`, (e) => {
+  if (!isPressed(MouseButton.Left, e.buttons)) return;
+
+  addEntity();
 });
 
 env.keyboard.emitter.on("r", (e) => {
   const item = env.items[env.player.holding.item];
 
-  if (!item.onBuild.autoInit.direction) return;
+  if (!item.onBuild?.autoInit.direction) return;
 
   env.player.holding.direction = e.shiftKey
     ? prev(env.player.holding.direction)

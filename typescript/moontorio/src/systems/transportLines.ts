@@ -1,21 +1,42 @@
-import { equals2, stridedValues, Vec2Like } from "@thi.ng/vectors";
-import { components, createGroup } from "../ecs";
+import { equals2, Vec2, Vec2Like } from "@thi.ng/vectors";
+import { BeltCurve, components, createGroup, Env } from "../ecs";
 import {
   addDirection,
   Direction,
+  directionToVector,
   fromPositions,
+  next,
+  onXAxis,
   opposite,
+  prev,
   relativeTo,
 } from "../utils/direction";
 import { Pair, Side } from "../utils/types";
 import { entityAt, neighbours } from "./positioning";
 import { assert } from "@thi.ng/api";
-import { getBeltLength } from "./beltCurving";
+import {
+  entityInputDirection,
+  getBeltCurve,
+  getBeltLength,
+  inputDirection,
+} from "./beltCurving";
+import {
+  beltSpacePerItem,
+  halfTile,
+  sideFromMiddle,
+  transportLineSizes,
+} from "../settings";
+import { last } from "../utils/array";
 
 const group = createGroup(
   [components.transportLine, components.direction, components.position],
   `Transport line`
 );
+
+export type TransportLinePathSegment = {
+  amount: number;
+  direction: Direction;
+};
 
 interface TransportLineSide {
   items: Array<{
@@ -23,12 +44,17 @@ interface TransportLineSide {
     gap: number;
   }>;
 
+  /**
+   * The length of the transport path.
+   */
   length: number;
 
   /**
    * The index of the first item that's not stuck
    */
-  firstNonStuck: number;
+  firstNotStuck: number;
+
+  path: TransportLinePathSegment[];
 }
 
 interface TransportLine {
@@ -37,33 +63,46 @@ interface TransportLine {
   start: Vec2Like;
   end: Vec2Like;
 
-  steps: Direction[];
   entities: number[];
+
+  entry: Direction;
 }
 
 type TransportLineId = number;
 
 const speed = 1;
-const spacePerItem = 2;
 
-export class TransportLineSystem {
+export class TransportLineSystem implements Iterable<TransportLine> {
   public transportLines: Record<TransportLineId, TransportLine> = {};
 
   private nextId = 0;
 
-  public update() {
+  *[Symbol.iterator]() {
+    yield* Object.values(this.transportLines);
+  }
+
+  public update(env: Env) {
+    if (env.tick % 7) return;
+
     for (const id in this.transportLines) {
       const line = this.transportLines[id];
 
       for (let sideIndex = 0; sideIndex < 2; sideIndex++) {
         const side = line.sides[sideIndex];
-        const element = side.items[side.firstNonStuck];
+
+        if (
+          side.firstNotStuck === -1 ||
+          side.firstNotStuck >= side.items.length
+        )
+          continue;
+
+        const element = side.items[side.firstNotStuck];
 
         element.gap -= speed;
 
         if (element.gap < 0) {
           element.gap = 0;
-          side.firstNonStuck++;
+          side.firstNotStuck++;
         }
       }
     }
@@ -72,30 +111,36 @@ export class TransportLineSystem {
   public createLine(
     from: Vec2Like,
     to: Vec2Like,
-    steps: Direction[],
     entities: number[],
-    lengths: Pair<number> = [32, 32]
+    curves: BeltCurve[]
   ) {
+    console.log(`Creating line`);
+    console.log({ from, to, entities, curves });
+
     const id = this.nextId++;
 
     this.transportLines[id] = {
       start: from,
       end: to,
-      steps,
       entities,
+      entry: 0,
       sides: [
         {
-          items: [],
-          firstNonStuck: -1,
-          length: lengths[0],
+          items: [{ gap: 10, item: 1 }],
+          firstNotStuck: 0,
+          length: 0,
+          path: [],
         },
         {
           items: [],
-          firstNonStuck: -1,
-          length: lengths[1],
+          firstNotStuck: -1,
+          length: 0,
+          path: [],
         },
       ],
     };
+
+    this.rebuildPaths(id);
 
     return id;
   }
@@ -113,8 +158,6 @@ export class TransportLineSystem {
 
     // Doens't have the necessary components
     if (entity === undefined) return;
-
-    console.log(`Updating ${entity.position}`);
 
     const oldId = entity.transportLine.id;
 
@@ -145,8 +188,8 @@ export class TransportLineSystem {
         const id = this.createLine(
           entity.position,
           entity.position,
-          [],
-          [entity.id]
+          [entity.id],
+          [getBeltCurve(entity.id) ?? BeltCurve.NoCurve]
         );
 
         entity.transportLine.id = id;
@@ -169,14 +212,12 @@ export class TransportLineSystem {
         const id = this.createLine(
           entity.position,
           entity.position,
-          [],
-          [entity.id]
+          [entity.id],
+          [getBeltCurve(entity.id) ?? BeltCurve.NoCurve]
         );
 
         entity.transportLine.id = id;
       }
-
-      console.log({ entity, neighbour });
 
       this.merge(neighbour.transportLine.id!, entity.transportLine.id!);
     }
@@ -186,8 +227,8 @@ export class TransportLineSystem {
         const id = this.createLine(
           entity.position,
           entity.position,
-          [],
-          [entity.id]
+          [entity.id],
+          [getBeltCurve(entity.id) ?? BeltCurve.NoCurve]
         );
 
         entity.transportLine.id = id;
@@ -198,7 +239,7 @@ export class TransportLineSystem {
           return;
         }
 
-        this.split(entity.transportLine.id, id, entity.position);
+        this.split(entity.transportLine.id, id);
       }
     }
 
@@ -217,34 +258,51 @@ export class TransportLineSystem {
 
     const first = this.getLine(idMerge);
     const second = this.getLine(idKeep);
-    const bridge = fromPositions(first.end, second.start);
 
-    assert(
-      () => bridge !== null,
-      `Cannot merge 2 transport lines which are not next to eachother`
-    );
+    {
+      const bridge = fromPositions(first.end, second.start);
 
-    second.entities.unshift(...first.entities);
-    second.steps.unshift(...first.steps, bridge!);
-    second.start = first.start;
+      assert(
+        () => bridge !== null,
+        `Cannot merge 2 transport lines which are not next to eachother`
+      );
+    }
+
+    this.rebuildPaths(idKeep);
 
     for (let side = 0; side < 2; side++) {
       const sideFirst = first.sides[side];
       const sideSecond = second.sides[side];
 
-      sideSecond.firstNonStuck =
-        sideSecond.firstNonStuck >= sideSecond.items.length
-          ? sideFirst.firstNonStuck
-          : sideSecond.firstNonStuck;
-
-      sideSecond.length += sideFirst.length;
+      sideSecond.firstNotStuck =
+        sideSecond.firstNotStuck >= sideSecond.items.length
+          ? sideFirst.firstNotStuck
+          : sideSecond.firstNotStuck;
 
       if (sideFirst.items.length) {
-        console.log(`Gotta implement this thingy`);
+        sideFirst.items[0].gap +=
+          sideSecond.length -
+          sideSecond.items.reduce(
+            (acc, curr) => acc + beltSpacePerItem + curr.gap,
+            0
+          );
+
+        console.log(
+          sideSecond.length -
+            sideSecond.items.reduce(
+              (acc, curr) => acc + beltSpacePerItem + curr.gap,
+              0
+            )
+        );
       }
 
       sideSecond.items.push(...sideFirst.items);
     }
+
+    second.entities.unshift(...first.entities);
+    second.start = first.start;
+
+    this.rebuildPaths(idKeep);
 
     // Cleanup for the old line
     for (const entity of first.entities) {
@@ -260,35 +318,16 @@ export class TransportLineSystem {
    * @param id The id of the transport line to split.
    * @param at The position to do the split at. This entity will be the head of the second half after the split.
    */
-  private split(id: TransportLineId, entityId: number, at: Vec2Like) {
+  private split(id: TransportLineId, entityId: number) {
     const line = this.getLine(id);
-
-    if (equals2(line.start, at)) return;
-
-    let index = null;
-
-    {
-      let position = line.start;
-
-      for (let i = 0; i < line.steps.length; i++) {
-        position = addDirection(position, line.steps[i]);
-
-        if (equals2(at, position)) {
-          index = i;
-          break;
-        }
-      }
-    }
-
-    assert(index !== null);
-
-    const firstHalfSteps = line.steps.splice(0, index! + 1);
-    const bridge = firstHalfSteps.pop();
+    const at = components.position.get(entityId)!;
 
     assert(
-      bridge !== undefined,
-      `Somehow managed to get started on splitting a transport line in it's head?!?!?!?!?`
+      at !== undefined,
+      `Cannot find entity ${entityId} while splitting transport line`
     );
+
+    if (equals2(line.start, at)) return;
 
     const splitEntityIndex = line.entities.indexOf(entityId);
 
@@ -298,19 +337,12 @@ export class TransportLineSystem {
     );
 
     const firstHalfEntities = line.entities.splice(0, splitEntityIndex);
-    const lengths = [Side.Left, Side.Right].map((side) =>
-      line.entities.reduce(
-        (previous, current) => previous + getBeltLength(current, side),
-        0
-      )
-    ) as Pair<number>;
 
     const newId = this.createLine(
       line.start,
-      addDirection(at, opposite(bridge!)),
-      firstHalfSteps,
+      components.position.get(last(firstHalfEntities))!,
       firstHalfEntities,
-      lengths
+      firstHalfEntities.map((e) => getBeltCurve(e) ?? BeltCurve.NoCurve)
     );
 
     const newLine = this.getLine(newId);
@@ -321,9 +353,11 @@ export class TransportLineSystem {
 
     line.start = at;
 
+    this.rebuildPaths(id);
+
     for (let sideIndex: Side = 0; sideIndex < 2; sideIndex++) {
       const side = line.sides[sideIndex];
-      side.length -= lengths[sideIndex];
+      const newSide = newLine.sides[sideIndex];
 
       if (side.items.length === 0) continue;
 
@@ -333,29 +367,60 @@ export class TransportLineSystem {
       {
         let distance = 0;
 
-        for (let index = 0; index < side.items.length; index++) {
-          if (distance + side.items[index].gap >= lengths[sideIndex]) {
-            itemSplitIndex = index;
-            gapDelta = side.items[index].gap + lengths[sideIndex] - sideIndex;
+        for (let itemIndex = 0; itemIndex < side.items.length; itemIndex++) {
+          if (distance + side.items[itemIndex].gap >= side.length) {
+            itemSplitIndex = itemIndex;
+            gapDelta = side.items[itemIndex].gap + distance - side.length;
             break;
           }
-          distance += side.items[index].gap + spacePerItem;
+
+          distance += side.items[itemIndex].gap + beltSpacePerItem;
         }
       }
 
       assert(itemSplitIndex !== null);
 
-      newLine.sides[sideIndex].items = side.items.splice(0, itemSplitIndex!);
+      newLine.sides[sideIndex].items = side.items.splice(
+        itemSplitIndex!,
+        side.items.length - itemSplitIndex!
+      );
 
-      if (side.items.length) {
+      if (newSide.items.length) {
         assert(gapDelta !== null);
         assert(gapDelta! >= 0);
 
-        side.items[0].gap = gapDelta!;
+        newSide.items[0].gap = gapDelta!;
       }
     }
 
     this.fixExCycles(id, newId);
+  }
+
+  private refreshLengths(id: TransportLineId) {
+    const line = this.transportLines[id];
+
+    for (let side: Side = 0; side < 2; side++) {
+      line.sides[side].length = pathLength(line.sides[side].path);
+    }
+  }
+
+  private rebuildPaths(id: TransportLineId) {
+    const line = this.transportLines[id];
+
+    const curves = line.entities.map(
+      (e) => components.beltCurve.get(e)?.curve ?? BeltCurve.NoCurve
+    );
+
+    const entry = opposite(entityInputDirection(line.entities[0]));
+    const paths = fromCurves(entry, curves);
+
+    line.entry = entry;
+
+    for (let side: Side = 0; side < 2; side++) {
+      line.sides[side].path = paths[side];
+    }
+
+    this.refreshLengths(id);
   }
 
   private fixExCycles(firstId: TransportLineId, secondId: TransportLineId) {
@@ -366,3 +431,82 @@ export class TransportLineSystem {
     if (bridge) this.updateEntity(second.entities[0]);
   }
 }
+
+// ========= Transport line path helpers
+const flipPath = (line: TransportLinePathSegment[]) =>
+  line.map((step) => ({
+    amount: step.amount,
+    direction: onXAxis(step.direction)
+      ? step.direction
+      : opposite(step.direction),
+  }));
+
+const rotateTransportLinePath = (
+  direction: Direction,
+  line: TransportLinePathSegment[]
+): TransportLinePathSegment[] =>
+  line.map((step) => ({
+    amount: step.amount,
+    direction: relativeTo(step.direction, direction),
+  }));
+
+const fromCurves = (
+  startingDirection: Direction,
+  curves: BeltCurve[]
+): Pair<TransportLinePathSegment[]> => {
+  const result: Pair<TransportLinePathSegment[]> = [[], []];
+
+  let currentDirection = startingDirection;
+
+  // NOTE: rn this assumes starting w a straight line
+  for (let index = 0; index < curves.length; index++) {
+    const current = curves[index];
+
+    if (current === BeltCurve.Right) currentDirection = next(currentDirection);
+    if (current === BeltCurve.Left) currentDirection = prev(currentDirection);
+
+    const piece = paths[current].map((path) =>
+      rotateTransportLinePath(currentDirection, path)
+    );
+
+    result[0].push(...piece[0]);
+    result[1].push(...piece[1]);
+  }
+
+  return result;
+};
+
+// ========= Transport line paths
+const straightBeltPath: TransportLinePathSegment[] = [
+  { amount: transportLineSizes.straight, direction: Direction.Right },
+];
+
+const bentRightPath = (fromMiddle: number): TransportLinePathSegment[] => [
+  { amount: halfTile - fromMiddle, direction: Direction.Up },
+  {
+    amount: halfTile - fromMiddle,
+    direction: Direction.Right,
+  },
+];
+
+const paths: Record<BeltCurve, Pair<TransportLinePathSegment[]>> = {
+  [BeltCurve.NoCurve]: [straightBeltPath, straightBeltPath],
+  [BeltCurve.Right]: [
+    bentRightPath(sideFromMiddle),
+    bentRightPath(-sideFromMiddle),
+  ],
+  [BeltCurve.Left]: [
+    flipPath(bentRightPath(-sideFromMiddle)),
+    flipPath(bentRightPath(sideFromMiddle)),
+  ],
+};
+
+const pathLength = (path: TransportLinePathSegment[]) => {
+  let result = 0;
+
+  for (const segment of path) {
+    result += segment.amount;
+  }
+
+  return result;
+};

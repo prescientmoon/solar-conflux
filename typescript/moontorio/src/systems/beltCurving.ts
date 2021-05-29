@@ -1,4 +1,5 @@
 import { BeltCurve, Components, components, createGroup } from "../ecs";
+import { transportLineSizes } from "../settings";
 import { beltAnimations } from "../utils/assets/beltAnimations";
 import {
   addDirection,
@@ -91,11 +92,39 @@ export const getBeltLength = (id: number, side: Side): number => {
   const curve = getBeltCurve(id);
 
   // Straight:
-  if (curve === null || curve === BeltCurve.NoCurve) return 32; // full size
+  if (curve === null || curve === BeltCurve.NoCurve)
+    return transportLineSizes.straight; // full size
 
   // Inner side < outer side
   return (side === Side.Right && curve === BeltCurve.Right) ||
     (side === Side.Left && curve === BeltCurve.Left)
-    ? 42
-    : 22;
+    ? transportLineSizes.outer
+    : transportLineSizes.inner;
+};
+
+/**
+ * Calculate the direction a conveyor belt's input is
+ * (assuming the output points to the right)
+ *
+ * @param curve The curve of the belt
+ */
+export const inputDirection = (curve: BeltCurve) => {
+  if (curve === BeltCurve.NoCurve) return Direction.Left;
+  else if (curve === BeltCurve.Left) return Direction.Up;
+
+  return Direction.Down;
+};
+
+/**
+ * Calculate the direction a conveyor belt's input is at.
+ * (assuming the output points to the right)
+ * Takes the output direction into consideration.
+ *
+ * @param id The id of the entity
+ */
+export const entityInputDirection = (id: number) => {
+  return relativeTo(
+    inputDirection(components.beltCurve.get(id)?.curve ?? BeltCurve.NoCurve),
+    components.direction.get(id)?.direction ?? Direction.Right
+  );
 };

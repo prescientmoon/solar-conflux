@@ -1,5 +1,5 @@
 import type { Animation, Components } from "./ecs";
-import type { Image } from "./utils/assets";
+import { Image, loadAsset } from "./utils/assets";
 import { straightBelt } from "./utils/assets/beltAnimations";
 import { Direction } from "./utils/direction";
 
@@ -13,7 +13,8 @@ export interface Item {
     autoInit: Partial<Record<OnBuildComponent, boolean>>;
     static: Partial<StaticComponents>;
     preview: Animation;
-  };
+    straight?: boolean;
+  } | null;
   name: string;
 }
 
@@ -30,7 +31,6 @@ export const items = ensureItems({
         direction: true,
         beltCurving: true,
       },
-
       static: {
         groundAnimation: straightBelt,
         beltOutputs: {
@@ -38,6 +38,12 @@ export const items = ensureItems({
         },
       },
       preview: straightBelt,
+      straight: true,
     },
+  },
+  [1]: {
+    icon: loadAsset(`assets/iron_plate.png`),
+    name: `Iron plate`,
+    onBuild: null,
   },
 });

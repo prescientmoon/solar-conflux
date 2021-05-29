@@ -5,10 +5,12 @@ import { renderAnimation } from "./animation";
 import { hoveredPosition } from "./outlineHoveredTile";
 
 export const renderPreview = (env: Env) => {
+  const item = env.items[env.player.holding.item];
+
+  if (item.onBuild === null) return;
+
   env.ctx.save();
   env.ctx.globalAlpha = 1;
-
-  const item = env.items[env.player.holding.item];
 
   renderAnimation(
     env,

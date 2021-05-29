@@ -2,8 +2,10 @@ import { Vec2Like } from "@thi.ng/vectors";
 import { Env } from "../../ecs";
 import { tileSize } from "../../settings";
 
-export const hoveredPosition = (env: Env) =>
-  env.mousePosition.map((p: number) => Math.floor(p / tileSize)) as Vec2Like;
+export const tileAt = (position: Vec2Like) =>
+  position.map((p: number) => Math.floor(p / tileSize)) as Vec2Like;
+
+export const hoveredPosition = (env: Env) => tileAt(env.mousePosition);
 
 export const outlineHoveredTile = (env: Env) => {
   const position = hoveredPosition(env);

@@ -1,4 +1,10 @@
-import { Vec2Like } from "@thi.ng/vectors";
+import {
+  MATH,
+  mulN2,
+  rotateAroundPoint2,
+  rotateS2,
+  Vec2Like,
+} from "@thi.ng/vectors";
 
 export const enum Direction {
   Right,
@@ -41,7 +47,7 @@ export const addDirection = (
  * - Left = pi
  * - Up = 3*pi/2
  */
-export const relativeTo = (first: Direction, second: Direction) =>
+export const relativeTo = (first: Direction, second: Direction): Direction =>
   (first + second) % 4;
 
 // Attempts to find a direction leading from origin -> point
@@ -57,3 +63,14 @@ export const fromPositions = (
 
   return null;
 };
+
+export const directionToAngle = (direction: Direction) =>
+  (direction * Math.PI) / 2;
+
+export const directionToUnitVector = (direction: Direction): Vec2Like =>
+  addDirection([0, 0], direction);
+
+export const directionToVector = (
+  direction: Direction,
+  magnitude: number
+): Vec2Like => mulN2(null, directionToUnitVector(direction), magnitude);
