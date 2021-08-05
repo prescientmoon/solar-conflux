@@ -8,29 +8,7 @@ import 'package:vector_math/vector_math.dart' as vector;
 
 void main() => runApp(Root());
 
-class Root extends StatefulWidget {
-  const Root({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  RootState createState() => RootState();
-}
-
-class RootState extends State<Root> {
-  double angle = 0;
-
-  @override
-  initState() {
-    super.initState();
-
-    Timer.periodic(Duration(milliseconds: 10), (timer) {
-      setState(() {
-        angle += 0.04;
-      });
-    });
-  }
-
+class Root extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
