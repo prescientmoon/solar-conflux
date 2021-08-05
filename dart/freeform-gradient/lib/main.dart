@@ -1,111 +1,212 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
+import 'dart:async';
+import 'dart:typed_data';
+import 'package:vector_math/vector_math.dart' as vector;
 
-void main() => runApp(MyApp());
+void main() => runApp(Root());
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class Root extends StatefulWidget {
+  const Root({
+    Key key,
+  }) : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  RootState createState() => RootState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class RootState extends State<Root> {
+  double angle = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  @override
+  initState() {
+    super.initState();
+
+    Timer.periodic(Duration(milliseconds: 10), (timer) {
+      setState(() {
+        angle += 0.04;
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+    return MaterialApp(
+      title: 'Custom gradient',
+      theme: ThemeData(
+        primarySwatch: Colors.purple,
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      home: MyHomePage(
+          title: 'Multi point gradient',
+          config: MultiGradientConfig(
+              distanceScaling: 1,
+              blendStrength: 2,
+              points: [
+                MultiGradientPoint(
+                  color: Colors.yellow,
+                  intensity: 1.0,
+                  position: vector.Vector2(
+                      1.0 / 2 + cos(angle) * 0.3, 1.0 / 2 + sin(angle) * 0.3),
+                ),
+                MultiGradientPoint(
+                    color: Color(0xff6E10AB),
+                    intensity: 1,
+                    position: vector.Vector2(0.1, 0.09)),
+                MultiGradientPoint(
+                    color: Color(0xff041E1C),
+                    intensity: 2,
+                    position: vector.Vector2(0.84, 0.14)),
+                MultiGradientPoint(
+                    color: Color(0xff015BBB),
+                    intensity: 1,
+                    position: vector.Vector2(0.07, 0.93)),
+                MultiGradientPoint(
+                    color: Color(0xff06A599),
+                    intensity: 1,
+                    position: vector.Vector2(0.9, 0.94))
+              ])),
     );
   }
+}
+
+class MyHomePage extends StatelessWidget {
+  MyHomePage({Key key, this.title, this.config}) : super(key: key);
+
+  final String title;
+  final MultiGradientConfig config;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      body: Center(
+          child: FutureBuilder<ui.Image>(
+        future: generateImage(MediaQuery.of(context).size, config),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            MediaQueryData query = MediaQuery.of(context);
+            return CustomPaint(
+                child: Container(
+                  width: query.size.width,
+                  height: query.size.height,
+                ),
+                painter: ImagePainter(image: snapshot.data));
+          }
+
+          return Text("Generating image");
+        },
+      )),
+    );
+  }
+}
+
+class ImagePainter extends CustomPainter {
+  ui.Image image;
+
+  ImagePainter({this.image});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawImage(image, Offset.zero, Paint());
+  }
+
+  @override
+  bool shouldRepaint(ImagePainter oldDelegate) {
+    return oldDelegate.image != image;
+  }
+}
+
+/// Generates a [ui.Image] with certain pixel data
+Future<ui.Image> generateImage(Size size, MultiGradientConfig config) async {
+  int width = size.width.ceil();
+  int height = size.height.ceil();
+  var completer = Completer<ui.Image>();
+
+  Int32List pixels = Int32List(width * height);
+
+  for (var x = 0; x < width; x++) {
+    for (var y = 0; y < height; y++) {
+      int index = y * width + x;
+      pixels[index] = generatePixel(x, y, size, config);
+    }
+  }
+
+  ui.decodeImageFromPixels(
+    pixels.buffer.asUint8List(),
+    width,
+    height,
+    ui.PixelFormat.bgra8888,
+    (ui.Image img) {
+      completer.complete(img);
+    },
+  );
+
+  return completer.future;
+}
+
+class MultiGradientPoint {
+  double intensity;
+  vector.Vector4 color;
+  vector.Vector2 position;
+
+  MultiGradientPoint({Color color, this.position, this.intensity = 1}) {
+    this.color = vector.Vector4(color.red.toDouble(), color.green.toDouble(),
+        color.blue.toDouble(), color.opacity);
+  }
+}
+
+class MultiGradientConfig {
+  List<MultiGradientPoint> points;
+
+  double distanceScaling;
+  double blendStrength;
+  double opacityMultiplier = 1;
+
+  MultiGradientConfig(
+      {this.points,
+      this.distanceScaling = 1,
+      this.blendStrength = 3,
+      this.opacityMultiplier = 1});
+}
+
+double clamp(double min, double max, double value) {
+  if (value < min) return min;
+  if (value > max) return max;
+
+  return value;
+}
+
+/// Main area of interest, this function will
+/// return color for each particular color on our [ui.Image]
+int generatePixel(int x, int y, Size size, MultiGradientConfig config) {
+  vector.Vector4 color = vector.Vector4(0, 0, 0, 0);
+  double scale = 0;
+
+  var current = vector.Vector2(x.toDouble(), y.toDouble());
+
+  current.divide(vector.Vector2(size.width, size.height));
+
+  for (var i = 0; i < config.points.length; i++) {
+    MultiGradientPoint point = config.points[i];
+
+    var distance = pow(
+        1 - point.position.distanceTo(current) / config.distanceScaling,
+        config.blendStrength);
+    var multiplier = distance * point.intensity;
+
+    scale += multiplier;
+    color += point.color.scaled(multiplier);
+  }
+
+  if (scale != 0) {
+    color.scale(1 / scale);
+  }
+
+  return Color.fromRGBO(color.x.toInt(), color.y.toInt(), color.z.toInt(),
+          color.w * config.opacityMultiplier)
+      .value;
 }
