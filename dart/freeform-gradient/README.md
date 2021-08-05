@@ -1,4 +1,4 @@
-# Flutter freeform gradiant
+# Flutter freeform gradient
 
 This is a demonstration project to show usage of Flutter with Nix.
 

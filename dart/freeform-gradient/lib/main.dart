@@ -38,18 +38,12 @@ class RootState extends State<Root> {
       theme: ThemeData(
         primarySwatch: Colors.purple,
       ),
-      home: MyHomePage(
+      home: FreeformGradient(
           title: 'Multi point gradient',
           config: MultiGradientConfig(
               distanceScaling: 1,
               blendStrength: 2,
               points: [
-                MultiGradientPoint(
-                  color: Colors.yellow,
-                  intensity: 1.0,
-                  position: vector.Vector2(
-                      1.0 / 2 + cos(angle) * 0.3, 1.0 / 2 + sin(angle) * 0.3),
-                ),
                 MultiGradientPoint(
                     color: Color(0xff6E10AB),
                     intensity: 1,
@@ -71,35 +65,66 @@ class RootState extends State<Root> {
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  MyHomePage({Key key, this.title, this.config}) : super(key: key);
+class FreeformGradient extends StatefulWidget {
+  FreeformGradient({Key key, this.title, this.config}) : super(key: key);
 
   final String title;
   final MultiGradientConfig config;
 
+  FreeformGradientState createState() => FreeformGradientState();
+}
+
+class MultiGradientPoint {
+  double intensity;
+  vector.Vector4 color;
+  vector.Vector2 position;
+
+  MultiGradientPoint({Color color, this.position, this.intensity = 1}) {
+    this.color = vector.Vector4(color.red.toDouble(), color.green.toDouble(),
+        color.blue.toDouble(), color.opacity);
+  }
+}
+
+class MultiGradientConfig {
+  List<MultiGradientPoint> points;
+
+  double distanceScaling;
+  double blendStrength;
+  double opacityMultiplier = 1;
+
+  MultiGradientConfig(
+      {this.points,
+      this.distanceScaling = 1,
+      this.blendStrength = 3,
+      this.opacityMultiplier = 1});
+}
+
+class FreeformGradientState extends State<FreeformGradient> {
+  Future<ui.Image> gradient;
+
+  @override
+  void didChangeDependencies() {
+    gradient = generateImage(MediaQuery.of(context).size, widget.config);
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
-      body: Center(
-          child: FutureBuilder<ui.Image>(
-        future: generateImage(MediaQuery.of(context).size, config),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            MediaQueryData query = MediaQuery.of(context);
-            return CustomPaint(
-                child: Container(
-                  width: query.size.width,
-                  height: query.size.height,
-                ),
-                painter: ImagePainter(image: snapshot.data));
-          }
+    return FutureBuilder<ui.Image>(
+      future: gradient,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          MediaQueryData query = MediaQuery.of(context);
+          return CustomPaint(
+              child: Container(
+                width: query.size.width,
+                height: query.size.height,
+              ),
+              painter: ImagePainter(image: snapshot.data));
+        }
 
-          return Text("Generating image");
-        },
-      )),
+        return Text("Generating image");
+      },
     );
   }
 }
@@ -146,31 +171,6 @@ Future<ui.Image> generateImage(Size size, MultiGradientConfig config) async {
   );
 
   return completer.future;
-}
-
-class MultiGradientPoint {
-  double intensity;
-  vector.Vector4 color;
-  vector.Vector2 position;
-
-  MultiGradientPoint({Color color, this.position, this.intensity = 1}) {
-    this.color = vector.Vector4(color.red.toDouble(), color.green.toDouble(),
-        color.blue.toDouble(), color.opacity);
-  }
-}
-
-class MultiGradientConfig {
-  List<MultiGradientPoint> points;
-
-  double distanceScaling;
-  double blendStrength;
-  double opacityMultiplier = 1;
-
-  MultiGradientConfig(
-      {this.points,
-      this.distanceScaling = 1,
-      this.blendStrength = 3,
-      this.opacityMultiplier = 1});
 }
 
 double clamp(double min, double max, double value) {
