@@ -1,0 +1,23 @@
+{
+    "name": "purescript-run-supply",
+    "license": [
+        "GPL3"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Mateiadrielrafael/purescript-run-supply"
+    },
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "output"
+    ],
+    "dependencies": {
+        "purescript-maybe": "^v5.0.0",
+        "purescript-prelude": "^v5.0.1",
+        "purescript-run": "^v4.0.0",
+        "purescript-tuples": "^v6.0.1",
+        "purescript-typelevel-prelude": "^v6.0.0"
+    }
+}
