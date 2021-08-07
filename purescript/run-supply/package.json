@@ -4,6 +4,8 @@
   },
   "scripts": {
     "test": "spago -x ./spago.test.dhall test",
-    "generate-bower": "spago bump-version --no-dry-run major"
+    "generate-bower": "spago bump-version --no-dry-run major",
+    "pulp-build": "bower install && pulp build",
+    "bump": "spago bump-version --no-dry-run"
   }
 }
