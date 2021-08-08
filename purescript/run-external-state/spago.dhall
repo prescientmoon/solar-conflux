@@ -1,4 +1,4 @@
-{ name = "run-supply"
+{ name = "run-external-state"
 , dependencies =
   [ "maybe"
   , "prelude"
