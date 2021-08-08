@@ -1,3 +1,4 @@
+-- | Alternative representation of State allowing for different interpreters
 module Run.State.External where
 
 import Prelude
@@ -51,29 +52,29 @@ runExternalState { get, set } = Run.interpret (Run.on _externalState handle Run.
     handle (Put state next) = (set state) $> next
 
 -- | Run the external state by calling some effects
-runStateEffectfully :: forall s r. StateRunner Effect s -> Run (EXTERNAL_STATE s + EFFECT r) ~> Run (EFFECT r)
-runStateEffectfully { get, set } = runExternalState
+runExternalStateEffectfully :: forall s r. StateRunner Effect s -> Run (EXTERNAL_STATE s + EFFECT r) ~> Run (EFFECT r)
+runExternalStateEffectfully { get, set } = runExternalState
     { get: liftEffect get
     , set: set >>> liftEffect
     }
 
 -- | Save the external state inside a ref 
-runStateUsingRef :: forall s r. Ref s -> Run (EXTERNAL_STATE s + EFFECT r) ~> Run (EFFECT r)
-runStateUsingRef ref = runStateEffectfully
+runExternalStateUsingRef :: forall s r. Ref s -> Run (EXTERNAL_STATE s + EFFECT r) ~> Run (EFFECT r)
+runExternalStateUsingRef ref = runExternalStateEffectfully
     { get: Ref.read ref
     , set: flip Ref.write ref
     }
 
 -- | External state is invariant over the state type parameter, so we can imap is.
-imapState :: forall s a r. (s -> a) -> (a -> s) -> Run (EXTERNAL_STATE a + EXTERNAL_STATE s r) ~> Run (EXTERNAL_STATE s r)
-imapState from to = runExternalState
+imapExternaState :: forall s a r. (s -> a) -> (a -> s) -> Run (EXTERNAL_STATE a + EXTERNAL_STATE s r) ~> Run (EXTERNAL_STATE s r)
+imapExternaState from to = runExternalState
     { get: gets from
     , set: to >>> put
     }
 
 -- | Run some state under the focus of a bigger state
-runFocused :: forall s a r. Lens' s a -> Run (EXTERNAL_STATE a + EXTERNAL_STATE s r) ~> Run (EXTERNAL_STATE s r)
-runFocused lens = runExternalState
+focusExternalState :: forall s a r. Lens' s a -> Run (EXTERNAL_STATE a + EXTERNAL_STATE s r) ~> Run (EXTERNAL_STATE s r)
+focusExternalState lens = runExternalState
     { get: use lens
     , set: assign lens
     }
@@ -86,8 +87,8 @@ toInternalState = runExternalState
     }
 
 -- | Converts the state to internal state and then runs it purely
-runPure :: forall r s a. s -> Run (EXTERNAL_STATE s + STATE s r) a -> Run r (s /\ a)
-runPure initial = toInternalState >>> State.runState initial
+runExternalStatePure :: forall r s a. s -> Run (EXTERNAL_STATE s + STATE s r) a -> Run r (s /\ a)
+runExternalStatePure initial = toInternalState >>> State.runState initial
 
 ---------- Helpers
 -- | Get the current state and run a function over it

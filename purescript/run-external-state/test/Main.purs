@@ -2,55 +2,66 @@ module Test.Main where
 
 import Prelude
 
-import Data.Int (fromString)
-import Data.Maybe (Maybe(..), maybe)
+import Data.Int (floor, toNumber)
+import Data.Tuple (fst, snd)
+import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
-import Run (Run, extract)
-import Run.Supply (SUPPLY, generate, ignoreMaybes, localSupply, runSupply)
+import Effect.Class (liftEffect)
+import Effect.Ref as Ref
+import Run (extract, runBaseEffect)
+import Run.State.External (get, imapExternaState, put, runExternalStatePure, runExternalStateUsingRef)
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual)
 import Test.Spec.Reporter (consoleReporter)
 import Test.Spec.Runner (runSpec)
 
-add2 :: forall r. Run (SUPPLY Int r) Int
-add2 = ado
-  a <- generate
-  b <- generate
-  in a + b
-
-add4 :: forall r. Run (SUPPLY Int r) Int
-add4 = ado
-  a <- add2
-  b <- add2
-  in a + b
-
+-- TODO: finish writing tests
 spec :: Spec Unit
-spec = describe "The supply effect" do
-  describe "runSupply" do
-    it "`generate + generate` should be the sum of the first 2 numbers" do
-      let val = extract $ runSupply ((+) 3) 0 add2
-      val `shouldEqual` 3 -- 0 + (0 + 3)
-      let val' = extract $ runSupply ((+) 3) 4 add2
-      val' `shouldEqual` 11 -- 4 + (4 + 3)
-  describe "localSupply" do
-    it "should allow mapping over the generated values" do
-      let val = extract $ runSupply ((+) 1) 0 $ localSupply ((+) 4) add2
-      val `shouldEqual` 9 -- (0 + 4) + ((0 + 1) + 4)
-      let val' = extract $ runSupply ((+) 1) 4 $ localSupply ((*) (-1)) add2
-      val' `shouldEqual` (-9) -- (-1 * 4) + (-1 * (4 + 1))
-  describe "ignoreMaybes" do
-    it "should work as usual if everything is a Just" do
-      let val = extract $ runSupply (map ((+) 3)) (Just 0) $ ignoreMaybes add2
-      val `shouldEqual` 3 -- 0 + (0 + 3)
-    it "should skip over Nothings" do
-      let runner = maybe (Just 2) (const Nothing)
-      let val = extract $ runSupply runner Nothing $ ignoreMaybes add2
-      val `shouldEqual` 4 -- 2 + 2
-    it "should skip over mapped Nothings" do
-      let withThrees m = extract $ runSupply ((<>) "3") "" $ localSupply fromString $ ignoreMaybes m
-      (withThrees add2) `shouldEqual` 36 -- 3 + 33
-      (withThrees add4) `shouldEqual` 3702 -- 3 + 33 + 333 + 333
+spec = describe "External state" do
+  describe "runExternalStatePure" do
+    it "should return the initial state while doing nothing" do
+      let num = 103
+      let val = fst $ extract $ runExternalStatePure num (pure unit)
+      val `shouldEqual` num
+    it "should allow getting the current value" do
+      let initial = 96
+      let val = snd $ extract $ runExternalStatePure initial get
+      val `shouldEqual` initial
+    it "should allow setting the current state" do
+      let initial = 48
+      let other = 32
+      let final = fst $ extract $ runExternalStatePure initial $ put other
+      final `shouldEqual` other
+  describe "imapExternalState" do
+    it "should allow mapping over the state" do
+      let initial = 13.0
+      let other = 20
+      let computation = imapExternaState floor toNumber do
+           state <- get
+           put other
+           pure (state * 2)
+      let final = extract $ runExternalStatePure initial computation
+      final `shouldEqual` (20.0 /\ 26)
+  describe "runExteranlStateUsingRef" do
+    it "should not modify the value while doing nothing" do
+      let initial = 10
+      ref <- liftEffect $ Ref.new initial
+      liftEffect $ runBaseEffect $ runExternalStateUsingRef ref (pure unit)
+      current <- liftEffect $ Ref.read ref
+      current `shouldEqual` initial
+    it "should allow setting the value" do
+      let initial = 49
+      let other = 13
+      ref <- liftEffect $ Ref.new initial
+      liftEffect $ runBaseEffect $ runExternalStateUsingRef ref (put other)
+      current <- liftEffect $ Ref.read ref
+      current `shouldEqual` other
+    it "should allow getting the current value" do
+      let initial = 78
+      ref <- liftEffect $ Ref.new initial
+      result <- liftEffect $ runBaseEffect $ runExternalStateUsingRef ref get
+      result `shouldEqual` initial
   
 
 main :: Effect Unit
