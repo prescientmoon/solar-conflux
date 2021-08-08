@@ -1,4 +1,4 @@
-# Supply
+# External state
 
 Alternative representation for `State`, allowing for some new interpreters,
 
