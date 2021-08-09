@@ -7,7 +7,7 @@ Usecases:
 - conccurrent state
 - saving the state inside a `Ref`
 
-For the full documentation check out [pursuit](TODO)
+For the full documentation check out [pursuit](https://pursuit.purescript.org/packages/purescript-run-external-state/1.0.0)
 
 ## Development
 
