@@ -6,7 +6,7 @@ Featured usecases:
 
 - Passing a `CanvasRenderingContext2D` down a large tree
 
-For the full documentation check out [pursuit](TODO)
+For the full documentation check out [pursuit](https://pursuit.purescript.org/packages/purescript-ask/1.0.0)
 
 ## Example
 
