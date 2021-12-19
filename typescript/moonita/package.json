@@ -1,0 +1,24 @@
+{
+  "name": "moonita",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "@thi.ng/api": "^8.3.2",
+    "@thi.ng/vectors": "^7.4.0",
+    "gl-matrix": "^3.4.3",
+    "preact": "^10.5.13",
+    "runtypes": "^6.5.0",
+    "wolf-ecs": "^2.1.1",
+    "ws": "^8.3.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.0.0",
+    "@types/ws": "^8.2.1",
+    "typescript": "^4.3.2",
+    "vite": "^2.6.4"
+  }
+}
