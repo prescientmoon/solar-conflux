@@ -2,15 +2,14 @@ import { ECS } from "wolf-ecs";
 import { Effect, Stream } from "../Stream";
 import { screenSizes } from "../WebStreams";
 import { assets } from "./assets";
+import { defaultFlags } from "./common/Flags";
 import { identityTransform } from "./common/Transform";
 import { basicMap } from "./Map";
 import { createComponents, createQueries, State } from "./State";
 import { markEntityCreation } from "./systems/createEntity";
+import { renderDebugArrows } from "./systems/debugArrows";
 import { moveEntities } from "./systems/moveEntities";
-import {
-  renderBullets,
-  renderBulletSpawners,
-} from "./systems/renderBulletSpawner";
+import { renderBulletSpawners } from "./systems/renderBulletSpawner";
 import { renderTextures } from "./systems/renderTextures";
 import { applyTransformObject } from "./systems/renderWithTransform";
 import { despawnBullets, spawnBullets } from "./systems/spawnBullet";
@@ -38,6 +37,7 @@ export class Game {
           map: basicMap,
           camera: identityTransform(),
           screenTransform: identityTransform(),
+          flags: defaultFlags,
         };
 
         this.resizeContext();
@@ -100,6 +100,8 @@ export class Game {
 
     //    renderBullets(this.state);
     renderTextures(this.state);
+
+    renderDebugArrows(this.state);
 
     // Reset accumulated transforms
     this.state.ctx.resetTransform();

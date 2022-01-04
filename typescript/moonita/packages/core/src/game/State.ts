@@ -1,5 +1,6 @@
 import { all, ECS, types } from "wolf-ecs";
 import { Texture } from "./assets";
+import { Flags } from "./common/Flags";
 import type { Transform as Transform2d } from "./common/Transform";
 import { Map } from "./Map";
 
@@ -17,6 +18,7 @@ export interface State {
   map: Map;
   camera: Transform2d;
   screenTransform: Transform2d;
+  flags: Flags;
 }
 
 // ========== Runtime type specs
