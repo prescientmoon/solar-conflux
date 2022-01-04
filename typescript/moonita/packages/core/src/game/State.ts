@@ -1,6 +1,5 @@
 import { all, ECS, types } from "wolf-ecs";
 import { Texture } from "./assets";
-import { mat2d } from "gl-matrix";
 
 export type ComponentMap = ReturnType<typeof createComponents>;
 export type QueryMap = Record<keyof ReturnType<typeof createQueries>, Query>;

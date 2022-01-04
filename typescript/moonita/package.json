@@ -7,9 +7,6 @@
     "serve": "vite preview"
   },
   "dependencies": {
-    "@thi.ng/api": "^8.3.2",
-    "@thi.ng/vectors": "^7.4.0",
-    "gl-matrix": "^3.4.3",
     "preact": "^10.5.13",
     "runtypes": "^6.5.0",
     "wolf-ecs": "^2.1.1",
