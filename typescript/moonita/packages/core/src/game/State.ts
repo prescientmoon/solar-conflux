@@ -1,5 +1,6 @@
 import { all, ECS, types } from "wolf-ecs";
 import { Texture } from "./assets";
+import { Map } from "./Map";
 
 export type ComponentMap = ReturnType<typeof createComponents>;
 export type QueryMap = Record<keyof ReturnType<typeof createQueries>, Query>;
@@ -12,6 +13,7 @@ export interface State {
   components: ComponentMap;
   queries: QueryMap;
   assets: ReadonlyArray<Texture>;
+  map: Map;
 }
 
 // ========== Runtime type specs

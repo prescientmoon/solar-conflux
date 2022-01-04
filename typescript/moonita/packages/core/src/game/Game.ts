@@ -1,6 +1,7 @@
 import { ECS } from "wolf-ecs";
 import { Effect, Stream } from "../Stream";
 import { assets } from "./assets";
+import { basicMap } from "./Map";
 import { createComponents, createQueries, State } from "./State";
 import { markEntityCreation } from "./systems/createEntity";
 import { moveEntities } from "./systems/moveEntities";
@@ -30,6 +31,7 @@ export class Game {
           ecs,
           tick: 0,
           assets,
+          map: basicMap,
         };
 
         ctx.canvas.width = window.innerWidth;
