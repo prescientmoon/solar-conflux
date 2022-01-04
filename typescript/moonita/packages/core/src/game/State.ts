@@ -1,5 +1,6 @@
 import { all, ECS, types } from "wolf-ecs";
 import { Texture } from "./assets";
+import type { Transform as Transform2d } from "./common/Transform";
 import { Map } from "./Map";
 
 export type ComponentMap = ReturnType<typeof createComponents>;
@@ -14,6 +15,8 @@ export interface State {
   queries: QueryMap;
   assets: ReadonlyArray<Texture>;
   map: Map;
+  camera: Transform2d;
+  screenTransform: Transform2d;
 }
 
 // ========== Runtime type specs
@@ -46,6 +49,9 @@ export const createComponents = (ecs: ECS) => {
     width: types.u8,
     height: types.u8,
   });
+  const teamBase = ecs.defineComponent({
+    baseId: types.u8,
+  });
 
   return {
     velocity,
@@ -55,6 +61,7 @@ export const createComponents = (ecs: ECS) => {
     mortal,
     texture,
     created,
+    teamBase,
   };
 };
 
@@ -76,6 +83,9 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
     mortal: ecs.createQuery(all(components.mortal)),
     textured: ecs.createQuery(
       all<any>(components.texture, components.transform)
+    ),
+    teamBase: ecs.createQuery(
+      all<any>(components.teamBase, components.texture)
     ),
   };
 };

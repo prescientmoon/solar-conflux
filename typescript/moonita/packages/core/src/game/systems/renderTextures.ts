@@ -1,4 +1,6 @@
+import { createContext } from "preact";
 import { State } from "../State";
+import { applyTransform } from "./renderWithTransform";
 
 export const renderTextures = (state: State) => {
   state.queries.textured._forEach((eid) => {
@@ -11,18 +13,41 @@ export const renderTextures = (state: State) => {
     const scaleX = state.components.transform.scale.x[eid];
     const scaleY = state.components.transform.scale.y[eid];
 
-    const texture = state.assets[textureId];
-    const image = texture.image;
-    const textureRotation = texture.inherentRotation;
-
-    state.ctx.save();
-
-    state.ctx.translate(x, y);
-    state.ctx.rotate(rotation + textureRotation);
-    state.ctx.scale(scaleX, scaleY);
-
-    state.ctx.drawImage(image, -width / 2, -height / 2, width, height);
-
-    state.ctx.restore();
+    renderTexture(
+      state,
+      textureId,
+      x,
+      y,
+      rotation,
+      scaleX,
+      scaleY,
+      width,
+      height
+    );
   });
 };
+
+export function renderTexture(
+  state: State,
+  textureId: number,
+  x: number,
+  y: number,
+  rotation: number,
+  scaleX: number,
+  scaleY: number,
+  width: number,
+  height: number
+) {
+  const texture = state.assets[textureId];
+  const image = texture.image;
+  const textureRotation = texture.inherentRotation;
+
+  state.ctx.save();
+
+  applyTransform(state, x, y, rotation, scaleX, scaleY);
+  state.ctx.rotate(textureRotation);
+
+  state.ctx.drawImage(image, -width / 2, -height / 2, width, height);
+
+  state.ctx.restore();
+}

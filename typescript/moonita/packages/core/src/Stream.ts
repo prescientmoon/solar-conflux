@@ -80,3 +80,32 @@ export const map =
   <A, B>(f: (a: A) => B, stream: Stream<A>): Stream<B> =>
   (emit) =>
     stream((v) => emit(f(v)));
+
+/** Merge two streams into a single one, using a custom merge function */
+export const merge =
+  <A, B, C>(a: Stream<A>, b: Stream<B>, merge: (a: A, b: B) => C): Stream<C> =>
+  (emit) => {
+    let latestA: A | undefined = undefined;
+    let latestB: B | undefined = undefined;
+
+    const refresh = () => {
+      if (latestA === undefined || latestB === undefined) return;
+
+      emit(merge(latestA, latestB));
+    };
+
+    const cancelA = a((latest) => {
+      latestA = latest;
+      refresh();
+    });
+
+    const cancelB = b((latest) => {
+      latestB = latest;
+      refresh();
+    });
+
+    return () => {
+      cancelA();
+      cancelB();
+    };
+  };
