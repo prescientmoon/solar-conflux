@@ -16,3 +16,14 @@ export const identityTransform = (): Transform => ({
   position: { x: 0, y: 0 },
   scale: { x: 1, y: 1 },
 });
+
+// ========== Helpers
+export const flipXMut = (transform: Transform) => {
+  transform.scale.x *= -1;
+  return transform;
+};
+
+export const flipYMut = (transform: Transform) => {
+  transform.scale.y *= -1;
+  return transform;
+};

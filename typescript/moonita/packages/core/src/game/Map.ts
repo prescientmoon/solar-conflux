@@ -1,4 +1,4 @@
-import { Vector2 } from "./common/Transform";
+import { Transform, Vector2 } from "./common/Transform";
 
 // ========== Types
 export interface PathPoint {
@@ -8,7 +8,7 @@ export interface PathPoint {
 export type CreaturePath = Array<PathPoint>;
 
 export interface Team {
-  base: Vector2;
+  base: Vector2 & { rotation: number };
   hostileTo: number;
   creaturePath: CreaturePath;
 }
@@ -22,7 +22,8 @@ export const basicMap: Map = (() => {
   const playerTeam: Team = {
     base: {
       x: 0,
-      y: 1000,
+      y: 0,
+      rotation: 0.5,
     },
     hostileTo: 2,
     creaturePath: [
@@ -39,6 +40,7 @@ export const basicMap: Map = (() => {
     base: {
       x: 1000,
       y: 0,
+      rotation: 0,
     },
     hostileTo: 1,
     creaturePath: [

@@ -3,13 +3,14 @@ import { Effect, Stream } from "../Stream";
 import { screenSizes } from "../WebStreams";
 import { assets } from "./assets";
 import { defaultFlags } from "./common/Flags";
-import { identityTransform } from "./common/Transform";
+import { flipXMut, flipYMut, identityTransform } from "./common/Transform";
 import { basicMap } from "./Map";
 import { createComponents, createQueries, State } from "./State";
 import { markEntityCreation } from "./systems/createEntity";
 import { renderDebugArrows } from "./systems/debugArrows";
 import { moveEntities } from "./systems/moveEntities";
 import { renderBulletSpawners } from "./systems/renderBulletSpawner";
+import { renderMap } from "./systems/renderMap";
 import { renderTextures } from "./systems/renderTextures";
 import { applyTransformObject } from "./systems/renderWithTransform";
 import { despawnBullets, spawnBullets } from "./systems/spawnBullet";
@@ -36,7 +37,7 @@ export class Game {
           assets,
           map: basicMap,
           camera: identityTransform(),
-          screenTransform: identityTransform(),
+          screenTransform: flipYMut(identityTransform()),
           flags: defaultFlags,
         };
 
@@ -96,6 +97,7 @@ export class Game {
     applyTransformObject(this.state, this.state.screenTransform);
     applyTransformObject(this.state, this.state.camera);
 
+    renderMap(this.state);
     renderBulletSpawners(this.state);
 
     //    renderBullets(this.state);

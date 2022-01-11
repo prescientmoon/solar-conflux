@@ -5,5 +5,5 @@ export const enum Flag {
 export type Flags = Record<Flag, boolean>;
 
 export const defaultFlags = {
-  [Flag.DebugShowOriginArrow]: false,
+  [Flag.DebugShowOriginArrow]: true,
 };
