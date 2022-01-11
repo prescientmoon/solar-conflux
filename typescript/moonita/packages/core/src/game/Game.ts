@@ -1,9 +1,14 @@
 import { ECS } from "wolf-ecs";
 import { Effect, Stream } from "../Stream";
-import { screenSizes } from "../WebStreams";
+import { mouseDelta, screenSizes } from "../WebStreams";
 import { assets } from "./assets";
 import { defaultFlags } from "./common/Flags";
-import { flipXMut, flipYMut, identityTransform } from "./common/Transform";
+import {
+  applyTransformToVector,
+  flipXMut,
+  flipYMut,
+  identityTransform,
+} from "./common/Transform";
 import { basicMap } from "./Map";
 import { createComponents, createQueries, State } from "./State";
 import { markEntityCreation } from "./systems/createEntity";
@@ -71,6 +76,28 @@ export class Game {
     });
 
     this.cancelers.push(cancelContexts);
+
+    this.setupMouseDeltaHandler();
+  }
+
+  private setupMouseDeltaHandler() {
+    this.cancelers.push(
+      mouseDelta((delta) => {
+        if (this.state === null) return;
+
+        const sx =
+          delta.x *
+          this.state.camera.scale.x *
+          this.state.screenTransform.scale.x;
+        const sy =
+          delta.y *
+          this.state.camera.scale.y *
+          this.state.screenTransform.scale.y;
+
+        this.state.camera.position.x += sx;
+        this.state.camera.position.y += sy;
+      })
+    );
   }
 
   public dispose() {

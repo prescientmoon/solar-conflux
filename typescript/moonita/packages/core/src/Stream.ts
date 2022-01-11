@@ -1,4 +1,5 @@
 import { useEffect } from "preact/hooks";
+import { CircularBuffer } from "./CircularBuffer";
 
 /** Lazy effectful computation */
 export type Effect<T> = () => T;
@@ -109,3 +110,43 @@ export const merge =
       cancelB();
     };
   };
+
+/**
+ * Delay a stream by n emits.
+ *
+ * EX:
+ * --- A --- B --- C --- D ---
+ * delay(2):
+ * ---   ---   --- A --- B --- C --- D
+ */
+export const delay =
+  <A>(amount: number, stream: Stream<A>): Stream<A> =>
+  (emit) => {
+    const memory = new CircularBuffer<A>(amount);
+
+    return stream((a) => {
+      const popped = memory.push(a);
+
+      if (popped !== null) emit(popped);
+    });
+  };
+
+export const futureMerge = <A, C>(
+  steps: number,
+  stream: Stream<A>,
+  merger: (past: A, current: A) => C
+): Stream<C> => {
+  const delayed = delay(steps, stream);
+
+  return merge(delayed, stream, merger);
+};
+
+/**
+ * Drop all values from a stream which do not satisfy a given predicate.
+ */
+export const filter =
+  <A>(stream: Stream<A>, predicate: (a: A) => boolean): Stream<A> =>
+  (emit) =>
+    stream((v) => {
+      if (predicate(v)) emit(v);
+    });
