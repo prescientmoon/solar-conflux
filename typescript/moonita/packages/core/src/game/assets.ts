@@ -1,15 +1,18 @@
 // ========== Asset imports
 import textureBlueBullet from "/public/assets/blue_bullet.svg";
 import textureYellowBase from "/public/assets/yellow_base.svg";
+import textureBulletSpawner from "/public/assets/bullet_spawner.svg";
 
 export const enum TextureId {
   BlueBullet,
   YellowBase,
+  BulletSpawner,
 }
 
 const assetPaths: Record<TextureId, string> = {
   [TextureId.BlueBullet]: textureBlueBullet,
   [TextureId.YellowBase]: textureYellowBase,
+  [TextureId.BulletSpawner]: textureBulletSpawner,
 };
 
 export interface Texture {

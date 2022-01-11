@@ -37,7 +37,7 @@ export const createBullet = (
 
   state.components.transform.position.x[eid] = positionX;
   state.components.transform.position.y[eid] = positionY;
-  state.components.transform.rotation[eid] = 0;
+  state.components.transform.rotation[eid] = rotation;
   unstretch(state, eid);
 
   state.components.velocity.x[eid] = velocityX;

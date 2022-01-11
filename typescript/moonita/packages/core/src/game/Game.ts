@@ -1,7 +1,7 @@
 import { ECS } from "wolf-ecs";
 import { Effect, Stream } from "../Stream";
 import { mouseDelta, screenSizes } from "../WebStreams";
-import { assets } from "./assets";
+import { assets, TextureId } from "./assets";
 import { defaultFlags } from "./common/Flags";
 import { flipYMut, identityTransform } from "./common/Transform";
 import { basicMap } from "./Map";
@@ -49,10 +49,16 @@ export class Game {
 
         ecs.addComponent(id, components.bulletEmitter);
         ecs.addComponent(id, components.transform);
+        ecs.addComponent(id, components.texture);
 
         this.state.components.transform.position.x[id] = 40;
         this.state.components.transform.position.y[id] = 100;
         this.state.components.transform.rotation[id] = 0;
+        this.state.components.transform.scale.x[id] = 1;
+        this.state.components.transform.scale.y[id] = 1;
+        this.state.components.texture.width[id] = 80;
+        this.state.components.texture.height[id] = 80;
+        this.state.components.texture.textureId[id] = TextureId.BulletSpawner;
         this.state.components.bulletEmitter.frequency[id] = 5;
 
         // Listen to resize events
@@ -120,9 +126,8 @@ export class Game {
     applyTransformObject(this.state, this.state.camera);
 
     renderMap(this.state);
-    renderBulletSpawners(this.state);
-
-    //    renderBullets(this.state);
+    // renderBulletSpawners(this.state);
+    // renderBullets(this.state);
     renderTextures(this.state);
 
     renderDebugArrows(this.state);
