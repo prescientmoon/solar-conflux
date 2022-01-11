@@ -3,19 +3,14 @@ import { Effect, Stream } from "../Stream";
 import { mouseDelta, screenSizes } from "../WebStreams";
 import { assets } from "./assets";
 import { defaultFlags } from "./common/Flags";
-import {
-  applyTransformToVector,
-  flipXMut,
-  flipYMut,
-  identityTransform,
-} from "./common/Transform";
+import { flipYMut, identityTransform } from "./common/Transform";
 import { basicMap } from "./Map";
 import { createComponents, createQueries, State } from "./State";
 import { markEntityCreation } from "./systems/createEntity";
 import { renderDebugArrows } from "./systems/debugArrows";
 import { moveEntities } from "./systems/moveEntities";
 import { renderBulletSpawners } from "./systems/renderBulletSpawner";
-import { renderMap } from "./systems/renderMap";
+import { renderDebugPaths, renderMap } from "./systems/renderMap";
 import { renderTextures } from "./systems/renderTextures";
 import { applyTransformObject } from "./systems/renderWithTransform";
 import { despawnBullets, spawnBullets } from "./systems/spawnBullet";
@@ -131,6 +126,7 @@ export class Game {
     renderTextures(this.state);
 
     renderDebugArrows(this.state);
+    renderDebugPaths(this.state);
 
     // Reset accumulated transforms
     this.state.ctx.resetTransform();

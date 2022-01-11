@@ -33,6 +33,8 @@ export const vectorDifference = (a: Vector2, b: Vector2): Vector2 => ({
   y: a.y - b.y,
 });
 
+export const vectorLength = (a: Vector2) => Math.sqrt(a.x ** 2 + a.y ** 2);
+
 export const applyTransformToVector = (transform: Transform, vec: Vector2) => {
   const tx = vec.x + transform.position.x;
   const ty = vec.y + transform.position.y;

@@ -1,5 +1,5 @@
 import { Flag } from "../common/Flags";
-import { Vector2 } from "../common/Transform";
+import { Vector2, vectorDifference, vectorLength } from "../common/Transform";
 import { State } from "../State";
 
 const defaultTipSize: Vector2 = { x: 15, y: 5 };
@@ -19,6 +19,27 @@ export function renderArrow(
   state.ctx.lineTo(length, -tipSize.y);
   state.ctx.lineTo(length + tipSize.x, 0);
   state.ctx.fill();
+}
+
+export function renderCustomArrow(
+  state: State,
+  from: Vector2,
+  to: Vector2,
+  tipSize: Vector2 = defaultTipSize
+) {
+  state.ctx.save();
+
+  state.ctx.translate(from.x, from.y);
+
+  const delta = vectorDifference(to, from);
+  const length = vectorLength(delta);
+  const angle = Math.atan2(delta.x, delta.y);
+
+  state.ctx.rotate(angle);
+
+  renderArrow(state, length, tipSize);
+
+  state.ctx.restore();
 }
 
 export function renderPerpendicularArrows(

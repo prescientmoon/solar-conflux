@@ -21,16 +21,16 @@ export interface Map {
 export const basicMap: Map = (() => {
   const playerTeam: Team = {
     base: {
-      x: 0,
-      y: 0,
-      rotation: 0.5,
+      x: -1000,
+      y: -1000,
+      rotation: Math.PI / 4,
     },
     hostileTo: 2,
     creaturePath: [
       {
         position: {
           x: 1000,
-          y: 0,
+          y: 1000,
         },
       },
     ],
@@ -39,15 +39,15 @@ export const basicMap: Map = (() => {
   const aiTeam: Team = {
     base: {
       x: 1000,
-      y: 0,
-      rotation: 0,
+      y: 1000,
+      rotation: (5 * Math.PI) / 4,
     },
     hostileTo: 1,
     creaturePath: [
       {
         position: {
-          x: 0,
-          y: 1000,
+          x: -1000,
+          y: -1000,
         },
       },
     ],
@@ -57,3 +57,5 @@ export const basicMap: Map = (() => {
     teams: [playerTeam, aiTeam],
   };
 })();
+
+export const baseSize = 800;
