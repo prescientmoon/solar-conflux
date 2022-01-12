@@ -1,5 +1,5 @@
 import { TextureId } from "../assets";
-import { State } from "../State";
+import { LayerId, State } from "../State";
 
 export const markEntityCreation = (state: State, eid: number) => {
   state.ecs.addComponent(eid, state.components.created);
@@ -47,6 +47,7 @@ export const createBullet = (
   state.components.texture.textureId[eid] = TextureId.BlueBullet;
   state.components.texture.width[eid] = 30;
   state.components.texture.height[eid] = 30;
+  state.components.texture.layer[eid] = LayerId.BulletLayer;
 
   return eid;
 };

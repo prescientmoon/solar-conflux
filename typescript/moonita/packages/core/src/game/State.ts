@@ -8,8 +8,16 @@ export type ComponentMap = ReturnType<typeof createComponents>;
 export type QueryMap = Record<keyof ReturnType<typeof createQueries>, Query>;
 export type Query = ReturnType<ECS["createQuery"]>;
 
+export const enum LayerId {
+  BuildingLayer,
+  UnitLayer,
+  BulletLayer,
+  DebugLayer,
+  LastLayer,
+}
+
 export interface State {
-  ctx: CanvasRenderingContext2D;
+  contexts: Array<CanvasRenderingContext2D>;
   ecs: ECS;
   tick: number;
   components: ComponentMap;
@@ -50,6 +58,7 @@ export const createComponents = (ecs: ECS) => {
     textureId: types.u8,
     width: types.u8,
     height: types.u8,
+    layer: types.u8,
   });
   const teamBase = ecs.defineComponent({
     baseId: types.u8,
@@ -91,3 +100,8 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
     ),
   };
 };
+
+// ========== Constants
+export const layers = Array(LayerId.LastLayer)
+  .fill(1)
+  .map((_, i) => i);

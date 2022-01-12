@@ -1,17 +1,23 @@
 import { Vector2 } from "../common/Transform";
-import { State } from "../State";
+import { LayerId, State } from "../State";
 
 export type LinePath = Array<Vector2>;
 
-export const renderLinePath = (state: State, path: LinePath) => {
+export const renderLinePath = (
+  state: State,
+  layer: LayerId,
+  path: LinePath
+) => {
   if (path.length === 0) return;
 
-  state.ctx.beginPath();
-  state.ctx.moveTo(path[0].x, path[0].y);
+  const context = state.contexts[layer];
+
+  context.beginPath();
+  context.moveTo(path[0].x, path[0].y);
 
   for (let i = 1; i < path.length; i++) {
-    state.ctx.lineTo(path[i].x, path[i].y);
+    context.lineTo(path[i].x, path[i].y);
   }
 
-  state.ctx.stroke();
+  context.stroke();
 };

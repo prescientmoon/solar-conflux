@@ -2,17 +2,16 @@ import { ECS } from "wolf-ecs";
 import { Effect, Stream } from "../Stream";
 import { mouseDelta, screenSizes } from "../WebStreams";
 import { assets, TextureId } from "./assets";
-import { defaultFlags } from "./common/Flags";
+import { defaultFlags, Flag } from "./common/Flags";
 import { flipYMut, identityTransform } from "./common/Transform";
 import { basicMap } from "./Map";
-import { createComponents, createQueries, State } from "./State";
+import { createComponents, createQueries, LayerId, State } from "./State";
 import { markEntityCreation } from "./systems/createEntity";
 import { renderDebugArrows } from "./systems/debugArrows";
 import { moveEntities } from "./systems/moveEntities";
-import { renderBulletSpawners } from "./systems/renderBulletSpawner";
 import { renderDebugPaths, renderMap } from "./systems/renderMap";
 import { renderTextures } from "./systems/renderTextures";
-import { applyTransformObject } from "./systems/renderWithTransform";
+import { applyGlobalTransformObject } from "./systems/renderWithTransform";
 import { despawnBullets, spawnBullets } from "./systems/spawnBullet";
 
 const ups = 30;
@@ -21,15 +20,15 @@ export class Game {
   private state: State | null = null;
   private cancelers: Effect<void>[] = [];
 
-  public constructor(context: Stream<CanvasRenderingContext2D>) {
-    const cancelContexts = context((ctx) => {
+  public constructor(contexts: Stream<Array<CanvasRenderingContext2D>>) {
+    const cancelContexts = contexts((contexts) => {
       if (this.state === null) {
         const ecs = new ECS(1000, false);
         const components = createComponents(ecs);
         const queries = createQueries(ecs, components);
 
         this.state = {
-          ctx,
+          contexts: contexts,
           components,
           queries,
           ecs,
@@ -40,6 +39,9 @@ export class Game {
           screenTransform: flipYMut(identityTransform()),
           flags: defaultFlags,
         };
+
+        if (this.state.flags[Flag.DebugGlobalState])
+          (globalThis as any).state = this.state;
 
         this.resizeContext();
 
@@ -59,6 +61,7 @@ export class Game {
         this.state.components.texture.width[id] = 80;
         this.state.components.texture.height[id] = 80;
         this.state.components.texture.textureId[id] = TextureId.BulletSpawner;
+        this.state.components.texture.layer[id] = LayerId.BuildingLayer;
         this.state.components.bulletEmitter.frequency[id] = 5;
 
         // Listen to resize events
@@ -73,7 +76,7 @@ export class Game {
         });
 
         this.cancelers.push(cancelWindowSizes);
-      } else this.state.ctx = ctx;
+      } else this.state.contexts = contexts;
     });
 
     this.cancelers.push(cancelContexts);
@@ -112,18 +115,22 @@ export class Game {
   private resizeContext() {
     if (!this.state) return;
 
-    this.state.ctx.canvas.width = window.innerWidth;
-    this.state.ctx.canvas.height = window.innerHeight;
+    for (const context of this.state.contexts) {
+      context.canvas.width = window.innerWidth;
+      context.canvas.height = window.innerHeight;
+    }
   }
 
   public render() {
     if (!this.state) return;
 
-    this.state.ctx.clearRect(0, 0, 10000, 10000);
+    for (const context of this.state.contexts) {
+      context.clearRect(0, 0, 10000, 10000);
+    }
 
     // Apply base transforms
-    applyTransformObject(this.state, this.state.screenTransform);
-    applyTransformObject(this.state, this.state.camera);
+    applyGlobalTransformObject(this.state, this.state.screenTransform);
+    applyGlobalTransformObject(this.state, this.state.camera);
 
     renderMap(this.state);
     // renderBulletSpawners(this.state);
@@ -134,7 +141,9 @@ export class Game {
     renderDebugPaths(this.state);
 
     // Reset accumulated transforms
-    this.state.ctx.resetTransform();
+    for (const context of this.state.contexts) {
+      context.resetTransform();
+    }
 
     this.state.camera.rotation += 0.001;
   }

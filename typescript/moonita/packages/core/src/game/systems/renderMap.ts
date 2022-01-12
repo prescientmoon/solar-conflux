@@ -1,9 +1,8 @@
 import { TextureId } from "../assets";
 import { Flag } from "../common/Flags";
 import { baseSize } from "../Map";
-import { State } from "../State";
-import { renderArrow, renderCustomArrow } from "./debugArrows";
-import { renderLinePath } from "./renderLinePath";
+import { LayerId, State } from "../State";
+import { renderCustomArrow } from "./debugArrows";
 import { renderTexture } from "./renderTextures";
 
 export const renderMap = (state: State) => {
@@ -12,6 +11,7 @@ export const renderMap = (state: State) => {
 
     renderTexture(
       state,
+      LayerId.BuildingLayer,
       TextureId.YellowBase,
       team.base.x,
       team.base.y,
@@ -34,7 +34,7 @@ export const renderDebugPaths = (state: State) => {
       const from = p === 0 ? team.base : team.creaturePath[p - 1].position;
       const to = team.creaturePath[p].position;
 
-      renderCustomArrow(state, from, to);
+      renderCustomArrow(state.contexts[LayerId.DebugLayer], from, to);
     }
   }
 };

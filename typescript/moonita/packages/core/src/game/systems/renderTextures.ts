@@ -1,5 +1,4 @@
-import { createContext } from "preact";
-import { State } from "../State";
+import { LayerId, State } from "../State";
 import { applyTransform } from "./renderWithTransform";
 
 export const renderTextures = (state: State) => {
@@ -7,6 +6,7 @@ export const renderTextures = (state: State) => {
     const textureId = state.components.texture.textureId[eid];
     const width = state.components.texture.width[eid];
     const height = state.components.texture.height[eid];
+    const layer = state.components.texture.layer[eid];
     const x = state.components.transform.position.x[eid];
     const y = state.components.transform.position.y[eid];
     const rotation = state.components.transform.rotation[eid];
@@ -15,6 +15,7 @@ export const renderTextures = (state: State) => {
 
     renderTexture(
       state,
+      layer,
       textureId,
       x,
       y,
@@ -29,6 +30,7 @@ export const renderTextures = (state: State) => {
 
 export function renderTexture(
   state: State,
+  layer: LayerId,
   textureId: number,
   x: number,
   y: number,
@@ -41,13 +43,14 @@ export function renderTexture(
   const texture = state.assets[textureId];
   const image = texture.image;
   const textureRotation = texture.inherentRotation;
+  const context = state.contexts[layer];
 
-  state.ctx.save();
+  context.save();
 
-  applyTransform(state, x, y, rotation, scaleX, scaleY);
-  state.ctx.rotate(textureRotation);
+  applyTransform(context, x, y, rotation, scaleX, scaleY);
+  context.rotate(textureRotation);
 
-  state.ctx.drawImage(image, -width / 2, -height / 2, width, height);
+  context.drawImage(image, -width / 2, -height / 2, width, height);
 
-  state.ctx.restore();
+  context.restore();
 }

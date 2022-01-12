@@ -1,70 +1,70 @@
 import { Flag } from "../common/Flags";
 import { Vector2, vectorDifference, vectorLength } from "../common/Transform";
-import { State } from "../State";
+import { LayerId, State } from "../State";
 
 const defaultTipSize: Vector2 = { x: 15, y: 5 };
 
 /** Render an arrow of arbitrary length on the x-axis, with a custom sized tip */
 export function renderArrow(
-  state: State,
+  context: CanvasRenderingContext2D,
   length: number,
   tipSize: Vector2 = defaultTipSize
 ) {
-  state.ctx.beginPath();
-  state.ctx.moveTo(0, 0);
-  state.ctx.lineTo(length, 0);
-  state.ctx.stroke();
-  state.ctx.lineTo(length + tipSize.x, 0);
-  state.ctx.lineTo(length, tipSize.y);
-  state.ctx.lineTo(length, -tipSize.y);
-  state.ctx.lineTo(length + tipSize.x, 0);
-  state.ctx.fill();
+  context.beginPath();
+  context.moveTo(0, 0);
+  context.lineTo(length, 0);
+  context.stroke();
+  context.lineTo(length + tipSize.x, 0);
+  context.lineTo(length, tipSize.y);
+  context.lineTo(length, -tipSize.y);
+  context.lineTo(length + tipSize.x, 0);
+  context.fill();
 }
 
 export function renderCustomArrow(
-  state: State,
+  context: CanvasRenderingContext2D,
   from: Vector2,
   to: Vector2,
   tipSize: Vector2 = defaultTipSize
 ) {
-  state.ctx.save();
+  context.save();
 
-  state.ctx.translate(from.x, from.y);
+  context.translate(from.x, from.y);
 
   const delta = vectorDifference(to, from);
   const length = vectorLength(delta);
   const angle = Math.atan2(delta.x, delta.y);
 
-  state.ctx.rotate(angle);
+  context.rotate(angle);
 
-  renderArrow(state, length, tipSize);
+  renderArrow(context, length, tipSize);
 
-  state.ctx.restore();
+  context.restore();
 }
 
 export function renderPerpendicularArrows(
-  state: State,
+  context: CanvasRenderingContext2D,
   length: number,
   tipSize: Vector2 = defaultTipSize
 ) {
-  state.ctx.save();
-  state.ctx.lineWidth = 6;
-  state.ctx.lineCap = "round";
+  context.save();
+  context.lineWidth = 6;
+  context.lineCap = "round";
 
-  state.ctx.strokeStyle = "blue";
-  state.ctx.fillStyle = "blue";
-  renderArrow(state, length, tipSize);
+  context.strokeStyle = "blue";
+  context.fillStyle = "blue";
+  renderArrow(context, length, tipSize);
 
-  state.ctx.strokeStyle = "red";
-  state.ctx.fillStyle = "red";
-  state.ctx.rotate(Math.PI / 2);
-  renderArrow(state, length, tipSize);
+  context.strokeStyle = "red";
+  context.fillStyle = "red";
+  context.rotate(Math.PI / 2);
+  renderArrow(context, length, tipSize);
 
-  state.ctx.restore();
+  context.restore();
 }
 
 export function renderDebugArrows(state: State) {
-  if (state.flags[Flag.DebugShowOriginArrow]) {
-    renderPerpendicularArrows(state, 50);
-  }
+  if (!state.flags[Flag.DebugShowOriginArrow]) return;
+
+  renderPerpendicularArrows(state.contexts[LayerId.DebugLayer], 50);
 }

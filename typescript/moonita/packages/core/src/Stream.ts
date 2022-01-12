@@ -150,3 +150,29 @@ export const filter =
     stream((v) => {
       if (predicate(v)) emit(v);
     });
+
+/**
+ * Merge n amount of streams together
+ */
+export const sequence =
+  <A>(streams: Array<Stream<A>>): Stream<Array<A>> =>
+  (emit) => {
+    let latest: Array<A | undefined> = Array(streams.length).fill(undefined);
+
+    const refresh = () => {
+      if (latest.some((a) => a === undefined)) return;
+
+      emit(latest as A[]);
+    };
+
+    const cancellers = streams.map((stream, id) => {
+      return stream((incoming) => {
+        latest[id] = incoming;
+        refresh();
+      });
+    });
+
+    return () => {
+      for (const canceller of cancellers) canceller();
+    };
+  };
