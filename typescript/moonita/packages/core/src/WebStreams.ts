@@ -1,4 +1,4 @@
-import { Vector2, vectorDifference } from "./game/common/Vector";
+import { Vector2, difference } from "./game/common/Vector";
 import { map as mapStream, Stream } from "./Stream";
 
 // ========== Types
@@ -69,7 +69,7 @@ export const mouseDelta: Stream<Vector2> = (emit) => {
     }
 
     if (last !== null) {
-      emit(vectorDifference(position, last));
+      emit(difference(position, last));
     }
 
     last = position;

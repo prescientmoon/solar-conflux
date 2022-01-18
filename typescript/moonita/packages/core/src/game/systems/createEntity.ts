@@ -17,8 +17,7 @@ export const unstretch = (state: State, entity: number) => {
 export const createBullet = (
   state: State,
   startFrom: number,
-  velocityX: number,
-  velocityY: number,
+  velocity: number,
   lifetime: number
 ) => {
   const eid = state.ecs.createEntity();
@@ -40,8 +39,8 @@ export const createBullet = (
   state.components.transform.rotation[eid] = rotation;
   unstretch(state, eid);
 
-  state.components.velocity.x[eid] = velocityX;
-  state.components.velocity.y[eid] = velocityY;
+  state.components.velocity.x[eid] = Math.cos(rotation) * velocity;
+  state.components.velocity.y[eid] = Math.sin(rotation) * velocity;
   state.components.mortal.lifetime[eid] = lifetime;
 
   state.components.texture.textureId[eid] = TextureId.BlueBullet;

@@ -1,4 +1,4 @@
-import { addVectorsMut, scaleVector, scaleVectorMut, Vector2 } from "./Vector";
+import { addMut, scale, Vector2 } from "./Vector";
 
 // ========== Types
 export interface Camera {
@@ -16,7 +16,7 @@ export const identityCamera = (): Camera => {
 
 // ========== Helpers
 export function translateLocalCoordinatesMut(camera: Camera, delta: Vector2) {
-  addVectorsMut(camera.position, camera.position, delta);
+  addMut(camera.position, camera.position, delta);
 
   return camera;
 }
@@ -51,7 +51,7 @@ export function scaleAroundGlobalPointMut(
   at: Vector2,
   by: Vector2
 ) {
-  translateGlobalCoordinatesMut(camera, scaleVector(at, -1));
+  translateGlobalCoordinatesMut(camera, scale(at, -1));
   scaleMut(camera, by);
   translateGlobalCoordinatesMut(camera, at);
 

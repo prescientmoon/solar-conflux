@@ -1,5 +1,7 @@
 import { Flag } from "../common/Flags";
-import { Vector2, vectorDifference, vectorLength } from "../common/Vector";
+import { Vector2 } from "../common/Vector";
+import * as V from "../common/Vector";
+
 import { LayerId, State } from "../State";
 
 const defaultTipSize: Vector2 = { x: 15, y: 5 };
@@ -28,17 +30,14 @@ export function renderCustomArrow(
   tipSize: Vector2 = defaultTipSize
 ) {
   context.save();
-
   context.translate(from.x, from.y);
 
-  const delta = vectorDifference(to, from);
-  const length = vectorLength(delta);
+  const delta = V.difference(to, from);
+  const length = V.length(delta);
   const angle = Math.atan2(delta.x, delta.y);
 
   context.rotate(angle);
-
   renderArrow(context, length, tipSize);
-
   context.restore();
 }
 

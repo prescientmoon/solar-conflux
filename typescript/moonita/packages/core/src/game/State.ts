@@ -45,6 +45,7 @@ export const Transform = {
 export const createComponents = (ecs: ECS) => {
   const transform = ecs.defineComponent(Transform);
   const velocity = ecs.defineComponent(Vector2);
+  const angularVelocity = ecs.defineComponent(types.f32);
   const bulletEmitter = ecs.defineComponent({
     frequency: types.u8,
   });
@@ -74,6 +75,7 @@ export const createComponents = (ecs: ECS) => {
     texture,
     created,
     teamBase,
+    angularVelocity,
   };
 };
 
@@ -81,6 +83,9 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
   return {
     kinematics: ecs.createQuery(
       all<any>(components.transform, components.velocity)
+    ),
+    rotating: ecs.createQuery(
+      all<any>(components.transform, components.angularVelocity)
     ),
     bullets: ecs.createQuery(
       all<any>(components.transform, components.mortal, components.bullet)

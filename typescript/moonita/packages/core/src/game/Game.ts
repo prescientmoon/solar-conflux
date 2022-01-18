@@ -8,23 +8,15 @@ import {
 } from "../WebStreams";
 import { assets, TextureId } from "./assets";
 import { defaultFlags, Flag } from "./common/Flags";
-import {
-  flipYMut,
-  identityTransform,
-  unApplyTransformToVector,
-} from "./common/Transform";
 import * as V from "./common/Vector";
 import { basicMap } from "./Map";
 import { createComponents, createQueries, LayerId, State } from "./State";
 import { markEntityCreation } from "./systems/createEntity";
 import { renderDebugArrows } from "./systems/debugArrows";
-import { moveEntities } from "./systems/moveEntities";
+import { moveEntities, rotateEntities } from "./systems/moveEntities";
 import { renderDebugPaths, renderMap } from "./systems/renderMap";
 import { renderTextures } from "./systems/renderTextures";
-import {
-  applyGlobalCameraObject,
-  applyGlobalTransformObject,
-} from "./systems/renderWithTransform";
+import { applyGlobalCameraObject } from "./systems/renderWithTransform";
 import { despawnBullets, spawnBullets } from "./systems/spawnBullet";
 import * as Camera from "./common/Camera";
 
@@ -66,6 +58,7 @@ export class Game {
         ecs.addComponent(id, components.bulletEmitter);
         ecs.addComponent(id, components.transform);
         ecs.addComponent(id, components.texture);
+        ecs.addComponent(id, components.angularVelocity);
 
         this.state.components.transform.position.x[id] = 40;
         this.state.components.transform.position.y[id] = 100;
@@ -77,6 +70,7 @@ export class Game {
         this.state.components.texture.textureId[id] = TextureId.BulletSpawner;
         this.state.components.texture.layer[id] = LayerId.BuildingLayer;
         this.state.components.bulletEmitter.frequency[id] = 5;
+        this.state.components.angularVelocity[id] = 0.1;
 
         // Listen to resize events
         const cancelWindowSizes = screenSizes((size) => {
@@ -196,11 +190,7 @@ export class Game {
     spawnBullets(this.state);
     despawnBullets(this.state);
     moveEntities(this.state);
-
-    this.state.queries.bulletEmitters._forEach((eid) => {
-      if (!this.state) return;
-      this.state.components.transform.rotation[eid] += 0.1;
-    });
+    rotateEntities(this.state);
   }
 
   public initRenderer(): Effect<void> {

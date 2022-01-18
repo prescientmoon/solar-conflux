@@ -7,7 +7,7 @@ export const spawnBullets = (state: State) => {
     const frequency = state.components.bulletEmitter.frequency[eid];
 
     if ((state.tick - createdAt) % frequency === 0) {
-      createBullet(state, eid, 10, 0, 100);
+      createBullet(state, eid, 10, 100);
     }
   });
 };
