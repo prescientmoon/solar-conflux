@@ -1,9 +1,19 @@
 import { ECS } from "wolf-ecs";
 import { Effect, Stream } from "../Stream";
-import { mouseDelta, screenSizes } from "../WebStreams";
+import {
+  mouseDelta,
+  mouseEventPosition,
+  screenSizes,
+  wheel,
+} from "../WebStreams";
 import { assets, TextureId } from "./assets";
 import { defaultFlags, Flag } from "./common/Flags";
-import { flipYMut, identityTransform } from "./common/Transform";
+import {
+  flipYMut,
+  identityTransform,
+  unApplyTransformToVector,
+} from "./common/Transform";
+import * as V from "./common/Vector";
 import { basicMap } from "./Map";
 import { createComponents, createQueries, LayerId, State } from "./State";
 import { markEntityCreation } from "./systems/createEntity";
@@ -11,8 +21,12 @@ import { renderDebugArrows } from "./systems/debugArrows";
 import { moveEntities } from "./systems/moveEntities";
 import { renderDebugPaths, renderMap } from "./systems/renderMap";
 import { renderTextures } from "./systems/renderTextures";
-import { applyGlobalTransformObject } from "./systems/renderWithTransform";
+import {
+  applyGlobalCameraObject,
+  applyGlobalTransformObject,
+} from "./systems/renderWithTransform";
 import { despawnBullets, spawnBullets } from "./systems/spawnBullet";
+import * as Camera from "./common/Camera";
 
 const ups = 30;
 
@@ -35,8 +49,8 @@ export class Game {
           tick: 0,
           assets,
           map: basicMap,
-          camera: identityTransform(),
-          screenTransform: flipYMut(identityTransform()),
+          camera: Camera.identityCamera(),
+          screenTransform: Camera.flipYMut(Camera.identityCamera()),
           flags: defaultFlags,
         };
 
@@ -72,7 +86,10 @@ export class Game {
           size.y /= 2;
 
           this.resizeContext();
-          this.state.screenTransform.position = size;
+          Camera.translateGlobalCoordinatesMut(
+            this.state.screenTransform,
+            size
+          );
         });
 
         this.cancelers.push(cancelWindowSizes);
@@ -89,19 +106,44 @@ export class Game {
       mouseDelta((delta) => {
         if (this.state === null) return;
 
-        const sx =
-          delta.x *
-          this.state.camera.scale.x *
-          this.state.screenTransform.scale.x;
-        const sy =
-          delta.y *
-          this.state.camera.scale.y *
-          this.state.screenTransform.scale.y;
-
-        this.state.camera.position.x += sx;
-        this.state.camera.position.y += sy;
+        Camera.toLocalScaleMut(this.state.screenTransform, delta);
+        Camera.translateGlobalCoordinatesMut(this.state.camera, delta);
       })
     );
+
+    this.cancelers.push(
+      wheel((e) => {
+        if (!this.state) return;
+        if (e.deltaY === 0) return;
+
+        const scrollConstant = 0.8;
+        const delta = e.deltaY > 0 ? scrollConstant : 1 / scrollConstant;
+        const scalingVec = { x: delta, y: delta };
+
+        const clientPosition: V.Vector2 = mouseEventPosition(e);
+        const inWorldCoordinates = Camera.toLocalCoordinates(
+          this.state.screenTransform,
+          clientPosition
+        );
+
+        Camera.scaleAroundGlobalPointMut(
+          this.state.camera,
+          inWorldCoordinates,
+          scalingVec
+        );
+      })
+    );
+  }
+
+  public toLocalCoordinates(vec: V.Vector2) {
+    if (!this.state) return vec;
+
+    const inScreenSpace = Camera.toLocalCoordinates(
+      this.state.screenTransform,
+      vec
+    );
+
+    return Camera.toLocalCoordinates(this.state.camera, inScreenSpace);
   }
 
   public dispose() {
@@ -129,8 +171,8 @@ export class Game {
     }
 
     // Apply base transforms
-    applyGlobalTransformObject(this.state, this.state.screenTransform);
-    applyGlobalTransformObject(this.state, this.state.camera);
+    applyGlobalCameraObject(this.state, this.state.screenTransform);
+    applyGlobalCameraObject(this.state, this.state.camera);
 
     renderMap(this.state);
     // renderBulletSpawners(this.state);
@@ -144,8 +186,6 @@ export class Game {
     for (const context of this.state.contexts) {
       context.resetTransform();
     }
-
-    this.state.camera.rotation += 0.001;
   }
 
   public update() {
@@ -156,6 +196,11 @@ export class Game {
     spawnBullets(this.state);
     despawnBullets(this.state);
     moveEntities(this.state);
+
+    this.state.queries.bulletEmitters._forEach((eid) => {
+      if (!this.state) return;
+      this.state.components.transform.rotation[eid] += 0.1;
+    });
   }
 
   public initRenderer(): Effect<void> {

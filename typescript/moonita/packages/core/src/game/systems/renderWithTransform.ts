@@ -1,3 +1,4 @@
+import { Camera } from "../common/Camera";
 import { Transform } from "../common/Transform";
 import { State } from "../State";
 
@@ -9,9 +10,9 @@ export function applyTransform(
   scaleX: number,
   scaleY: number
 ) {
+  context.scale(scaleX, scaleY);
   context.translate(x, y);
   context.rotate(rotation);
-  context.scale(scaleX, scaleY);
 }
 
 export function applyGlobalTransform(
@@ -38,5 +39,16 @@ export function applyGlobalTransformObject(
     transform2d.rotation,
     transform2d.scale.x,
     transform2d.scale.y
+  );
+}
+
+export function applyGlobalCameraObject(state: State, camera: Camera) {
+  applyGlobalTransform(
+    state,
+    camera.position.x,
+    camera.position.y,
+    0,
+    camera.scale.x,
+    camera.scale.y
   );
 }

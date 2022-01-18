@@ -1,4 +1,4 @@
-import { Transform, Vector2 } from "./common/Transform";
+import { Vector2 } from "./common/Vector";
 
 // ========== Types
 export interface PathPoint {

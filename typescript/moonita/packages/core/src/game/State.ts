@@ -1,5 +1,6 @@
 import { all, ECS, types } from "wolf-ecs";
 import { Texture } from "./assets";
+import { Camera as Camera2d } from "./common/Camera";
 import { Flags } from "./common/Flags";
 import type { Transform as Transform2d } from "./common/Transform";
 import { Map } from "./Map";
@@ -24,8 +25,8 @@ export interface State {
   queries: QueryMap;
   assets: ReadonlyArray<Texture>;
   map: Map;
-  camera: Transform2d;
-  screenTransform: Transform2d;
+  camera: Camera2d;
+  screenTransform: Camera2d;
   flags: Flags;
 }
 

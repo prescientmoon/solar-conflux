@@ -1,9 +1,6 @@
-// ========== Types
-export interface Vector2 {
-  x: number;
-  y: number;
-}
+import { Vector2 } from "./Vector";
 
+// ========== Types
 export interface Transform {
   rotation: number;
   position: Vector2;
@@ -28,24 +25,45 @@ export const flipYMut = (transform: Transform) => {
   return transform;
 };
 
-export const vectorDifference = (a: Vector2, b: Vector2): Vector2 => ({
-  x: a.x - b.x,
-  y: a.y - b.y,
-});
-
-export const vectorLength = (a: Vector2) => Math.sqrt(a.x ** 2 + a.y ** 2);
-
 export const applyTransformToVector = (transform: Transform, vec: Vector2) => {
   const tx = vec.x + transform.position.x;
   const ty = vec.y + transform.position.y;
 
-  const rx =
-    tx * Math.cos(transform.rotation) - ty * Math.sin(transform.rotation);
-  const ry =
-    tx * Math.sin(transform.rotation) + ty * Math.cos(transform.rotation);
+  let rx = tx;
+  let ry = ty;
+
+  // Only compute trig functions when necessary
+  if (transform.rotation !== 0) {
+    rx = tx * Math.cos(transform.rotation) - ty * Math.sin(transform.rotation);
+    ry = tx * Math.sin(transform.rotation) + ty * Math.cos(transform.rotation);
+  }
 
   return {
     x: rx * transform.scale.x,
     y: ry * transform.scale.y,
+  };
+};
+
+export const unApplyTransformToVector = (
+  transform: Transform,
+  vec: Vector2
+) => {
+  const sx = vec.x / transform.scale.x;
+  const sy = vec.x / transform.scale.x;
+
+  let rx = sx;
+  let ry = sy;
+
+  // Only compute trig functions when necessary
+  if (transform.rotation !== 0) {
+    rx =
+      sx * Math.cos(-transform.rotation) - sy * Math.sin(-transform.rotation);
+    ry =
+      sx * Math.sin(-transform.rotation) + sy * Math.cos(-transform.rotation);
+  }
+
+  return {
+    x: rx - transform.position.x,
+    y: ry - transform.position.y,
   };
 };

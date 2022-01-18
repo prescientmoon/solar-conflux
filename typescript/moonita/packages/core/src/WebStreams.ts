@@ -1,8 +1,13 @@
-import { Vector2, vectorDifference } from "./game/common/Transform";
-import { filter, futureMerge, map as mapStream, Stream } from "./Stream";
+import { Vector2, vectorDifference } from "./game/common/Vector";
+import { map as mapStream, Stream } from "./Stream";
 
 // ========== Types
-export type MouseEventKind = "mousedown" | "mouseup" | "click" | "mousemove";
+export type MouseEventKind =
+  | "mousedown"
+  | "mouseup"
+  | "click"
+  | "mousemove"
+  | "wheel";
 
 export const enum MouseButton {
   Left = 1,
@@ -87,3 +92,8 @@ export const mouseDelta: Stream<Vector2> = filter(
   (b) => b !== null
 ) as Stream<Vector2>;
 */
+
+/**
+ * Stream capturing scrolls on the window
+ */
+export const wheel = mouseEvent("wheel") as Stream<WheelEvent>;

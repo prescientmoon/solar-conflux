@@ -1,5 +1,5 @@
 import { Flag } from "../common/Flags";
-import { Vector2, vectorDifference, vectorLength } from "../common/Transform";
+import { Vector2, vectorDifference, vectorLength } from "../common/Vector";
 import { LayerId, State } from "../State";
 
 const defaultTipSize: Vector2 = { x: 15, y: 5 };
