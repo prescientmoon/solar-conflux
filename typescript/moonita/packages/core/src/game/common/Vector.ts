@@ -4,6 +4,11 @@ export interface Vector2 {
   y: number;
 }
 
+export interface PolarVector2 {
+  radius: number;
+  angle: number;
+}
+
 // ========== Helpers
 
 export const difference = (a: Vector2, b: Vector2): Vector2 => ({
@@ -85,3 +90,14 @@ export const rotate = (vec: Vector2, angle: number): Vector2 => {
 
   return { x, y };
 };
+
+/** Calculates the angle between 2 vectors
+ *
+ * Eg: angleBetween((1, 0), (0, 1)) == PI/2
+ */
+export function angleBetween(a: Vector2, b: Vector2): number {
+  const alpha = Math.atan2(a.x, a.y);
+  const beta = Math.atan2(b.x, b.y);
+
+  return alpha - beta;
+}

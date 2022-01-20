@@ -29,6 +29,12 @@ export const basicMap: Map = (() => {
     creaturePath: [
       {
         position: {
+          x: 100,
+          y: 0,
+        },
+      },
+      {
+        position: {
           x: 1000,
           y: 1000,
         },
@@ -44,6 +50,12 @@ export const basicMap: Map = (() => {
     },
     hostileTo: 1,
     creaturePath: [
+      {
+        position: {
+          x: 0,
+          y: 100,
+        },
+      },
       {
         position: {
           x: -1000,

@@ -34,7 +34,7 @@ export function renderCustomArrow(
 
   const delta = V.difference(to, from);
   const length = V.length(delta);
-  const angle = Math.atan2(delta.x, delta.y);
+  const angle = Math.PI / 2 - Math.atan2(delta.x, delta.y);
 
   context.rotate(angle);
   renderArrow(context, length, tipSize);

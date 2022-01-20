@@ -44,6 +44,7 @@ export class Game {
           camera: Camera.identityCamera(),
           screenTransform: Camera.flipYMut(Camera.identityCamera()),
           flags: defaultFlags,
+          thrusterConfigurations: [],
         };
 
         if (this.state.flags[Flag.DebugGlobalState])
@@ -169,8 +170,6 @@ export class Game {
     applyGlobalCameraObject(this.state, this.state.camera);
 
     renderMap(this.state);
-    // renderBulletSpawners(this.state);
-    // renderBullets(this.state);
     renderTextures(this.state);
 
     renderDebugArrows(this.state);

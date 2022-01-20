@@ -3,6 +3,7 @@ import { Texture } from "./assets";
 import { Camera as Camera2d } from "./common/Camera";
 import { Flags } from "./common/Flags";
 import type { Transform as Transform2d } from "./common/Transform";
+import { PolarVector2 } from "./common/Vector";
 import { Map } from "./Map";
 
 export type ComponentMap = ReturnType<typeof createComponents>;
@@ -17,6 +18,28 @@ export const enum LayerId {
   LastLayer,
 }
 
+/** A thruster is an engine spaceships can use to move around.
+ * Conceptually, this type is equivalent to a Transform
+ *  (except the scale is equal on both axis)
+ */
+export interface Thruster {
+  /** Strength of the thruster, measured in newtons */
+  strength: number;
+
+  /** The angle at which the thruster is rotated
+   * relative to the rotation of the body */
+  angle: number;
+
+  /** The position the thruster is placed at
+   * relative to the position of the body */
+  position: PolarVector2;
+}
+
+export interface ThrusterConfiguration {
+  // TODO: considering adding a maximum thruster usage budget
+  thrusters: Array<Thruster>;
+}
+
 export interface State {
   contexts: Array<CanvasRenderingContext2D>;
   ecs: ECS;
@@ -28,6 +51,7 @@ export interface State {
   camera: Camera2d;
   screenTransform: Camera2d;
   flags: Flags;
+  thrusterConfigurations: ReadonlyArray<ThrusterConfiguration>;
 }
 
 // ========== Runtime type specs
@@ -42,10 +66,18 @@ export const Transform = {
   rotation: types.f32,
 };
 
+export const SteeringBehavior = {
+  target: Vector2,
+  thrusters: types.ushort,
+  builtInMaxAngularVelocity: types.f32,
+};
+
+// ========== Helpers
 export const createComponents = (ecs: ECS) => {
   const transform = ecs.defineComponent(Transform);
   const velocity = ecs.defineComponent(Vector2);
   const angularVelocity = ecs.defineComponent(types.f32);
+  const steeringBehavior = ecs.defineComponent(SteeringBehavior);
   const bulletEmitter = ecs.defineComponent({
     frequency: types.u8,
   });
@@ -65,6 +97,9 @@ export const createComponents = (ecs: ECS) => {
   const teamBase = ecs.defineComponent({
     baseId: types.u8,
   });
+  const physicsObject = ecs.defineComponent({
+    mass: types.f32,
+  });
 
   return {
     velocity,
@@ -76,6 +111,8 @@ export const createComponents = (ecs: ECS) => {
     created,
     teamBase,
     angularVelocity,
+    seekingBehavior: steeringBehavior,
+    physicsObject,
   };
 };
 
@@ -103,6 +140,15 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
     ),
     teamBase: ecs.createQuery(
       all<any>(components.teamBase, components.texture)
+    ),
+    seekingBehavior: ecs.createQuery(
+      all<any>(
+        components.seekingBehavior,
+        components.physicsObject,
+        components.transform,
+        components.velocity,
+        components.angularVelocity
+      )
     ),
   };
 };
