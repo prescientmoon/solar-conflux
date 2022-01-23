@@ -21,3 +21,10 @@ export const toDirectionalAngle = (angle: number) => {
 
   return normalized > Math.PI ? normalized - TAU : normalized;
 };
+
+/** Generate a random number inside a given range.
+ * Does not check if the range is valid
+ */
+export function randomBetween(min: number, max: number) {
+  return Math.random() * (max - min) + min;
+}

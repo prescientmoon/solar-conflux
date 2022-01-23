@@ -68,19 +68,24 @@ export const Transform = {
 
 export const SteeringBehavior = {
   target: Vector2,
+};
+
+export const ThrusterData = {
   thrusters: types.ushort,
-  builtInMaxAngularVelocity: types.f32,
 };
 
 // ========== Helpers
 export const createComponents = (ecs: ECS) => {
   const transform = ecs.defineComponent(Transform);
   const velocity = ecs.defineComponent(Vector2);
+  const acceleration = ecs.defineComponent(Vector2);
   const angularVelocity = ecs.defineComponent(types.f32);
-  const steeringBehavior = ecs.defineComponent(SteeringBehavior);
+  const seekingBehavior = ecs.defineComponent(SteeringBehavior);
+  const thrusters = ecs.defineComponent(ThrusterData);
   const bulletEmitter = ecs.defineComponent({
     frequency: types.u8,
   });
+  const speedLimit = ecs.defineComponent(types.f32);
   const bullet = ecs.defineComponent();
   const mortal = ecs.defineComponent({
     lifetime: types.u16,
@@ -101,8 +106,14 @@ export const createComponents = (ecs: ECS) => {
     mass: types.f32,
   });
 
+  const boidSeparation = ecs.defineComponent();
+  const boidAlignment = ecs.defineComponent();
+  const boidCohesion = ecs.defineComponent();
+  const rotateAfterVelocity = ecs.defineComponent();
+
   return {
     velocity,
+    acceleration,
     transform,
     bullet,
     bulletEmitter,
@@ -111,15 +122,25 @@ export const createComponents = (ecs: ECS) => {
     created,
     teamBase,
     angularVelocity,
-    seekingBehavior: steeringBehavior,
+    seekingBehavior,
     physicsObject,
+    thrusters,
+    boidSeparation,
+    boidAlignment,
+    boidCohesion,
+    rotateAfterVelocity,
+    speedLimit,
   };
 };
 
 export const createQueries = (ecs: ECS, components: ComponentMap) => {
   return {
     kinematics: ecs.createQuery(
-      all<any>(components.transform, components.velocity)
+      all<any>(
+        components.transform,
+        components.velocity,
+        components.acceleration
+      )
     ),
     rotating: ecs.createQuery(
       all<any>(components.transform, components.angularVelocity)
@@ -149,6 +170,36 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
         components.velocity,
         components.angularVelocity
       )
+    ),
+    boidSeparation: ecs.createQuery(
+      all<any>(
+        components.velocity,
+        components.physicsObject,
+        components.boidSeparation,
+        components.transform
+      )
+    ),
+    boidAlignment: ecs.createQuery(
+      all<any>(
+        components.velocity,
+        components.physicsObject,
+        components.boidAlignment,
+        components.transform
+      )
+    ),
+    boidCohesion: ecs.createQuery(
+      all<any>(
+        components.velocity,
+        components.physicsObject,
+        components.boidCohesion,
+        components.transform
+      )
+    ),
+    rotateAfterVelocity: ecs.createQuery(
+      all<any>(components.velocity, components.transform)
+    ),
+    limitSpeeds: ecs.createQuery(
+      all<any>(components.velocity, components.speedLimit)
     ),
   };
 };

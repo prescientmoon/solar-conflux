@@ -1,4 +1,6 @@
 import { TextureId } from "../assets";
+import { settings } from "../common/Settigs";
+import { Vector2 } from "../common/Vector";
 import { LayerId, State } from "../State";
 
 export const markEntityCreation = (state: State, eid: number) => {
@@ -30,6 +32,7 @@ export const createBullet = (
 
   state.ecs.addComponent(eid, state.components.transform);
   state.ecs.addComponent(eid, state.components.velocity);
+  state.ecs.addComponent(eid, state.components.acceleration);
   state.ecs.addComponent(eid, state.components.bullet);
   state.ecs.addComponent(eid, state.components.mortal);
   state.ecs.addComponent(eid, state.components.texture);
@@ -37,7 +40,9 @@ export const createBullet = (
   state.components.transform.position.x[eid] = positionX;
   state.components.transform.position.y[eid] = positionY;
   state.components.transform.rotation[eid] = rotation;
+
   unstretch(state, eid);
+  setAcceleration(state, eid, 0, 0);
 
   state.components.velocity.x[eid] = Math.cos(rotation) * velocity;
   state.components.velocity.y[eid] = Math.sin(rotation) * velocity;
@@ -50,3 +55,66 @@ export const createBullet = (
 
   return eid;
 };
+
+export function defaultTransform(state: State, eid: number) {
+  setPosition(state, eid, 0, 0);
+  state.components.transform.scale.x[eid] = 1;
+  state.components.transform.scale.y[eid] = 1;
+  state.components.transform.rotation[eid] = 0;
+}
+
+export function setPosition(state: State, eid: number, x: number, y: number) {
+  state.components.transform.position.x[eid] = x;
+  state.components.transform.position.y[eid] = y;
+}
+
+export function setVelocity(state: State, eid: number, x: number, y: number) {
+  state.components.velocity.x[eid] = x;
+  state.components.velocity.y[eid] = y;
+}
+
+export function limitSpeed(state: State, eid: number, to: number) {
+  state.components.speedLimit[eid] = to;
+}
+
+export function setAcceleration(
+  state: State,
+  eid: number,
+  x: number,
+  y: number
+) {
+  state.components.acceleration.x[eid] = x;
+  state.components.acceleration.y[eid] = y;
+}
+
+export function createBoid(state: State, position: Vector2) {
+  const eid = state.ecs.createEntity();
+
+  state.ecs.addComponent(eid, state.components.transform);
+  state.ecs.addComponent(eid, state.components.acceleration);
+  state.ecs.addComponent(eid, state.components.velocity);
+  state.ecs.addComponent(eid, state.components.physicsObject);
+
+  state.ecs.addComponent(eid, state.components.speedLimit);
+  state.ecs.addComponent(eid, state.components.boidAlignment);
+  state.ecs.addComponent(eid, state.components.boidCohesion);
+  state.ecs.addComponent(eid, state.components.boidSeparation);
+
+  state.ecs.addComponent(eid, state.components.texture);
+  state.ecs.addComponent(eid, state.components.rotateAfterVelocity);
+
+  defaultTransform(state, eid);
+  setPosition(state, eid, position.x, position.y);
+  setVelocity(state, eid, 0, 0);
+  setAcceleration(state, eid, 0, 0);
+  limitSpeed(state, eid, settings.maxBoidVelocity);
+
+  state.components.physicsObject.mass[eid] = 1;
+
+  state.components.texture.textureId[eid] = TextureId.BulletSpawner;
+  state.components.texture.width[eid] = 3;
+  state.components.texture.height[eid] = 6;
+  state.components.texture.layer[eid] = LayerId.DebugLayer;
+
+  return eid;
+}

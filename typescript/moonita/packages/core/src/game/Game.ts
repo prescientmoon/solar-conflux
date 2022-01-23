@@ -11,14 +11,26 @@ import { defaultFlags, Flag } from "./common/Flags";
 import * as V from "./common/Vector";
 import { basicMap } from "./Map";
 import { createComponents, createQueries, LayerId, State } from "./State";
-import { markEntityCreation } from "./systems/createEntity";
+import {
+  createBoid,
+  markEntityCreation,
+  setVelocity,
+} from "./systems/createEntity";
 import { renderDebugArrows } from "./systems/debugArrows";
-import { moveEntities, rotateEntities } from "./systems/moveEntities";
+import {
+  moveEntities,
+  rotateEntities,
+  updateVelocities,
+} from "./systems/moveEntities";
 import { renderDebugPaths, renderMap } from "./systems/renderMap";
 import { renderTextures } from "./systems/renderTextures";
 import { applyGlobalCameraObject } from "./systems/renderWithTransform";
 import { despawnBullets, spawnBullets } from "./systems/spawnBullet";
 import * as Camera from "./common/Camera";
+import { simulateBoids } from "./systems/boids";
+import { rotateAfterVelocity } from "./systems/rotateAfterVelocity";
+import { limitSpeeds } from "./systems/limitSpeeds";
+import { randomBetween, TAU } from "../math";
 
 const ups = 30;
 
@@ -52,26 +64,40 @@ export class Game {
 
         this.resizeContext();
 
-        const id = ecs.createEntity();
+        if (this.state.flags[Flag.SpawnDebugBulletEmitter]) {
+          const id = ecs.createEntity();
 
-        markEntityCreation(this.state, id);
+          markEntityCreation(this.state, id);
 
-        ecs.addComponent(id, components.bulletEmitter);
-        ecs.addComponent(id, components.transform);
-        ecs.addComponent(id, components.texture);
-        ecs.addComponent(id, components.angularVelocity);
+          ecs.addComponent(id, components.bulletEmitter);
+          ecs.addComponent(id, components.transform);
+          ecs.addComponent(id, components.texture);
+          ecs.addComponent(id, components.angularVelocity);
 
-        this.state.components.transform.position.x[id] = 40;
-        this.state.components.transform.position.y[id] = 100;
-        this.state.components.transform.rotation[id] = 0;
-        this.state.components.transform.scale.x[id] = 1;
-        this.state.components.transform.scale.y[id] = 1;
-        this.state.components.texture.width[id] = 80;
-        this.state.components.texture.height[id] = 80;
-        this.state.components.texture.textureId[id] = TextureId.BulletSpawner;
-        this.state.components.texture.layer[id] = LayerId.BuildingLayer;
-        this.state.components.bulletEmitter.frequency[id] = 5;
-        this.state.components.angularVelocity[id] = 0.1;
+          this.state.components.transform.position.x[id] = 40;
+          this.state.components.transform.position.y[id] = 100;
+          this.state.components.transform.rotation[id] = 0;
+          this.state.components.transform.scale.x[id] = 1;
+          this.state.components.transform.scale.y[id] = 1;
+          this.state.components.texture.width[id] = 80;
+          this.state.components.texture.height[id] = 80;
+          this.state.components.texture.textureId[id] = TextureId.BulletSpawner;
+          this.state.components.texture.layer[id] = LayerId.BuildingLayer;
+          this.state.components.bulletEmitter.frequency[id] = 5;
+          this.state.components.angularVelocity[id] = 0.1;
+        }
+
+        for (let i = 0; i < 150; i++) {
+          const eid = createBoid(
+            this.state,
+            // V.random2dInsideOriginSquare(-1, 1)
+            V.origin()
+          );
+
+          const angle = randomBetween(0, TAU);
+
+          setVelocity(this.state, eid, Math.cos(angle), Math.sin(angle));
+        }
 
         // Listen to resize events
         const cancelWindowSizes = screenSizes((size) => {
@@ -188,8 +214,14 @@ export class Game {
 
     spawnBullets(this.state);
     despawnBullets(this.state);
+
+    simulateBoids(this.state);
+    updateVelocities(this.state);
+    limitSpeeds(this.state);
     moveEntities(this.state);
+
     rotateEntities(this.state);
+    rotateAfterVelocity(this.state);
   }
 
   public initRenderer(): Effect<void> {
