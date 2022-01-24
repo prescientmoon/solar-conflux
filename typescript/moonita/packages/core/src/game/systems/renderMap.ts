@@ -50,10 +50,10 @@ export function renderDebugBounds(state: State) {
   context.lineWidth = 10;
 
   context.strokeRect(
-    state.bounds[0].x,
-    state.bounds[0].y,
-    state.bounds[1].x - state.bounds[0].x,
-    state.bounds[1].y - state.bounds[0].y
+    state.bounds.position.x,
+    state.bounds.position.y,
+    state.bounds.size.x,
+    state.bounds.size.y
   );
 
   const drawQuadtree = function (node: any) {
@@ -77,4 +77,10 @@ export function renderDebugBounds(state: State) {
   };
 
   drawQuadtree(state.structures.boidQuadTree);
+}
+
+export function renderDebugQuadTrees(state: State) {
+  if (!state.flags[Flag.DebugShowQuadTree]) return;
+
+  state.structures.boidQuadTree.render(state.contexts[LayerId.DebugLayer]);
 }

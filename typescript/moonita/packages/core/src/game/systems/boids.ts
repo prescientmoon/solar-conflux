@@ -1,12 +1,9 @@
-// TODO: spatial partitioning
-
 import Quadtree from "@timohausmann/quadtree-js";
 import { getPosition, getVelocity } from "../common/Entity";
-import { maxBoidRadius, settings } from "../common/Settings";
+import { settings } from "../common/Settings";
 import * as V from "../common/Vector";
 import { applyForce } from "../physics";
 import { State } from "../State";
-import { boidQuadTreeNode } from "./boidQuadTree";
 
 interface BoidQuadTreeNode extends Quadtree.Rect {
   eid: number;
@@ -35,25 +32,22 @@ export function separate(state: State) {
     const position = getPosition(state, eid);
     const total = V.origin();
 
-    const nodes = state.structures.boidQuadTree.retrieve<BoidQuadTreeNode>(
-      boidQuadTreeNode(state, eid, settings.separationRadius)
+    state.structures.boidQuadTree.retrieve(
+      position,
+      settings.separationRadius,
+      (node) => {
+        if (node.id === eid) return;
+
+        const otherPosition = V.clone(node.position);
+        const dist = V.distanceSquared(position, otherPosition);
+
+        V.subMut(otherPosition, position, otherPosition);
+        V.normalizeMut(otherPosition, otherPosition);
+        V.scaleMut(otherPosition, otherPosition, 1 / Math.sqrt(dist));
+
+        V.addMut(total, total, otherPosition);
+      }
     );
-
-    for (let index = 0; index < nodes.length; index++) {
-      const node = nodes[index];
-      if (node.eid === eid) continue;
-
-      const otherPosition = V.clone(node);
-      const dist = V.distanceSquared(position, otherPosition);
-
-      if (dist === 0 || dist > settings.separationRadius) continue;
-
-      V.subMut(otherPosition, position, otherPosition);
-      V.normalizeMut(otherPosition, otherPosition);
-      V.scaleMut(otherPosition, otherPosition, 1 / Math.sqrt(dist));
-
-      V.addMut(total, total, otherPosition);
-    }
 
     if (total.x || total.y) {
       moveTowards(state, eid, total, settings.separationCoefficient);
@@ -66,21 +60,15 @@ export function align(state: State) {
     const position = getPosition(state, eid);
     const total = V.origin();
 
-    const nodes = state.structures.boidQuadTree.retrieve<BoidQuadTreeNode>(
-      boidQuadTreeNode(state, eid, settings.alignmentCoefficient)
+    state.structures.boidQuadTree.retrieve(
+      position,
+      settings.alignmentRadius,
+      (node) => {
+        if (node.id === eid) return;
+
+        V.addMut(total, total, getVelocity(state, node.id));
+      }
     );
-
-    for (let index = 0; index < nodes.length; index++) {
-      const node = nodes[index];
-      if (node.eid === eid) continue;
-
-      const otherPosition = V.clone(node);
-      const dist = V.distanceSquared(position, otherPosition);
-
-      if (dist === 0 || dist > settings.alignmentRadius) continue;
-
-      V.addMut(total, total, getVelocity(state, node.eid));
-    }
 
     if (total.x || total.y) {
       moveTowards(state, eid, total, settings.alignmentCoefficient);
@@ -94,22 +82,17 @@ export function cohese(state: State) {
     const total = V.origin();
     let count = 0;
 
-    const nodes = state.structures.boidQuadTree.retrieve<BoidQuadTreeNode>(
-      boidQuadTreeNode(state, eid, settings.alignmentCoefficient)
+    state.structures.boidQuadTree.retrieve(
+      position,
+      settings.alignmentRadius,
+      (node) => {
+        if (node.id === eid) return;
+
+        total.x += node.position.x;
+        total.y += node.position.y;
+        count++;
+      }
     );
-
-    for (let index = 0; index < nodes.length; index++) {
-      const node = nodes[index];
-      if (node.eid === eid) continue;
-
-      const otherPosition = V.clone(node);
-      const dist = V.distanceSquared(position, otherPosition);
-
-      if (dist === 0 || dist > settings.cohesionRadius) continue;
-
-      V.addMut(total, total, otherPosition);
-      count++;
-    }
 
     if (count) {
       V.scaleMut(total, total, 1 / count);
@@ -124,6 +107,6 @@ export function cohese(state: State) {
 
 export function simulateBoids(state: State) {
   separate(state);
-  // align(state);
-  // cohese(state);
+  align(state);
+  cohese(state);
 }

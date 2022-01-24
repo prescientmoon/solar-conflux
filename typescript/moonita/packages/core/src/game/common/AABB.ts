@@ -1,4 +1,3 @@
-import Quadtree from "@timohausmann/quadtree-js";
 import * as V from "./Vector";
 
 export interface AABB {
@@ -16,14 +15,19 @@ export function toRect(aabb: AABB): Quadtree.Rect {
   };
 }
 
+/** Same as pointInside but does not take a vector */
+export function rawPointInside(aabb: AABB, x: number, y: number) {
+  return (
+    x >= aabb.position.x &&
+    x <= aabb.position.x + aabb.size.x &&
+    y >= aabb.position.y &&
+    y <= aabb.position.y + aabb.size.y
+  );
+}
+
 /** Checks whether a point is inside a bounding box */
 export function pointInside(aabb: AABB, point: V.Vector2) {
-  return (
-    point.x > aabb.position.x &&
-    point.x < aabb.position.x + aabb.size.x &&
-    point.y > aabb.position.y &&
-    point.y < aabb.position.y + aabb.size.y
-  );
+  return rawPointInside(aabb, point.x, point.y);
 }
 
 /**
@@ -40,5 +44,13 @@ export function fromSquareCenter(center: V.Vector2, radius: number): AABB {
       x: radius * 2,
       y: radius * 2,
     },
+  };
+}
+
+/** Calculate the center point of the bounding box */
+export function center(aabb: AABB): V.Vector2 {
+  return {
+    x: aabb.position.x + aabb.size.x / 2,
+    y: aabb.position.y + aabb.size.y / 2,
   };
 }

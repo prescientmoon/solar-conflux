@@ -3,11 +3,11 @@ const mul = 1;
 export const settings = {
   maxBoidForce: 0.05,
   maxBoidVelocity: 3,
-  alignmentRadius: 50 ** 2,
+  alignmentRadius: 50,
   alignmentCoefficient: mul,
-  separationRadius: 25 ** 2,
+  separationRadius: 25,
   separationCoefficient: mul * 1.5,
-  cohesionRadius: 50 ** 2,
+  cohesionRadius: 50,
   cohesionCoefficient: mul,
 };
 

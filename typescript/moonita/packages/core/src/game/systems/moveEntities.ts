@@ -20,14 +20,22 @@ export function moveEntities(state: State) {
       state.components.velocity.y[eid];
 
     if (state.flags[Flag.DebugWrapping]) {
-      if (state.components.transform.position.x[eid] < state.bounds[0].x)
-        state.components.transform.position.x[eid] = state.bounds[1].x;
-      else if (state.components.transform.position.x[eid] > state.bounds[1].x)
-        state.components.transform.position.x[eid] = state.bounds[0].x;
-      if (state.components.transform.position.y[eid] < state.bounds[0].y)
-        state.components.transform.position.y[eid] = state.bounds[1].y;
-      else if (state.components.transform.position.y[eid] > state.bounds[1].y)
-        state.components.transform.position.y[eid] = state.bounds[0].y;
+      if (state.components.transform.position.x[eid] < state.bounds.position.x)
+        state.components.transform.position.x[eid] =
+          state.bounds.position.x + state.bounds.size.x;
+      else if (
+        state.components.transform.position.x[eid] >
+        state.bounds.position.x + state.bounds.size.x
+      )
+        state.components.transform.position.x[eid] = state.bounds.position.x;
+      if (state.components.transform.position.y[eid] < state.bounds.position.y)
+        state.components.transform.position.y[eid] =
+          state.bounds.position.y + state.bounds.size.y;
+      else if (
+        state.components.transform.position.y[eid] >
+        state.bounds.position.y + state.bounds.size.y
+      )
+        state.components.transform.position.y[eid] = state.bounds.position.y;
     }
   });
 }

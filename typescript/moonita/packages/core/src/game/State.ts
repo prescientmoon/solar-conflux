@@ -1,6 +1,7 @@
-import Quadtree from "@timohausmann/quadtree-js";
 import { all, any, ECS, types } from "wolf-ecs";
+import { QuadTree } from "../QuadTree";
 import { Texture } from "./assets";
+import { AABB } from "./common/AABB";
 import { Camera as Camera2d } from "./common/Camera";
 import { Flags } from "./common/Flags";
 import * as V from "./common/Vector";
@@ -53,10 +54,10 @@ export interface State {
   screenTransform: Camera2d;
   flags: Flags;
   structures: {
-    boidQuadTree: Quadtree;
+    boidQuadTree: QuadTree;
   };
   thrusterConfigurations: ReadonlyArray<ThrusterConfiguration>;
-  bounds: [V.Vector2, V.Vector2];
+  bounds: AABB;
 }
 
 // ========== Runtime type specs
