@@ -10,3 +10,9 @@ export const settings = {
   cohesionRadius: 50 ** 2,
   cohesionCoefficient: mul,
 };
+
+export const maxBoidRadius = Math.max(
+  settings.alignmentRadius,
+  settings.separationRadius,
+  settings.cohesionRadius
+);

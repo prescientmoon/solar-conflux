@@ -22,7 +22,11 @@ import {
   rotateEntities,
   updateVelocities,
 } from "./systems/moveEntities";
-import { renderDebugPaths, renderMap } from "./systems/renderMap";
+import {
+  renderDebugBounds,
+  renderDebugPaths,
+  renderMap,
+} from "./systems/renderMap";
 import { renderTextures } from "./systems/renderTextures";
 import { applyGlobalCameraObject } from "./systems/renderWithTransform";
 import { despawnBullets, spawnBullets } from "./systems/spawnBullet";
@@ -31,6 +35,7 @@ import { simulateBoids } from "./systems/boids";
 import { rotateAfterVelocity } from "./systems/rotateAfterVelocity";
 import { limitSpeeds } from "./systems/limitSpeeds";
 import { randomBetween, TAU } from "../math";
+import Quadtree from "@timohausmann/quadtree-js";
 
 const ups = 30;
 
@@ -41,9 +46,21 @@ export class Game {
   public constructor(contexts: Stream<Array<CanvasRenderingContext2D>>) {
     const cancelContexts = contexts((contexts) => {
       if (this.state === null) {
-        const ecs = new ECS(1000, false);
+        const ecs = new ECS(3000, false);
         const components = createComponents(ecs);
         const queries = createQueries(ecs, components);
+
+        // TODO: extract bounds related functionality in it's own module
+        const bounds: [V.Vector2, V.Vector2] = [
+          {
+            x: -1200,
+            y: -1200,
+          },
+          {
+            y: 1200,
+            x: 1200,
+          },
+        ];
 
         this.state = {
           contexts: contexts,
@@ -57,6 +74,15 @@ export class Game {
           screenTransform: Camera.flipYMut(Camera.identityCamera()),
           flags: defaultFlags,
           thrusterConfigurations: [],
+          bounds,
+          structures: {
+            boidQuadTree: new Quadtree({
+              x: bounds[0].x,
+              y: bounds[0].y,
+              width: bounds[1].x - bounds[0].x,
+              height: bounds[1].y - bounds[0].y,
+            }),
+          },
         };
 
         if (this.state.flags[Flag.DebugGlobalState])
@@ -88,10 +114,10 @@ export class Game {
         }
 
         if (this.state.flags[Flag.SpawnDebugBoids]) {
-          for (let i = 0; i < 50; i++) {
+          for (let i = 0; i < 100; i++) {
             const eid = createBoid(
               this.state,
-              V.random2dInsideOriginSquare(-100, 100)
+              V.random2dInsideOriginSquare(-1000, 1000)
             );
 
             const angle = randomBetween(0, TAU);
@@ -201,6 +227,7 @@ export class Game {
 
     renderDebugArrows(this.state);
     renderDebugPaths(this.state);
+    renderDebugBounds(this.state);
 
     // Reset accumulated transforms
     for (const context of this.state.contexts) {

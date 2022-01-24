@@ -1,9 +1,9 @@
-import { all, ECS, types } from "wolf-ecs";
+import Quadtree from "@timohausmann/quadtree-js";
+import { all, any, ECS, types } from "wolf-ecs";
 import { Texture } from "./assets";
 import { Camera as Camera2d } from "./common/Camera";
 import { Flags } from "./common/Flags";
-import type { Transform as Transform2d } from "./common/Transform";
-import { PolarVector2 } from "./common/Vector";
+import * as V from "./common/Vector";
 import { Map } from "./Map";
 
 export type ComponentMap = ReturnType<typeof createComponents>;
@@ -22,6 +22,7 @@ export const enum LayerId {
  * Conceptually, this type is equivalent to a Transform
  *  (except the scale is equal on both axis)
  */
+// TODO: move this to different module
 export interface Thruster {
   /** Strength of the thruster, measured in newtons */
   strength: number;
@@ -32,7 +33,7 @@ export interface Thruster {
 
   /** The position the thruster is placed at
    * relative to the position of the body */
-  position: PolarVector2;
+  position: V.PolarVector2;
 }
 
 export interface ThrusterConfiguration {
@@ -51,7 +52,11 @@ export interface State {
   camera: Camera2d;
   screenTransform: Camera2d;
   flags: Flags;
+  structures: {
+    boidQuadTree: Quadtree;
+  };
   thrusterConfigurations: ReadonlyArray<ThrusterConfiguration>;
+  bounds: [V.Vector2, V.Vector2];
 }
 
 // ========== Runtime type specs
@@ -193,6 +198,19 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
         components.physicsObject,
         components.boidCohesion,
         components.transform
+      )
+    ),
+    // TODO: consider unifying the above queries
+    boid: ecs.createQuery(
+      all<any>(
+        components.velocity,
+        components.physicsObject,
+        components.transform,
+        any(
+          components.boidAlignment,
+          components.boidSeparation,
+          components.boidCohesion
+        )
       )
     ),
     rotateAfterVelocity: ecs.createQuery(

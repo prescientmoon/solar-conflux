@@ -1,7 +1,17 @@
-import { LayerId, State } from "../State";
+import { LayerId, State, Vector2 } from "../State";
 import { applyTransform } from "./renderWithTransform";
+import * as C from "../common/Camera";
+import * as T from "../common/Transform";
+import * as V from "../common/Vector";
+import * as AABB from "../common/AABB";
+import { Flag } from "../common/Flags";
 
 export const renderTextures = (state: State) => {
+  const screen: AABB.AABB = {
+    position: V.origin(),
+    size: V.scalePerAxis(state.screenTransform.position, { x: 2, y: -2 }),
+  };
+
   state.queries.textured._forEach((eid) => {
     const textureId = state.components.texture.textureId[eid];
     const width = state.components.texture.width[eid];
@@ -13,18 +23,57 @@ export const renderTextures = (state: State) => {
     const scaleX = state.components.transform.scale.x[eid];
     const scaleY = state.components.transform.scale.y[eid];
 
-    renderTexture(
-      state,
-      layer,
-      textureId,
-      x,
-      y,
-      rotation,
-      scaleX,
-      scaleY,
-      width,
-      height
-    );
+    let shouldRender = true;
+
+    if (state.flags[Flag.TextureCulling]) {
+      const transform = {
+        rotation,
+        position: { x, y },
+        scale: { x: scaleX, y: scaleY },
+      };
+
+      const screenPositionMin = C.toGlobalCoordinates(
+        state.screenTransform,
+        C.toGlobalCoordinates(
+          state.camera,
+          T.toGlobalCoordinates(transform, {
+            x: -width / 2,
+            y: -height / 2,
+          })
+        )
+      );
+
+      const screenPositionMax = C.toGlobalCoordinates(
+        state.screenTransform,
+        C.toGlobalCoordinates(
+          state.camera,
+          T.toGlobalCoordinates(transform, {
+            x: width / 2,
+            y: height / 2,
+          })
+        )
+      );
+
+      if (
+        !AABB.pointInside(screen, screenPositionMax) &&
+        !AABB.pointInside(screen, screenPositionMin)
+      )
+        shouldRender = false;
+    }
+
+    if (shouldRender)
+      renderTexture(
+        state,
+        layer,
+        textureId,
+        x,
+        y,
+        rotation,
+        scaleX,
+        scaleY,
+        width,
+        height
+      );
   });
 };
 

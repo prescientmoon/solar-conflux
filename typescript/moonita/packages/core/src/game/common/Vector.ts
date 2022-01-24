@@ -66,6 +66,7 @@ export const addMut = (into: Vector2, a: Vector2, b: Vector2) => {
   return into;
 };
 
+/** Substract two vectors */
 export const subMut = (into: Vector2, a: Vector2, b: Vector2) => {
   into.x = a.x - b.x;
   into.y = a.y - b.y;

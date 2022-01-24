@@ -20,15 +20,14 @@ export function moveEntities(state: State) {
       state.components.velocity.y[eid];
 
     if (state.flags[Flag.DebugWrapping]) {
-      const l = 300;
-      if (state.components.transform.position.x[eid] < -l)
-        state.components.transform.position.x[eid] = l;
-      else if (state.components.transform.position.x[eid] > l)
-        state.components.transform.position.x[eid] = -l;
-      if (state.components.transform.position.y[eid] < -l)
-        state.components.transform.position.y[eid] = l;
-      else if (state.components.transform.position.y[eid] > l)
-        state.components.transform.position.y[eid] = -l;
+      if (state.components.transform.position.x[eid] < state.bounds[0].x)
+        state.components.transform.position.x[eid] = state.bounds[1].x;
+      else if (state.components.transform.position.x[eid] > state.bounds[1].x)
+        state.components.transform.position.x[eid] = state.bounds[0].x;
+      if (state.components.transform.position.y[eid] < state.bounds[0].y)
+        state.components.transform.position.y[eid] = state.bounds[1].y;
+      else if (state.components.transform.position.y[eid] > state.bounds[1].y)
+        state.components.transform.position.y[eid] = state.bounds[0].y;
     }
   });
 }
