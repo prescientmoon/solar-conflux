@@ -1,3 +1,4 @@
+import { Flag } from "../common/Flags";
 import { State } from "../State";
 import { setAcceleration } from "./createEntity";
 
@@ -18,16 +19,17 @@ export function moveEntities(state: State) {
     state.components.transform.position.y[eid] +=
       state.components.velocity.y[eid];
 
-    // TODO: remove this
-    const l = 300;
-    if (state.components.transform.position.x[eid] < -l)
-      state.components.transform.position.x[eid] = l;
-    else if (state.components.transform.position.x[eid] > l)
-      state.components.transform.position.x[eid] = -l;
-    if (state.components.transform.position.y[eid] < -l)
-      state.components.transform.position.y[eid] = l;
-    else if (state.components.transform.position.y[eid] > l)
-      state.components.transform.position.y[eid] = -l;
+    if (state.flags[Flag.DebugWrapping]) {
+      const l = 300;
+      if (state.components.transform.position.x[eid] < -l)
+        state.components.transform.position.x[eid] = l;
+      else if (state.components.transform.position.x[eid] > l)
+        state.components.transform.position.x[eid] = -l;
+      if (state.components.transform.position.y[eid] < -l)
+        state.components.transform.position.y[eid] = l;
+      else if (state.components.transform.position.y[eid] > l)
+        state.components.transform.position.y[eid] = -l;
+    }
   });
 }
 

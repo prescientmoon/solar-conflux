@@ -87,16 +87,17 @@ export class Game {
           this.state.components.angularVelocity[id] = 0.1;
         }
 
-        for (let i = 0; i < 150; i++) {
-          const eid = createBoid(
-            this.state,
-            // V.random2dInsideOriginSquare(-1, 1)
-            V.origin()
-          );
+        if (this.state.flags[Flag.SpawnDebugBoids]) {
+          for (let i = 0; i < 50; i++) {
+            const eid = createBoid(
+              this.state,
+              V.random2dInsideOriginSquare(-100, 100)
+            );
 
-          const angle = randomBetween(0, TAU);
+            const angle = randomBetween(0, TAU);
 
-          setVelocity(this.state, eid, Math.cos(angle), Math.sin(angle));
+            setVelocity(this.state, eid, Math.cos(angle), Math.sin(angle));
+          }
         }
 
         // Listen to resize events

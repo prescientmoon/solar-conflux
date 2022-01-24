@@ -2,6 +2,7 @@ lockfileVersion: 5.3
 
 specifiers:
   '@preact/preset-vite': ^2.0.0
+  '@timohausmann/quadtree-js': ^1.2.5
   '@types/ws': ^8.2.1
   preact: ^10.5.13
   runtypes: ^6.5.0
@@ -11,6 +12,7 @@ specifiers:
   ws: ^8.3.0
 
 dependencies:
+  '@timohausmann/quadtree-js': 1.2.5
   preact: 10.6.2
   runtypes: 6.5.0
   wolf-ecs: 2.1.1
@@ -329,6 +331,10 @@ packages:
       estree-walker: 2.0.2
       picomatch: 2.3.0
     dev: true
+
+  /@timohausmann/quadtree-js/1.2.5:
+    resolution: {integrity: sha512-WcH3pouYtpyLjTCRvNP0WuSV4m7mRyYhLzW44egveFryT7pJhpDsdIJASEe37iCFNA0vmEpqTYGoG0siyXEthA==}
+    dev: false
 
   /@types/node/16.11.11:
     resolution: {integrity: sha512-KB0sixD67CeecHC33MYn+eYARkqTheIRNuu97y2XMjR7Wu3XibO1vaY6VBV6O/a89SPI81cEUIYT87UqUWlZNw==}
