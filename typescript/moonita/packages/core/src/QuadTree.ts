@@ -5,21 +5,21 @@ import { Vector2 } from "./game/common/Vector";
 import { Pair } from "./Types";
 import * as V from "./game/common/Vector";
 import { TypedArray } from "wolf-ecs";
+import { distanceSquared } from "./math";
+import { FlexibleTypedArray } from "./FlexibleTypedArray";
 
-// TODO: don't store the position here
-export interface Node {
-  position: Vector2;
-  id: number;
-}
+export type Node = number;
 
 const enum TreeKind {
   Leaf,
   Parent,
 }
 
+type NumberTypedArray = TypedArray & Record<number, number>;
+
 type Positions = {
-  x: TypedArray;
-  y: TypedArray;
+  x: NumberTypedArray;
+  y: NumberTypedArray;
 };
 
 type Nodes = Adt<{
@@ -33,14 +33,22 @@ type Nodes = Adt<{
   };
 }>;
 
+export interface QuadTreeSettings {
+  maxNodes: number;
+  positions: Positions;
+  retriveInto: FlexibleTypedArray;
+  entityMovementBuffer: FlexibleTypedArray;
+}
+
+// ========== Implementation
 export class QuadTree {
   private nodes: Nodes;
-  private center: Vector2;
+  private readonly center: Vector2;
 
   public constructor(
-    private maxNodes: number,
-    private bounds: AABB,
-    private depth = 0
+    private readonly bounds: AABB,
+    public readonly settings: QuadTreeSettings,
+    private readonly depth = 0
   ) {
     this.center = center(this.bounds);
 
@@ -50,67 +58,50 @@ export class QuadTree {
     this.clear();
   }
 
-  public moveEntities(positions: Positions): number[] {
-    const problematic = new Array();
+  public moveEntities() {
+    this.settings.entityMovementBuffer.clear();
+    this.rawMoveEntities();
+  }
+
+  private rawMoveEntities() {
+    const positions = this.settings.positions;
+
     if (this.nodes.type === TreeKind.Leaf) {
       for (let i = 0; i < this.nodes.nodes.used; i++) {
         const node = this.nodes.nodes.get(i)!;
 
-        // Skip unchanged positions
-        if (
-          positions.x[node.id] === node.position.x &&
-          positions.y[node.id] === node.position.y
-        )
+        if (rawPointInside(this.bounds, positions.x[node], positions.y[node]))
           continue;
-
-        if (
-          rawPointInside(
-            this.bounds,
-            positions.x[node.id] as number,
-            positions.y[node.id] as number
-          )
-        ) {
-          node.position.x = positions.x[node.id] as number;
-          node.position.y = positions.y[node.id] as number;
-        } else {
-          problematic.push(node.id);
+        else {
+          this.settings.entityMovementBuffer.push(node);
           this.nodes.nodes.remove(i);
           i--;
         }
       }
     } else {
+      const start = this.settings.entityMovementBuffer.used;
       for (let x = 0; x < 2; x++) {
         for (let y = 0; y < 2; y++) {
           const child = this.nodes.children![x][y];
 
-          const problems = child.moveEntities(positions);
-
-          for (let i = 0; i < problems.length; i++) {
-            const id = problems[i];
-
-            if (
-              rawPointInside(
-                this.bounds,
-                positions.x[id] as number,
-                positions.y[id] as number
-              )
-            ) {
-              this.insert({
-                id,
-                position: {
-                  x: positions.x[id] as number,
-                  y: positions.y[id] as number,
-                },
-              });
-            } else problematic.push(id);
-          }
+          child.rawMoveEntities();
         }
+      }
+
+      const end = this.settings.entityMovementBuffer.used;
+      this.settings.entityMovementBuffer.used = start;
+
+      for (let i = start; i < end; i++) {
+        const id = this.settings.entityMovementBuffer.elements[i];
+
+        if (rawPointInside(this.bounds, positions.x[id], positions.y[id])) {
+          this.assertInside(id);
+          this.insert(id);
+        } else this.settings.entityMovementBuffer.push(id);
       }
 
       // this.merge();
     }
-
-    return problematic;
   }
 
   public cleanup() {
@@ -128,7 +119,7 @@ export class QuadTree {
   public clear() {
     this.nodes = {
       type: TreeKind.Leaf,
-      nodes: new CircularBuffer(this.maxNodes),
+      nodes: new CircularBuffer(this.settings.maxNodes),
       children: null,
     };
   }
@@ -136,15 +127,25 @@ export class QuadTree {
   public retrieve(
     near: Vector2,
     radius: number,
-    process: (node: Node) => void,
     radiusSquared = radius * radius
+  ) {
+    this.settings.retriveInto.clear();
+    return this.retrieveWithoutCleanup(near, radius, radiusSquared);
+  }
+
+  private retrieveWithoutCleanup(
+    near: Vector2,
+    radius: number,
+    radiusSquared: number
   ) {
     if (this.nodes.type === TreeKind.Leaf) {
       for (let i = 0; i < this.nodes.nodes.used; i++) {
         const node = this.nodes.nodes.get(i)!;
+        const x = this.settings.positions.x[node];
+        const y = this.settings.positions.y[node];
 
-        if (V.distanceSquared(node.position, near) <= radiusSquared) {
-          process(node);
+        if (distanceSquared(x, y, near.x, near.y) <= radiusSquared) {
+          this.settings.retriveInto.push(node);
         }
       }
     } else {
@@ -165,30 +166,36 @@ export class QuadTree {
           const child = this.nodes.children![x][y];
 
           if (V.distanceSquared(near, child.center) <= childRadius)
-            child.retrieve(near, radius, process, radiusSquared);
+            child.retrieveWithoutCleanup(near, radius, radiusSquared);
         }
       }
     }
+
+    return this.settings.retriveInto;
   }
 
   public insert(node: Node) {
-    if (!pointInside(this.bounds, node.position)) {
+    const x = this.settings.positions.x[node];
+    const y = this.settings.positions.y[node];
+
+    if (!rawPointInside(this.bounds, x, y)) {
       debugger;
-      throw new Error(`Node ${node.id} not inside quad tree bounds!!!`);
+      throw new Error(`Node ${node} not inside quad tree bounds!!!`);
     }
 
     const nodes = this.nodes;
     if (nodes.type === TreeKind.Leaf) {
-      if (this.nodes.nodes!.used === this.maxNodes) {
+      if (this.nodes.nodes!.used === this.settings.maxNodes) {
         this.split();
         this.insert(node);
       } else {
         this.nodes.nodes!.tryPush(node);
       }
     } else if (nodes.type === TreeKind.Parent) {
-      const a = Number(node.position.x > this.center.x);
-      const b = Number(node.position.y > this.center.y);
+      const a = Number(x > this.center.x);
+      const b = Number(y > this.center.y);
 
+      this.nodes.children![a][b].assertInside(node);
       this.nodes.children![a][b].insert(node);
     }
   }
@@ -207,7 +214,7 @@ export class QuadTree {
       }
     }
 
-    if (length > this.maxNodes) return;
+    if (length > this.settings.maxNodes) return;
 
     const children = this.nodes.children;
 
@@ -218,10 +225,24 @@ export class QuadTree {
         const child = children[x][y];
 
         for (let i = 0; i < child.nodes.nodes!.used; i++) {
-          this.insert(child.nodes.nodes!.get(i)!);
+          const id = child.nodes.nodes!.get(i)!;
+
+          this.assertInside(id);
+          this.insert(id);
         }
       }
     }
+  }
+
+  private assertInside(id: number) {
+    if (
+      !rawPointInside(
+        this.bounds,
+        this.settings.positions.x[id],
+        this.settings.positions.y[id]
+      )
+    )
+      debugger;
   }
 
   private split() {
@@ -230,15 +251,14 @@ export class QuadTree {
     this.nodes.children = [
       [
         new QuadTree(
-          this.maxNodes,
           {
             position: this.bounds.position,
             size,
           },
+          this.settings,
           this.depth + 1
         ),
         new QuadTree(
-          this.maxNodes,
           {
             position: {
               x: this.bounds.position.x,
@@ -246,12 +266,12 @@ export class QuadTree {
             },
             size,
           },
+          this.settings,
           this.depth + 1
         ),
       ],
       [
         new QuadTree(
-          this.maxNodes,
           {
             position: {
               x: this.bounds.position.x + size.x,
@@ -259,10 +279,10 @@ export class QuadTree {
             },
             size,
           },
+          this.settings,
           this.depth + 1
         ),
         new QuadTree(
-          this.maxNodes,
           {
             position: {
               x: this.bounds.position.x + size.x,
@@ -270,6 +290,7 @@ export class QuadTree {
             },
             size,
           },
+          this.settings,
           this.depth + 1
         ),
       ],
@@ -280,6 +301,7 @@ export class QuadTree {
     for (let i = 0; i < this.nodes.nodes!.used; i++) {
       const node = this.nodes.nodes!.get(i)!;
 
+      this.assertInside(node);
       this.insert(node);
     }
 

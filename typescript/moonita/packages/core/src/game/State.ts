@@ -16,6 +16,7 @@ export const enum LayerId {
   UnitLayer,
   BulletLayer,
   DebugLayer,
+  Unclearable,
   LastLayer,
 }
 

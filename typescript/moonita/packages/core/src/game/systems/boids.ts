@@ -1,13 +1,8 @@
-import Quadtree from "@timohausmann/quadtree-js";
 import { getPosition, getVelocity } from "../common/Entity";
 import { settings } from "../common/Settings";
 import * as V from "../common/Vector";
 import { applyForce } from "../physics";
-import { State } from "../State";
-
-interface BoidQuadTreeNode extends Quadtree.Rect {
-  eid: number;
-}
+import { LayerId, State } from "../State";
 
 /** Move a boid in a given direction */
 function moveTowards(
@@ -32,22 +27,27 @@ export function separate(state: State) {
     const position = getPosition(state, eid);
     const total = V.origin();
 
-    state.structures.boidQuadTree.retrieve(
+    const result = state.structures.boidQuadTree.retrieve(
       position,
-      settings.separationRadius,
-      (node) => {
-        if (node.id === eid) return;
-
-        const otherPosition = V.clone(node.position);
-        const dist = V.distanceSquared(position, otherPosition);
-
-        V.subMut(otherPosition, position, otherPosition);
-        V.normalizeMut(otherPosition, otherPosition);
-        V.scaleMut(otherPosition, otherPosition, 1 / Math.sqrt(dist));
-
-        V.addMut(total, total, otherPosition);
-      }
+      settings.separationRadius
     );
+
+    const context = state.contexts[LayerId.Unclearable];
+
+    for (let i = 0; i < result.used; i++) {
+      const node = result.elements[i];
+
+      if (node === eid) continue;
+
+      const otherPosition = getPosition(state, node);
+      const dist = V.distance(position, otherPosition);
+
+      V.subMut(otherPosition, position, otherPosition);
+      V.normalizeMut(otherPosition, otherPosition);
+      V.scaleMut(otherPosition, otherPosition, 1 / dist);
+
+      V.addMut(total, total, otherPosition);
+    }
 
     if (total.x || total.y) {
       moveTowards(state, eid, total, settings.separationCoefficient);
@@ -60,15 +60,18 @@ export function align(state: State) {
     const position = getPosition(state, eid);
     const total = V.origin();
 
-    state.structures.boidQuadTree.retrieve(
+    const result = state.structures.boidQuadTree.retrieve(
       position,
-      settings.alignmentRadius,
-      (node) => {
-        if (node.id === eid) return;
-
-        V.addMut(total, total, getVelocity(state, node.id));
-      }
+      settings.alignmentRadius
     );
+
+    for (let i = 0; i < result.used; i++) {
+      const node = result.elements[i];
+
+      if (node === eid) continue;
+
+      V.addMut(total, total, getVelocity(state, node));
+    }
 
     if (total.x || total.y) {
       moveTowards(state, eid, total, settings.alignmentCoefficient);
@@ -82,17 +85,20 @@ export function cohese(state: State) {
     const total = V.origin();
     let count = 0;
 
-    state.structures.boidQuadTree.retrieve(
+    const result = state.structures.boidQuadTree.retrieve(
       position,
-      settings.alignmentRadius,
-      (node) => {
-        if (node.id === eid) return;
-
-        total.x += node.position.x;
-        total.y += node.position.y;
-        count++;
-      }
+      settings.cohesionRadius
     );
+
+    for (let i = 0; i < result.used; i++) {
+      const node = result.elements[i];
+
+      if (node === eid) continue;
+
+      total.x += state.components.transform.position.x[node];
+      total.y += state.components.transform.position.y[node];
+      count++;
+    }
 
     if (count) {
       V.scaleMut(total, total, 1 / count);

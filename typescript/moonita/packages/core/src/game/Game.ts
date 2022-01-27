@@ -39,6 +39,7 @@ import { randomBetween, TAU } from "../math";
 import { QuadTree } from "../QuadTree";
 import { AABB } from "./common/AABB";
 import { updateBoidQuadTree } from "./systems/boidQuadTree";
+import { FlexibleTypedArray } from "../FlexibleTypedArray";
 
 const ups = 30;
 
@@ -79,7 +80,12 @@ export class Game {
           thrusterConfigurations: [],
           bounds,
           structures: {
-            boidQuadTree: new QuadTree(20, bounds),
+            boidQuadTree: new QuadTree(bounds, {
+              positions: components.transform.position,
+              maxNodes: 20,
+              retriveInto: new FlexibleTypedArray(3000, Uint16Array),
+              entityMovementBuffer: new FlexibleTypedArray(3000, Uint16Array),
+            }),
           },
         };
 
@@ -112,10 +118,10 @@ export class Game {
         }
 
         if (this.state.flags[Flag.SpawnDebugBoids]) {
-          for (let i = 0; i < 1000; i++) {
+          for (let i = 0; i < 3000; i++) {
             const eid = createBoid(
               this.state,
-              V.random2dInsideOriginSquare(-100, 100)
+              V.random2dInsideOriginSquare(-800, 800)
             );
 
             const angle = randomBetween(0, TAU);
@@ -212,7 +218,13 @@ export class Game {
   public render() {
     if (!this.state) return;
 
+    // Reset accumulated transforms
     for (const context of this.state.contexts) {
+      context.resetTransform();
+    }
+
+    for (const context of this.state.contexts) {
+      if (context === this.state.contexts[LayerId.Unclearable]) continue;
       context.clearRect(0, 0, 10000, 10000);
     }
 
@@ -227,11 +239,6 @@ export class Game {
     renderDebugArrows(this.state);
     renderDebugPaths(this.state);
     renderDebugBounds(this.state);
-
-    // Reset accumulated transforms
-    for (const context of this.state.contexts) {
-      context.resetTransform();
-    }
   }
 
   public update() {

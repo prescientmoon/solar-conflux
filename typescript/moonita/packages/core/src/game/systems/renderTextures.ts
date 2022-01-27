@@ -5,6 +5,8 @@ import * as T from "../common/Transform";
 import * as V from "../common/Vector";
 import * as AABB from "../common/AABB";
 import { Flag } from "../common/Flags";
+import { getPosition } from "../common/Entity";
+import { settings } from "../common/Settings";
 
 export const renderTextures = (state: State) => {
   const screen: AABB.AABB = {

@@ -28,3 +28,13 @@ export const toDirectionalAngle = (angle: number) => {
 export function randomBetween(min: number, max: number) {
   return Math.random() * (max - min) + min;
 }
+
+/** Calculate the distance between 2 points, squared */
+export function distanceSquared(
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
+): number {
+  return (x1 - x2) ** 2 + (y1 - y2) ** 2;
+}

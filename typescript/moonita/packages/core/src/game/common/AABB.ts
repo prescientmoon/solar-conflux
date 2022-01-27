@@ -6,7 +6,7 @@ export interface AABB {
 }
 
 /** Convert a bouinding box to a rectangle structure */
-export function toRect(aabb: AABB): Quadtree.Rect {
+export function toRect(aabb: AABB) {
   return {
     x: aabb.position.x,
     y: aabb.position.y,
