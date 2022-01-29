@@ -18,6 +18,7 @@ to generate this file without the comments in this block.
   , "prelude"
   , "psci-support"
   , "run"
+  , "run-supply"
   , "unordered-collections"
   ]
 , packages = ./packages.dhall
