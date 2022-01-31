@@ -12,6 +12,7 @@ import Data.Newtype (class Newtype)
 newtype Index = Index Int
 newtype MetaVar = MetaVar Int
 
+-- | Type describing all terms in the lang
 data Term a
   = Pi a (Term a) (Term a) -- (a: A) -> B
   | Lambda a (Term a) -- \a -> b
@@ -23,6 +24,9 @@ data Term a
   | Meta a MetaVar -- alpha
   | InsertedMeta a MetaVar Mask -- alpha a b c d...
   | SourceAnnotation a (Term a) -- internal branch used by evaluation to carry extra source data
+
+-- | Alias for making certain type definition less ambiguours to the prgorammer
+type SkyType = Term
 
 ---------- Evaluation-related types
 newtype Spine a = Spine (Array (Value a))
@@ -43,6 +47,7 @@ newtype MetaContext a = MetaContext
   { metas :: HashMap MetaVar (Maybe (Value a))
   }
 
+-- | Type representing the result of evaluating a Term
 data Value a
   = VStar a
   -- TODO: might have to add more source data here
@@ -51,6 +56,9 @@ data Value a
   | VPi a (Value a) (Closure a)
   | VLambda a (Closure a)
   | VSourceAnnotation a (Value a)
+
+-- | Type alias to make some type annotations less ambiguous to the programmer
+type VType = Value
 
 ---------- Helpers
 -- | Append a value to a context
@@ -64,7 +72,10 @@ extendSpine :: forall a. Spine a -> Value a -> Spine a
 extendSpine (Spine arguments) extra = Spine
   (Array.snoc arguments extra)
 
----------- Effect-related things
+-- | Append a value to a mask
+extendMask :: Mask -> Boolean -> Mask
+extendMask (Mask arguments) extra = Mask
+  (Array.snoc arguments extra)
 
 ---------- Typeclass instances
 derive newtype instance Semigroup (Spine a)

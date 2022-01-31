@@ -214,8 +214,8 @@ unify' = case _, _ of
   VPi sourceL domainL codomainL, VPi sourceR domainR codomainR -> ado
     -- ado notation is pointless here, but I want to preserve the notion 
     -- of using the applicative instance here (means the code could be parallelized)
-    -- | TODO: correct sources
     unify domainL domainR
+    --  TODO: correct sources
     unifyClosures sourceL sourceR codomainL codomainR
     in unit
   VLambda sourceL lhs, VLambda sourceR rhs ->
@@ -234,5 +234,9 @@ unify' = case _, _ of
     depth <- getDepth
     solve source depth meta spine other
   other, meta@(VMetaApplication _ _ _) -> unify' meta other
-
+  -- We skip forcing, because the implementation for `force`
+  -- is smart enough to skip over source annotations already
+  VSourceAnnotation _ lhs, rhs -> unify' lhs rhs
+  lhs, VSourceAnnotation _ rhs -> unify' lhs rhs
+  -- If none of the existing cases match, we just give up and throw an error
   lhs, rhs -> throwUnificationError $ CannotUnify { lhs, rhs }

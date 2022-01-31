@@ -58,10 +58,18 @@ data UnificationError a
       , rhs :: Value a
       }
 
+-- | Type of all errors which can occur during elaboration
+data ElaborationError a = ElabVarNotInScope
+  { name :: String
+  , source :: a
+  }
+
+-- | The type of all possible sky errors
 data SkyError a
   = EvaluationError (EvaluationError a)
   | MetaError (MetaError a)
   | UnificationError (UnificationError a)
+  | ElaborationError (ElaborationError a)
 
 ---------- Effect related stuff
 type SKY_ERROR :: forall k. Type -> Row (k -> Type) -> Row (k -> Type)
@@ -88,6 +96,12 @@ throwUnificationError
    . UnificationError a
   -> Run (SKY_ERROR a r) o
 throwUnificationError = UnificationError >>> throwAt _skyError
+
+throwElaborationError
+  :: forall a r o
+   . ElaborationError a
+  -> Run (SKY_ERROR a r) o
+throwElaborationError = ElaborationError >>> throwAt _skyError
 
 ---------- Proxies
 _skyError :: Proxy "skyError"
