@@ -66,6 +66,8 @@ vApply f a = case f of
     pure $ VMetaApplication source meta (extendSpine spine a)
   VVariableApplication source var spine ->
     pure $ VVariableApplication source var (extendSpine spine a)
+  VAssumptionApplication source type_ spine ->
+    pure $ VAssumptionApplication source type_ (extendSpine spine a)
   VPi source domain codomain ->
     throwEvaluationError $ PiNotCallable
       { piDomain: domain, piCodomain: codomain, piSource: source, argument: a }
@@ -161,7 +163,9 @@ eval = case _ of
     env <- environment
     meta <- evalMeta source meta
     vApplyMaskedeEnvironment env meta mask
-  Annotation source { term } -> eval term
+  Assumption source type_ -> ado
+    type_ <- eval type_
+    in VAssumptionApplication source type_ mempty
 
 evalMeta :: forall a r. a -> MetaVar -> EvalM a r (Value a)
 evalMeta source meta = lookupMeta source meta <#> case _ of
@@ -210,6 +214,9 @@ quote = force >=> case _ of
   VVariableApplication source var spine -> do
     level <- getDepth
     quoteSpine source (Var source $ quoteIndex level var) spine
+  VAssumptionApplication source type_ spine -> do
+    type_ <- quote type_
+    quoteSpine source type_ spine
   VPi source domain codomain -> do
     marker <- getDepthMarker source
     domain <- quote domain

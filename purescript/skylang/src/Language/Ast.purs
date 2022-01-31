@@ -1,4 +1,6 @@
-module Sky.Language.Ast where
+module Sky.Language.Ast
+  ( Name
+  ) where
 
 import Prelude
 

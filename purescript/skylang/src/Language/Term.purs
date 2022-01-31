@@ -18,12 +18,12 @@ data Term a
   | Lambda a (Term a) -- \a -> b
   | Application a (Term a) (Term a) -- a b
   | Let a (Term a) (Term a) -- let a = A in B
-  | Annotation a { term :: Term a, type :: Term a } -- a :: A
   | Var a Index -- a
   | Star a -- *
   | Meta a MetaVar -- alpha
   | InsertedMeta a MetaVar Mask -- alpha a b c d...
   | SourceAnnotation a (Term a) -- internal branch used by evaluation to carry extra source data
+  | Assumption a (Term a) -- assume type
 
 -- | Alias for making certain type definition less ambiguours to the prgorammer
 type SkyType = Term
@@ -53,6 +53,7 @@ data Value a
   -- TODO: might have to add more source data here
   | VMetaApplication a MetaVar (Spine a)
   | VVariableApplication a Level (Spine a)
+  | VAssumptionApplication a (Value a) (Spine a)
   | VPi a (Value a) (Closure a)
   | VLambda a (Closure a)
   | VSourceAnnotation a (Value a)

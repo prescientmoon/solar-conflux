@@ -146,6 +146,9 @@ rename meta renaming value = go renaming value -- not eta reducing because of er
             { meta, occursAt: source, occursIn: value }
         | otherwise ->
             goSpine source renaming (Meta source otherMeta) spine
+      VAssumptionApplication source type_ spine -> do
+        type_ <- go renaming type_
+        goSpine source renaming type_ spine
       VVariableApplication source index spine ->
         case lookupRenaming index renaming of
           Nothing -> throwUnificationError $ EscapingVariable
@@ -228,6 +231,9 @@ unify' = case _, _ of
   other, lambda@(VLambda _ _) -> unify' lambda other -- just swap positions and reuse the existing code
   VVariableApplication _ varL spineL, VVariableApplication _ varR spineR
     | varL == varR -> unifySpines spineL spineR
+  VAssumptionApplication _ lhs spineL, VAssumptionApplication _ rhs spineR -> do
+    unify lhs rhs
+    unifySpines spineL spineR
   VMetaApplication _ metaL spineL, VMetaApplication _ metaR spineR
     | metaL == metaR -> unifySpines spineL spineR
   VMetaApplication source meta spine, other -> do
