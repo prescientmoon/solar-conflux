@@ -25,6 +25,7 @@ type QUOTATION_ENV r = (quotationEnv :: Reader QuoteEnv | r)
 
 -- | Base monad with everything required for evaluation to take place
 type EvalM a r = Run (EVALUATION_ENV a + META_CONTEXT a + SKY_ERROR a r)
+
 -- | Base monad with everything required for quotation to take place
 type QuoteM a r = Run (QUOTATION_ENV + META_CONTEXT a + SKY_ERROR a r)
 
@@ -254,3 +255,4 @@ _evaluationEnv = Proxy
 
 _quotationEnv :: Proxy "quotationEnv"
 _quotationEnv = Proxy
+

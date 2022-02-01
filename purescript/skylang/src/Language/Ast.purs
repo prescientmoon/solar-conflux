@@ -1,12 +1,10 @@
-module Sky.Language.Ast
-  ( Name
-  ) where
+module Sky.Language.Ast where
 
 import Prelude
 
+import Data.Foldable (for_)
 import Data.HashMap (HashMap)
 import Data.HashMap as HM
-import Data.Hashable (class Hashable)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Run (Run)
@@ -16,15 +14,13 @@ import Run.Supply (SUPPLY, generate)
 import Safe.Coerce (coerce)
 import Sky.Language.Error (ElaborationError(..), SKY_ERROR, throwElaborationError)
 import Sky.Language.Eval (EVALUATION_ENV, QUOTATION_ENV, applyClosure, augumentEnv, eval, force, getDepth, getDepthMarker, increaseDepth, makeClosure, quote, quoteIndex)
-import Sky.Language.MetaVar (META_CONTEXT, freshMeta)
+import Sky.Language.MetaVar (META_CONTEXT, freshMeta, nameMeta)
 import Sky.Language.PatternUnification (unify)
-import Sky.Language.Term (Closure, Level, Mask, Term(..), VType, Value(..), extendEnv, extendMask)
+import Sky.Language.Term (Closure, Level, Mask, Name(..), Term(..), VType, Value(..), extendEnv, extendMask)
 import Type.Proxy (Proxy(..))
 import Type.Row (type (+))
 
 ---------- Types
--- | Variable name
-newtype Name = Name String
 
 -- | Context required by elaboration
 newtype ElaborationContext a = ElaborationContext
@@ -41,7 +37,7 @@ data Ast a
   | ELet a Name (Ast a) (Ast a)
   | EAnnotation a (Ast a) (Ast a)
   | EStar a
-  | EHole a
+  | EHole a (Maybe Name)
 
 ---------- Effects
 -- | Context required for elaboration to take place in
@@ -115,11 +111,13 @@ valueToClosure value = do
   makeClosure term
 
 -- | Create a meta and apply the current mask to it
-freshMetaTerm :: forall a r. a -> ElabM a r (Term a)
-freshMetaTerm source = ado
+freshMetaTerm :: forall a r. a -> Maybe Name -> ElabM a r (Term a)
+freshMetaTerm source name = do
   meta <- freshMeta
   (ElaborationContext { mask }) <- getElaborationContext
-  in InsertedMeta source meta mask
+  -- Remembers hole name, as long as the name is not Nothing
+  for_ name \name -> nameMeta name meta
+  pure $ InsertedMeta source meta mask
 
 ---------- Implementation
 -- | Check an expression has a given type
@@ -131,7 +129,8 @@ check expression _type = do
 -- | Same as check, but assumes the type has been forced.
 check' :: forall a r. Ast a -> Value a -> ElabM a r (Term a)
 check' = case _, _ of
-  EHole source, other -> freshMetaTerm source
+  EHole source name, other -> do
+    freshMetaTerm source name
   ELambda source name body, VPi piSource domain codomain -> do
     -- TODO: fix sources
     marker <- getDepthMarker piSource
@@ -154,7 +153,7 @@ infer = case _ of
   EStar source -> pure $ (Star source /\ VStar source)
   ELambda source name body -> do
     -- TODO: fix sources
-    insertedMeta <- freshMetaTerm source
+    insertedMeta <- freshMetaTerm source Nothing
     vMeta <- eval insertedMeta
     body /\ inferred <- bindVariable source name vMeta
       $ infer body
@@ -190,9 +189,9 @@ infer = case _ of
     (body /\ inferred) <- defineVariable source name vValue typeofValue $ infer body
     let let_ = Let source value body
     pure (let_ /\ inferred)
-  EHole source -> do
-    typeofMeta <- freshMetaTerm source >>= eval
-    meta <- freshMetaTerm source
+  EHole source name -> do
+    typeofMeta <- freshMetaTerm source Nothing >>= eval
+    meta <- freshMetaTerm source name
     pure (meta /\ typeofMeta)
   EApplication source function argument -> do
     function /\ typeofFunction <- infer function
@@ -204,19 +203,16 @@ infer = case _ of
         uniqueId <- generate
         let generatedName = Name ("?" <> show uniqueId)
         -- TODO: fix sources
-        domain <- freshMetaTerm source >>= eval
+        -- TODO: consider reporting the type of the domain
+        domain <- freshMetaTerm source Nothing >>= eval
         codomain <- bindVariable source generatedName domain
-          (freshMetaTerm source >>= makeClosure)
+          (freshMetaTerm source Nothing >>= makeClosure)
         pure (domain /\ codomain)
 
     argument <- check argument domain
     vArgument <- eval argument
     inferred <- applyClosure codomain vArgument
     pure (Application source function argument /\ inferred)
-
--------- Typeclass instances
-derive newtype instance Eq Name
-derive newtype instance Hashable Name
 
 ---------- Proxies
 _elaborationContext :: Proxy "elaborationContext"

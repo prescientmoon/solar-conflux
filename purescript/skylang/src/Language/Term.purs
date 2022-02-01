@@ -9,7 +9,13 @@ import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 
 ---------- Term-related types
+-- | Variable name
+newtype Name = Name String
+
+-- | De brujin index
 newtype Index = Index Int
+
+-- | Unique meta id
 newtype MetaVar = MetaVar Int
 
 -- | Type describing all terms in the lang
@@ -45,6 +51,7 @@ newtype Closure a = Closure
 
 newtype MetaContext a = MetaContext
   { metas :: HashMap MetaVar (Maybe (Value a))
+  , metaNames :: HashMap Name MetaVar
   }
 
 -- | Type representing the result of evaluating a Term
@@ -90,5 +97,8 @@ derive newtype instance Hashable Level
 
 derive newtype instance Semigroup (Env a)
 derive newtype instance Monoid (Env a)
+
+derive newtype instance Eq Name
+derive newtype instance Hashable Name
 
 derive instance Newtype (MetaContext a) _

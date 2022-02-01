@@ -4,6 +4,7 @@ module Sky.Language.MetaVar
   , getMetaContext
   , lookupMeta
   , solveMeta
+  , nameMeta
   ) where
 
 import Prelude
@@ -18,7 +19,7 @@ import Run.State as State
 import Run.Supply (SUPPLY)
 import Run.Supply as Supply
 import Sky.Language.Error (MetaError(..), SKY_ERROR, throwMetaError)
-import Sky.Language.Term (MetaContext(..), MetaVar(..), Value)
+import Sky.Language.Term (MetaContext(..), MetaVar(..), Name, Value)
 import Type.Proxy (Proxy(..))
 import Type.Row (type (+))
 
@@ -45,6 +46,13 @@ lookupMeta source var = getMetaContext >>= \(MetaContext context) ->
       , source
       }
 
+-- | Assign a name to a meta variable. Useful for reporting type hole solutions
+nameMeta :: forall a r. Name -> MetaVar -> Run (META_CONTEXT a r) Unit
+nameMeta name meta = do
+  let update = Record.modify _metaNames $ HM.insert name meta
+  State.modifyAt _metaContext
+    $ Newtype.over MetaContext update
+
 -- | Generate an unique meta variable, and set it's status as unsolved
 freshMeta :: forall a r. Run (SUPPLY Int + META_CONTEXT a r) MetaVar
 freshMeta = do
@@ -66,3 +74,6 @@ _metaContext = Proxy
 
 _metas :: Proxy "metas"
 _metas = Proxy
+
+_metaNames :: Proxy "metaNames"
+_metaNames = Proxy
