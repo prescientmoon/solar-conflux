@@ -1,19 +1,19 @@
 // @ts-ignore
 import IndentationLexer from "moo-indentation-lexer";
-import moo from "moo";
+import * as moo from "moo";
 import type { SourcePosition, Token } from "./ast";
 
 // ========== Actual lexer stuff
 export const mooLexer = moo.compile({
   whitespace: /[ \t]+/,
   newline: { match: /(?:\r\n?|\n)+/, lineBreaks: true },
-  keyword: ["assume", "let"],
+  keyword: ["assume", "let", "in"],
   namedHole: {
     match: /\?[a-z_]['\-_a-zA-Z0-9]*/,
   },
-  punctuation: ["->", "_", "\\", "::", ":", ",", "(", ")", "[", "]"],
+  punctuation: ["->", "_", "\\", "::", ":", ",", "(", ")", "[", "]", "*", "="],
   natural: /[0-9]+/,
-  identifier: { match: /[a-z_]['\-_a-zA-Z0-9]*/ },
+  identifier: { match: /[a-zA-Z_]['\-_a-zA-Z0-9]*/ },
 });
 
 export const lexer: moo.Lexer = new IndentationLexer({
@@ -26,6 +26,7 @@ export const lexer: moo.Lexer = new IndentationLexer({
 export const tokenStart = (token: moo.Token): SourcePosition => ({
   line: token.line,
   column: token.col - 1,
+  index: token.offset,
 });
 
 export function tokenEnd(token: moo.Token): SourcePosition {
@@ -37,7 +38,8 @@ export function tokenEnd(token: moo.Token): SourcePosition {
 
   return {
     line: token.line,
-    column: token.col + token.text.length - 1,
+    column: token.col,
+    index: token.offset,
   };
 }
 

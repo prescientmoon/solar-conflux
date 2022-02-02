@@ -1,5 +1,5 @@
 // ========== Lexing stuff
-export type SourcePosition = { line: number; column: number };
+export type SourcePosition = { line: number; column: number; index: number };
 export type SourceSpan = { start: SourcePosition; end: SourcePosition };
 export type TokenType =
   | "whitespace"
@@ -101,4 +101,43 @@ export function var_(token: Token): WithSpan<Term> {
     },
     token.span
   );
+}
+
+// ========== Debug helpers
+export function printAst(term: Term): string {
+  if (term.type === "star") return "*";
+  else if (term.type === "hole") return "?" + (term.value.name || "");
+  else if (term.type === "var") return term.value.name;
+  else if (term.type === "lambda")
+    return (
+      "\\" +
+      term.value.argument.value +
+      " -> " +
+      printAst(term.value.body.value)
+    );
+  else if (term.type === "assumption")
+    return "assume " + printAst(term.value.type.value);
+  else if (term.type === "pi")
+    return (
+      "(" +
+      (term.value.name?.value || "_") +
+      ": " +
+      printAst(term.value.domain.value) +
+      ") -> " +
+      printAst(term.value.codomain.value)
+    );
+  else if (term.type === "application")
+    return `(${printAst(term.value.function.value)}) (${printAst(
+      term.value.argument.value
+    )})`;
+  else if (term.type === "annotation")
+    return `(${printAst(term.value.value.value)}) :: (${printAst(
+      term.value.type.value
+    )})`;
+  else if (term.type === "let")
+    return `let ${term.value.definition.name.value} = ${printAst(
+      term.value.definition.value.value
+    )} in ${printAst(term.value.body.value)}`;
+
+  throw new Error("Not implemented");
 }
