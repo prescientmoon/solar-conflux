@@ -1,19 +1,2 @@
 Type :: *
 Type = *
-
-yo :: Type -> Type
-yo a = a
-
-withPi :: (x: A) -> B x -> C x
-withPi a = \b -> c
-
-noAnnotation oof = let
-    a = b 
-    multiLine = a
-      b c d
-       e f g 
-    in c
-
-someHoles a = a _ ?namedHole
-
-assumptions = assume SomeTypeGoesHere

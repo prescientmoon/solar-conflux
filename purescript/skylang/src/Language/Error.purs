@@ -2,6 +2,8 @@ module Sky.Language.Error where
 
 import Prelude
 
+import Data.Generic.Rep (class Generic)
+import Data.Show.Generic (genericShow)
 import Run (Run)
 import Run.Except (Except, throwAt)
 import Sky.Language.Term (Closure, Index, Level, MetaVar, Spine, Value)
@@ -78,6 +80,13 @@ type SKY_ERROR a r =
   | r
   )
 
+---------- Source span data type
+class SourceSpot a where
+  nowhere :: a
+  nameOfLet :: a -> a
+  piArgument :: a -> a
+  lambdaArgument :: a -> a
+
 ---------- Helpers
 throwMetaError
   :: forall a r o
@@ -102,6 +111,28 @@ throwElaborationError
    . ElaborationError a
   -> Run (SKY_ERROR a r) o
 throwElaborationError = ElaborationError >>> throwAt _skyError
+
+---------- Typeclass instances
+derive instance Generic (ElaborationError a) _
+derive instance Generic (MetaError a) _
+derive instance Generic (UnificationError a) _
+derive instance Generic (EvaluationError a) _
+derive instance Generic (SkyError a) _
+
+instance Show a => Show (ElaborationError a) where
+  show = genericShow
+
+instance Show a => Show (MetaError a) where
+  show = genericShow
+
+instance Show a => Show (UnificationError a) where
+  show = genericShow
+
+instance Show a => Show (EvaluationError a) where
+  show = genericShow
+
+instance Show a => Show (SkyError a) where
+  show = genericShow
 
 ---------- Proxies
 _skyError :: Proxy "skyError"

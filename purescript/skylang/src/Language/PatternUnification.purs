@@ -20,7 +20,7 @@ import Data.HashMap as HM
 import Data.Maybe (Maybe(..))
 import Run (Run)
 import Safe.Coerce (coerce)
-import Sky.Language.Error (MetaError(..), SKY_ERROR, UnificationError(..), throwMetaError, throwUnificationError)
+import Sky.Language.Error (class SourceSpot, MetaError(..), SKY_ERROR, UnificationError(..), lambdaArgument, piArgument, throwMetaError, throwUnificationError)
 import Sky.Language.Eval (QUOTATION_ENV, applyClosure, evalWith, force, getDepth, getDepthMarker, increaseDepth, quoteIndex, vApply)
 import Sky.Language.MetaVar (META_CONTEXT, solveMeta)
 import Sky.Language.Term (Closure, Level(..), MetaVar, Spine(..), Term(..), Value(..))
@@ -98,7 +98,8 @@ invert domainSize (Spine spine) = do
 
 rename
   :: forall a r
-   . MetaVar
+   . SourceSpot a
+  => MetaVar
   -> PartialRenaming
   -> Value a
   -> Run (SKY_ERROR a + META_CONTEXT a r) (Term a)
@@ -124,9 +125,8 @@ rename meta renaming value = go renaming value -- not eta reducing because of er
       VPi source domain codomain -> do
         domain <- go renaming domain
         -- | TODO: make sure we are using the right size here
-        -- | TODO: correct source
         codomain <- applyClosure codomain
-          ( VVariableApplication source
+          ( VVariableApplication (piArgument source)
               (domainSize renaming)
               mempty
           )
@@ -134,8 +134,7 @@ rename meta renaming value = go renaming value -- not eta reducing because of er
         pure $ Pi source domain codomain
       VLambda source body -> do
         body <- applyClosure body
-          -- TODO: see above
-          ( VVariableApplication source
+          ( VVariableApplication (lambdaArgument source)
               (domainSize renaming)
               mempty
           )
@@ -167,7 +166,8 @@ wrapInLambdas source n term = Lambda source $ wrapInLambdas source (n - 1) term
 -- |     ?a spine = rhs
 solve
   :: forall a r
-   . a
+   . SourceSpot a
+  => a
   -> Level
   -> MetaVar
   -> Spine a
@@ -183,7 +183,7 @@ solve source depth meta spine rhs = do
   solveMeta meta solution
 
 -- | Helper for unifying 2 closures by creating a marker and applying it to both sides
-unifyClosures :: forall a r. a -> a -> Closure a -> Closure a -> UnifyM a r Unit
+unifyClosures :: forall a r. SourceSpot a => a -> a -> Closure a -> Closure a -> UnifyM a r Unit
 unifyClosures sourceL sourceR lhs rhs = do
   markerL <- getDepthMarker sourceL
   markerR <- getDepthMarker sourceR
@@ -192,13 +192,14 @@ unifyClosures sourceL sourceR lhs rhs = do
   increaseDepth $ unify lhs rhs
 
 -- | Helper for unifying 2 spines, element by element
-unifySpines :: forall a r. Spine a -> Spine a -> UnifyM a r Unit
+unifySpines :: forall a r. SourceSpot a => Spine a -> Spine a -> UnifyM a r Unit
 unifySpines (Spine lhs) (Spine rhs) = void $ Array.zipWithA unify lhs rhs
 
 -- | Makes sure two values are equal, solving meta variables along the way
 unify
   :: forall a r
-   . Value a
+   . SourceSpot a
+  => Value a
   -> Value a
   -> UnifyM a r Unit
 unify lhs rhs = do
@@ -209,7 +210,8 @@ unify lhs rhs = do
 -- | Actual implementation for unification. Expects both sides to have been forced.
 unify'
   :: forall a r
-   . Value a
+   . SourceSpot a
+  => Value a
   -> Value a
   -> UnifyM a r Unit
 unify' = case _, _ of
@@ -218,13 +220,12 @@ unify' = case _, _ of
     -- ado notation is pointless here, but I want to preserve the notion 
     -- of using the applicative instance here (means the code could be parallelized)
     unify domainL domainR
-    --  TODO: correct sources
-    unifyClosures sourceL sourceR codomainL codomainR
+    unifyClosures (piArgument sourceL) (piArgument sourceR) codomainL codomainR
     in unit
   VLambda sourceL lhs, VLambda sourceR rhs ->
-    unifyClosures sourceL sourceR lhs rhs
+    unifyClosures (lambdaArgument sourceL) (lambdaArgument sourceR) lhs rhs
   VLambda source body, other -> do
-    marker <- getDepthMarker source
+    marker <- getDepthMarker (lambdaArgument source)
     body <- applyClosure body marker
     other <- vApply other marker
     increaseDepth $ unify body other

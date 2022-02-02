@@ -12,7 +12,7 @@ import Run.Reader (Reader)
 import Run.Reader as Reader
 import Run.Supply (SUPPLY, generate)
 import Safe.Coerce (coerce)
-import Sky.Language.Error (ElaborationError(..), SKY_ERROR, throwElaborationError)
+import Sky.Language.Error (class SourceSpot, ElaborationError(..), SKY_ERROR, lambdaArgument, nameOfLet, nowhere, piArgument, throwElaborationError)
 import Sky.Language.Eval (EVALUATION_ENV, QUOTATION_ENV, applyClosure, augumentEnv, eval, force, getDepth, getDepthMarker, increaseDepth, makeClosure, quote, quoteIndex)
 import Sky.Language.MetaVar (META_CONTEXT, freshMeta, nameMeta)
 import Sky.Language.PatternUnification (unify)
@@ -21,7 +21,6 @@ import Type.Proxy (Proxy(..))
 import Type.Row (type (+))
 
 ---------- Types
-
 -- | Context required by elaboration
 newtype ElaborationContext a = ElaborationContext
   { types :: HashMap Name (Level /\ Value a)
@@ -38,6 +37,7 @@ data Ast a
   | EAnnotation a (Ast a) (Ast a)
   | EStar a
   | EHole a (Maybe Name)
+  | EAssumption a (Ast a)
 
 ---------- Effects
 -- | Context required for elaboration to take place in
@@ -55,6 +55,14 @@ type ElabM a r = Run
       + SUPPLY Int r
   )
 
+-- | Run a computation which makes use of an elaboration context. 
+runElaborationContext :: forall a r. Run (ELABORATION_CONTEXT a r) ~> Run r
+runElaborationContext = Reader.runReaderAt _elaborationContext $ ElaborationContext
+  { mask: mempty
+  , types: HM.empty
+  }
+
+-- | Expose the current elaboration context
 getElaborationContext :: forall a r. Run (ELABORATION_CONTEXT a r) (ElaborationContext a)
 getElaborationContext = Reader.askAt _elaborationContext
 
@@ -105,7 +113,7 @@ defineVariable suorce name value _type compute = do
       }
 
 -- | Create a closure from a value
-valueToClosure :: forall a r. Value a -> ElabM a r (Closure a)
+valueToClosure :: forall a r. SourceSpot a => Value a -> ElabM a r (Closure a)
 valueToClosure value = do
   term <- increaseDepth $ quote value
   makeClosure term
@@ -121,51 +129,48 @@ freshMetaTerm source name = do
 
 ---------- Implementation
 -- | Check an expression has a given type
-check :: forall a r. Ast a -> Value a -> ElabM a r (Term a)
+check :: forall a r. SourceSpot a => Ast a -> Value a -> ElabM a r (Term a)
 check expression _type = do
   _type <- force _type
   check' expression _type
 
 -- | Same as check, but assumes the type has been forced.
-check' :: forall a r. Ast a -> Value a -> ElabM a r (Term a)
+check' :: forall a r. SourceSpot a => Ast a -> Value a -> ElabM a r (Term a)
 check' = case _, _ of
   EHole source name, other -> do
     freshMetaTerm source name
   ELambda source name body, VPi piSource domain codomain -> do
-    -- TODO: fix sources
-    marker <- getDepthMarker piSource
+    marker <- getDepthMarker $ piArgument piSource
     codomain <- applyClosure codomain marker
-    body <- bindVariable source name domain $ check body codomain
+    body <- bindVariable (lambdaArgument source) name domain $ check body codomain
     pure $ Lambda source body
   ELet source name value body, type_ -> do
     value /\ typeofValue <- infer value
     vValue <- eval value
-    -- TODO: fix sources
-    body <- defineVariable source name vValue typeofValue $ check body type_
+    body <- defineVariable (nameOfLet source) name vValue typeofValue $ check body type_
     pure $ Let source value body
   value, expected -> do
     value /\ inferred <- infer value
     unify expected inferred
     pure value
 
-infer :: forall a r. Ast a -> ElabM a r (Term a /\ VType a)
+infer :: forall a r. SourceSpot a => Ast a -> ElabM a r (Term a /\ VType a)
 infer = case _ of
   EStar source -> pure $ (Star source /\ VStar source)
   ELambda source name body -> do
-    -- TODO: fix sources
-    insertedMeta <- freshMetaTerm source Nothing
+    insertedMeta <- freshMetaTerm (lambdaArgument source) Nothing
     vMeta <- eval insertedMeta
-    body /\ inferred <- bindVariable source name vMeta
+    body /\ inferred <- bindVariable (lambdaArgument source) name vMeta
       $ infer body
     codomain <- valueToClosure inferred
     let lambda = Lambda source body
     let inferred = VPi source vMeta codomain
     pure $ lambda /\ inferred
   EPi source name domain codomain -> do
-    domain <- check domain (VStar source)
+    domain <- check domain (VStar nowhere)
     vDomain <- eval domain
-    codomain <- bindVariable source name vDomain
-      $ check codomain (VStar source)
+    codomain <- bindVariable (piArgument source) name vDomain
+      $ check codomain (VStar nowhere)
     pure $ (Pi source domain codomain) /\ VStar source
   EVar source name -> do
     (ElaborationContext { types }) <- getElaborationContext
@@ -177,16 +182,14 @@ infer = case _ of
       Nothing -> throwElaborationError $ ElabVarNotInScope
         { name: coerce name, source }
   EAnnotation source value type_ -> do
-    -- TODO: fix sources
-    type_ <- check type_ (VStar source)
+    type_ <- check type_ (VStar nowhere)
     type_ <- eval type_
     value <- check value type_
     pure $ (value /\ type_)
   ELet source name value body -> do
     value /\ typeofValue <- infer value
     vValue <- eval value
-    -- TODO: fix sources
-    (body /\ inferred) <- defineVariable source name vValue typeofValue $ infer body
+    (body /\ inferred) <- defineVariable (nameOfLet source) name vValue typeofValue $ infer body
     let let_ = Let source value body
     pure (let_ /\ inferred)
   EHole source name -> do
@@ -204,8 +207,8 @@ infer = case _ of
         let generatedName = Name ("?" <> show uniqueId)
         -- TODO: fix sources
         -- TODO: consider reporting the type of the domain
-        domain <- freshMetaTerm source Nothing >>= eval
-        codomain <- bindVariable source generatedName domain
+        domain <- freshMetaTerm nowhere Nothing >>= eval
+        codomain <- bindVariable nowhere generatedName domain
           (freshMetaTerm source Nothing >>= makeClosure)
         pure (domain /\ codomain)
 
@@ -213,6 +216,10 @@ infer = case _ of
     vArgument <- eval argument
     inferred <- applyClosure codomain vArgument
     pure (Application source function argument /\ inferred)
+  EAssumption source type_ -> do
+    type_ <- check type_ (VStar nowhere)
+    vType_ <- eval type_
+    pure $ (Assumption source type_) /\ vType_
 
 ---------- Proxies
 _elaborationContext :: Proxy "elaborationContext"

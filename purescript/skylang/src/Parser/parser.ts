@@ -372,10 +372,7 @@ export class Parser {
   }
 
   public parseTerm(commit: () => void = () => {}): WithSpan<Term> {
-    console.log("Parsing term");
     let atom = this.parseAtom(commit);
-
-    console.log("Parsing args");
 
     const args = this.many<WithSpan<Term>>((commit) => this.parseAtom(commit));
 
@@ -394,7 +391,6 @@ export class Parser {
         }
       );
     }
-    console.log("done with the args");
 
     const bigger = this.migthBacktrack((commit) => {
       const token = this.peekNoEof();

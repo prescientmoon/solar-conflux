@@ -9,7 +9,7 @@ import Run (Run)
 import Run.Reader (Reader, runReaderAt)
 import Run.Reader as Reader
 import Safe.Coerce (coerce)
-import Sky.Language.Error (EvaluationError(..), SKY_ERROR, throwEvaluationError)
+import Sky.Language.Error (class SourceSpot, EvaluationError(..), SKY_ERROR, lambdaArgument, piArgument, throwEvaluationError)
 import Sky.Language.MetaVar (META_CONTEXT, lookupMeta)
 import Sky.Language.Term (Closure(..), Env(..), Index(..), Level(..), Mask(..), MetaVar, Spine(..), Term(..), Value(..), extendEnv, extendSpine)
 import Type.Proxy (Proxy(..))
@@ -46,6 +46,14 @@ increaseDepth = Reader.localAt _quotationEnv
 -- | Run a computation in a modified environment
 augumentEnv :: forall a r. (Env a -> Env a) -> Run (EVALUATION_ENV a r) ~> Run (EVALUATION_ENV a r)
 augumentEnv = Reader.localAt _evaluationEnv
+
+-- | Run a computation which makes use of the evaluation env
+runEvaluationEnv :: forall a r. Run (EVALUATION_ENV a r) ~> Run r
+runEvaluationEnv = Reader.runReaderAt _evaluationEnv mempty
+
+-- | Run a computation which makes use of the quotation env
+runQuotationEnv :: forall r. Run (QUOTATION_ENV r) ~> Run r
+runQuotationEnv = Reader.runReaderAt _quotationEnv $ QuoteEnv { depth: coerce 0 }
 
 ---------- Helpers
 applyClosure
@@ -188,7 +196,7 @@ force value = case value of
 
 ---------- Quotation (aka Value -> Term conversion)
 -- | Convert a spine application to a term
-quoteSpine :: forall a r. a -> Term a -> Spine a -> QuoteM a r (Term a)
+quoteSpine :: forall a r. SourceSpot a => a -> Term a -> Spine a -> QuoteM a r (Term a)
 quoteSpine source term (Spine spine) = Array.foldM go term spine
   where
   go previous argument = ado
@@ -208,7 +216,7 @@ quoteIndex :: Level -> Level -> Index
 quoteIndex (Level level) (Level index) = Index $ level - index - 1
 
 -- | Convert a value to a term
-quote :: forall a r. Value a -> QuoteM a r (Term a)
+quote :: forall a r. SourceSpot a => Value a -> QuoteM a r (Term a)
 quote = force >=> case _ of
   VStar source -> pure $ Star source
   VMetaApplication source meta spine -> quoteSpine source (Meta source meta) spine
@@ -219,14 +227,13 @@ quote = force >=> case _ of
     type_ <- quote type_
     quoteSpine source type_ spine
   VPi source domain codomain -> do
-    marker <- getDepthMarker source
+    marker <- getDepthMarker (piArgument source)
     domain <- quote domain
-    -- | TODO: mark the source as the source of the variable, not the source of the whole thing
     codomain <- applyClosure codomain marker
     codomain <- increaseDepth $ quote codomain
     pure $ Pi source domain codomain
   VLambda source body -> do
-    marker <- getDepthMarker source
+    marker <- getDepthMarker (lambdaArgument source)
     body <- applyClosure body marker
     body <- increaseDepth $ quote body
     pure $ Lambda source body
@@ -236,7 +243,8 @@ quote = force >=> case _ of
 -- | Normalize a term
 normalForm
   :: forall a r
-   . Term a
+   . SourceSpot a
+  => Term a
   -> Run (QUOTATION_ENV + META_CONTEXT a + SKY_ERROR a + EVALUATION_ENV a r) (Term a)
 normalForm term = do
   (Env { scope }) <- environment

@@ -2,11 +2,16 @@ module Sky.Language.Term where
 
 import Prelude
 
+import Control.Alt (class Alt)
+import Control.Alternative (class Plus)
 import Data.Array as Array
+import Data.Generic.Rep (class Generic)
 import Data.HashMap (HashMap)
+import Data.HashMap as HM
 import Data.Hashable (class Hashable)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
+import Data.Show.Generic (genericShow)
 
 ---------- Term-related types
 -- | Variable name
@@ -89,11 +94,16 @@ extendMask (Mask arguments) extra = Mask
 derive newtype instance Semigroup (Spine a)
 derive newtype instance Monoid (Spine a)
 
+derive newtype instance Semigroup Mask
+derive newtype instance Monoid Mask
+
 derive newtype instance Eq MetaVar
 derive newtype instance Hashable MetaVar
+derive newtype instance Show MetaVar
 
 derive newtype instance Eq Level
 derive newtype instance Hashable Level
+derive newtype instance Show Level
 
 derive newtype instance Semigroup (Env a)
 derive newtype instance Monoid (Env a)
@@ -102,3 +112,38 @@ derive newtype instance Eq Name
 derive newtype instance Hashable Name
 
 derive instance Newtype (MetaContext a) _
+
+derive newtype instance Show Index
+derive newtype instance Show Mask
+
+derive newtype instance Show a => Show (Env a)
+derive newtype instance Show a => Show (Spine a)
+derive newtype instance Show a => Show (Closure a)
+
+derive instance Generic (Value a) _
+derive instance Generic (Term a) _
+
+instance Show a => Show (Value a) where
+  show a = genericShow a
+
+instance Show a => Show (Term a) where
+  show a = genericShow a
+
+derive instance Functor Term
+derive instance Functor Env
+derive instance Functor Closure
+derive instance Functor Spine
+derive instance Functor Value
+derive instance Functor MetaContext
+
+instance Alt MetaContext where
+  alt (MetaContext a) (MetaContext b) = MetaContext
+    { metas: HM.union a.metas b.metas
+    , metaNames: HM.union a.metaNames b.metaNames
+    }
+
+instance Plus MetaContext where
+  empty = MetaContext
+    { metas: HM.empty
+    , metaNames: HM.empty
+    }
