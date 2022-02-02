@@ -1,4 +1,33 @@
-module Sky.Language.Eval where
+module Sky.Language.Eval
+  ( EVALUATION_ENV
+  , EvalM
+  , QUOTATION_ENV
+  , QuoteEnv(..)
+  , QuoteM
+  , _evaluationEnv
+  , _quotationEnv
+  , applyClosure
+  , augumentEnv
+  , environment
+  , eval
+  , evalMeta
+  , evalWith
+  , force
+  , getDepth
+  , getDepthMarker
+  , increaseDepth
+  , lookupVar
+  , makeClosure
+  , quote
+  , quoteIndex
+  , quoteSpine
+  , runEvaluationEnv
+  , runQuotationEnv
+  , vApply
+  , vApplyMaskedeEnvironment
+  , vApplySpine
+  , normalForm
+  ) where
 
 import Prelude
 
@@ -98,6 +127,8 @@ vApplySpine to spine@(Spine arguments) = case to of
     pure $ VMetaApplication source meta (originalSpine <> spine)
   VVariableApplication source var originalSpine ->
     pure $ VVariableApplication source var (originalSpine <> spine)
+  VAssumptionApplication source ty originalSpine ->
+    pure $ VAssumptionApplication source ty (originalSpine <> spine)
   VSourceAnnotation source inner ->
     vApplySpine inner spine
       <#> VSourceAnnotation source
@@ -111,7 +142,7 @@ vApplyMaskedeEnvironment
   -> Run (SKY_ERROR a + META_CONTEXT a r)
        (Value a)
 vApplyMaskedeEnvironment (Env { scope }) to (Mask mask) =
-  Array.zip scope mask
+  Array.zip (Array.reverse scope) mask
     # Array.mapMaybe onlyAccepted
     # Spine
     # vApplySpine to
@@ -151,6 +182,7 @@ eval = case _ of
     <#> VSourceAnnotation source
   Var source index -> ado
     result <- lookupVar source index
+    env <- environment
     in VSourceAnnotation source result
   Application source lhs rhs -> do
     lhs <- eval lhs
@@ -188,6 +220,7 @@ force value = case value of
     lookupMeta source meta >>= case _ of
       Nothing -> pure value
       Just meta -> do
+
         applied <- vApplySpine meta arguments
         force applied
   VSourceAnnotation source inner ->
@@ -219,7 +252,8 @@ quoteIndex (Level level) (Level index) = Index $ level - index - 1
 quote :: forall a r. SourceSpot a => Value a -> QuoteM a r (Term a)
 quote = force >=> case _ of
   VStar source -> pure $ Star source
-  VMetaApplication source meta spine -> quoteSpine source (Meta source meta) spine
+  VMetaApplication source meta spine -> do
+    quoteSpine source (Meta source meta) spine
   VVariableApplication source var spine -> do
     level <- getDepth
     quoteSpine source (Var source $ quoteIndex level var) spine
@@ -245,7 +279,7 @@ normalForm
   :: forall a r
    . SourceSpot a
   => Term a
-  -> Run (QUOTATION_ENV + META_CONTEXT a + SKY_ERROR a + EVALUATION_ENV a r) (Term a)
+  -> Run (META_CONTEXT a + SKY_ERROR a + EVALUATION_ENV a r) (Term a)
 normalForm term = do
   (Env { scope }) <- environment
   let quotationEnv = QuoteEnv { depth: Level (Array.length scope) }

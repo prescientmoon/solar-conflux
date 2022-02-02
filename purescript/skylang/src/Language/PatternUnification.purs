@@ -88,6 +88,7 @@ invert domainSize (Spine spine) = do
     }
   where
   invertSingleTerm index mapping = case _ of
+    VSourceAnnotation _ inner -> invertSingleTerm index mapping inner
     VVariableApplication source var (Spine []) ->
       if HM.member var mapping then
         throwMetaError $ NonLinearPattern { spine: coerce spine, varSource: source }
@@ -152,9 +153,9 @@ rename meta renaming value = go renaming value -- not eta reducing because of er
         case lookupRenaming index renaming of
           Nothing -> throwUnificationError $ EscapingVariable
             { source, whileRenaming: value, variable: index }
-          Just newName ->
+          Just newName -> do
             goSpine source renaming
-              (Var source (quoteIndex (codomainSize renaming) index))
+              (Var source (quoteIndex (codomainSize renaming) newName))
               spine
 
 -- | Wrap a term in a given number of lambdas

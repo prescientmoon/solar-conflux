@@ -14,6 +14,9 @@ to generate this file without the comments in this block.
 , dependencies =
   [ "arrays"
   , "console"
+  , "debug"
+  , "debugged"
+  , "dodo-printer"
   , "effect"
   , "nullable"
   , "prelude"

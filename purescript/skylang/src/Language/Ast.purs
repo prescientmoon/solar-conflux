@@ -2,23 +2,30 @@ module Sky.Language.Ast where
 
 import Prelude
 
+import Data.Debug (class Debug, genericDebug)
 import Data.Foldable (for_)
+import Data.Generic.Rep (class Generic)
 import Data.HashMap (HashMap)
 import Data.HashMap as HM
 import Data.Maybe (Maybe(..))
+import Data.Show.Generic (genericShow)
 import Data.Tuple.Nested (type (/\), (/\))
+import Debug (traceM)
+import Effect.Unsafe (unsafePerformEffect)
 import Run (Run)
 import Run.Reader (Reader)
 import Run.Reader as Reader
 import Run.Supply (SUPPLY, generate)
 import Safe.Coerce (coerce)
+import Sky.Debug (Opqaue(..), myDebug, showPretty)
 import Sky.Language.Error (class SourceSpot, ElaborationError(..), SKY_ERROR, lambdaArgument, nameOfLet, nowhere, piArgument, throwElaborationError)
-import Sky.Language.Eval (EVALUATION_ENV, QUOTATION_ENV, applyClosure, augumentEnv, eval, force, getDepth, getDepthMarker, increaseDepth, makeClosure, quote, quoteIndex)
+import Sky.Language.Eval (EVALUATION_ENV, QUOTATION_ENV, applyClosure, augumentEnv, environment, eval, force, getDepth, getDepthMarker, increaseDepth, makeClosure, quote, quoteIndex)
 import Sky.Language.MetaVar (META_CONTEXT, freshMeta, nameMeta)
 import Sky.Language.PatternUnification (unify)
-import Sky.Language.Term (Closure, Level, Mask, Name(..), Term(..), VType, Value(..), extendEnv, extendMask)
+import Sky.Language.Term (Closure(..), Env(..), Level, Mask, Name(..), Term(..), VType, Value(..), extendEnv, extendMask)
 import Type.Proxy (Proxy(..))
 import Type.Row (type (+))
+import Unsafe.Coerce (unsafeCoerce)
 
 ---------- Types
 -- | Context required by elaboration
@@ -140,9 +147,18 @@ check' = case _, _ of
   EHole source name, other -> do
     freshMetaTerm source name
   ELambda source name body, VPi piSource domain codomain -> do
+    traceM "lambda"
     marker <- getDepthMarker $ piArgument piSource
+    traceM "gonna eval the codomain"
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce codomain :: Closure Opqaue)
     codomain <- applyClosure codomain marker
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce codomain :: Value Opqaue)
+    traceM "gonna check with the domain"
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce body :: Ast Opqaue)
     body <- bindVariable (lambdaArgument source) name domain $ check body codomain
+    traceM "done with the domain"
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce codomain :: Value Opqaue)
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce body :: Term Opqaue)
     pure $ Lambda source body
   ELet source name value body, type_ -> do
     value /\ typeofValue <- infer value
@@ -150,9 +166,19 @@ check' = case _, _ of
     body <- defineVariable (nameOfLet source) name vValue typeofValue $ check body type_
     pure $ Let source value body
   value, expected -> do
-    value /\ inferred <- infer value
+
+    value' /\ inferred <- infer value
+    traceM "infer <-> check"
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce value :: Ast Opqaue)
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce expected :: Value Opqaue)
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce value' :: Term Opqaue)
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce inferred :: Value Opqaue)
+    env <- environment
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce env :: Env Opqaue)
+    expected <- quote expected
+    expected <- eval expected
     unify expected inferred
-    pure value
+    pure value'
 
 infer :: forall a r. SourceSpot a => Ast a -> ElabM a r (Term a /\ VType a)
 infer = case _ of
@@ -182,8 +208,16 @@ infer = case _ of
       Nothing -> throwElaborationError $ ElabVarNotInScope
         { name: coerce name, source }
   EAnnotation source value type_ -> do
+    traceM "Checking annotation"
     type_ <- check type_ (VStar nowhere)
+    traceM "type_ (pre eval)"
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce type_ :: Term Opqaue)
     type_ <- eval type_
+    traceM "type_"
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce type_ :: Value Opqaue)
+    traceM "value"
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce value :: Ast Opqaue)
+    traceM "ACTUALLY CHECKING THE ANNOTTION "
     value <- check value type_
     pure $ (value /\ type_)
   ELet source name value body -> do
@@ -199,6 +233,8 @@ infer = case _ of
   EApplication source function argument -> do
     function /\ typeofFunction <- infer function
 
+    traceM "DOING AN APPLICATION"
+
     -- Ensure the argument has type PI
     domain /\ codomain <- case typeofFunction of
       VPi source domain codomain -> pure (domain /\ codomain)
@@ -210,7 +246,11 @@ infer = case _ of
         domain <- freshMetaTerm nowhere Nothing >>= eval
         codomain <- bindVariable nowhere generatedName domain
           (freshMetaTerm source Nothing >>= makeClosure)
+        traceM "why no vpi"
+        unify typeofFunction (VPi source domain codomain)
         pure (domain /\ codomain)
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce domain :: Value Opqaue)
+    let a = unsafePerformEffect $ myDebug (unsafeCoerce codomain :: Closure Opqaue)
 
     argument <- check argument domain
     vArgument <- eval argument
@@ -220,6 +260,14 @@ infer = case _ of
     type_ <- check type_ (VStar nowhere)
     vType_ <- eval type_
     pure $ (Assumption source type_) /\ vType_
+
+---------- Typeclass instances
+derive instance Generic (Ast a) _
+instance Show a => Show (Ast a) where
+  show a = genericShow a
+
+instance Debug a => Debug (Ast a) where
+  debug a = genericDebug a
 
 ---------- Proxies
 _elaborationContext :: Proxy "elaborationContext"

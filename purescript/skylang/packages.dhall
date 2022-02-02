@@ -9,6 +9,32 @@ let additions =
         , dependencies =
           [ "maybe", "prelude", "run", "tuples", "typelevel-prelude" ]
         }
+      , debugged =
+        { repo = "https://github.com/Mateiadrielrafael/purescript-debugged/"
+        , version = "633220f91f87c9acbc4eebbf87628e6cdc658b7b"
+        , dependencies =
+          [ "prelude"
+          , "console"
+          , "ordered-collections"
+          , "either"
+          , "tuples"
+          , "lists"
+          , "strings"
+          , "arrays"
+          , "bifunctors"
+          , "record"
+          , "effect"
+          , "datetime"
+          , "enums"
+          , "unordered-collections"
+          , "fixed-points"
+          , "foldable-traversable"
+          , "math"
+          , "maybe"
+          , "newtype"
+          , "partial"
+          ]
+        }
       }
 
 in  upstream // additions

@@ -5,6 +5,7 @@ import Prelude
 import Control.Alt (class Alt)
 import Control.Alternative (class Plus)
 import Data.Array as Array
+import Data.Debug (class Debug, debug, genericDebug)
 import Data.Generic.Rep (class Generic)
 import Data.HashMap (HashMap)
 import Data.HashMap as HM
@@ -77,7 +78,7 @@ type VType = Value
 -- | Append a value to a context
 extendEnv :: forall a. Value a -> Env a -> Env a
 extendEnv extra (Env { scope }) = Env
-  { scope: Array.snoc scope extra
+  { scope: Array.cons extra scope
   }
 
 -- | Append a value to a spine
@@ -100,34 +101,55 @@ derive newtype instance Monoid Mask
 derive newtype instance Eq MetaVar
 derive newtype instance Hashable MetaVar
 derive newtype instance Show MetaVar
+derive newtype instance Debug MetaVar
 
 derive newtype instance Eq Level
 derive newtype instance Hashable Level
 derive newtype instance Show Level
+derive newtype instance Debug Level
 
 derive newtype instance Semigroup (Env a)
 derive newtype instance Monoid (Env a)
 
 derive newtype instance Eq Name
 derive newtype instance Hashable Name
+derive newtype instance Show Name
+derive newtype instance Debug Name
 
 derive instance Newtype (MetaContext a) _
 
 derive newtype instance Show Index
+derive newtype instance Debug Index
+
 derive newtype instance Show Mask
+derive newtype instance Debug Mask
 
 derive newtype instance Show a => Show (Env a)
 derive newtype instance Show a => Show (Spine a)
 derive newtype instance Show a => Show (Closure a)
 
+derive newtype instance Debug a => Debug (Env a)
+derive newtype instance Debug a => Debug (Spine a)
+
+instance Debug a => Debug (Closure a) where
+  debug a = genericDebug a
+
 derive instance Generic (Value a) _
 derive instance Generic (Term a) _
+derive instance Generic (Closure a) _
 
 instance Show a => Show (Value a) where
   show a = genericShow a
 
 instance Show a => Show (Term a) where
   show a = genericShow a
+
+instance Debug a => Debug (Value a) where
+  debug (VSourceAnnotation _ inner) = debug inner
+  debug a = genericDebug a
+
+instance Debug a => Debug (Term a) where
+  debug a = genericDebug a
 
 derive instance Functor Term
 derive instance Functor Env

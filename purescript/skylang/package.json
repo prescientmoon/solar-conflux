@@ -1,7 +1,7 @@
 {
   "name": "skylang",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only --watch examples src"
+    "dev": "ts-node-dev --respawn --transpile-only --watch examples/*.sky src"
   },
   "dependencies": {
     "moo": "^0.5.1",

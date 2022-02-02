@@ -4,6 +4,7 @@ import Prelude
 
 import Data.Array.NonEmpty as NonEmptyArray
 import Data.Array.NonEmpty.Internal (NonEmptyArray)
+import Data.Debug (class Debug, opaque_)
 import Data.Either (Either(..))
 import Data.Foldable (foldr, for_)
 import Data.Function (on)
@@ -210,7 +211,10 @@ derive instance Eq AbstractSourceLocation
 derive instance Generic AbstractSourceLocation _
 
 instance Show AbstractSourceLocation where
-  show a = genericShow a
+  show a = "---"
+
+instance Debug AbstractSourceLocation where
+  debug _ = opaque_ "location"
 
 instance Hashable AbstractSourceLocation where
   hash a = a # morph # hash

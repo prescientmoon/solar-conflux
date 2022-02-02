@@ -13,7 +13,7 @@ const content = readFileSync(file, { encoding: "utf-8" });
 const parser = new Parser(new MyLexer(mooLexer, content));
 const ast = parser.parseDeclarations(true);
 
-main(ast)();
+main(content)(ast)();
 
 try {
 } catch (e) {

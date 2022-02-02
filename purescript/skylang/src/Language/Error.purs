@@ -2,10 +2,12 @@ module Sky.Language.Error where
 
 import Prelude
 
+import Data.Debug (class Debug)
 import Data.Generic.Rep (class Generic)
 import Data.Show.Generic (genericShow)
 import Run (Run)
 import Run.Except (Except, throwAt)
+import Sky.Debug (showPretty)
 import Sky.Language.Term (Closure, Index, Level, MetaVar, Spine, Value)
 import Type.Proxy (Proxy(..))
 
@@ -125,13 +127,14 @@ instance Show a => Show (ElaborationError a) where
 instance Show a => Show (MetaError a) where
   show = genericShow
 
-instance Show a => Show (UnificationError a) where
-  show = genericShow
+instance (Show a, Debug a) => Show (UnificationError a) where
+  show (CannotUnify { lhs, rhs }) = "Cannot unify " <> showPretty lhs <> " with type " <> showPretty rhs
+  show a = genericShow a
 
 instance Show a => Show (EvaluationError a) where
   show = genericShow
 
-instance Show a => Show (SkyError a) where
+instance (Debug a, Show a) => Show (SkyError a) where
   show = genericShow
 
 ---------- Proxies
