@@ -4,7 +4,6 @@ import Prelude
 
 import Control.Plus (empty)
 import Data.Array.NonEmpty as NonEmptyArray
-import Data.Bifunctor (lmap)
 import Data.Either (Either(..))
 import Data.HashMap (HashMap)
 import Data.HashMap as HM
@@ -24,15 +23,15 @@ import Run.Except as Except
 import Run.State as State
 import Run.Supply (SUPPLY)
 import Run.Supply as Supply
-import Safe.Coerce (coerce)
 import Sky.Debug (showPretty)
 import Sky.Language.Ast (ELABORATION_CONTEXT, infer, runElaborationContext)
 import Sky.Language.Cst (Cst, WithSpan, toplevelScopeToAst)
 import Sky.Language.Error (SKY_ERROR, SkyError, _skyError)
 import Sky.Language.Eval (EVALUATION_ENV, QUOTATION_ENV, eval, quote, runEvaluationEnv, runQuotationEnv)
 import Sky.Language.MetaVar (META_CONTEXT)
-import Sky.Language.Pretty (PrintContext(..), prettyPrintTerm, runPrintM)
-import Sky.Language.Term (MetaContext(..), Name(..))
+import Sky.Language.Pretty (prettyPrintTerm)
+import Sky.Language.PrettyM (PrintContext(..), runPrintM)
+import Sky.Language.Term (MetaContext)
 import Type.Proxy (Proxy(..))
 import Type.Row (type (+))
 
@@ -67,7 +66,7 @@ main originalText cstDeclarations = case NonEmptyArray.fromArray cstDeclarations
     Left err -> do
       Console.log "An error occured"
       Console.log $ show err
-    Right ((MetaContext metaContext) /\ (term /\ type_)) -> do
+    Right (metaContext /\ (term /\ type_)) -> do
       Console.log "Original ast"
       Console.log $ show ast
       Console.log "Normal form for term:"
@@ -78,10 +77,9 @@ main originalText cstDeclarations = case NonEmptyArray.fromArray cstDeclarations
       -- Console.log $ showPretty $ lmap printTerm $  metaContext.metaNames
       where
       printTerm t = print ansiGraphics (twoSpaces { pageWidth = 80 })
-        $ runPrintM
+        $ runPrintM metaContext
             ( PrintContext
-                { metaNames: coerce $ invertMap metaContext.metaNames
-                , scope: []
+                { scope: []
                 , sourceMap
                 , originalText
                 }

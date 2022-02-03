@@ -1,47 +1,41 @@
 module Sky.Language.Cst where
 
 import Prelude
+import Sky.Language.Source (SourceSpan, SourceMap, WithSpan)
 
 import Data.Array.NonEmpty as NonEmptyArray
 import Data.Array.NonEmpty.Internal (NonEmptyArray)
+import Data.Bounded.Generic (genericBottom, genericTop)
 import Data.Debug (class Debug, opaque_)
-import Data.Either (Either(..))
+import Data.Enum (class BoundedEnum, class Enum, Cardinality(..), cardinality, fromEnum)
+import Data.Enum.Generic (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
 import Data.Foldable (foldr, for_)
-import Data.Function (on)
 import Data.Generic.Rep (class Generic)
-import Data.HashMap (HashMap)
 import Data.HashMap as HM
-import Data.Hashable (class Hashable, hash)
+import Data.Hashable (class Hashable)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Newtype (class Newtype)
 import Data.Newtype as Newtype
 import Data.Nullable (Nullable)
 import Data.Nullable as Nullable
-import Data.Show.Generic (genericShow)
 import Data.Tuple (swap)
 import Data.Tuple.Nested (type (/\))
 import Data.Variant (Variant)
 import Data.Variant as Variant
+import Record as Record
 import Run (Run)
 import Run as Run
 import Run.State (STATE)
 import Run.State as State
 import Run.Supply (SUPPLY)
 import Run.Supply as Supply
+import Safe.Coerce (coerce)
 import Sky.Language.Ast (Ast)
 import Sky.Language.Ast as Ast
-import Sky.Language.Error (class SourceSpot)
+import Sky.Language.Error (class SourceSpot, lambdaArgument, nameOfLet, piArgument)
 import Sky.Language.Term (Name(..))
 import Type.Proxy (Proxy(..))
 import Type.Row (type (+))
-
----------- Base types
-newtype SourcePosition = SourcePosition { line :: Int, column :: Int, index :: Int }
-newtype SourceSpan = SourceSpan { start :: SourcePosition, end :: SourcePosition }
-type WithSpan a =
-  { value :: a
-  , span :: SourceSpan
-  }
 
 ---------- Cst types
 type TopLevelScope = NonEmptyArray
@@ -97,20 +91,19 @@ extractSpan = _.span
 
 ---------- Effect related stuff
 -- | Not an actual source map, but encapsulates the same idea
-type SourceMap = HashMap AbstractSourceLocation SourceSpan
 
 -- | Base monad containing all required effects for converting from CST to AST
-type CstConversionM r = Run (STATE SourceMap + SUPPLY Int r)
+type CstConversionM r = Run (STATE (SourceMap AbstractSourceLocation) + SUPPLY Int r)
 
 -- | Rememebr the source span associated with a location
 rememberSpan :: forall r. AbstractSourceLocation -> SourceSpan -> CstConversionM r Unit
 rememberSpan key span = State.modify $ HM.insert key span
 
 -- | Run a computation in the cst conversion monad
-runCstM :: forall a. CstConversionM () a -> a /\ SourceMap
+runCstM :: forall a. CstConversionM () a -> a /\ SourceMap AbstractSourceLocation
 runCstM = Supply.runSupply ((+) 1) 0 >>> State.runState HM.empty >>> Run.extract >>> swap
 
-toplevelScopeToAst :: TopLevelScope -> Ast AbstractSourceLocation /\ SourceMap
+toplevelScopeToAst :: TopLevelScope -> Ast AbstractSourceLocation /\ SourceMap AbstractSourceLocation
 toplevelScopeToAst scope = scope
   # foldr
       createLet
@@ -139,12 +132,18 @@ toplevelScopeToAst scope = scope
 ---------- Source positions
 newtype RawLocationId = RawLocationId Int
 
-data AbstractSourceLocation
-  = LambdaArgument AbstractSourceLocation
-  | PiArgument AbstractSourceLocation
-  | NameOfLet AbstractSourceLocation
-  | TermLocation RawLocationId
-  | Nowhere
+data LocationKind
+  = LambdaArgument
+  | PiArgument
+  | NameOfLet
+  | TermLocation
+
+newtype AbstractSourceLocation = AbstractSourceLocation
+  ( Maybe
+      { raw :: RawLocationId
+      , locationKind :: LocationKind
+      }
+  )
 
 -- | Convert from cst to ast
 indexSourcePositions
@@ -152,14 +151,14 @@ indexSourcePositions
    . Cst
   -> CstConversionM r (Ast AbstractSourceLocation)
 indexSourcePositions (Cst { value, span }) = do
-  id <- Supply.generate <#> (RawLocationId >>> TermLocation)
+  id <- Supply.generate <#> (RawLocationId >>> { raw: _, locationKind: TermLocation } >>> Just >>> AbstractSourceLocation)
   rememberSpan id span
   Variant.match
     { hole: \{ name } -> pure $ Ast.EHole id $ Name <$> Nullable.toMaybe name
     , star: \{} -> pure $ Ast.EStar id
     , var: \{ name } -> pure $ Ast.EVar id $ Name name
     , lambda: \{ argument, body } -> ado
-        rememberSpan (LambdaArgument id) (extractSpan argument)
+        rememberSpan (lambdaArgument id) (extractSpan argument)
         body <- indexSourcePositions body
         in Ast.ELambda id (Name argument.value) body
     , application: \{ function, argument } -> ado
@@ -174,13 +173,13 @@ indexSourcePositions (Cst { value, span }) = do
         domain <- indexSourcePositions domain
         codomain <- indexSourcePositions codomain
         for_ (Nullable.toMaybe name) \argument ->
-          rememberSpan (PiArgument id) (extractSpan argument)
+          rememberSpan (piArgument id) (extractSpan argument)
         let name' = Name $ maybe "_" _.value $ Nullable.toMaybe name
         in Ast.EPi id name' domain codomain
     , "let": \{ definition: { name, value }, body } -> ado
         value <- indexSourcePositions value
         body <- indexSourcePositions body
-        rememberSpan (NameOfLet id) (extractSpan name)
+        rememberSpan (nameOfLet id) (extractSpan name)
         in Ast.ELet id (Name name.value) value body
     , assumption: \{ type: type_ } -> Ast.EAssumption id <$> indexSourcePositions type_
     }
@@ -190,21 +189,12 @@ indexSourcePositions (Cst { value, span }) = do
 derive newtype instance Eq RawLocationId
 derive newtype instance Hashable RawLocationId
 
-derive instance Newtype SourceSpan _
-derive instance Newtype SourcePosition _
 derive instance Newtype Cst _
+derive instance Newtype AbstractSourceLocation _
 
-derive instance Eq SourceSpan
-derive instance Eq SourcePosition
-
-instance Ord SourcePosition where
-  compare = on compare (Newtype.unwrap >>> _.index)
-
-instance Semigroup SourceSpan where
-  append (SourceSpan a) (SourceSpan b) = SourceSpan
-    { start: min a.start b.start
-    , end: max a.end b.end
-    }
+derive instance Eq LocationKind
+derive instance Ord LocationKind
+derive instance Generic LocationKind _
 
 derive newtype instance Show RawLocationId
 derive instance Eq AbstractSourceLocation
@@ -217,22 +207,30 @@ instance Debug AbstractSourceLocation where
   debug _ = opaque_ "location"
 
 instance Hashable AbstractSourceLocation where
-  hash a = a # morph # hash
+  hash (AbstractSourceLocation Nothing) = 0
+  hash (AbstractSourceLocation (Just { raw, locationKind })) = 1 + (coerce raw * coerce count) + fromEnum locationKind
     where
-    morph
-      :: AbstractSourceLocation
-      -> Either (Either AbstractSourceLocation (Either AbstractSourceLocation AbstractSourceLocation)) (Maybe RawLocationId)
-    morph (LambdaArgument a) = Left $ Left a
-    morph (NameOfLet a) = Left $ Right $ Left a
-    morph (PiArgument a) = Left $ Right $ Right a
-    morph (TermLocation a) = Right $ Just a
-    morph Nowhere = Right Nothing
+    count :: Cardinality LocationKind
+    count = cardinality
+
+instance Enum LocationKind where
+  succ = genericSucc
+  pred = genericPred
+
+instance Bounded LocationKind where
+  top = genericTop
+  bottom = genericBottom
+
+instance BoundedEnum LocationKind where
+  cardinality = genericCardinality
+  toEnum = genericToEnum
+  fromEnum = genericFromEnum
 
 instance SourceSpot AbstractSourceLocation where
-  nowhere = Nowhere
-  nameOfLet = NameOfLet
-  piArgument = PiArgument
-  lambdaArgument = LambdaArgument
+  nowhere = AbstractSourceLocation Nothing
+  nameOfLet = Newtype.over AbstractSourceLocation $ map $ Record.set _locationKind NameOfLet
+  piArgument = Newtype.over AbstractSourceLocation $ map $ Record.set _locationKind PiArgument
+  lambdaArgument = Newtype.over AbstractSourceLocation $ map $ Record.set _locationKind LambdaArgument
 
 ---------- Proxies
 _let :: Proxy "let"
@@ -240,3 +238,6 @@ _let = Proxy
 
 _var :: Proxy "var"
 _var = Proxy
+
+_locationKind :: Proxy "locationKind"
+_locationKind = Proxy

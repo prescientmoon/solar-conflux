@@ -3,6 +3,7 @@ module Sky.Language.MetaVar
   , freshMeta
   , getMetaContext
   , lookupMeta
+  , lookupMetaName
   , solveMeta
   , nameMeta
   ) where
@@ -26,6 +27,7 @@ import Type.Row (type (+))
 ---------- Effect related stuff
 type META_CONTEXT a r =
   ( metaContext :: State (MetaContext a)
+
   | r
   )
 
@@ -49,9 +51,13 @@ lookupMeta source var = getMetaContext >>= \(MetaContext context) ->
 -- | Assign a name to a meta variable. Useful for reporting type hole solutions
 nameMeta :: forall a r. Name -> MetaVar -> Run (META_CONTEXT a r) Unit
 nameMeta name meta = do
-  let update = Record.modify _metaNames $ HM.insert name meta
+  let update = Record.modify _metaNames $ HM.insert meta name
   State.modifyAt _metaContext
     $ Newtype.over MetaContext update
+
+-- | Find what the programmer named a hole. Useful for documentation purpouses
+lookupMetaName :: forall a r. MetaVar -> Run (META_CONTEXT a r) (Maybe Name)
+lookupMetaName name = getMetaContext <#> (Newtype.unwrap >>> _.metaNames >>> HM.lookup name)
 
 -- | Generate an unique meta variable, and set it's status as unsolved
 freshMeta :: forall a r. Run (SUPPLY Int + META_CONTEXT a r) MetaVar

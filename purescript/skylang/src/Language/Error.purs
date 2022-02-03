@@ -4,10 +4,15 @@ import Prelude
 
 import Data.Debug (class Debug)
 import Data.Generic.Rep (class Generic)
+import Data.HashMap as HM
+import Data.Hashable (class Hashable)
+import Data.Maybe (Maybe)
 import Data.Show.Generic (genericShow)
+import Data.String.CodeUnits as String
 import Run (Run)
 import Run.Except (Except, throwAt)
 import Sky.Debug (showPretty)
+import Sky.Language.Source (SourceMap, SourcePosition(..), SourceSpan(..))
 import Sky.Language.Term (Closure, Index, Level, MetaVar, Spine, Value)
 import Type.Proxy (Proxy(..))
 
@@ -83,11 +88,16 @@ type SKY_ERROR a r =
   )
 
 ---------- Source span data type
-class SourceSpot a where
+class Hashable a <= SourceSpot a where
   nowhere :: a
   nameOfLet :: a -> a
   piArgument :: a -> a
   lambdaArgument :: a -> a
+
+indexOriginalBuffer :: forall a. Hashable a => String -> SourceMap a -> a -> Maybe String
+indexOriginalBuffer originalText map key = HM.lookup key map
+  >>= \(SourceSpan { start: SourcePosition from, end: SourcePosition to }) ->
+    String.slice from.index (to.index - from.index) originalText
 
 ---------- Helpers
 throwMetaError

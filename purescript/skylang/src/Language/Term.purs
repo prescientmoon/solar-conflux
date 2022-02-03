@@ -57,7 +57,7 @@ newtype Closure a = Closure
 
 newtype MetaContext a = MetaContext
   { metas :: HashMap MetaVar (Maybe (Value a))
-  , metaNames :: HashMap Name MetaVar
+  , metaNames :: HashMap MetaVar Name
   }
 
 -- | Type representing the result of evaluating a Term
