@@ -50,8 +50,11 @@ newtype Env a = Env
 
 newtype Mask = Mask (Array Boolean)
 
+newtype NameEnv = NameEnv (Array String)
+
 newtype Closure a = Closure
   { env :: Env a
+  , names :: NameEnv
   , term :: Term a
   }
 
@@ -130,6 +133,13 @@ derive newtype instance Show a => Show (Closure a)
 
 derive newtype instance Debug a => Debug (Env a)
 derive newtype instance Debug a => Debug (Spine a)
+
+derive instance Newtype NameEnv _
+derive newtype instance Eq NameEnv
+derive newtype instance Show NameEnv
+derive newtype instance Debug NameEnv
+derive newtype instance Semigroup NameEnv
+derive newtype instance Monoid NameEnv
 
 instance Debug a => Debug (Closure a) where
   debug a = genericDebug a

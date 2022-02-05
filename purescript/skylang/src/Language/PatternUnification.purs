@@ -20,11 +20,12 @@ import Data.HashMap as HM
 import Data.Maybe (Maybe(..))
 import Run (Run)
 import Safe.Coerce (coerce)
+import Sky.Language.Effects (SkyM, extendPrintScope, generateVar, getDepth, increaseDepth, lookupSource)
 import Sky.Language.Error (class SourceSpot, MetaError(..), SKY_ERROR, UnificationError(..), lambdaArgument, piArgument, throwMetaError, throwUnificationError)
-import Sky.Language.Eval (QUOTATION_ENV, applyClosure, evalWith, force, getDepth, getDepthMarker, increaseDepth, quoteIndex, vApply)
-import Sky.Language.MetaVar (META_CONTEXT, solveMeta)
-import Sky.Language.Term (Closure, Level(..), MetaVar, Spine(..), Term(..), Value(..))
-import Type.Row (type (+))
+import Sky.Language.Eval (applyClosure, evalWith, force, getDepthMarker, quoteIndex, vApply)
+import Sky.Language.Log (unifying)
+import Sky.Language.MetaVar (solveMeta)
+import Sky.Language.Term (Closure, Level(..), MetaVar, NameEnv(..), Spine(..), Term(..), Value(..))
 
 ---------- Types
 -- | Renmaming between two contexts
@@ -40,11 +41,6 @@ newtype PartialRenaming =
     , -- size of B
       mapping :: NameMapping -- mapping from vars in A to vars in B
     }
-
----------- Effect stuff
--- | Base monad unification can take place in
-type UnifyM a r = Run
-  (QUOTATION_ENV + SKY_ERROR a + META_CONTEXT a r)
 
 ---------- Helpers
 -- | Get the size of the domain in a renaming
@@ -103,7 +99,7 @@ rename
   => MetaVar
   -> PartialRenaming
   -> Value a
-  -> Run (SKY_ERROR a + META_CONTEXT a r) (Term a)
+  -> SkyM a r (Term a)
 rename meta renaming value = go renaming value -- not eta reducing because of error reporting
   where
   goSpine :: a -> PartialRenaming -> Term a -> Spine a -> _ (Term a)
@@ -173,27 +169,28 @@ solve
   -> MetaVar
   -> Spine a
   -> Value a
-  -> Run (SKY_ERROR a + META_CONTEXT a r) Unit
+  -> SkyM a r Unit
 solve source depth meta spine rhs = do
   renaming <- invert depth spine
   rhs <- rename meta renaming rhs
-  solution <- evalWith mempty $ wrapInLambdas
+  solution <- evalWith (NameEnv [ "TODOFIXTHIS" ]) mempty $ wrapInLambdas
     source
     (coerce $ codomainSize renaming)
     rhs
   solveMeta meta solution
 
 -- | Helper for unifying 2 closures by creating a marker and applying it to both sides
-unifyClosures :: forall a r. SourceSpot a => a -> a -> Closure a -> Closure a -> UnifyM a r Unit
+unifyClosures :: forall a r. SourceSpot a => a -> a -> Closure a -> Closure a -> SkyM a r Unit
 unifyClosures sourceL sourceR lhs rhs = do
   markerL <- getDepthMarker sourceL
   markerR <- getDepthMarker sourceR
   lhs <- applyClosure lhs markerL
   rhs <- applyClosure rhs markerR
-  increaseDepth $ unify lhs rhs
+  var <- generateVar
+  extendPrintScope [ var ] $ increaseDepth $ unify lhs rhs
 
 -- | Helper for unifying 2 spines, element by element
-unifySpines :: forall a r. SourceSpot a => Spine a -> Spine a -> UnifyM a r Unit
+unifySpines :: forall a r. SourceSpot a => Spine a -> Spine a -> SkyM a r Unit
 unifySpines (Spine lhs) (Spine rhs) = void $ Array.zipWithA unify lhs rhs
 
 -- | Makes sure two values are equal, solving meta variables along the way
@@ -202,8 +199,8 @@ unify
    . SourceSpot a
   => Value a
   -> Value a
-  -> UnifyM a r Unit
-unify lhs rhs = do
+  -> SkyM a r Unit
+unify lhs rhs = unifying lhs rhs do
   lhs <- force lhs
   rhs <- force rhs
   unify' lhs rhs
@@ -214,7 +211,7 @@ unify'
    . SourceSpot a
   => Value a
   -> Value a
-  -> UnifyM a r Unit
+  -> SkyM a r Unit
 unify' = case _, _ of
   VStar _, VStar _ -> pure unit
   VPi sourceL domainL codomainL, VPi sourceR domainR codomainR -> ado
@@ -229,7 +226,8 @@ unify' = case _, _ of
     marker <- getDepthMarker (lambdaArgument source)
     body <- applyClosure body marker
     other <- vApply other marker
-    increaseDepth $ unify body other
+    name <- lookupSource (lambdaArgument source)
+    extendPrintScope [ name ] $ increaseDepth $ unify body other
   other, lambda@(VLambda _ _) -> unify' lambda other -- just swap positions and reuse the existing code
   VVariableApplication _ varL spineL, VVariableApplication _ varR spineR
     | varL == varR -> unifySpines spineL spineR

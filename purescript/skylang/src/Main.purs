@@ -1,94 +1,109 @@
-module Sky.Main where
+module Sky.Main
+  ( _metaContext
+  , main
+  , runPipeline
+  ) where
 
 import Prelude
 
 import Control.Plus (empty)
 import Data.Array.NonEmpty as NonEmptyArray
 import Data.Either (Either(..))
-import Data.HashMap (HashMap)
-import Data.HashMap as HM
-import Data.Hashable (class Hashable)
 import Data.Maybe (Maybe(..))
-import Data.Tuple (Tuple(..), swap)
 import Data.Tuple.Nested ((/\), type (/\))
 import Dodo (print, twoSpaces)
 import Dodo.Ansi (ansiGraphics)
 import Effect (Effect)
 import Effect.Class.Console as Console
-import Effect.Console (log)
-import Effect.Unsafe (unsafePerformEffect)
 import Run (Run)
 import Run as Run
 import Run.Except as Except
+import Run.Reader as Reader
 import Run.State as State
 import Run.Supply (SUPPLY)
 import Run.Supply as Supply
-import Sky.Debug (showPretty)
-import Sky.Language.Ast (ELABORATION_CONTEXT, infer, runElaborationContext)
-import Sky.Language.Cst (Cst, WithSpan, toplevelScopeToAst)
+import Run.Writer as Writer
+import Sky.Language.Cst (Cst, toplevelScopeToAst)
+import Sky.Language.Effects (ELABORATION_CONTEXT, EVALUATION_ENV, PRINT_CONTEXT, PrintContext(..), QUOTATION_ENV, SKY_LOGGER, SkyLog, _printContext, _skyLogger, runElaborationContext, runEvaluationEnv, runPrintM, runQuotationEnv)
+import Sky.Language.Elaboration (infer)
 import Sky.Language.Error (SKY_ERROR, SkyError, _skyError)
-import Sky.Language.Eval (EVALUATION_ENV, QUOTATION_ENV, eval, quote, runEvaluationEnv, runQuotationEnv)
+import Sky.Language.Eval (eval, quote)
+import Sky.Language.Log (prettyPrintLogArray)
 import Sky.Language.MetaVar (META_CONTEXT)
 import Sky.Language.Pretty (prettyPrintTerm)
-import Sky.Language.PrettyM (PrintContext(..), runPrintM)
+import Sky.Language.Source (WithSpan, SourceMap)
 import Sky.Language.Term (MetaContext)
 import Type.Proxy (Proxy(..))
 import Type.Row (type (+))
 
 runPipeline
   :: forall a o
-   . Run
+   . String
+  -> SourceMap a
+  -> Run
        ( META_CONTEXT a
            + EVALUATION_ENV a
            + QUOTATION_ENV
            + ELABORATION_CONTEXT a
            + SKY_ERROR a
+           + PRINT_CONTEXT a
+           + SKY_LOGGER
            + SUPPLY Int ()
        )
        o
-  -> Either (SkyError a) (MetaContext a /\ o)
-runPipeline =
+  -> Array SkyLog /\ Either (SkyError a) (MetaContext a /\ o)
+runPipeline originalText sourceMap =
   runElaborationContext
     >>> runEvaluationEnv
     >>> runQuotationEnv
     >>> Supply.runSupply ((+) 1) 0
     >>> State.runStateAt _metaContext empty
+    >>> Reader.runReaderAt _printContext
+      ( PrintContext
+          { originalText
+          , scope: mempty
+          , sourceMap
+          }
+      )
     >>> Except.runExceptAt _skyError
+    >>> Writer.runWriterAt _skyLogger
     >>> Run.extract
 
-invertMap :: forall a b. Hashable a => Hashable b => HashMap a b -> HashMap b a
-invertMap = HM.toArrayBy Tuple >>> map swap >>> HM.fromArray
+-- invertMap :: forall a b. Hashable a => Hashable b => HashMap a b -> HashMap b a
+-- invertMap = HM.toArrayBy Tuple >>> map swap >>> HM.fromArray
 
 main :: String -> Array ({ name :: WithSpan String, value :: Cst }) -> Effect Unit
 main originalText cstDeclarations = case NonEmptyArray.fromArray cstDeclarations of
   Nothing -> pure unit
-  Just cstDeclarations -> case runPipeline (pipeline ast) of
-    Left err -> do
-      Console.log "An error occured"
-      Console.log $ show err
-    Right (metaContext /\ (term /\ type_)) -> do
-      Console.log "Original ast"
-      Console.log $ show ast
-      Console.log "Normal form for term:"
-      Console.log $ printTerm term
-      Console.log "Inferred type:"
-      Console.log $ printTerm type_
-      -- Console.log "Metas: "
-      -- Console.log $ showPretty $ lmap printTerm $  metaContext.metaNames
-      where
-      printTerm t = print ansiGraphics (twoSpaces { pageWidth = 80 })
-        $ runPrintM metaContext
-            ( PrintContext
-                { scope: []
-                , sourceMap
-                , originalText
-                }
-            )
-        $ prettyPrintTerm t
+  Just cstDeclarations -> do
+    Console.log "Logs:"
+    Console.log $ consolePrinter $ prettyPrintLogArray logs
+    case pipelineResult of
+      Left err -> do
+        Console.log "An error occured"
+        Console.log $ show err
+      Right (metaContext /\ (term /\ type_)) -> do
+        Console.log "Original ast"
+        Console.log $ show ast
+        Console.log "Normal form for term:"
+        Console.log $ printTerm term
+        Console.log "Inferred type:"
+        Console.log $ printTerm type_
+        where
+
+        printTerm t = consolePrinter
+          $ runPrintM metaContext
+              ( PrintContext
+                  { scope: mempty
+                  , sourceMap
+                  , originalText
+                  }
+              )
+          $ prettyPrintTerm t
     where
+    consolePrinter = print ansiGraphics (twoSpaces { pageWidth = 80 })
 
     pipeline ast = do
-      let a = unsafePerformEffect $ log $ showPretty ast
       ast /\ inferred <- infer ast
       inferred <- quote inferred
       ast <- eval ast
@@ -96,6 +111,7 @@ main originalText cstDeclarations = case NonEmptyArray.fromArray cstDeclarations
       pure (ast /\ inferred)
 
     ast /\ sourceMap = toplevelScopeToAst cstDeclarations
+    logs /\ pipelineResult = runPipeline originalText sourceMap (pipeline ast)
 
 ---------- Proxies
 _metaContext :: Proxy "metaContext"

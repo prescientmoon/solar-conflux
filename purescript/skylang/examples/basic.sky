@@ -5,7 +5,7 @@ refl :: (t: *) -> (a: t) -> Eq t a a
 refl _ _ _ p = p
 
 EqCommutes :: (t: *) -> (a: t) -> (b: t) -> Eq t a b -> Eq t b a
-EqCommutes t a b eq etaP etaPx= let
+EqCommutes t a b eq etaP etaPx = let
   P :: t -> *
   P x = Eq t b x
   in (eq P (refl t b :: P b) :: P a) etaP etaPx

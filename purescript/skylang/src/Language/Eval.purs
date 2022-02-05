@@ -1,33 +1,4 @@
-module Sky.Language.Eval
-  ( EVALUATION_ENV
-  , EvalM
-  , QUOTATION_ENV
-  , QuoteEnv(..)
-  , QuoteM
-  , _evaluationEnv
-  , _quotationEnv
-  , applyClosure
-  , augumentEnv
-  , environment
-  , eval
-  , evalMeta
-  , evalWith
-  , force
-  , getDepth
-  , getDepthMarker
-  , increaseDepth
-  , lookupVar
-  , makeClosure
-  , quote
-  , quoteIndex
-  , quoteSpine
-  , runEvaluationEnv
-  , runQuotationEnv
-  , vApply
-  , vApplyMaskedeEnvironment
-  , vApplySpine
-  , normalForm
-  ) where
+module Sky.Language.Eval where
 
 import Prelude
 
@@ -35,69 +6,32 @@ import Data.Array as Array
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
 import Run (Run)
-import Run.Reader (Reader, runReaderAt)
+import Run.Reader (runReaderAt)
 import Run.Reader as Reader
 import Safe.Coerce (coerce)
+import Sky.Language.Effects (EVALUATION_ENV, EvalM, QUOTATION_ENV, QuoteEnv(..), SkyM, _evaluationEnv, _quotationEnv, augumentEnv, environment, extendPrintScope, getDepth, getScope, increaseDepth, lookupSource, setPrintScope)
 import Sky.Language.Error (class SourceSpot, EvaluationError(..), SKY_ERROR, lambdaArgument, piArgument, throwEvaluationError)
-import Sky.Language.MetaVar (META_CONTEXT, lookupMeta)
-import Sky.Language.Term (Closure(..), Env(..), Index(..), Level(..), Mask(..), MetaVar, Spine(..), Term(..), Value(..), extendEnv, extendSpine)
-import Type.Proxy (Proxy(..))
+import Sky.Language.Log (evaluating)
+import Sky.Language.MetaVar (lookupMeta)
+import Sky.Language.Term (Closure(..), Env(..), Index(..), Level(..), Mask(..), MetaVar, NameEnv(..), Spine(..), Term(..), Value(..), extendEnv, extendSpine)
 import Type.Row (type (+))
-
----------- Types
-newtype QuoteEnv = QuoteEnv { depth :: Level }
-
----------- Effect-related stuff
-
-type EVALUATION_ENV a r = (evaluationEnv :: Reader (Env a) | r)
-type QUOTATION_ENV r = (quotationEnv :: Reader QuoteEnv | r)
-
--- | Base monad with everything required for evaluation to take place
-type EvalM a r = Run (EVALUATION_ENV a + META_CONTEXT a + SKY_ERROR a r)
-
--- | Base monad with everything required for quotation to take place
-type QuoteM a r = Run (QUOTATION_ENV + META_CONTEXT a + SKY_ERROR a r)
-
--- | Expose the current evaluation environment
-environment :: forall a r. Run (EVALUATION_ENV a r) (Env a)
-environment = Reader.askAt _evaluationEnv
-
--- | Expose the current depth from the context
-getDepth :: forall r. Run (QUOTATION_ENV r) Level
-getDepth = Reader.askAt _quotationEnv
-  <#> \(QuoteEnv { depth }) -> depth
-
--- | Run a computation in a context deeper by 1 than the current one
-increaseDepth :: forall r. Run (QUOTATION_ENV r) ~> Run (QUOTATION_ENV r)
-increaseDepth = Reader.localAt _quotationEnv
-  \(QuoteEnv { depth }) -> QuoteEnv { depth: coerce ((+) 1) depth }
-
--- | Run a computation in a modified environment
-augumentEnv :: forall a r. (Env a -> Env a) -> Run (EVALUATION_ENV a r) ~> Run (EVALUATION_ENV a r)
-augumentEnv = Reader.localAt _evaluationEnv
-
--- | Run a computation which makes use of the evaluation env
-runEvaluationEnv :: forall a r. Run (EVALUATION_ENV a r) ~> Run r
-runEvaluationEnv = Reader.runReaderAt _evaluationEnv mempty
-
--- | Run a computation which makes use of the quotation env
-runQuotationEnv :: forall r. Run (QUOTATION_ENV r) ~> Run r
-runQuotationEnv = Reader.runReaderAt _quotationEnv $ QuoteEnv { depth: coerce 0 }
 
 ---------- Helpers
 applyClosure
   :: forall r a
-   . Closure a
+   . SourceSpot a
+  => Closure a
   -> Value a
-  -> Run (SKY_ERROR a + META_CONTEXT a r) (Value a)
-applyClosure (Closure { env, term }) argument =
-  evalWith (extendEnv argument env) term
+  -> SkyM a r (Value a)
+applyClosure (Closure { env, names, term }) argument =
+  evalWith names (extendEnv argument env) term
 
 vApply
   :: forall a r
-   . Value a
+   . SourceSpot a
+  => Value a
   -> Value a
-  -> Run (SKY_ERROR a + META_CONTEXT a r) (Value a)
+  -> SkyM a r (Value a)
 vApply f a = case f of
   VLambda _ body -> applyClosure body a
   VMetaApplication source meta spine ->
@@ -116,11 +50,11 @@ vApply f a = case f of
       <#> VSourceAnnotation source
 
 vApplySpine
-  :: forall r
-   . forall a
-   . Value a
+  :: forall r a
+   . SourceSpot a
+  => Value a
   -> Spine a
-  -> Run (SKY_ERROR a + META_CONTEXT a r) (Value a)
+  -> SkyM a r (Value a)
 vApplySpine to spine@(Spine arguments) = case to of
   -- These two paths are here for performance reasons 
   VMetaApplication source meta originalSpine ->
@@ -136,10 +70,11 @@ vApplySpine to spine@(Spine arguments) = case to of
 
 vApplyMaskedeEnvironment
   :: forall a r
-   . Env a
+   . SourceSpot a
+  => Env a
   -> Value a
   -> Mask
-  -> Run (SKY_ERROR a + META_CONTEXT a r)
+  -> SkyM a r
        (Value a)
 vApplyMaskedeEnvironment (Env { scope }) to (Mask mask) =
   Array.zip (Array.reverse scope) mask
@@ -160,23 +95,37 @@ lookupVar source indexObject@(Index index) = do
           { source, index: indexObject }
 
 -- | Create a closure holding the current environment
-makeClosure :: forall r a. Term a -> Run (EVALUATION_ENV a r) (Closure a)
-makeClosure term = environment <#> { term, env: _ } <#> Closure
+makeClosure :: forall r a. SourceSpot a => a -> Term a -> EvalM a r (Closure a)
+makeClosure source term = do
+  name <- lookupSource source
+  names <- getScope
+  environment
+    <#>
+      { term
+      , names: NameEnv (Array.cons name $ coerce names)
+      , env: _
+      }
+    <#> Closure
 
 -- | Evaluate a term under a given environment
 evalWith
   :: forall r a
-   . Env a
+   . SourceSpot a
+  => NameEnv
+  -> Env a
   -> Term a
-  -> Run (SKY_ERROR a + META_CONTEXT a r) (Value a)
-evalWith env = eval >>> runReaderAt _evaluationEnv env
+  -> SkyM a r (Value a)
+evalWith names env = eval
+  >>> runReaderAt _evaluationEnv env
+  >>> setPrintScope names
 
 -- | Evaluate a term
 eval
   :: forall r a
-   . Term a
+   . SourceSpot a
+  => Term a
   -> EvalM a r (Value a)
-eval = case _ of
+eval t = evaluating t case t of
   Star source -> pure $ VStar source
   SourceAnnotation source inner -> eval inner
     <#> VSourceAnnotation source
@@ -189,16 +138,17 @@ eval = case _ of
     rhs <- eval rhs
     vApply lhs rhs
   Lambda source body -> ado
-    closure <- makeClosure body
+    closure <- makeClosure (lambdaArgument source) body
     in VLambda source closure
   -- TODO: cases like this could be run in paralle, to accumulate more errors
   Pi source domain codomain -> ado
     domain <- eval domain
-    codomain <- makeClosure codomain
+    codomain <- makeClosure (piArgument source) codomain
     in VPi source domain codomain
   Let source definition body -> do
     definition <- eval definition
-    augumentEnv (extendEnv definition) $ eval body
+    name <- lookupSource source
+    extendPrintScope [ name ] $ augumentEnv (extendEnv definition) $ eval body
   Meta source meta -> evalMeta source meta
   InsertedMeta source meta mask -> do
     env <- environment
@@ -214,13 +164,12 @@ evalMeta source meta = lookupMeta source meta <#> case _ of
   Nothing -> VMetaApplication source meta mempty
 
 -- | Attempt to resume execution blocked by an unsolved meta variable
-force :: forall a r. Value a -> Run (SKY_ERROR a + META_CONTEXT a r) (Value a)
+force :: forall a r. SourceSpot a => Value a -> SkyM a r (Value a)
 force value = case value of
   VMetaApplication source meta arguments ->
     lookupMeta source meta >>= case _ of
       Nothing -> pure value
       Just meta -> do
-
         applied <- vApplySpine meta arguments
         force applied
   VSourceAnnotation source inner ->
@@ -229,7 +178,7 @@ force value = case value of
 
 ---------- Quotation (aka Value -> Term conversion)
 -- | Convert a spine application to a term
-quoteSpine :: forall a r. SourceSpot a => a -> Term a -> Spine a -> QuoteM a r (Term a)
+quoteSpine :: forall a r. SourceSpot a => a -> Term a -> Spine a -> SkyM a r (Term a)
 quoteSpine source term (Spine spine) = Array.foldM go term spine
   where
   go previous argument = ado
@@ -249,7 +198,7 @@ quoteIndex :: Level -> Level -> Index
 quoteIndex (Level level) (Level index) = Index $ level - index - 1
 
 -- | Convert a value to a term
-quote :: forall a r. SourceSpot a => Value a -> QuoteM a r (Term a)
+quote :: forall a r. SourceSpot a => Value a -> SkyM a r (Term a)
 quote = force >=> case _ of
   VStar source -> pure $ Star source
   VMetaApplication source meta spine -> do
@@ -264,12 +213,14 @@ quote = force >=> case _ of
     marker <- getDepthMarker (piArgument source)
     domain <- quote domain
     codomain <- applyClosure codomain marker
-    codomain <- increaseDepth $ quote codomain
+    name <- lookupSource (piArgument source)
+    codomain <- extendPrintScope [ name ] $ increaseDepth $ quote codomain
     pure $ Pi source domain codomain
   VLambda source body -> do
     marker <- getDepthMarker (lambdaArgument source)
     body <- applyClosure body marker
-    body <- increaseDepth $ quote body
+    name <- lookupSource (lambdaArgument source)
+    body <- extendPrintScope [ name ] $ increaseDepth $ quote body
     pure $ Lambda source body
   VSourceAnnotation source inner ->
     quote inner <#> SourceAnnotation source
@@ -279,7 +230,7 @@ normalForm
   :: forall a r
    . SourceSpot a
   => Term a
-  -> Run (META_CONTEXT a + SKY_ERROR a + EVALUATION_ENV a r) (Term a)
+  -> EvalM a r (Term a)
 normalForm term = do
   (Env { scope }) <- environment
   let quotationEnv = QuoteEnv { depth: Level (Array.length scope) }
@@ -290,11 +241,3 @@ normalForm term = do
 -- | Create a variable carrying the depth it came from as it's payload
 getDepthMarker :: forall a r. a -> Run (QUOTATION_ENV r) (Value a)
 getDepthMarker source = getDepth <#> \depth -> VVariableApplication source depth mempty
-
----------- Proxies
-_evaluationEnv :: Proxy "evaluationEnv"
-_evaluationEnv = Proxy
-
-_quotationEnv :: Proxy "quotationEnv"
-_quotationEnv = Proxy
-
