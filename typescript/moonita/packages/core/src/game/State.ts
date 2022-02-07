@@ -4,6 +4,7 @@ import { Texture } from "./assets";
 import { AABB } from "./common/AABB";
 import { Camera as Camera2d } from "./common/Camera";
 import { Flags } from "./common/Flags";
+import { Path } from "./common/Path";
 import * as V from "./common/Vector";
 import { Map } from "./Map";
 
@@ -57,6 +58,7 @@ export interface State {
   structures: {
     boidQuadTree: QuadTree;
   };
+  paths: Array<Path>;
   thrusterConfigurations: ReadonlyArray<ThrusterConfiguration>;
   bounds: AABB;
 }
@@ -73,8 +75,12 @@ export const Transform = {
   rotation: types.f32,
 };
 
-export const SteeringBehavior = {
+export const SeekingBehavior = {
   target: Vector2,
+};
+
+export const PathFollowingBehavior = {
+  path: types.uint8,
 };
 
 export const ThrusterData = {
@@ -87,7 +93,8 @@ export const createComponents = (ecs: ECS) => {
   const velocity = ecs.defineComponent(Vector2);
   const acceleration = ecs.defineComponent(Vector2);
   const angularVelocity = ecs.defineComponent(types.f32);
-  const seekingBehavior = ecs.defineComponent(SteeringBehavior);
+  const seekingBehavior = ecs.defineComponent(SeekingBehavior);
+  const pathFollowingBehavior = ecs.defineComponent(PathFollowingBehavior);
   const thrusters = ecs.defineComponent(ThrusterData);
   const bulletEmitter = ecs.defineComponent({
     frequency: types.u8,
@@ -132,6 +139,7 @@ export const createComponents = (ecs: ECS) => {
     seekingBehavior,
     physicsObject,
     thrusters,
+    pathFollowingBehavior,
     boidSeparation,
     boidAlignment,
     boidCohesion,
@@ -169,13 +177,20 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
     teamBase: ecs.createQuery(
       all<any>(components.teamBase, components.texture)
     ),
-    seekingBehavior: ecs.createQuery(
+    boidSeek: ecs.createQuery(
       all<any>(
         components.seekingBehavior,
         components.physicsObject,
         components.transform,
-        components.velocity,
-        components.angularVelocity
+        components.velocity
+      )
+    ),
+    boidPathFollowing: ecs.createQuery(
+      all<any>(
+        components.pathFollowingBehavior,
+        components.physicsObject,
+        components.transform,
+        components.velocity
       )
     ),
     boidSeparation: ecs.createQuery(

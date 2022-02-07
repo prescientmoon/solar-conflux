@@ -22,6 +22,36 @@ function moveTowards(
   applyForce(state, entity, force);
 }
 
+// ========== Behaviors
+function seek(state: State) {
+  state.queries.boidSeek._forEach((eid) => {
+    const position = getPosition(state, eid);
+    const target = {
+      x: state.components.seekingBehavior.target.x[eid],
+      y: state.components.seekingBehavior.target.y[eid],
+    };
+
+    V.subMut(target, target, position);
+
+    moveTowards(state, eid, target, settings.seekingCoefficinet);
+  });
+}
+
+function pathFollow(state: State) {
+  state.queries.boidPathFollowing._forEach((eid) => {
+    const path = state.paths[state.components.pathFollowingBehavior.path[eid]];
+    const position = getPosition(state, eid);
+    const target = {
+      x: state.components.seekingBehavior.target.x[eid],
+      y: state.components.seekingBehavior.target.y[eid],
+    };
+
+    V.subMut(target, target, position);
+
+    applyForce(state, eid, target);
+  });
+}
+
 export function separate(state: State) {
   state.queries.boidSeparation._forEach((eid) => {
     const position = getPosition(state, eid);
@@ -115,4 +145,5 @@ export function simulateBoids(state: State) {
   separate(state);
   align(state);
   cohese(state);
+  seek(state);
 }

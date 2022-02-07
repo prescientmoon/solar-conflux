@@ -6,10 +6,11 @@ import {
   screenSizes,
   wheel,
 } from "../WebStreams";
+import * as Path from "./common/Path";
 import { assets, TextureId } from "./assets";
 import { defaultFlags, Flag } from "./common/Flags";
 import * as V from "./common/Vector";
-import { basicMap } from "./Map";
+import { basicMap, basicMapPathA } from "./Map";
 import { createComponents, createQueries, LayerId, State } from "./State";
 import {
   createBoid,
@@ -40,6 +41,7 @@ import { QuadTree } from "../QuadTree";
 import { AABB } from "./common/AABB";
 import { updateBoidQuadTree } from "./systems/boidQuadTree";
 import { FlexibleTypedArray } from "../FlexibleTypedArray";
+import { settings } from "./common/Settings";
 
 const ups = 30;
 
@@ -74,6 +76,7 @@ export class Game {
           tick: 0,
           assets,
           map: basicMap,
+          paths: [basicMapPathA, Path.reversePath(basicMapPathA)],
           camera: Camera.identityCamera(),
           screenTransform: Camera.flipYMut(Camera.identityCamera()),
           flags: defaultFlags,
@@ -83,8 +86,14 @@ export class Game {
             boidQuadTree: new QuadTree(bounds, {
               positions: components.transform.position,
               maxNodes: 20,
-              retriveInto: new FlexibleTypedArray(3000, Uint16Array),
-              entityMovementBuffer: new FlexibleTypedArray(3000, Uint16Array),
+              retriveInto: new FlexibleTypedArray(
+                settings.maxBoids,
+                Uint16Array
+              ),
+              entityMovementBuffer: new FlexibleTypedArray(
+                settings.maxBoids,
+                Uint16Array
+              ),
             }),
           },
         };
@@ -118,7 +127,7 @@ export class Game {
         }
 
         if (this.state.flags[Flag.SpawnDebugBoids]) {
-          for (let i = 0; i < 3000; i++) {
+          for (let i = 0; i < settings.maxBoids; i++) {
             const eid = createBoid(
               this.state,
               V.random2dInsideOriginSquare(-800, 800)

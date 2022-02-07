@@ -1,3 +1,4 @@
+import { Path, PathId } from "./common/Path";
 import { Vector2 } from "./common/Vector";
 
 // ========== Types
@@ -10,7 +11,7 @@ export type CreaturePath = Array<PathPoint>;
 export interface Team {
   base: Vector2 & { rotation: number };
   hostileTo: number;
-  creaturePath: CreaturePath;
+  creaturePath: PathId;
 }
 
 export interface Map {
@@ -18,6 +19,21 @@ export interface Map {
 }
 
 // ========== Constants
+export const basicMapPathA: Path = [
+  {
+    position: {
+      x: 100,
+      y: 0,
+    },
+  },
+  {
+    position: {
+      x: 1000,
+      y: 1000,
+    },
+  },
+];
+
 export const basicMap: Map = (() => {
   const playerTeam: Team = {
     base: {
@@ -26,20 +42,7 @@ export const basicMap: Map = (() => {
       rotation: Math.PI / 4,
     },
     hostileTo: 2,
-    creaturePath: [
-      {
-        position: {
-          x: 100,
-          y: 0,
-        },
-      },
-      {
-        position: {
-          x: 1000,
-          y: 1000,
-        },
-      },
-    ],
+    creaturePath: 0,
   };
 
   const aiTeam: Team = {
@@ -49,20 +52,7 @@ export const basicMap: Map = (() => {
       rotation: (5 * Math.PI) / 4,
     },
     hostileTo: 1,
-    creaturePath: [
-      {
-        position: {
-          x: 0,
-          y: 100,
-        },
-      },
-      {
-        position: {
-          x: -1000,
-          y: -1000,
-        },
-      },
-    ],
+    creaturePath: 1,
   };
 
   return {

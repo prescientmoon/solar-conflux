@@ -16,10 +16,10 @@ export const defaultFlags: Flags = {
   [Flag.DebugShowOriginArrow]: true,
   [Flag.DebugShowBasePaths]: false,
   [Flag.DebugShowBounds]: true,
-  [Flag.DebugShowQuadTree]: false,
+  [Flag.DebugShowQuadTree]: true,
   [Flag.DebugGlobalState]: true,
   [Flag.DebugWrapping]: true,
-  [Flag.SpawnDebugBulletEmitter]: true,
+  [Flag.SpawnDebugBulletEmitter]: false,
   [Flag.SpawnDebugBoids]: true,
   [Flag.TextureCulling]: true,
 };

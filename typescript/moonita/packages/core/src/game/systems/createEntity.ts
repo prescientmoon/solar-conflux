@@ -1,8 +1,7 @@
 import { TextureId } from "../assets";
-import { maxBoidRadius, settings } from "../common/Settings";
+import { settings } from "../common/Settings";
 import { Vector2 } from "../common/Vector";
 import { LayerId, State } from "../State";
-import * as AABB from "../common/AABB";
 import { insertBoidIntoQuadTree } from "./boidQuadTree";
 
 export const markEntityCreation = (state: State, eid: number) => {
@@ -120,6 +119,12 @@ export function createBoid(state: State, position: Vector2) {
 
   // TODO: automate this process
   insertBoidIntoQuadTree(state, eid);
+
+  if (Math.random() > 0.7) {
+    state.ecs.addComponent(eid, state.components.seekingBehavior);
+    state.components.seekingBehavior.target.x[eid] = 0;
+    state.components.seekingBehavior.target.y[eid] = 0;
+  }
 
   return eid;
 }
