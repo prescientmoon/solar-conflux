@@ -120,10 +120,14 @@ export function createBoid(state: State, position: Vector2) {
   // TODO: automate this process
   insertBoidIntoQuadTree(state, eid);
 
-  if (Math.random() > 0.7) {
-    state.ecs.addComponent(eid, state.components.seekingBehavior);
-    state.components.seekingBehavior.target.x[eid] = 0;
-    state.components.seekingBehavior.target.y[eid] = 0;
+  if (Math.random() > 0.2) {
+    state.ecs.addComponent(eid, state.components.pathFollowingBehavior);
+    state.components.pathFollowingBehavior.path[eid] = Number(
+      Math.random() > 0.5
+    );
+
+    // state.components.seekingBehavior.target.x[eid] = 0;
+    // state.components.seekingBehavior.target.y[eid] = 0;
   }
 
   return eid;

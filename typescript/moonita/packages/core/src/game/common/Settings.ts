@@ -11,6 +11,7 @@ export const settings = {
   cohesionRadius: 50,
   cohesionCoefficient: mul,
   seekingCoefficinet: mul,
+  pathFollowingCoefficient: mul,
 };
 
 export const maxBoidRadius = Math.max(

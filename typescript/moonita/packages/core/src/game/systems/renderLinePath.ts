@@ -3,14 +3,22 @@ import { LayerId, State } from "../State";
 
 export type LinePath = Array<Vector2>;
 
+export const renderLine = (
+  context: CanvasRenderingContext2D,
+  from: Vector2,
+  to: Vector2
+) => {
+  context.beginPath();
+  context.moveTo(from.x, from.y);
+  context.lineTo(to.x, to.y);
+  context.stroke();
+};
+
 export const renderLinePath = (
-  state: State,
-  layer: LayerId,
+  context: CanvasRenderingContext2D,
   path: LinePath
 ) => {
   if (path.length === 0) return;
-
-  const context = state.contexts[layer];
 
   context.beginPath();
   context.moveTo(path[0].x, path[0].y);

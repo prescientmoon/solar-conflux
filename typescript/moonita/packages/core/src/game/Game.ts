@@ -76,7 +76,7 @@ export class Game {
           tick: 0,
           assets,
           map: basicMap,
-          paths: [basicMapPathA, Path.reversePath(basicMapPathA)],
+          paths: [basicMapPathA, Path.flip(basicMapPathA)],
           camera: Camera.identityCamera(),
           screenTransform: Camera.flipYMut(Camera.identityCamera()),
           flags: defaultFlags,
@@ -116,7 +116,6 @@ export class Game {
           this.state.components.transform.position.x[id] = 40;
           this.state.components.transform.position.y[id] = 100;
           this.state.components.transform.rotation[id] = 0;
-          this.state.components.transform.scale.x[id] = 1;
           this.state.components.transform.scale.y[id] = 1;
           this.state.components.texture.width[id] = 80;
           this.state.components.texture.height[id] = 80;

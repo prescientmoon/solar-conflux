@@ -19,20 +19,29 @@ export interface Map {
 }
 
 // ========== Constants
-export const basicMapPathA: Path = [
-  {
-    position: {
-      x: 100,
-      y: 0,
+export const basicMapPathA: Path = {
+  points: [
+    {
+      position: {
+        x: -1000,
+        y: -1000,
+      },
     },
-  },
-  {
-    position: {
-      x: 1000,
-      y: 1000,
+    {
+      position: {
+        x: 100,
+        y: 0,
+      },
     },
-  },
-];
+    {
+      position: {
+        x: 1000,
+        y: 1000,
+      },
+    },
+  ],
+  radius: 20,
+};
 
 export const basicMap: Map = (() => {
   const playerTeam: Team = {

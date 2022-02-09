@@ -74,6 +74,12 @@ export function add(a: Vector2, b: Vector2): Vector2 {
 }
 
 /** Substract two vectors */
+export const sub = (a: Vector2, b: Vector2) => ({
+  x: a.x - b.x,
+  y: a.y - b.y,
+});
+
+/** Substract two vectors */
 export const subMut = (into: Vector2, a: Vector2, b: Vector2) => {
   into.x = a.x - b.x;
   into.y = a.y - b.y;
@@ -175,4 +181,9 @@ export function limitMagnitudeMut(
 /** The origin vector */
 export function origin(): Vector2 {
   return { x: 0, y: 0 };
+}
+
+/** Calculate the dot product of 2 vectors */
+export function dotProduct(a: Vector2, b: Vector2): number {
+  return a.x * b.x + a.y * b.y;
 }

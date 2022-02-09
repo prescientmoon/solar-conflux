@@ -3,6 +3,10 @@ import { settings } from "../common/Settings";
 import * as V from "../common/Vector";
 import { applyForce } from "../physics";
 import { LayerId, State } from "../State";
+import * as Segment from "../common/Segment";
+import { renderLine } from "./renderLinePath";
+import { Flag } from "../common/Flags";
+import { renderCustomArrow } from "./debugArrows";
 
 /** Move a boid in a given direction */
 function moveTowards(
@@ -37,18 +41,63 @@ function seek(state: State) {
   });
 }
 
+interface ProjectionWithLength {
+  projection: V.Vector2;
+  lengthSquared: number;
+  segment: number;
+}
+
 function pathFollow(state: State) {
   state.queries.boidPathFollowing._forEach((eid) => {
     const path = state.paths[state.components.pathFollowingBehavior.path[eid]];
     const position = getPosition(state, eid);
-    const target = {
-      x: state.components.seekingBehavior.target.x[eid],
-      y: state.components.seekingBehavior.target.y[eid],
-    };
+    const prediction = getVelocity(state, eid);
 
-    V.subMut(target, target, position);
+    const predictionDistance = 30;
 
-    applyForce(state, eid, target);
+    V.normalizeMut(prediction, prediction);
+    V.scaleMut(prediction, prediction, predictionDistance);
+    V.addMut(prediction, prediction, position);
+
+    let minProjection: ProjectionWithLength | null = null;
+
+    for (let i = 1; i < path.points.length; i++) {
+      const projection = Segment.projectPoint(
+        {
+          from: path.points[i - 1].position,
+          to: path.points[i].position,
+        },
+        prediction
+      );
+
+      if (projection === null) continue;
+
+      const distance = V.distanceSquared(projection, prediction);
+
+      if (minProjection === null || minProjection!.lengthSquared > distance) {
+        minProjection = {
+          lengthSquared: distance,
+          projection,
+          segment: i - 1,
+        };
+      }
+    }
+
+    if (minProjection === null) return;
+
+    if (minProjection.lengthSquared > path.radius ** 2) {
+      const target = V.sub(
+        path.points[minProjection.segment + 1].position,
+        path.points[minProjection.segment].position
+      );
+
+      V.normalizeMut(target, target);
+      V.scaleMut(target, target, predictionDistance);
+      V.addMut(target, target, minProjection.projection);
+      V.subMut(target, target, position);
+
+      moveTowards(state, eid, target, settings.pathFollowingCoefficient);
+    }
   });
 }
 
@@ -61,8 +110,6 @@ export function separate(state: State) {
       position,
       settings.separationRadius
     );
-
-    const context = state.contexts[LayerId.Unclearable];
 
     for (let i = 0; i < result.used; i++) {
       const node = result.elements[i];
@@ -142,6 +189,7 @@ export function cohese(state: State) {
 }
 
 export function simulateBoids(state: State) {
+  pathFollow(state);
   separate(state);
   align(state);
   cohese(state);
