@@ -1,4 +1,4 @@
-import { getPosition, getVelocity } from "../common/Entity";
+import { getEntityVec, getPosition, getVelocity } from "../common/Entity";
 import { settings } from "../common/Settings";
 import * as V from "../common/Vector";
 import { applyForce } from "../physics";
@@ -83,9 +83,15 @@ function pathFollow(state: State) {
       }
     }
 
-    if (minProjection === null) return;
+    const outsidePath =
+      minProjection && minProjection.lengthSquared > path.radius ** 2;
 
-    if (minProjection.lengthSquared > path.radius ** 2) {
+    if (state.flags[Flag.DebugShowPathfollowingProjections])
+      state.components.pathFollowingBehavior.debugData.insidePath[eid] = Number(
+        !outsidePath
+      );
+
+    if (outsidePath && minProjection) {
       const target = V.sub(
         path.points[minProjection.segment + 1].position,
         path.points[minProjection.segment].position
@@ -97,6 +103,14 @@ function pathFollow(state: State) {
       V.subMut(target, target, position);
 
       moveTowards(state, eid, target, settings.pathFollowingCoefficient);
+
+      if (state.flags[Flag.DebugShowPathfollowingProjections]) {
+        const saveProjectionInto =
+          state.components.pathFollowingBehavior.debugData.projection;
+
+        saveProjectionInto.x[eid] = minProjection.projection.x;
+        saveProjectionInto.y[eid] = minProjection.projection.y;
+      }
     }
   });
 }
@@ -106,24 +120,26 @@ export function separate(state: State) {
     const position = getPosition(state, eid);
     const total = V.origin();
 
-    const result = state.structures.boidQuadTree.retrieve(
-      position,
-      settings.separationRadius
-    );
+    for (let teamId = 0; teamId < state.map.teams.length; teamId++) {
+      const result = state.structures.boidQuadTrees[teamId].retrieve(
+        position,
+        settings.separationRadius
+      );
 
-    for (let i = 0; i < result.used; i++) {
-      const node = result.elements[i];
+      for (let i = 0; i < result.used; i++) {
+        const node = result.elements[i];
 
-      if (node === eid) continue;
+        if (node === eid) continue;
 
-      const otherPosition = getPosition(state, node);
-      const dist = V.distance(position, otherPosition);
+        const otherPosition = getPosition(state, node);
+        const dist = V.distance(position, otherPosition);
 
-      V.subMut(otherPosition, position, otherPosition);
-      V.normalizeMut(otherPosition, otherPosition);
-      V.scaleMut(otherPosition, otherPosition, 1 / dist);
+        V.subMut(otherPosition, position, otherPosition);
+        V.normalizeMut(otherPosition, otherPosition);
+        V.scaleMut(otherPosition, otherPosition, 1 / dist);
 
-      V.addMut(total, total, otherPosition);
+        V.addMut(total, total, otherPosition);
+      }
     }
 
     if (total.x || total.y) {
@@ -134,10 +150,11 @@ export function separate(state: State) {
 
 export function align(state: State) {
   state.queries.boidAlignment._forEach((eid) => {
+    const team = state.components.team[eid];
     const position = getPosition(state, eid);
     const total = V.origin();
 
-    const result = state.structures.boidQuadTree.retrieve(
+    const result = state.structures.boidQuadTrees[team].retrieve(
       position,
       settings.alignmentRadius
     );
@@ -158,11 +175,12 @@ export function align(state: State) {
 
 export function cohese(state: State) {
   state.queries.boidCohesion._forEach((eid) => {
+    const team = state.components.team[eid];
     const position = getPosition(state, eid);
     const total = V.origin();
     let count = 0;
 
-    const result = state.structures.boidQuadTree.retrieve(
+    const result = state.structures.boidQuadTrees[team].retrieve(
       position,
       settings.cohesionRadius
     );
@@ -189,9 +207,34 @@ export function cohese(state: State) {
 }
 
 export function simulateBoids(state: State) {
-  pathFollow(state);
   separate(state);
   align(state);
   cohese(state);
   seek(state);
+  pathFollow(state);
+}
+
+export function renderDebugBoidData(state: State) {
+  const context = state.contexts[LayerId.DebugLayer];
+  context.save();
+  if (state.flags[Flag.DebugShowPathfollowingProjections]) {
+    context.strokeStyle = "black";
+    context.lineWidth = 1;
+
+    state.queries.boidPathFollowing._forEach((eid) => {
+      if (state.components.pathFollowingBehavior.debugData.insidePath[eid])
+        return;
+
+      const position = getPosition(state, eid);
+      const pathFollowing = getEntityVec(
+        state,
+        state.components.pathFollowingBehavior.debugData.projection,
+        eid
+      );
+
+      renderLine(context, position, pathFollowing);
+    });
+  }
+
+  context.restore();
 }

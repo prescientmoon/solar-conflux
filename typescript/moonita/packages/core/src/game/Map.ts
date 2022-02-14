@@ -40,7 +40,7 @@ export const basicMapPathA: Path = {
       },
     },
   ],
-  radius: 20,
+  radius: 100,
 };
 
 export const basicMap: Map = (() => {

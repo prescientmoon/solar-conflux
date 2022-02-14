@@ -1,5 +1,18 @@
+import { TypedArray } from "wolf-ecs";
 import { State } from "../State";
 import { Vector2 } from "./Vector";
+
+/** Query the ecs for a vec */
+export function getEntityVec(
+  state: State,
+  target: { x: TypedArray; y: TypedArray },
+  eid: number
+): Vector2 {
+  return {
+    x: target.x[eid] as number,
+    y: target.y[eid] as number,
+  };
+}
 
 /** Query the ecs for the position of an entity */
 export function getPosition(state: State, eid: number): Vector2 {

@@ -1,19 +1,14 @@
-import { getPosition } from "../common/Entity";
 import { State } from "../State";
 
-export function insertBoidIntoQuadTree(state: State, id: number) {
-  const tree = state.structures.boidQuadTree;
+export function insertBoidIntoQuadTree(state: State, id: number, team: number) {
+  const tree = state.structures.boidQuadTrees[team];
 
   tree.insert(id);
 }
 
-export function updateBoidQuadTree(state: State) {
-  const tree = state.structures.boidQuadTree;
+export function updateBoidQuadTree(state: State, team: number) {
+  const tree = state.structures.boidQuadTrees[team];
 
   tree.moveEntities();
   tree.cleanup();
-
-  // state.queries.boid.forEach((eid) => {
-  //   insertBoidIntoQuadTree(state, eid);
-  // });
 }

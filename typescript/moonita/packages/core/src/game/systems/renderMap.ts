@@ -1,3 +1,4 @@
+import { QuadTree } from "../../QuadTree";
 import { TextureId } from "../assets";
 import { Flag } from "../common/Flags";
 import { baseSize } from "../Map";
@@ -79,32 +80,13 @@ export function renderDebugBounds(state: State) {
     state.bounds.size.x,
     state.bounds.size.y
   );
-
-  const drawQuadtree = function (node: any) {
-    var bounds = node.bounds;
-
-    //no subnodes? draw the current node
-    if (node.nodes.length === 0) {
-      if (node.check) {
-        context.strokeStyle = "rgba(255,255,255,1)";
-      } else {
-        context.strokeStyle = "rgba(255,0,0,0.5)";
-      }
-      context.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
-
-      //has subnodes? drawQuadtree them!
-    } else {
-      for (var i = 0; i < node.nodes.length; i = i + 1) {
-        drawQuadtree(node.nodes[i]);
-      }
-    }
-  };
-
-  drawQuadtree(state.structures.boidQuadTree);
 }
 
 export function renderDebugQuadTrees(state: State) {
   if (!state.flags[Flag.DebugShowQuadTree]) return;
 
-  state.structures.boidQuadTree.render(state.contexts[LayerId.DebugLayer]);
+  for (let i = 0; i < state.map.teams.length; i++)
+    state.structures.boidQuadTrees[i].render(
+      state.contexts[LayerId.DebugLayer]
+    );
 }

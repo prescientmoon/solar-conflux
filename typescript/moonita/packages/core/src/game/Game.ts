@@ -33,7 +33,7 @@ import { renderTextures } from "./systems/renderTextures";
 import { applyGlobalCameraObject } from "./systems/renderWithTransform";
 import { despawnBullets, spawnBullets } from "./systems/spawnBullet";
 import * as Camera from "./common/Camera";
-import { simulateBoids } from "./systems/boids";
+import { renderDebugBoidData, simulateBoids } from "./systems/boids";
 import { rotateAfterVelocity } from "./systems/rotateAfterVelocity";
 import { limitSpeeds } from "./systems/limitSpeeds";
 import { randomBetween, TAU } from "../math";
@@ -53,7 +53,8 @@ export class Game {
     const cancelContexts = contexts((contexts) => {
       if (this.state === null) {
         const ecs = new ECS(5000, false);
-        const components = createComponents(ecs);
+        const flags = defaultFlags;
+        const components = createComponents(ecs, flags);
         const queries = createQueries(ecs, components);
 
         // TODO: extract bounds related functionality in it's own module
@@ -68,6 +69,16 @@ export class Game {
           },
         };
 
+        const quadTreeSettings = {
+          positions: components.transform.position,
+          maxNodes: 20,
+          retriveInto: new FlexibleTypedArray(settings.maxBoids, Uint16Array),
+          entityMovementBuffer: new FlexibleTypedArray(
+            settings.maxBoids,
+            Uint16Array
+          ),
+        };
+
         this.state = {
           contexts: contexts,
           components,
@@ -79,22 +90,14 @@ export class Game {
           paths: [basicMapPathA, Path.flip(basicMapPathA)],
           camera: Camera.identityCamera(),
           screenTransform: Camera.flipYMut(Camera.identityCamera()),
-          flags: defaultFlags,
+          flags,
           thrusterConfigurations: [],
           bounds,
           structures: {
-            boidQuadTree: new QuadTree(bounds, {
-              positions: components.transform.position,
-              maxNodes: 20,
-              retriveInto: new FlexibleTypedArray(
-                settings.maxBoids,
-                Uint16Array
-              ),
-              entityMovementBuffer: new FlexibleTypedArray(
-                settings.maxBoids,
-                Uint16Array
-              ),
-            }),
+            boidQuadTrees: [
+              new QuadTree(bounds, quadTreeSettings),
+              new QuadTree(bounds, quadTreeSettings),
+            ],
           },
         };
 
@@ -126,15 +129,23 @@ export class Game {
         }
 
         if (this.state.flags[Flag.SpawnDebugBoids]) {
-          for (let i = 0; i < settings.maxBoids; i++) {
-            const eid = createBoid(
-              this.state,
-              V.random2dInsideOriginSquare(-800, 800)
-            );
+          for (let team = 0; team < this.state.map.teams.length; team++) {
+            for (
+              let i = 0;
+              i < settings.maxBoids / this.state.map.teams.length;
+              i++
+            ) {
+              const p = team === 0 ? -800 : 800;
+              const eid = createBoid(
+                this.state,
+                V.add(V.random2dInsideOriginSquare(-30, 30), { x: p, y: p }),
+                team
+              );
 
-            const angle = randomBetween(0, TAU);
+              const angle = randomBetween(0, TAU);
 
-            setVelocity(this.state, eid, Math.cos(angle), Math.sin(angle));
+              setVelocity(this.state, eid, Math.cos(angle), Math.sin(angle));
+            }
           }
         }
 
@@ -247,6 +258,7 @@ export class Game {
     renderDebugArrows(this.state);
     renderDebugPaths(this.state);
     renderDebugBounds(this.state);
+    renderDebugBoidData(this.state);
   }
 
   public update() {
@@ -259,12 +271,15 @@ export class Game {
 
     simulateBoids(this.state);
     updateVelocities(this.state);
-    updateBoidQuadTree(this.state);
     limitSpeeds(this.state);
     moveEntities(this.state);
 
     rotateEntities(this.state);
     rotateAfterVelocity(this.state);
+
+    for (let team = 0; team < this.state.map.teams.length; team++) {
+      updateBoidQuadTree(this.state, team);
+    }
   }
 
   public initRenderer(): Effect<void> {

@@ -3,12 +3,14 @@ import textureBlueBullet from "/public/assets/blue_bullet.svg";
 import textureYellowBase from "/public/assets/yellow_base.svg";
 import textureBulletSpawner from "/public/assets/bullet_spawner.svg";
 import texturePurpleBoid from "/public/assets/purple_boid.svg";
+import textureOrangeBoid from "/public/assets/orange_boid.svg";
 
 export const enum TextureId {
   BlueBullet,
   YellowBase,
   BulletSpawner,
   PurpleBoid,
+  OrangeBoid,
 }
 
 const assetPaths: Record<TextureId, string> = {
@@ -16,6 +18,7 @@ const assetPaths: Record<TextureId, string> = {
   [TextureId.YellowBase]: textureYellowBase,
   [TextureId.BulletSpawner]: textureBulletSpawner,
   [TextureId.PurpleBoid]: texturePurpleBoid,
+  [TextureId.OrangeBoid]: textureOrangeBoid,
 };
 
 export interface Texture {
@@ -37,3 +40,6 @@ export const assets: ReadonlyArray<Texture> = Object.entries(assetPaths).reduce(
   },
   [] as Array<Texture>
 );
+
+// ========== Constants
+export const boidTextureByTeam = [TextureId.PurpleBoid, TextureId.OrangeBoid];

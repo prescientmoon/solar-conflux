@@ -3,7 +3,7 @@ import { QuadTree } from "../QuadTree";
 import { Texture } from "./assets";
 import { AABB } from "./common/AABB";
 import { Camera as Camera2d } from "./common/Camera";
-import { Flags } from "./common/Flags";
+import { Flag, Flags } from "./common/Flags";
 import { Path } from "./common/Path";
 import * as V from "./common/Vector";
 import { Map } from "./Map";
@@ -56,7 +56,7 @@ export interface State {
   screenTransform: Camera2d;
   flags: Flags;
   structures: {
-    boidQuadTree: QuadTree;
+    boidQuadTrees: QuadTree[];
   };
   paths: Array<Path>;
   thrusterConfigurations: ReadonlyArray<ThrusterConfiguration>;
@@ -79,8 +79,21 @@ export const SeekingBehavior = {
   target: Vector2,
 };
 
-export const PathFollowingBehavior = {
-  path: types.uint8,
+const PathFollowingBehavior = (flags: Flags) => {
+  const result = {
+    path: types.uint8,
+    debugData: {
+      projection: Vector2,
+      insidePath: types.ushort, // boolean
+    },
+  };
+
+  if (!flags[Flag.DebugShowPathfollowingProjections]) {
+    result.debugData.projection = undefined as any;
+    result.debugData.insidePath = undefined as any;
+  }
+
+  return result;
 };
 
 export const ThrusterData = {
@@ -88,13 +101,15 @@ export const ThrusterData = {
 };
 
 // ========== Helpers
-export const createComponents = (ecs: ECS) => {
+export const createComponents = (ecs: ECS, flags: Flags) => {
   const transform = ecs.defineComponent(Transform);
   const velocity = ecs.defineComponent(Vector2);
   const acceleration = ecs.defineComponent(Vector2);
   const angularVelocity = ecs.defineComponent(types.f32);
   const seekingBehavior = ecs.defineComponent(SeekingBehavior);
-  const pathFollowingBehavior = ecs.defineComponent(PathFollowingBehavior);
+  const pathFollowingBehavior = ecs.defineComponent(
+    PathFollowingBehavior(flags)
+  );
   const thrusters = ecs.defineComponent(ThrusterData);
   const bulletEmitter = ecs.defineComponent({
     frequency: types.u8,
@@ -107,6 +122,7 @@ export const createComponents = (ecs: ECS) => {
   const created = ecs.defineComponent({
     createdAt: types.u32,
   });
+  const team = ecs.defineComponent(types.u8);
   const texture = ecs.defineComponent({
     textureId: types.u8,
     width: types.u8,
@@ -145,6 +161,7 @@ export const createComponents = (ecs: ECS) => {
     boidCohesion,
     rotateAfterVelocity,
     speedLimit,
+    team,
   };
 };
 
@@ -198,6 +215,7 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
         components.velocity,
         components.physicsObject,
         components.boidSeparation,
+        components.team,
         components.transform
       )
     ),
@@ -206,6 +224,7 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
         components.velocity,
         components.physicsObject,
         components.boidAlignment,
+        components.team,
         components.transform
       )
     ),
@@ -214,20 +233,8 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
         components.velocity,
         components.physicsObject,
         components.boidCohesion,
+        components.team,
         components.transform
-      )
-    ),
-    // TODO: consider unifying the above queries
-    boid: ecs.createQuery(
-      all<any>(
-        components.velocity,
-        components.physicsObject,
-        components.transform,
-        any(
-          components.boidAlignment,
-          components.boidSeparation,
-          components.boidCohesion
-        )
       )
     ),
     rotateAfterVelocity: ecs.createQuery(

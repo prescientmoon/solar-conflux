@@ -1,4 +1,4 @@
-import { TextureId } from "../assets";
+import { boidTextureByTeam, TextureId } from "../assets";
 import { settings } from "../common/Settings";
 import { Vector2 } from "../common/Vector";
 import { LayerId, State } from "../State";
@@ -88,7 +88,7 @@ export function setAcceleration(
   state.components.acceleration.y[eid] = y;
 }
 
-export function createBoid(state: State, position: Vector2) {
+export function createBoid(state: State, position: Vector2, team: number) {
   const eid = state.ecs.createEntity();
 
   state.ecs.addComponent(eid, state.components.transform);
@@ -100,9 +100,11 @@ export function createBoid(state: State, position: Vector2) {
   state.ecs.addComponent(eid, state.components.boidAlignment);
   state.ecs.addComponent(eid, state.components.boidCohesion);
   state.ecs.addComponent(eid, state.components.boidSeparation);
+  state.ecs.addComponent(eid, state.components.pathFollowingBehavior);
 
   state.ecs.addComponent(eid, state.components.texture);
   state.ecs.addComponent(eid, state.components.rotateAfterVelocity);
+  state.ecs.addComponent(eid, state.components.team);
 
   defaultTransform(state, eid);
   setPosition(state, eid, position.x, position.y);
@@ -112,23 +114,19 @@ export function createBoid(state: State, position: Vector2) {
 
   state.components.physicsObject.mass[eid] = 1;
 
-  state.components.texture.textureId[eid] = TextureId.PurpleBoid;
+  state.components.texture.textureId[eid] = boidTextureByTeam[team];
   state.components.texture.width[eid] = 10;
   state.components.texture.height[eid] = 10;
   state.components.texture.layer[eid] = LayerId.DebugLayer;
+  state.components.team[eid] = team;
 
   // TODO: automate this process
-  insertBoidIntoQuadTree(state, eid);
+  insertBoidIntoQuadTree(state, eid, team);
 
-  if (Math.random() > 0.2) {
-    state.ecs.addComponent(eid, state.components.pathFollowingBehavior);
-    state.components.pathFollowingBehavior.path[eid] = Number(
-      Math.random() > 0.5
-    );
+  state.components.pathFollowingBehavior.path[eid] = team;
 
-    // state.components.seekingBehavior.target.x[eid] = 0;
-    // state.components.seekingBehavior.target.y[eid] = 0;
-  }
+  // state.components.seekingBehavior.target.x[eid] = 0;
+  // state.components.seekingBehavior.target.y[eid] = 0;
 
   return eid;
 }
