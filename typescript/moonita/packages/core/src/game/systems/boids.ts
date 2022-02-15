@@ -145,11 +145,14 @@ export function separate(state: State) {
   state.queries.boidSeparation._forEach((eid) => {
     const position = getPosition(state, eid);
     const total = V.origin();
+    const team = state.components.team[eid];
 
     for (let teamId = 0; teamId < state.map.teams.length; teamId++) {
       const result = state.structures.boidQuadTrees[teamId].retrieve(
         position,
-        settings.separationRadius
+        teamId === team
+          ? settings.separationRadius
+          : settings.separationDifferentTeamRadius
       );
 
       for (let i = 0; i < result.used; i++) {
@@ -159,10 +162,12 @@ export function separate(state: State) {
 
         const otherPosition = getPosition(state, node);
         const dist = V.distance(position, otherPosition);
+        const coefficient =
+          teamId === team ? 1 : settings.separationDiffereTeamCoefficient;
 
         V.subMut(otherPosition, position, otherPosition);
         V.normalizeMut(otherPosition, otherPosition);
-        V.scaleMut(otherPosition, otherPosition, 1 / dist);
+        V.scaleMut(otherPosition, otherPosition, coefficient / dist);
 
         V.addMut(total, total, otherPosition);
       }

@@ -29,7 +29,7 @@ export const basicMapPathA: Path = {
     },
     {
       position: {
-        x: 100,
+        x: 500,
         y: 0,
       },
     },

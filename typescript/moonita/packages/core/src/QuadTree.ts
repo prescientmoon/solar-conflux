@@ -139,13 +139,20 @@ export class QuadTree {
     radiusSquared: number
   ) {
     if (this.nodes.type === TreeKind.Leaf) {
-      for (let i = 0; i < this.nodes.nodes.used; i++) {
-        const node = this.nodes.nodes.get(i)!;
-        const x = this.settings.positions.x[node];
-        const y = this.settings.positions.y[node];
+      const maxSize = Math.max(this.bounds.size.x, this.bounds.size.y);
+      if (maxSize ** 2 * 2 >= radiusSquared) {
+        // Optimization for spaces containing tons of entities
+        for (let i = 0; i < this.nodes.nodes.used; i++)
+          this.settings.retriveInto.push(this.nodes.nodes.get(i)!);
+      } else {
+        for (let i = 0; i < this.nodes.nodes.used; i++) {
+          const node = this.nodes.nodes.get(i)!;
+          const x = this.settings.positions.x[node];
+          const y = this.settings.positions.y[node];
 
-        if (distanceSquared(x, y, near.x, near.y) <= radiusSquared) {
-          this.settings.retriveInto.push(node);
+          if (distanceSquared(x, y, near.x, near.y) <= radiusSquared) {
+            this.settings.retriveInto.push(node);
+          }
         }
       }
     } else {
