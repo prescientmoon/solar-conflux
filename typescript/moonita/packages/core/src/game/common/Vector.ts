@@ -129,6 +129,17 @@ export function distance(a: Vector2, b: Vector2): number {
   return Math.sqrt(distanceSquared(a, b));
 }
 
+/** Same as normalizeMut, but simply copies the vector over on error. */
+export function attemptNormalizeMut(into: Vector2, vec: Vector2): Vector2 {
+  if (vec.x || vec.y) normalizeMut(into, vec);
+  else {
+    into.x = 0;
+    into.y = 0;
+  }
+
+  return into;
+}
+
 /** Make the length of a vector 1, while preserving the direction */
 export function normalizeMut(into: Vector2, vec: Vector2): Vector2 {
   const l = length(vec);

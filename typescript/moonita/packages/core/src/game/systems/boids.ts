@@ -55,7 +55,7 @@ function pathFollow(state: State) {
 
     const predictionDistance = 30;
 
-    V.normalizeMut(prediction, prediction);
+    V.attemptNormalizeMut(prediction, prediction);
     V.scaleMut(prediction, prediction, predictionDistance);
     V.addMut(prediction, prediction, position);
 
@@ -87,16 +87,35 @@ function pathFollow(state: State) {
       minProjection && minProjection.lengthSquared > path.radius ** 2;
 
     if (state.flags[Flag.DebugShowPathfollowingProjections])
-      state.components.pathFollowingBehavior.debugData.insidePath[eid] = Number(
-        !outsidePath
-      );
+      state.components.pathFollowingBehavior.debugData.hasProjection[eid] =
+        Number(minProjection);
+    if (state.flags[Flag.DebugShowSelectedEntityPath])
+      state.components.pathFollowingBehavior.debugData.followedSegment[eid] =
+        minProjection ? minProjection!.segment : path.points.length;
 
-    if (outsidePath && minProjection) {
-      const target = V.sub(
-        path.points[minProjection.segment + 1].position,
-        path.points[minProjection.segment].position
-      );
+    if (!minProjection) return;
 
+    const target = V.sub(
+      path.points[minProjection.segment + 1].position,
+      path.points[minProjection.segment].position
+    );
+
+    if (!outsidePath) {
+      V.normalizeMut(target, target);
+      V.scaleMut(target, target, predictionDistance * 3);
+
+      if (state.flags[Flag.DebugShowPathfollowingProjections]) {
+        const saveProjectionInto =
+          state.components.pathFollowingBehavior.debugData.projection;
+
+        saveProjectionInto.x[eid] = position.x + target.x;
+        saveProjectionInto.y[eid] = position.y + target.y;
+      }
+
+      moveTowards(state, eid, target, settings.pathFollowingCoefficient / 4);
+    }
+
+    if (outsidePath) {
       V.normalizeMut(target, target);
       V.scaleMut(target, target, predictionDistance);
       V.addMut(target, target, minProjection.projection);
@@ -111,6 +130,13 @@ function pathFollow(state: State) {
         saveProjectionInto.x[eid] = minProjection.projection.x;
         saveProjectionInto.y[eid] = minProjection.projection.y;
       }
+    }
+
+    if (state.flags[Flag.DebugShowPathfollowingForces]) {
+      const saveInto = state.components.pathFollowingBehavior.debugData.force;
+
+      saveInto.x[eid] = target.x;
+      saveInto.y[eid] = target.y;
     }
   });
 }
@@ -216,13 +242,13 @@ export function simulateBoids(state: State) {
 
 export function renderDebugBoidData(state: State) {
   const context = state.contexts[LayerId.DebugLayer];
-  context.save();
   if (state.flags[Flag.DebugShowPathfollowingProjections]) {
+    context.save();
     context.strokeStyle = "black";
     context.lineWidth = 1;
 
     state.queries.boidPathFollowing._forEach((eid) => {
-      if (state.components.pathFollowingBehavior.debugData.insidePath[eid])
+      if (state.components.pathFollowingBehavior.debugData.hasProjection[eid])
         return;
 
       const position = getPosition(state, eid);
@@ -234,7 +260,52 @@ export function renderDebugBoidData(state: State) {
 
       renderLine(context, position, pathFollowing);
     });
+    context.restore();
   }
 
-  context.restore();
+  if (state.flags[Flag.DebugShowPathfollowingForces]) {
+    context.save();
+    context.lineWidth = 1;
+    state.queries.boidPathFollowing._forEach((eid) => {
+      if (!state.components.pathFollowingBehavior.debugData.hasProjection)
+        return;
+      const force = getEntityVec(
+        state,
+        state.components.pathFollowingBehavior.debugData.force,
+        eid
+      );
+
+      if (force.x === 0 && force.y === 0) return;
+
+      const position = getPosition(state, eid);
+      V.scaleMut(force, force, 1000);
+      V.addMut(force, force, position);
+
+      renderCustomArrow(context, position, force, { x: 2, y: 1 });
+    });
+    context.restore();
+  }
+
+  if (
+    state.flags[Flag.DebugShowSelectedEntityPath] &&
+    state.selectedEntity &&
+    state.selectedEntity.isPathFollower
+  ) {
+    const eid = state.selectedEntity.id;
+    const pathId = state.components.pathFollowingBehavior.path[eid];
+    const path = state.paths[pathId];
+    const segment =
+      state.components.pathFollowingBehavior.debugData.followedSegment[eid];
+
+    if (segment < path.points.length) {
+      context.strokeStyle = "green";
+      context.lineWidth = 4;
+
+      renderLine(
+        context,
+        path.points[segment].position,
+        path.points[segment + 1].position
+      );
+    }
+  }
 }

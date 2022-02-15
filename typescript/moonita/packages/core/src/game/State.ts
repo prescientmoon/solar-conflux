@@ -61,6 +61,14 @@ export interface State {
   paths: Array<Path>;
   thrusterConfigurations: ReadonlyArray<ThrusterConfiguration>;
   bounds: AABB;
+
+  // Here for debugging
+  selectedEntity: SelectedEntity | null;
+}
+
+export interface SelectedEntity {
+  id: number;
+  isPathFollower: boolean; // whether we should show data related to the path following behavior on this entity
 }
 
 // ========== Runtime type specs
@@ -84,14 +92,27 @@ const PathFollowingBehavior = (flags: Flags) => {
     path: types.uint8,
     debugData: {
       projection: Vector2,
-      insidePath: types.ushort, // boolean
+      force: Vector2,
+      hasProjection: types.ushort, // boolean
+      followedSegment: types.ushort, // the index of the currently followed segment
     },
   };
 
   if (!flags[Flag.DebugShowPathfollowingProjections]) {
     result.debugData.projection = undefined as any;
-    result.debugData.insidePath = undefined as any;
   }
+  if (!flags[Flag.DebugShowPathfollowingForces]) {
+    result.debugData.force = undefined as any;
+  }
+  if (!flags[Flag.DebugShowSelectedEntityPath]) {
+    result.debugData.followedSegment = undefined as any;
+  }
+  if (
+    !flags[Flag.DebugShowSelectedEntityPath] &&
+    !flags[Flag.DebugShowPathfollowingForces] &&
+    !flags[Flag.DebugShowPathfollowingProjections]
+  )
+    result.debugData.hasProjection = undefined as any;
 
   return result;
 };

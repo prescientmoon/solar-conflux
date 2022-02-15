@@ -85,6 +85,7 @@ export class Game {
           queries,
           ecs,
           tick: 0,
+          selectedEntity: null,
           assets,
           map: basicMap,
           paths: [basicMapPathA, Path.flip(basicMapPathA)],
@@ -135,18 +136,24 @@ export class Game {
               i < settings.maxBoids / this.state.map.teams.length;
               i++
             ) {
-              const p = team === 0 ? -800 : 800;
+              const p = team === 0 ? -900 : 900;
               const eid = createBoid(
                 this.state,
-                V.add(V.random2dInsideOriginSquare(-30, 30), { x: p, y: p }),
+                V.add(V.random2dInsideOriginSquare(-100, 100), { x: p, y: p }),
                 team
               );
 
-              const angle = randomBetween(0, TAU);
+              const angle = 0; // randomBetween(0, TAU);
 
-              setVelocity(this.state, eid, Math.cos(angle), Math.sin(angle));
+              // setVelocity(this.state, eid, Math.cos(angle), Math.sin(angle));
+              setVelocity(this.state, eid, 0, 0);
             }
           }
+
+          this.state.selectedEntity = {
+            id: 90,
+            isPathFollower: true,
+          };
         }
 
         // Listen to resize events
@@ -297,7 +304,7 @@ export class Game {
 
   public initUpdater(): Effect<void> {
     const loop = () => {
-      this.update();
+      if (!(window as any).pauseGame) this.update();
     };
 
     const id = setInterval(loop, 1000 / ups);
