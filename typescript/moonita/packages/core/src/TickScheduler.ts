@@ -12,7 +12,8 @@ export interface TaskLocation {
   index: number;
 }
 
-export class TikScheduler<T> {
+/** A general purpouse event emitter. */
+export class TickScheduler<T> {
   private tasks = new Map<number, Task<T>[]>();
   private nextTaskId = 0;
   private idToTask = new Map<TaskId, TaskLocation>();
@@ -22,6 +23,23 @@ export class TikScheduler<T> {
   }
 
   public constructor() {}
+
+  /** An event is a task which has to manually get triggered. */
+  public scheduleEvent(tick: number, task: T) {
+    return this.schedule(-tick, task, null);
+  }
+
+  /** Manually trigger an event, returning all the tasks we have to handle */
+  public triggerEvent(id: number) {
+    const tasks = this.tasks.get(-id);
+
+    if (tasks === undefined) return [];
+
+    this.handleTick(id);
+
+    return tasks;
+  }
+
   public schedule(
     tick: number,
     task: T,
@@ -29,10 +47,15 @@ export class TikScheduler<T> {
   ) {
     const id = this.nextTaskId++;
     this.ensureTaskArrayExists(tick);
-    this.tasks.get(tick)!.push({
+    const length = this.tasks.get(tick)!.push({
       task,
       id,
       repetitionInterval,
+    });
+
+    this.idToTask.set(id, {
+      index: length - 1,
+      tick,
     });
 
     return id;
@@ -75,6 +98,8 @@ export class TikScheduler<T> {
 
         location.tick = next;
         location.index = length - 1;
+      } else {
+        this.idToTask.delete(task.id);
       }
     }
 

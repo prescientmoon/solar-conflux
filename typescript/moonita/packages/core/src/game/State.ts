@@ -1,5 +1,6 @@
-import { all, any, ECS, types } from "wolf-ecs";
+import { all, ECS, types } from "wolf-ecs";
 import { QuadTree } from "../QuadTree";
+import { TickScheduler } from "../TickScheduler";
 import { Texture } from "./assets";
 import { AABB } from "./common/AABB";
 import { Camera as Camera2d } from "./common/Camera";
@@ -21,29 +22,6 @@ export const enum LayerId {
   LastLayer,
 }
 
-/** A thruster is an engine spaceships can use to move around.
- * Conceptually, this type is equivalent to a Transform
- *  (except the scale is equal on both axis)
- */
-// TODO: move this to different module
-export interface Thruster {
-  /** Strength of the thruster, measured in newtons */
-  strength: number;
-
-  /** The angle at which the thruster is rotated
-   * relative to the rotation of the body */
-  angle: number;
-
-  /** The position the thruster is placed at
-   * relative to the position of the body */
-  position: V.PolarVector2;
-}
-
-export interface ThrusterConfiguration {
-  // TODO: considering adding a maximum thruster usage budget
-  thrusters: Array<Thruster>;
-}
-
 export interface State {
   contexts: Array<CanvasRenderingContext2D>;
   ecs: ECS;
@@ -59,11 +37,12 @@ export interface State {
     boidQuadTrees: QuadTree[];
   };
   paths: Array<Path>;
-  thrusterConfigurations: ReadonlyArray<ThrusterConfiguration>;
   bounds: AABB;
 
   // Here for debugging
   selectedEntity: SelectedEntity | null;
+
+  tickScheduler: TickScheduler<number>;
 }
 
 export interface SelectedEntity {

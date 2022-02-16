@@ -23,7 +23,7 @@ export function App() {
           <Canvas
             key={id}
             className="stack__stack--layer"
-            emitRef={(canvas) => emit(canvas.getContext("2d")!)}
+            emitRef={(canvas) => emit(canvas.getContext("2d", {})!)}
           ></Canvas>
         );
       })}

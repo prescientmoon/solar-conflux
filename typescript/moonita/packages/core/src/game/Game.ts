@@ -1,3 +1,4 @@
+import * as GameAction from "./GameAction";
 import { ECS } from "wolf-ecs";
 import { Effect, Stream } from "../Stream";
 import {
@@ -31,7 +32,6 @@ import {
 } from "./systems/renderMap";
 import { renderTextures } from "./systems/renderTextures";
 import { applyGlobalCameraObject } from "./systems/renderWithTransform";
-import { despawnBullets, spawnBullets } from "./systems/spawnBullet";
 import * as Camera from "./common/Camera";
 import { renderDebugBoidData, simulateBoids } from "./systems/boids";
 import { rotateAfterVelocity } from "./systems/rotateAfterVelocity";
@@ -42,6 +42,8 @@ import { AABB } from "./common/AABB";
 import { updateBoidQuadTree } from "./systems/boidQuadTree";
 import { FlexibleTypedArray } from "../FlexibleTypedArray";
 import { settings } from "./common/Settings";
+import { TickScheduler } from "../TickScheduler";
+import { handleGameAction } from "./systems/handleGameAction";
 
 const ups = 30;
 
@@ -81,6 +83,7 @@ export class Game {
 
         this.state = {
           contexts: contexts,
+          tickScheduler: new TickScheduler(),
           components,
           queries,
           ecs,
@@ -92,7 +95,6 @@ export class Game {
           camera: Camera.identityCamera(),
           screenTransform: Camera.flipYMut(Camera.identityCamera()),
           flags,
-          thrusterConfigurations: [],
           bounds,
           structures: {
             boidQuadTrees: [
@@ -108,25 +110,33 @@ export class Game {
         this.resizeContext();
 
         if (this.state.flags[Flag.SpawnDebugBulletEmitter]) {
-          const id = ecs.createEntity();
+          const eid = ecs.createEntity();
 
-          markEntityCreation(this.state, id);
+          markEntityCreation(this.state, eid);
 
-          ecs.addComponent(id, components.bulletEmitter);
-          ecs.addComponent(id, components.transform);
-          ecs.addComponent(id, components.texture);
-          ecs.addComponent(id, components.angularVelocity);
+          ecs.addComponent(eid, components.bulletEmitter);
+          ecs.addComponent(eid, components.transform);
+          ecs.addComponent(eid, components.texture);
+          ecs.addComponent(eid, components.angularVelocity);
 
-          this.state.components.transform.position.x[id] = 40;
-          this.state.components.transform.position.y[id] = 100;
-          this.state.components.transform.rotation[id] = 0;
-          this.state.components.transform.scale.y[id] = 1;
-          this.state.components.texture.width[id] = 80;
-          this.state.components.texture.height[id] = 80;
-          this.state.components.texture.textureId[id] = TextureId.BulletSpawner;
-          this.state.components.texture.layer[id] = LayerId.BuildingLayer;
-          this.state.components.bulletEmitter.frequency[id] = 5;
-          this.state.components.angularVelocity[id] = 0.1;
+          this.state.components.transform.position.x[eid] = 40;
+          this.state.components.transform.position.y[eid] = 100;
+          this.state.components.transform.rotation[eid] = 0;
+          this.state.components.transform.scale.x[eid] = 1;
+          this.state.components.transform.scale.y[eid] = 1;
+          this.state.components.texture.width[eid] = 80;
+          this.state.components.texture.height[eid] = 80;
+          this.state.components.texture.textureId[eid] =
+            TextureId.BulletSpawner;
+          this.state.components.texture.layer[eid] = LayerId.BuildingLayer;
+          this.state.components.bulletEmitter.frequency[eid] = 5;
+          this.state.components.angularVelocity[eid] = 0.1;
+
+          this.state.tickScheduler.schedule(
+            10,
+            GameAction.handleBulletSpawner(eid),
+            5
+          );
         }
 
         if (this.state.flags[Flag.SpawnDebugBoids]) {
@@ -273,8 +283,12 @@ export class Game {
 
     this.state.tick++;
 
-    spawnBullets(this.state);
-    despawnBullets(this.state);
+    const tasks = this.state.tickScheduler.getTasks(this.state.tick);
+
+    for (let i = 0; i < tasks.length; i++)
+      handleGameAction(this.state, tasks[i]);
+
+    this.state.tickScheduler.handleTick(this.state.tick);
 
     simulateBoids(this.state);
     updateVelocities(this.state);

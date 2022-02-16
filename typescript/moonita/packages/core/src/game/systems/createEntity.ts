@@ -1,3 +1,4 @@
+import * as GameAction from "../GameAction";
 import { boidTextureByTeam, TextureId } from "../assets";
 import { settings } from "../common/Settings";
 import { Vector2 } from "../common/Vector";
@@ -48,6 +49,11 @@ export const createBullet = (
   state.components.velocity.x[eid] = Math.cos(rotation) * velocity;
   state.components.velocity.y[eid] = Math.sin(rotation) * velocity;
   state.components.mortal.lifetime[eid] = lifetime;
+
+  state.tickScheduler.schedule(
+    state.tick + lifetime,
+    GameAction.despawnEntity(eid)
+  );
 
   state.components.texture.textureId[eid] = TextureId.BlueBullet;
   state.components.texture.width[eid] = 30;
