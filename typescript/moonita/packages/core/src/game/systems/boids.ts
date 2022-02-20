@@ -1,3 +1,4 @@
+import * as GameAction from "../GameAction";
 import { getEntityVec, getPosition, getVelocity } from "../common/Entity";
 import { settings } from "../common/Settings";
 import * as V from "../common/Vector";
@@ -7,6 +8,8 @@ import * as Segment from "../common/Segment";
 import { renderLine } from "./renderLinePath";
 import { Flag } from "../common/Flags";
 import { renderCustomArrow } from "./debugArrows";
+import { triggerEvent } from "./handleGameAction";
+import { renderCircle } from "./basicRenderers";
 
 /** Move a boid in a given direction */
 function moveTowards(
@@ -92,6 +95,15 @@ function pathFollow(state: State) {
     if (state.flags[Flag.DebugShowSelectedEntityPath])
       state.components.pathFollowingBehavior.debugData.followedSegment[eid] =
         minProjection ? minProjection!.segment : path.points.length;
+
+    const lastPoint = path.points[path.points.length - 1].position;
+
+    // When goal reached
+    if (V.distanceSquared(lastPoint, position) <= path.goalRadius ** 2) {
+      triggerEvent(state, GameAction.onPathfindingGoalReached(eid));
+      state.ecs.removeComponent(eid, state.components.pathFollowingBehavior);
+      console.log("removed");
+    }
 
     if (!minProjection) return;
 
@@ -247,8 +259,8 @@ export function simulateBoids(state: State) {
 
 export function renderDebugBoidData(state: State) {
   const context = state.contexts[LayerId.DebugLayer];
+  context.save();
   if (state.flags[Flag.DebugShowPathfollowingProjections]) {
-    context.save();
     context.strokeStyle = "black";
     context.lineWidth = 1;
 
@@ -265,11 +277,9 @@ export function renderDebugBoidData(state: State) {
 
       renderLine(context, position, pathFollowing);
     });
-    context.restore();
   }
 
   if (state.flags[Flag.DebugShowPathfollowingForces]) {
-    context.save();
     context.lineWidth = 1;
     state.queries.boidPathFollowing._forEach((eid) => {
       if (!state.components.pathFollowingBehavior.debugData.hasProjection)
@@ -288,7 +298,15 @@ export function renderDebugBoidData(state: State) {
 
       renderCustomArrow(context, position, force, { x: 2, y: 1 });
     });
-    context.restore();
+  }
+  if (state.flags[Flag.DebugShowPathfollowingGoals]) {
+    context.fillStyle = "rgba(0,0,0,0.3)";
+    for (const path of state.paths) {
+      const lastPoint = path.points[path.points.length - 1].position;
+
+      renderCircle(context, lastPoint.x, lastPoint.y, path.goalRadius);
+      context.fill();
+    }
   }
 
   if (
@@ -313,4 +331,5 @@ export function renderDebugBoidData(state: State) {
       );
     }
   }
+  context.restore();
 }

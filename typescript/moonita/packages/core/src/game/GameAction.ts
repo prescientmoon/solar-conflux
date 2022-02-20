@@ -1,5 +1,6 @@
 export const enum GameEvent {
   OnDespawn,
+  OnPathfindingGoalReached,
 }
 
 export const enum GameAction {
@@ -28,4 +29,8 @@ export function handleBulletSpawner(eid: number) {
 
 export function onDespawn(eid: number) {
   return (eid << maxEventCount) | GameEvent.OnDespawn;
+}
+
+export function onPathfindingGoalReached(eid: number) {
+  return (eid << maxEventCount) | GameEvent.OnPathfindingGoalReached;
 }

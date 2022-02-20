@@ -7,6 +7,7 @@ export interface PathPoint {
 export type Path = {
   points: Array<PathPoint>;
   radius: number;
+  goalRadius: number;
 };
 
 export type PathId = number; // We want to be able to dinamically create paths (perhaps?)
@@ -19,6 +20,7 @@ export function mapPointArray(
   return {
     points: mapper(path.points),
     radius: path.radius,
+    goalRadius: path.goalRadius,
   };
 }
 
@@ -29,6 +31,7 @@ export function mapPoints(
   return {
     points: path.points.map(mapper),
     radius: path.radius,
+    goalRadius: path.goalRadius,
   };
 }
 /** Reverse the order of the points in a path */

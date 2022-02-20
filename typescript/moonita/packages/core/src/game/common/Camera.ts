@@ -14,6 +14,11 @@ export const identityCamera = (): Camera => {
   };
 };
 
+/** Transform which fixes the y-flipped default canvas coordinate system */
+export function defaultScreenTransform(): Camera {
+  return flipYMut(identityCamera());
+}
+
 // ========== Helpers
 export function translateLocalCoordinatesMut(camera: Camera, delta: Vector2) {
   addMut(camera.position, camera.position, delta);

@@ -41,6 +41,7 @@ export const basicMapPathA: Path = {
     },
   ],
   radius: 100,
+  goalRadius: 300,
 };
 
 export const basicMap: Map = (() => {

@@ -10,9 +10,9 @@ export function applyTransform(
   scaleX: number,
   scaleY: number
 ) {
-  context.scale(scaleX, scaleY);
-  context.translate(x, y);
-  context.rotate(rotation);
+  if (scaleX !== 1 || scaleY !== 1) context.scale(scaleX, scaleY);
+  if (x || y) context.translate(x, y);
+  if (rotation !== 0) context.rotate(rotation);
 }
 
 export function applyGlobalTransform(

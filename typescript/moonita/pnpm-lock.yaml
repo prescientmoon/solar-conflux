@@ -3,16 +3,21 @@ lockfileVersion: 5.3
 specifiers:
   '@preact/preset-vite': ^2.0.0
   '@types/ws': ^8.2.1
+  gl-matrix: ^3.4.3
   preact: ^10.5.13
   runtypes: ^6.5.0
+  twgl.js: ^4.21.2
   typescript: ^4.3.2
   vite: ^2.6.4
+  vite-plugin-glsl: ^0.0.9
   wolf-ecs: ^2.1.1
   ws: ^8.3.0
 
 dependencies:
+  gl-matrix: 3.4.3
   preact: 10.6.2
   runtypes: 6.5.0
+  twgl.js: 4.21.2
   wolf-ecs: 2.1.1
   ws: 8.3.0
 
@@ -21,6 +26,7 @@ devDependencies:
   '@types/ws': 8.2.1
   typescript: 4.5.2
   vite: 2.6.14
+  vite-plugin-glsl: 0.0.9
 
 packages:
 
@@ -330,6 +336,14 @@ packages:
       picomatch: 2.3.0
     dev: true
 
+  /@rollup/pluginutils/4.1.2:
+    resolution: {integrity: sha512-ROn4qvkxP9SyPeHaf7uQC/GPFY6L/OWy9+bd9AwcjOAWQwxRscoEyAUD8qCY5o5iL4jqQwoLk2kaTKJPb/HwzQ==}
+    engines: {node: '>= 8.0.0'}
+    dependencies:
+      estree-walker: 2.0.2
+      picomatch: 2.3.0
+    dev: true
+
   /@types/node/16.11.11:
     resolution: {integrity: sha512-KB0sixD67CeecHC33MYn+eYARkqTheIRNuu97y2XMjR7Wu3XibO1vaY6VBV6O/a89SPI81cEUIYT87UqUWlZNw==}
     dev: true
@@ -601,6 +615,10 @@ packages:
     engines: {node: '>=6.9.0'}
     dev: true
 
+  /gl-matrix/3.4.3:
+    resolution: {integrity: sha512-wcCp8vu8FT22BnvKVPjXa/ICBWRq/zjFfdofZy1WSpQZpphblv12/bOQLBC1rMM7SGOFS9ltVmKOHil5+Ml7gA==}
+    dev: false
+
   /globals/11.12.0:
     resolution: {integrity: sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==}
     engines: {node: '>=4'}
@@ -740,10 +758,26 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
+  /tslib/2.3.1:
+    resolution: {integrity: sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==}
+    dev: true
+
+  /twgl.js/4.21.2:
+    resolution: {integrity: sha512-VY7FEbmaXwsfHLCGYBpvlOClSZWlTPyv2d8dc/Yt7IJMiNOOBMBl+t0xLIrzO/e1fH6Co1Dd7xdvSIoq07oDfQ==}
+    dev: false
+
   /typescript/4.5.2:
     resolution: {integrity: sha512-5BlMof9H1yGt0P8/WF+wPNw6GfctgGjXp5hkblpyT+8rkASSmkUKMXrxR0Xg8ThVCi/JnHQiKXeBaEwCeQwMFw==}
     engines: {node: '>=4.2.0'}
     hasBin: true
+    dev: true
+
+  /vite-plugin-glsl/0.0.9:
+    resolution: {integrity: sha512-zgOxP0vv5DgOXx9Pv2Yg9PK9w87br+i9Iwhcp+dSxNVa6VgY2eeBCp4gIlSnLJXInTL9FQcju2kO3JN9nJFe8A==}
+    engines: {node: '>= 14.17.0', npm: '>= 6.14.13'}
+    dependencies:
+      '@rollup/pluginutils': 4.1.2
+      tslib: 2.3.1
     dev: true
 
   /vite/2.6.14:

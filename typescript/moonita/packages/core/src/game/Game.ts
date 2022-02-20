@@ -45,8 +45,6 @@ import { settings } from "./common/Settings";
 import { TickScheduler } from "../TickScheduler";
 import { handleGameAction } from "./systems/handleGameAction";
 
-const ups = 30;
-
 export class Game {
   private state: State | null = null;
   private cancelers: Effect<void>[] = [];
@@ -58,6 +56,10 @@ export class Game {
         const flags = defaultFlags;
         const components = createComponents(ecs, flags);
         const queries = createQueries(ecs, components);
+
+        contexts.forEach((ctx) => {
+          ctx.imageSmoothingEnabled = false;
+        });
 
         // TODO: extract bounds related functionality in it's own module
         const bounds: AABB = {
@@ -93,7 +95,7 @@ export class Game {
           map: basicMap,
           paths: [basicMapPathA, Path.flip(basicMapPathA)],
           camera: Camera.identityCamera(),
-          screenTransform: Camera.flipYMut(Camera.identityCamera()),
+          screenTransform: Camera.defaultScreenTransform(),
           flags,
           bounds,
           structures: {
@@ -249,6 +251,8 @@ export class Game {
       context.canvas.width = window.innerWidth;
       context.canvas.height = window.innerHeight;
     }
+
+    this.state.screenTransform = Camera.defaultScreenTransform();
   }
 
   public render() {
@@ -321,7 +325,7 @@ export class Game {
       if (!(window as any).pauseGame) this.update();
     };
 
-    const id = setInterval(loop, 1000 / ups);
+    const id = setInterval(loop, 1000 / settings.ups);
 
     return () => clearInterval(id);
   }

@@ -1,3 +1,4 @@
+import { mat3 } from "gl-matrix";
 import { all, ECS, types } from "wolf-ecs";
 import { QuadTree } from "../QuadTree";
 import { TickScheduler } from "../TickScheduler";
@@ -29,6 +30,7 @@ export interface State {
   components: ComponentMap;
   queries: QueryMap;
   assets: ReadonlyArray<Texture>;
+  textures: ReadonlyArray<WebGLTexture>;
   map: Map;
   camera: Camera2d;
   screenTransform: Camera2d;
@@ -61,6 +63,8 @@ export const Transform = {
   scale: Vector2,
   rotation: types.f32,
 };
+
+export const TransformMatrix = types.any<mat3>();
 
 export const SeekingBehavior = {
   target: Vector2,
@@ -103,6 +107,7 @@ export const ThrusterData = {
 // ========== Helpers
 export const createComponents = (ecs: ECS, flags: Flags) => {
   const transform = ecs.defineComponent(Transform);
+  const transformMatrix = ecs.defineComponent(TransformMatrix);
   const velocity = ecs.defineComponent(Vector2);
   const acceleration = ecs.defineComponent(Vector2);
   const angularVelocity = ecs.defineComponent(types.f32);
@@ -145,6 +150,7 @@ export const createComponents = (ecs: ECS, flags: Flags) => {
     velocity,
     acceleration,
     transform,
+    transformMatrix,
     bullet,
     bulletEmitter,
     mortal,
