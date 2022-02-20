@@ -110,20 +110,47 @@ export function renderTexture(
   context.restore();
 }
 
-const genericTextureMatrix = mat3.create();
-mat3.scale(genericTextureMatrix, genericTextureMatrix, [1 / 2, 1 / 2]);
-mat3.translate(genericTextureMatrix, genericTextureMatrix, [1, 1]);
+function genericTextureMatrices(state: State) {
+  return state.assets.map((t) => {
+    const m = mat3.create();
 
-console.log(vec2.transformMat3([0, 0], [0, 0], genericTextureMatrix));
+    mat3.scale(m, m, [1 / 2, 1 / 2]);
+    mat3.translate(m, m, [1, 1]);
+    mat3.rotate(m, m, -t.inherentRotation);
+
+    return m;
+  });
+}
+
+function computeTransformMatrix(state: State, eid: number): mat3 {
+  const result = mat3.fromTranslation(mat3.create(), [
+    state.components.transform.position.x[eid],
+    state.components.transform.position.y[eid],
+  ]);
+
+  mat3.scale(result, result, [
+    state.components.transform.scale.x[eid],
+    state.components.transform.scale.y[eid],
+  ]);
+
+  mat3.rotate(result, result, state.components.transform.rotation[eid]);
+
+  return result;
+}
 
 export const renderWebglSprites = (state: State) => {
+  // TODO: don't do this...
+  const matrices = genericTextureMatrices(state);
   for (let layer = 0; layer < state.components.layers.length; layer++) {
     state.queries.spriteLayers[layer]._forEach((eid) => {
-      const transformMatrix = state.components.transformMatrix[eid];
+      const transformMatrix =
+        state.components.transformMatrix[eid] ||
+        computeTransformMatrix(state, eid);
+
       const textureId = state.components.sprite.textureId[eid];
 
       const texture = state.textures[textureId];
-      const textureMatrix = genericTextureMatrix;
+      const textureMatrix = matrices[textureId];
 
       state.webglRenderers.spriteRenderer.draw(
         transformMatrix,

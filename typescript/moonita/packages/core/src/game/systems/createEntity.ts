@@ -4,6 +4,7 @@ import { settings } from "../common/Settings";
 import { Vector2 } from "../common/Vector";
 import { LayerId, State } from "../State";
 import { insertBoidIntoQuadTree } from "./boidQuadTree";
+import { setEntityVec } from "../common/Entity";
 
 export const markEntityCreation = (state: State, eid: number) => {
   state.ecs.addComponent(eid, state.components.created);
@@ -55,7 +56,7 @@ export const createBullet = (
     GameAction.despawnEntity(eid)
   );
 
-  state.components.texture.textureId[eid] = TextureId.BlueBullet;
+  state.components.sprite.textureId[eid] = TextureId.BlueBullet;
   state.components.texture.width[eid] = 30;
   state.components.texture.height[eid] = 30;
   state.components.texture.layer[eid] = LayerId.BulletLayer;
@@ -108,22 +109,23 @@ export function createBoid(state: State, position: Vector2, team: number) {
   state.ecs.addComponent(eid, state.components.boidSeparation);
   state.ecs.addComponent(eid, state.components.pathFollowingBehavior);
 
-  state.ecs.addComponent(eid, state.components.texture);
+  state.ecs.addComponent(eid, state.components.sprite);
   state.ecs.addComponent(eid, state.components.rotateAfterVelocity);
   state.ecs.addComponent(eid, state.components.team);
+  state.ecs.addComponent(eid, state.components.layers[LayerId.BulletLayer]);
 
   defaultTransform(state, eid);
   setPosition(state, eid, position.x, position.y);
+  setEntityVec(state.components.transform.scale, eid, { x: 10, y: 10 });
   setVelocity(state, eid, 0, 0);
   setAcceleration(state, eid, 0, 0);
   limitSpeed(state, eid, settings.maxBoidVelocity);
 
   state.components.physicsObject.mass[eid] = 1;
 
-  state.components.texture.textureId[eid] = boidTextureByTeam[team];
-  state.components.texture.width[eid] = 10;
-  state.components.texture.height[eid] = 10;
-  state.components.texture.layer[eid] = LayerId.DebugLayer;
+  state.components.sprite.textureId[eid] = boidTextureByTeam[team];
+  // state.components.texture.width[eid] = 10;
+  // state.components.texture.height[eid] = 10;
   state.components.team[eid] = team;
 
   // TODO: automate this process

@@ -152,41 +152,6 @@ export class Game {
 
         this.resizeContext();
 
-        if (true) {
-          {
-            const eid = ecs.createEntity();
-
-            markEntityCreation(this.state, eid);
-
-            ecs.addComponent(eid, components.transformMatrix);
-            ecs.addComponent(eid, components.sprite);
-            ecs.addComponent(eid, components.layers[LayerId.BulletLayer]);
-
-            const transform = mat3.create();
-            mat3.translate(transform, transform, [100, 100]);
-            mat3.scale(transform, transform, [100, 100]);
-
-            components.sprite.textureId[eid] = TextureId.OrangeBoid;
-            components.transformMatrix[eid] = transform;
-          }
-          {
-            const eid = ecs.createEntity();
-
-            markEntityCreation(this.state, eid);
-
-            ecs.addComponent(eid, components.transformMatrix);
-            ecs.addComponent(eid, components.sprite);
-            ecs.addComponent(eid, components.layers[LayerId.DebugLayer]);
-
-            const transform = mat3.create();
-            mat3.translate(transform, transform, [70, 70]);
-            mat3.scale(transform, transform, [100, 100]);
-
-            components.sprite.textureId[eid] = TextureId.OrangeBoid;
-            components.transformMatrix[eid] = transform;
-          }
-        }
-
         if (this.state.flags[Flag.SpawnDebugBulletEmitter]) {
           const eid = ecs.createEntity();
 

@@ -4,7 +4,6 @@ import { Vector2 } from "./Vector";
 
 /** Query the ecs for a vec */
 export function getEntityVec(
-  state: State,
   target: { x: TypedArray; y: TypedArray },
   eid: number
 ): Vector2 {
@@ -12,6 +11,16 @@ export function getEntityVec(
     x: target.x[eid] as number,
     y: target.y[eid] as number,
   };
+}
+
+/** Update a vec in the ecs */
+export function setEntityVec(
+  target: { x: TypedArray; y: TypedArray },
+  eid: number,
+  value: Vector2
+) {
+  target.x[eid] = value.x;
+  target.y[eid] = value.y;
 }
 
 /** Query the ecs for the position of an entity */

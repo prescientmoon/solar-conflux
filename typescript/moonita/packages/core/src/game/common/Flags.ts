@@ -28,6 +28,6 @@ export const defaultFlags: Flags = {
   [Flag.DebugWrapping]: true,
   [Flag.DebugShowSelectedEntityPath]: false,
   [Flag.SpawnDebugBulletEmitter]: false,
-  [Flag.SpawnDebugBoids]: false,
+  [Flag.SpawnDebugBoids]: true,
   [Flag.TextureCulling]: true,
 };

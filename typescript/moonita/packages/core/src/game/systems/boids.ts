@@ -270,7 +270,6 @@ export function renderDebugBoidData(state: State) {
 
       const position = getPosition(state, eid);
       const pathFollowing = getEntityVec(
-        state,
         state.components.pathFollowingBehavior.debugData.projection,
         eid
       );
@@ -285,7 +284,6 @@ export function renderDebugBoidData(state: State) {
       if (!state.components.pathFollowingBehavior.debugData.hasProjection)
         return;
       const force = getEntityVec(
-        state,
         state.components.pathFollowingBehavior.debugData.force,
         eid
       );

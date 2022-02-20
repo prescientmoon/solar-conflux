@@ -10,8 +10,8 @@ export function applyTransform(
   scaleX: number,
   scaleY: number
 ) {
-  if (scaleX !== 1 || scaleY !== 1) context.scale(scaleX, scaleY);
   if (x || y) context.translate(x, y);
+  if (scaleX !== 1 || scaleY !== 1) context.scale(scaleX, scaleY);
   if (rotation !== 0) context.rotate(rotation);
 }
 
@@ -43,12 +43,10 @@ export function applyGlobalTransformObject(
 }
 
 export function applyGlobalCameraObject(state: State, camera: Camera) {
-  applyGlobalTransform(
-    state,
-    camera.position.x,
-    camera.position.y,
-    0,
-    camera.scale.x,
-    camera.scale.y
-  );
+  for (const context of state.contexts) {
+    if (camera.scale.x !== 1 || camera.scale.y !== 1)
+      context.scale(camera.scale.x, camera.scale.y);
+    if (camera.position.x || camera.position.y)
+      context.translate(camera.position.x, camera.position.y);
+  }
 }

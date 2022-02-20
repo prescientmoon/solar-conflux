@@ -3,7 +3,7 @@ const mul = 1;
 export const settings = {
   maxBoidForce: 0.05,
   maxBoidVelocity: 4,
-  maxBoids: 1000,
+  maxBoids: 500,
   alignmentRadius: 50,
   alignmentCoefficient: mul,
   separationRadius: 30,

@@ -1,5 +1,5 @@
 import { mat3 } from "gl-matrix";
-import { all, ECS, types } from "wolf-ecs";
+import { all, any, ECS, types } from "wolf-ecs";
 import { QuadTree } from "../QuadTree";
 import { TickScheduler } from "../TickScheduler";
 import { Texture } from "./assets";
@@ -269,7 +269,11 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
     ),
     spriteLayers: components.layers.map((layer) =>
       ecs.createQuery(
-        all<any>(components.sprite, components.transformMatrix, layer)
+        all<any>(
+          components.sprite,
+          any<any>(components.transformMatrix, components.transform),
+          layer
+        )
       )
     ),
   };

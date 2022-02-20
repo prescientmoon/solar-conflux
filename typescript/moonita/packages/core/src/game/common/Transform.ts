@@ -29,11 +29,11 @@ export const flipYMut = (transform: Transform) => {
 export const toLocalCoordinates = (transform: Transform, vec: Vector2) => {
   const result = V.clone(vec);
 
-  result.x /= transform.scale.x;
-  result.y /= transform.scale.y;
-
   result.x -= transform.position.x;
   result.x -= transform.position.y;
+
+  result.x /= transform.scale.x;
+  result.y /= transform.scale.y;
 
   return V.rotate(result, transform.rotation);
 };
@@ -41,11 +41,11 @@ export const toLocalCoordinates = (transform: Transform, vec: Vector2) => {
 export const toGlobalCoordinates = (transform: Transform, vec: Vector2) => {
   const result = V.rotate(vec, -transform.rotation);
 
-  result.x += transform.position.x;
-  result.y += transform.position.y;
-
   result.x *= transform.scale.x;
   result.y *= transform.scale.y;
+
+  result.x += transform.position.x;
+  result.y += transform.position.y;
 
   return result;
 };
