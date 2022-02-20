@@ -10,6 +10,8 @@ import { Flag } from "../common/Flags";
 import { renderCustomArrow } from "./debugArrows";
 import { triggerEvent } from "./handleGameAction";
 import { renderCircle } from "./basicRenderers";
+import { vec4 } from "gl-matrix";
+import { transformMatrixFromTransform } from "../common/Transform";
 
 /** Move a boid in a given direction */
 function moveTowards(
@@ -297,13 +299,21 @@ export function renderDebugBoidData(state: State) {
       renderCustomArrow(context, position, force, { x: 2, y: 1 });
     });
   }
+
   if (state.flags[Flag.DebugShowPathfollowingGoals]) {
-    context.fillStyle = "rgba(0,0,0,0.3)";
     for (const path of state.paths) {
       const lastPoint = path.points[path.points.length - 1].position;
 
-      renderCircle(context, lastPoint.x, lastPoint.y, path.goalRadius);
-      context.fill();
+      state.webglRenderers.solidColorCircleRenderer.draw(
+        transformMatrixFromTransform(
+          lastPoint.x,
+          lastPoint.y,
+          path.goalRadius * 2,
+          path.goalRadius * 2,
+          0
+        ),
+        vec4.fromValues(0.3, 0.3, 0.3, 0.6)
+      );
     }
   }
 

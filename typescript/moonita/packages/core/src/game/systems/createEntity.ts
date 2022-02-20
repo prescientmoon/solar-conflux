@@ -116,7 +116,7 @@ export function createBoid(state: State, position: Vector2, team: number) {
 
   defaultTransform(state, eid);
   setPosition(state, eid, position.x, position.y);
-  setEntityVec(state.components.transform.scale, eid, { x: 10, y: 10 });
+  setEntityVec(state.components.transform.scale, eid, { x: 15, y: 15 });
   setVelocity(state, eid, 0, 0);
   setAcceleration(state, eid, 0, 0);
   limitSpeed(state, eid, settings.maxBoidVelocity);

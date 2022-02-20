@@ -6,8 +6,11 @@ import textureYellowBase from "/public/assets/yellow_base.svg";
 import textureBulletSpawner from "/public/assets/bullet_spawner.svg";
 import texturePurpleBoid from "/public/assets/purple_boid.svg";
 import textureOrangeBoid from "/public/assets/orange_boid.svg";
-import spriteVertexShader from "/packages/core/src/game/shaders/sprite.vert";
+import quadVertexShader from "/packages/core/src/game/shaders/unitQuad.vert";
 import spriteFragmentShader from "/packages/core/src/game/shaders/sprite.frag";
+import solidColorFragmentShader from "/packages/core/src/game/shaders/solidColor.frag";
+import solidColorCircleFragmentShader from "/packages/core/src/game/shaders/solidColorCircle.frag";
+import circleVertexShader from "/packages/core/src/game/shaders/unitCircle.vert";
 
 export const enum TextureId {
   BlueBullet,
@@ -19,6 +22,8 @@ export const enum TextureId {
 
 export const enum ShaderId {
   SpriteShader,
+  SolidColorShader,
+  SolidColorCircleShader,
 }
 
 const assetPaths: Record<TextureId, string> = {
@@ -30,7 +35,12 @@ const assetPaths: Record<TextureId, string> = {
 };
 
 const shaderSources: Record<ShaderId, [string, string]> = {
-  [ShaderId.SpriteShader]: [spriteVertexShader, spriteFragmentShader],
+  [ShaderId.SpriteShader]: [quadVertexShader, spriteFragmentShader],
+  [ShaderId.SolidColorShader]: [circleVertexShader, solidColorFragmentShader],
+  [ShaderId.SolidColorCircleShader]: [
+    circleVertexShader,
+    solidColorCircleFragmentShader,
+  ],
 };
 
 // Array version of assetPaths

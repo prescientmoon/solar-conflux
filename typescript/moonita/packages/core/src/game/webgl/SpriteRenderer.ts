@@ -1,14 +1,31 @@
 import * as twgl from "twgl.js";
 import { ShaderId } from "../assets";
-import { mat3, vec2, vec3 } from "gl-matrix";
+import { mat3, vec2, vec3, vec4 } from "gl-matrix";
 
-interface TextureRendererUniforms {
-  tex: WebGLTexture;
+interface GenericUniforms {
   u_transform_matrix: mat3;
   u_projection_matrix: mat3;
   u_world_matrix: mat3;
+}
+
+interface SpriteRendererUniforms extends GenericUniforms {
   u_texture_matrix: mat3;
-  u_layer: number;
+  tex: WebGLTexture;
+}
+
+interface SolidQuadUniforms extends GenericUniforms {
+  u_color: vec4;
+}
+
+function createUnitQuad(gl: WebGL2RenderingContext) {
+  const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
+    a_position: {
+      data: [-1, -1, -1, 1, 1, -1, 1, -1, -1, 1, 1, 1],
+      numComponents: 2,
+    },
+  });
+
+  return bufferInfo;
 }
 
 export class SpriteRenderer {
@@ -22,19 +39,12 @@ export class SpriteRenderer {
     public gl: WebGL2RenderingContext,
     public projectionMatrix: mat3,
     public worldMatrix: mat3,
-    public maxLayer: number,
     programs: ReadonlyArray<WebGLProgram>
   ) {
     this.program = programs[ShaderId.SpriteShader];
     this.programInfo = twgl.createProgramInfoFromProgram(gl, this.program);
 
-    const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
-      a_position: {
-        data: [-1, -1, -1, 1, 1, -1, 1, -1, -1, 1, 1, 1],
-        numComponents: 2,
-      },
-    });
-
+    const bufferInfo = createUnitQuad(gl);
     this.bufferInfo = bufferInfo;
     this.vaoInfo = twgl.createVertexArrayInfo(gl, this.programInfo, bufferInfo);
   }
@@ -42,37 +52,65 @@ export class SpriteRenderer {
   public draw(
     transformMatrix: mat3,
     texture: WebGLTexture,
-    textureMatrix: mat3,
-    layer: number
+    textureMatrix: mat3
   ) {
     this.gl.useProgram(this.program);
 
-    const uniforms: TextureRendererUniforms = {
-      tex: texture,
+    const uniforms: SpriteRendererUniforms = {
       u_transform_matrix: transformMatrix,
       u_projection_matrix: this.projectionMatrix,
       u_world_matrix: this.worldMatrix,
+      tex: texture,
       u_texture_matrix: textureMatrix,
-      u_layer: Math.random(), // layer / this.maxLayer,
     };
 
     twgl.setUniforms(this.programInfo, uniforms);
 
-    const offset = 0;
-    const count = 6;
+    this.gl.bindVertexArray(this.vaoInfo.vertexArrayObject!);
+    this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+    this.gl.bindVertexArray(null);
+  }
+}
 
-    const logV = (v: [number, number]) => {
-      vec2.transformMat3(v, v, transformMatrix);
-      vec2.transformMat3(v, v, this.projectionMatrix);
+export class SolidColorQuadRenderer {
+  private program: WebGLProgram;
 
-      console.log(v);
+  private bufferInfo: twgl.BufferInfo;
+  private vaoInfo: twgl.VertexArrayInfo;
+  private programInfo: twgl.ProgramInfo;
+
+  public constructor(
+    public gl: WebGL2RenderingContext,
+    public projectionMatrix: mat3,
+    public worldMatrix: mat3,
+    programs: ReadonlyArray<WebGLProgram>,
+    isCircle = false
+  ) {
+    this.program =
+      programs[
+        isCircle ? ShaderId.SolidColorCircleShader : ShaderId.SolidColorShader
+      ];
+    this.programInfo = twgl.createProgramInfoFromProgram(gl, this.program);
+
+    const bufferInfo = createUnitQuad(gl);
+    this.bufferInfo = bufferInfo;
+    this.vaoInfo = twgl.createVertexArrayInfo(gl, this.programInfo, bufferInfo);
+  }
+
+  public draw(transformMatrix: mat3, color: vec4) {
+    this.gl.useProgram(this.program);
+
+    const uniforms: SolidQuadUniforms = {
+      u_transform_matrix: transformMatrix,
+      u_projection_matrix: this.projectionMatrix,
+      u_world_matrix: this.worldMatrix,
+      u_color: color,
     };
 
-    // logV([-1, -1]);
-    // throw new Error();
+    twgl.setUniforms(this.programInfo, uniforms);
 
     this.gl.bindVertexArray(this.vaoInfo.vertexArrayObject!);
-    this.gl.drawArrays(this.gl.TRIANGLES, offset, count);
+    this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
     this.gl.bindVertexArray(null);
   }
 }

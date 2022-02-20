@@ -57,7 +57,7 @@ import { settings } from "./common/Settings";
 import { TickScheduler } from "../TickScheduler";
 import { handleGameAction } from "./systems/handleGameAction";
 import { createTextures } from "twgl.js";
-import { SpriteRenderer } from "./webgl/SpriteRenderer";
+import { SolidColorQuadRenderer, SpriteRenderer } from "./webgl/SpriteRenderer";
 import { mat2d, mat3, vec2 } from "gl-matrix";
 
 export class Game {
@@ -119,8 +119,20 @@ export class Game {
               gl,
               projectionMatrix,
               worldMatrix,
-              layers.length,
               programs
+            ),
+            solidColorQuadRenderer: new SolidColorQuadRenderer(
+              gl,
+              projectionMatrix,
+              worldMatrix,
+              programs
+            ),
+            solidColorCircleRenderer: new SolidColorQuadRenderer(
+              gl,
+              projectionMatrix,
+              worldMatrix,
+              programs,
+              true
             ),
           },
           tickScheduler: new TickScheduler(),

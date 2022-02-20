@@ -9,7 +9,7 @@ import { Flag, Flags } from "./common/Flags";
 import { Path } from "./common/Path";
 import * as V from "./common/Vector";
 import { Map } from "./Map";
-import { SpriteRenderer } from "./webgl/SpriteRenderer";
+import { SolidColorQuadRenderer, SpriteRenderer } from "./webgl/SpriteRenderer";
 
 export type ComponentMap = ReturnType<typeof createComponents>;
 export type QueryMap = ReturnType<typeof createQueries>;
@@ -32,6 +32,8 @@ export interface State {
   worldMatrix: mat3;
   webglRenderers: {
     spriteRenderer: SpriteRenderer;
+    solidColorQuadRenderer: SolidColorQuadRenderer;
+    solidColorCircleRenderer: SolidColorQuadRenderer;
   };
   ecs: ECS;
   tick: number;

@@ -1,16 +1,16 @@
-const mul = 1;
+const mul = 3;
 
 export const settings = {
   maxBoidForce: 0.05,
   maxBoidVelocity: 4,
   maxBoids: 500,
-  alignmentRadius: 50,
+  alignmentRadius: mul * 50,
   alignmentCoefficient: mul,
-  separationRadius: 30,
-  separationDifferentTeamRadius: 50,
+  separationRadius: mul * 30,
+  separationDifferentTeamRadius: mul * 50,
   separationCoefficient: mul * 1.5,
   separationDiffereTeamCoefficient: 10,
-  cohesionRadius: 50,
+  cohesionRadius: mul * 50,
   cohesionCoefficient: mul,
   seekingCoefficinet: mul,
   pathFollowingCoefficient: mul / 1.2,

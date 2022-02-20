@@ -12,6 +12,9 @@ body,
 * {
   box-sizing: border-box;
 }
+.game__game--stack {
+  background: black;
+}
 
 .game__game--stack,
 .game__game--canvas {

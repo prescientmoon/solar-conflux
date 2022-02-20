@@ -1,5 +1,6 @@
 import { Vector2 } from "./Vector";
 import * as V from "./Vector";
+import { mat3 } from "gl-matrix";
 
 // ========== Types
 export interface Transform {
@@ -49,3 +50,20 @@ export const toGlobalCoordinates = (transform: Transform, vec: Vector2) => {
 
   return result;
 };
+
+/** Create a transform matrix from a transform */
+export function transformMatrixFromTransform(
+  x: number,
+  y: number,
+  scaleX: number,
+  scaleY: number,
+  rotation: number
+): mat3 {
+  const result = mat3.fromTranslation(mat3.create(), [x, y]);
+
+  mat3.scale(result, result, [scaleX, scaleY]);
+
+  mat3.rotate(result, result, rotation);
+
+  return result;
+}
