@@ -9,9 +9,10 @@ import { Flag, Flags } from "./common/Flags";
 import { Path } from "./common/Path";
 import * as V from "./common/Vector";
 import { Map } from "./Map";
+import { SpriteRenderer } from "./webgl/SpriteRenderer";
 
 export type ComponentMap = ReturnType<typeof createComponents>;
-export type QueryMap = Record<keyof ReturnType<typeof createQueries>, Query>;
+export type QueryMap = ReturnType<typeof createQueries>;
 export type Query = ReturnType<ECS["createQuery"]>;
 
 export const enum LayerId {
@@ -20,11 +21,18 @@ export const enum LayerId {
   BulletLayer,
   DebugLayer,
   Unclearable,
+  WebglLayer,
   LastLayer,
 }
 
 export interface State {
   contexts: Array<CanvasRenderingContext2D>;
+  gl: WebGL2RenderingContext;
+  projectionMatrix: mat3;
+  worldMatrix: mat3;
+  webglRenderers: {
+    spriteRenderer: SpriteRenderer;
+  };
   ecs: ECS;
   tick: number;
   components: ComponentMap;
@@ -134,6 +142,9 @@ export const createComponents = (ecs: ECS, flags: Flags) => {
     height: types.u8,
     layer: types.u8,
   });
+  const sprite = ecs.defineComponent({
+    textureId: types.u8,
+  });
   const teamBase = ecs.defineComponent({
     baseId: types.u8,
   });
@@ -155,6 +166,7 @@ export const createComponents = (ecs: ECS, flags: Flags) => {
     bulletEmitter,
     mortal,
     texture,
+    sprite,
     created,
     teamBase,
     angularVelocity,
@@ -168,6 +180,9 @@ export const createComponents = (ecs: ECS, flags: Flags) => {
     rotateAfterVelocity,
     speedLimit,
     team,
+    layers: Array(LayerId.LastLayer)
+      .fill(1)
+      .map(() => ecs.defineComponent()),
   };
 };
 
@@ -196,6 +211,9 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
     mortal: ecs.createQuery(all(components.mortal)),
     textured: ecs.createQuery(
       all<any>(components.texture, components.transform)
+    ),
+    sprite: ecs.createQuery(
+      all<any>(components.sprite, components.transformMatrix)
     ),
     teamBase: ecs.createQuery(
       all<any>(components.teamBase, components.texture)
@@ -248,6 +266,11 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
     ),
     limitSpeeds: ecs.createQuery(
       all<any>(components.velocity, components.speedLimit)
+    ),
+    spriteLayers: components.layers.map((layer) =>
+      ecs.createQuery(
+        all<any>(components.sprite, components.transformMatrix, layer)
+      )
     ),
   };
 };

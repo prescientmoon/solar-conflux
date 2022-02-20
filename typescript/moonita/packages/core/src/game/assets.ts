@@ -61,6 +61,9 @@ export function createGpuAssets(
 
     twgl.loadTextureFromUrl(gl, texture, {
       src: url,
+      wrapS: gl.CLAMP_TO_EDGE,
+      wrapT: gl.CLAMP_TO_EDGE,
+      minMag: gl.LINEAR,
     });
 
     // return new Promise((resolve) => {

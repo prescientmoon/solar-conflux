@@ -27,7 +27,7 @@ export const defaultFlags: Flags = {
   [Flag.DebugGlobalState]: true,
   [Flag.DebugWrapping]: true,
   [Flag.DebugShowSelectedEntityPath]: false,
-  [Flag.SpawnDebugBulletEmitter]: true,
-  [Flag.SpawnDebugBoids]: true,
+  [Flag.SpawnDebugBulletEmitter]: false,
+  [Flag.SpawnDebugBoids]: false,
   [Flag.TextureCulling]: true,
 };

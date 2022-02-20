@@ -1,4 +1,5 @@
 import * as GameAction from "./GameAction";
+import * as twgl from "twgl.js";
 import { ECS } from "wolf-ecs";
 import { Effect, Stream } from "../Stream";
 import {
@@ -8,11 +9,22 @@ import {
   wheel,
 } from "../WebStreams";
 import * as Path from "./common/Path";
-import { assets, TextureId } from "./assets";
+import {
+  assets,
+  createGpuAssets,
+  createGpuPrograms,
+  TextureId,
+} from "./assets";
 import { defaultFlags, Flag } from "./common/Flags";
 import * as V from "./common/Vector";
 import { basicMap, basicMapPathA } from "./Map";
-import { createComponents, createQueries, LayerId, State } from "./State";
+import {
+  createComponents,
+  createQueries,
+  LayerId,
+  layers,
+  State,
+} from "./State";
 import {
   createBoid,
   markEntityCreation,
@@ -30,7 +42,7 @@ import {
   renderDebugQuadTrees,
   renderMap,
 } from "./systems/renderMap";
-import { renderTextures } from "./systems/renderTextures";
+import { renderTextures, renderWebglSprites } from "./systems/renderTextures";
 import { applyGlobalCameraObject } from "./systems/renderWithTransform";
 import * as Camera from "./common/Camera";
 import { renderDebugBoidData, simulateBoids } from "./systems/boids";
@@ -44,12 +56,19 @@ import { FlexibleTypedArray } from "../FlexibleTypedArray";
 import { settings } from "./common/Settings";
 import { TickScheduler } from "../TickScheduler";
 import { handleGameAction } from "./systems/handleGameAction";
+import { createTextures } from "twgl.js";
+import { SpriteRenderer } from "./webgl/SpriteRenderer";
+import { mat2d, mat3, vec2 } from "gl-matrix";
 
 export class Game {
   private state: State | null = null;
   private cancelers: Effect<void>[] = [];
 
-  public constructor(contexts: Stream<Array<CanvasRenderingContext2D>>) {
+  public constructor(
+    contexts: Stream<
+      [...Array<CanvasRenderingContext2D>, WebGL2RenderingContext]
+    >
+  ) {
     const cancelContexts = contexts((contexts) => {
       if (this.state === null) {
         const ecs = new ECS(5000, false);
@@ -58,7 +77,8 @@ export class Game {
         const queries = createQueries(ecs, components);
 
         contexts.forEach((ctx) => {
-          ctx.imageSmoothingEnabled = false;
+          if (ctx instanceof CanvasRenderingContext2D)
+            ctx.imageSmoothingEnabled = false;
         });
 
         // TODO: extract bounds related functionality in it's own module
@@ -83,8 +103,26 @@ export class Game {
           ),
         };
 
+        const gl = contexts.pop() as WebGL2RenderingContext;
+        const programs = createGpuPrograms(gl);
+
+        const projectionMatrix = mat3.create();
+        const worldMatrix = mat3.create();
+
         this.state = {
-          contexts: contexts,
+          contexts: contexts as any,
+          gl,
+          projectionMatrix,
+          worldMatrix,
+          webglRenderers: {
+            spriteRenderer: new SpriteRenderer(
+              gl,
+              projectionMatrix,
+              worldMatrix,
+              layers.length,
+              programs
+            ),
+          },
           tickScheduler: new TickScheduler(),
           components,
           queries,
@@ -92,6 +130,7 @@ export class Game {
           tick: 0,
           selectedEntity: null,
           assets,
+          textures: createGpuAssets(gl),
           map: basicMap,
           paths: [basicMapPathA, Path.flip(basicMapPathA)],
           camera: Camera.identityCamera(),
@@ -106,10 +145,47 @@ export class Game {
           },
         };
 
+        this.regenerateProjectionMatrix();
+
         if (this.state.flags[Flag.DebugGlobalState])
           (globalThis as any).state = this.state;
 
         this.resizeContext();
+
+        if (true) {
+          {
+            const eid = ecs.createEntity();
+
+            markEntityCreation(this.state, eid);
+
+            ecs.addComponent(eid, components.transformMatrix);
+            ecs.addComponent(eid, components.sprite);
+            ecs.addComponent(eid, components.layers[LayerId.BulletLayer]);
+
+            const transform = mat3.create();
+            mat3.translate(transform, transform, [100, 100]);
+            mat3.scale(transform, transform, [100, 100]);
+
+            components.sprite.textureId[eid] = TextureId.OrangeBoid;
+            components.transformMatrix[eid] = transform;
+          }
+          {
+            const eid = ecs.createEntity();
+
+            markEntityCreation(this.state, eid);
+
+            ecs.addComponent(eid, components.transformMatrix);
+            ecs.addComponent(eid, components.sprite);
+            ecs.addComponent(eid, components.layers[LayerId.DebugLayer]);
+
+            const transform = mat3.create();
+            mat3.translate(transform, transform, [70, 70]);
+            mat3.scale(transform, transform, [100, 100]);
+
+            components.sprite.textureId[eid] = TextureId.OrangeBoid;
+            components.transformMatrix[eid] = transform;
+          }
+        }
 
         if (this.state.flags[Flag.SpawnDebugBulletEmitter]) {
           const eid = ecs.createEntity();
@@ -183,12 +259,28 @@ export class Game {
         });
 
         this.cancelers.push(cancelWindowSizes);
-      } else this.state.contexts = contexts;
+      } else {
+        const gl = contexts.pop();
+
+        this.state.contexts = contexts as any;
+        this.state.gl = gl as any;
+      }
     });
 
     this.cancelers.push(cancelContexts);
 
     this.setupMouseDeltaHandler();
+  }
+
+  private regenerateProjectionMatrix() {
+    if (!this.state) return;
+
+    const gl = this.state.gl;
+    mat3.identity(this.state.projectionMatrix);
+    mat3.scale(this.state.projectionMatrix, this.state.projectionMatrix, [
+      2 / gl.canvas.width,
+      2 / gl.canvas.height,
+    ]);
   }
 
   private setupMouseDeltaHandler() {
@@ -198,6 +290,16 @@ export class Game {
 
         Camera.toLocalScaleMut(this.state.screenTransform, delta);
         Camera.translateGlobalCoordinatesMut(this.state.camera, delta);
+
+        const camera = this.state.worldMatrix;
+        const deltaVec = vec2.fromValues(delta.x, delta.y);
+        const originVec = vec2.create();
+        const icamera = mat3.invert(mat3.create(), camera);
+
+        vec2.transformMat3(deltaVec, deltaVec, icamera);
+        vec2.transformMat3(originVec, originVec, icamera);
+        vec2.subtract(deltaVec, deltaVec, originVec);
+        mat3.translate(camera, camera, deltaVec);
       })
     );
 
@@ -214,6 +316,32 @@ export class Game {
         const inWorldCoordinates = Camera.toLocalCoordinates(
           this.state.screenTransform,
           clientPosition
+        );
+
+        const camera = this.state.worldMatrix;
+        const deltaVec = vec2.fromValues(delta, delta);
+        const gl = this.state.gl;
+
+        const fixedClientPosition = vec2.fromValues(
+          clientPosition.x - gl.canvas.width / 2,
+          -clientPosition.y + gl.canvas.height / 2
+        );
+
+        // TODO: abstract this away
+        mat3.multiply(
+          camera,
+          [
+            deltaVec[0],
+            0,
+            0,
+            0,
+            deltaVec[1],
+            0,
+            fixedClientPosition[0] * (1 - deltaVec[0]),
+            fixedClientPosition[1] * (1 - deltaVec[1]),
+            1,
+          ],
+          camera
         );
 
         Camera.scaleAroundGlobalPointMut(
@@ -252,6 +380,9 @@ export class Game {
       context.canvas.height = window.innerHeight;
     }
 
+    twgl.resizeCanvasToDisplaySize(this.state.gl.canvas);
+
+    this.regenerateProjectionMatrix();
     this.state.screenTransform = Camera.defaultScreenTransform();
   }
 
@@ -268,12 +399,23 @@ export class Game {
       context.clearRect(0, 0, 10000, 10000);
     }
 
+    const gl = this.state.gl;
+
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
     // Apply base transforms
     applyGlobalCameraObject(this.state, this.state.screenTransform);
     applyGlobalCameraObject(this.state, this.state.camera);
 
     renderMap(this.state);
     renderTextures(this.state);
+    renderWebglSprites(this.state);
 
     renderDebugQuadTrees(this.state);
     renderDebugArrows(this.state);

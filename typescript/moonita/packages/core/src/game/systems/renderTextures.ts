@@ -4,10 +4,8 @@ import * as C from "../common/Camera";
 import * as T from "../common/Transform";
 import * as V from "../common/Vector";
 import * as AABB from "../common/AABB";
-import * as twgl from "twgl.js";
 import { Flag } from "../common/Flags";
-import { ShaderId } from "../assets";
-import { mat3 } from "gl-matrix";
+import { mat3, vec2 } from "gl-matrix";
 
 export const renderTextures = (state: State) => {
   const screen: AABB.AABB = {
@@ -112,64 +110,27 @@ export function renderTexture(
   context.restore();
 }
 
-interface TextureRendererUniforms {
-  texture: WebGLTexture;
-  u_transform_matrix: mat3;
-  u_projection_matrix: mat3;
-  u_texture_matrix: mat3;
-}
+const genericTextureMatrix = mat3.create();
+mat3.scale(genericTextureMatrix, genericTextureMatrix, [1 / 2, 1 / 2]);
+mat3.translate(genericTextureMatrix, genericTextureMatrix, [1, 1]);
 
-export class TextureRenderer {
-  private program: WebGLProgram;
+console.log(vec2.transformMat3([0, 0], [0, 0], genericTextureMatrix));
 
-  private vao: WebGLVertexArrayObject;
-  private programInfo: twgl.ProgramInfo;
-  private bufferInfo: twgl.BufferInfo;
+export const renderWebglSprites = (state: State) => {
+  for (let layer = 0; layer < state.components.layers.length; layer++) {
+    state.queries.spriteLayers[layer]._forEach((eid) => {
+      const transformMatrix = state.components.transformMatrix[eid];
+      const textureId = state.components.sprite.textureId[eid];
 
-  public constructor(
-    public gl: WebGL2RenderingContext,
-    public projectionMatrix: mat3,
-    programs: ReadonlyArray<WebGLProgram>
-  ) {
-    this.program = programs[ShaderId.SpriteShader];
-    this.programInfo = twgl.createProgramInfoFromProgram(gl, this.program);
+      const texture = state.textures[textureId];
+      const textureMatrix = genericTextureMatrix;
 
-    const vao = this.gl.createVertexArray();
-
-    if (!vao) throw new Error(`Failed to create vao`);
-
-    this.vao = vao;
-    this.gl.bindVertexArray(vao);
-
-    this.bufferInfo = twgl.createBufferInfoFromArrays(gl, {
-      a_position: [0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1],
+      state.webglRenderers.spriteRenderer.draw(
+        transformMatrix,
+        texture,
+        textureMatrix,
+        layer
+      );
     });
-
-    twgl.setBuffersAndAttributes(this.gl, this.programInfo, this.bufferInfo);
-
-    this.gl.bindVertexArray(null);
   }
-
-  public draw(
-    transformMatrix: mat3,
-    texture: WebGLTexture,
-    textureMatrix: mat3
-  ) {
-    this.gl.bindVertexArray(this.vao);
-    this.gl.useProgram(this.program);
-
-    const uniforms: TextureRendererUniforms = {
-      texture,
-      u_transform_matrix: transformMatrix,
-      u_projection_matrix: this.projectionMatrix,
-      u_texture_matrix: textureMatrix,
-    };
-
-    twgl.setUniforms(this.programInfo, uniforms);
-
-    const offset = 0;
-    const count = 6;
-
-    this.gl.drawArrays(this.gl.TRIANGLES, offset, count);
-  }
-}
+};
