@@ -304,16 +304,18 @@ export function renderDebugBoidData(state: State) {
     for (const path of state.paths) {
       const lastPoint = path.points[path.points.length - 1].position;
 
-      state.webglRenderers.solidColorCircleRenderer.draw(
-        transformMatrixFromTransform(
-          lastPoint.x,
-          lastPoint.y,
-          path.goalRadius * 2,
-          path.goalRadius * 2,
-          0
-        ),
-        vec4.fromValues(0.3, 0.3, 0.3, 0.6)
-      );
+      // TODO: reimplement
+
+      // state.webglRenderers.solidColorCircleRenderer.draw(
+      //   transformMatrixFromTransform(
+      //     lastPoint.x,
+      //     lastPoint.y,
+      //     path.goalRadius,
+      //     path.goalRadius,
+      //     0
+      //   ),
+      //   vec4.fromValues(0.8, 0.8, 0.8, 0.6)
+      // );
     }
   }
 

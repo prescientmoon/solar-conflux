@@ -1,5 +1,4 @@
 import * as GameAction from "./GameAction";
-import * as twgl from "twgl.js";
 import { ECS } from "wolf-ecs";
 import { Effect, Stream } from "../Stream";
 import {
@@ -9,12 +8,7 @@ import {
   wheel,
 } from "../WebStreams";
 import * as Path from "./common/Path";
-import {
-  assets,
-  createGpuAssets,
-  createGpuPrograms,
-  TextureId,
-} from "./assets";
+import { assets, loadPixiTextures, TextureId } from "./assets";
 import { defaultFlags, Flag } from "./common/Flags";
 import * as V from "./common/Vector";
 import { basicMap, basicMapPathA } from "./Map";
@@ -40,15 +34,13 @@ import {
   renderDebugBounds,
   renderDebugPaths,
   renderDebugQuadTrees,
-  renderMap,
 } from "./systems/renderMap";
-import { renderTextures, renderWebglSprites } from "./systems/renderTextures";
+import { renderTextures, syncPixiTransforms } from "./systems/renderTextures";
 import { applyGlobalCameraObject } from "./systems/renderWithTransform";
 import * as Camera from "./common/Camera";
 import { renderDebugBoidData, simulateBoids } from "./systems/boids";
 import { rotateAfterVelocity } from "./systems/rotateAfterVelocity";
 import { limitSpeeds } from "./systems/limitSpeeds";
-import { randomBetween, TAU } from "../math";
 import { QuadTree } from "../QuadTree";
 import { AABB } from "./common/AABB";
 import { updateBoidQuadTree } from "./systems/boidQuadTree";
@@ -56,20 +48,18 @@ import { FlexibleTypedArray } from "../FlexibleTypedArray";
 import { settings } from "./common/Settings";
 import { TickScheduler } from "../TickScheduler";
 import { handleGameAction } from "./systems/handleGameAction";
-import { createTextures } from "twgl.js";
-import { SolidColorQuadRenderer, SpriteRenderer } from "./webgl/SpriteRenderer";
-import { mat2d, mat3, vec2 } from "gl-matrix";
+import { mat3, vec2 } from "gl-matrix";
+import * as PIXI from "pixi.js";
+import { Layer } from "../../../client/src/components/Stack";
 
 export class Game {
   private state: State | null = null;
   private cancelers: Effect<void>[] = [];
 
   public constructor(
-    contexts: Stream<
-      [...Array<CanvasRenderingContext2D>, WebGL2RenderingContext]
-    >
+    contexts: Stream<[...Array<CanvasRenderingContext2D>, HTMLCanvasElement]>
   ) {
-    const cancelContexts = contexts((contexts) => {
+    const cancelContexts = contexts(async (contexts) => {
       if (this.state === null) {
         const ecs = new ECS(5000, false);
         const flags = defaultFlags;
@@ -103,38 +93,31 @@ export class Game {
           ),
         };
 
-        const gl = contexts.pop() as WebGL2RenderingContext;
-        const programs = createGpuPrograms(gl);
+        const canvas = contexts.pop() as HTMLCanvasElement;
+        const stage = new PIXI.Container();
+        const pixiTextures = await loadPixiTextures();
 
-        const projectionMatrix = mat3.create();
-        const worldMatrix = mat3.create();
+        stage.name = "Root";
+
+        for (let i = 0; i < layers.length; i++) {
+          const layer = new PIXI.Container();
+          layer.name = `Layer ${i}`;
+          stage.addChild(layer);
+        }
+
+        const g = new PIXI.Graphics();
+        g.beginFill(0xffffff, 1);
+        g.drawRect(-10, -10, 20, 20);
+
+        stage.addChild(g);
 
         this.state = {
           contexts: contexts as any,
-          gl,
-          projectionMatrix,
-          worldMatrix,
-          webglRenderers: {
-            spriteRenderer: new SpriteRenderer(
-              gl,
-              projectionMatrix,
-              worldMatrix,
-              programs
-            ),
-            solidColorQuadRenderer: new SolidColorQuadRenderer(
-              gl,
-              projectionMatrix,
-              worldMatrix,
-              programs
-            ),
-            solidColorCircleRenderer: new SolidColorQuadRenderer(
-              gl,
-              projectionMatrix,
-              worldMatrix,
-              programs,
-              true
-            ),
-          },
+          pixiRenderer: PIXI.autoDetectRenderer({
+            view: canvas,
+          }),
+          pixiStage: stage,
+          pixiTextures,
           tickScheduler: new TickScheduler(),
           components,
           queries,
@@ -142,7 +125,6 @@ export class Game {
           tick: 0,
           selectedEntity: null,
           assets,
-          textures: createGpuAssets(gl),
           map: basicMap,
           paths: [basicMapPathA, Path.flip(basicMapPathA)],
           camera: Camera.identityCamera(),
@@ -156,8 +138,6 @@ export class Game {
             ],
           },
         };
-
-        this.regenerateProjectionMatrix();
 
         if (this.state.flags[Flag.DebugGlobalState])
           (globalThis as any).state = this.state;
@@ -236,28 +216,12 @@ export class Game {
         });
 
         this.cancelers.push(cancelWindowSizes);
-      } else {
-        const gl = contexts.pop();
-
-        this.state.contexts = contexts as any;
-        this.state.gl = gl as any;
-      }
+      } else throw new Error("Oof, gotta handle this thing now???");
     });
 
     this.cancelers.push(cancelContexts);
 
     this.setupMouseDeltaHandler();
-  }
-
-  private regenerateProjectionMatrix() {
-    if (!this.state) return;
-
-    const gl = this.state.gl;
-    mat3.identity(this.state.projectionMatrix);
-    mat3.scale(this.state.projectionMatrix, this.state.projectionMatrix, [
-      2 / gl.canvas.width,
-      2 / gl.canvas.height,
-    ]);
   }
 
   private setupMouseDeltaHandler() {
@@ -268,15 +232,15 @@ export class Game {
         Camera.toLocalScaleMut(this.state.screenTransform, delta);
         Camera.translateGlobalCoordinatesMut(this.state.camera, delta);
 
-        const camera = this.state.worldMatrix;
-        const deltaVec = vec2.fromValues(delta.x, delta.y);
-        const originVec = vec2.create();
-        const icamera = mat3.invert(mat3.create(), camera);
+        // const camera = this.state.worldMatrix;
+        // const deltaVec = vec2.fromValues(delta.x, delta.y);
+        // const originVec = vec2.create();
+        // const icamera = mat3.invert(mat3.create(), camera);
 
-        vec2.transformMat3(deltaVec, deltaVec, icamera);
-        vec2.transformMat3(originVec, originVec, icamera);
-        vec2.subtract(deltaVec, deltaVec, originVec);
-        mat3.translate(camera, camera, deltaVec);
+        // vec2.transformMat3(deltaVec, deltaVec, icamera);
+        // vec2.transformMat3(originVec, originVec, icamera);
+        // vec2.subtract(deltaVec, deltaVec, originVec);
+        // mat3.translate(camera, camera, deltaVec);
       })
     );
 
@@ -295,31 +259,31 @@ export class Game {
           clientPosition
         );
 
-        const camera = this.state.worldMatrix;
-        const deltaVec = vec2.fromValues(delta, delta);
-        const gl = this.state.gl;
+        // const camera = this.state.worldMatrix;
+        // const deltaVec = vec2.fromValues(delta, delta);
+        // const gl = this.state.gl;
 
-        const fixedClientPosition = vec2.fromValues(
-          clientPosition.x - gl.canvas.width / 2,
-          -clientPosition.y + gl.canvas.height / 2
-        );
+        // const fixedClientPosition = vec2.fromValues(
+        //   clientPosition.x - gl.canvas.width / 2,
+        //   -clientPosition.y + gl.canvas.height / 2
+        // );
 
-        // TODO: abstract this away
-        mat3.multiply(
-          camera,
-          [
-            deltaVec[0],
-            0,
-            0,
-            0,
-            deltaVec[1],
-            0,
-            fixedClientPosition[0] * (1 - deltaVec[0]),
-            fixedClientPosition[1] * (1 - deltaVec[1]),
-            1,
-          ],
-          camera
-        );
+        // // TODO: abstract this away
+        // mat3.multiply(
+        //   camera,
+        //   [
+        //     deltaVec[0],
+        //     0,
+        //     0,
+        //     0,
+        //     deltaVec[1],
+        //     0,
+        //     fixedClientPosition[0] * (1 - deltaVec[0]),
+        //     fixedClientPosition[1] * (1 - deltaVec[1]),
+        //     1,
+        //   ],
+        //   camera
+        // );
 
         Camera.scaleAroundGlobalPointMut(
           this.state.camera,
@@ -357,9 +321,14 @@ export class Game {
       context.canvas.height = window.innerHeight;
     }
 
-    twgl.resizeCanvasToDisplaySize(this.state.gl.canvas);
+    this.state.pixiRenderer.resize(window.innerWidth, window.innerHeight);
 
-    this.regenerateProjectionMatrix();
+    this.state.pixiStage.transform.position.set(
+      this.state.pixiRenderer.view.width / 2,
+      this.state.pixiRenderer.view.height / 2
+    );
+    this.state.pixiStage.transform.scale.set(1, -1);
+
     this.state.screenTransform = Camera.defaultScreenTransform();
   }
 
@@ -376,29 +345,21 @@ export class Game {
       context.clearRect(0, 0, 10000, 10000);
     }
 
-    const gl = this.state.gl;
-
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    // gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    syncPixiTransforms(this.state);
 
     // Apply base transforms
     applyGlobalCameraObject(this.state, this.state.screenTransform);
     applyGlobalCameraObject(this.state, this.state.camera);
 
-    renderMap(this.state);
     renderTextures(this.state);
-    renderWebglSprites(this.state);
 
     renderDebugQuadTrees(this.state);
     renderDebugArrows(this.state);
     renderDebugPaths(this.state);
     renderDebugBounds(this.state);
     renderDebugBoidData(this.state);
+
+    this.state.pixiRenderer.render(this.state.pixiStage);
   }
 
   public update() {
@@ -428,6 +389,7 @@ export class Game {
 
   public initRenderer(): Effect<void> {
     let stopped = false;
+
     const loop = () => {
       this.render();
 

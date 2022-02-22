@@ -7,9 +7,8 @@ import { AABB } from "./common/AABB";
 import { Camera as Camera2d } from "./common/Camera";
 import { Flag, Flags } from "./common/Flags";
 import { Path } from "./common/Path";
-import * as V from "./common/Vector";
 import { Map } from "./Map";
-import { SolidColorQuadRenderer, SpriteRenderer } from "./webgl/SpriteRenderer";
+import * as PIXI from "pixi.js";
 
 export type ComponentMap = ReturnType<typeof createComponents>;
 export type QueryMap = ReturnType<typeof createQueries>;
@@ -25,36 +24,32 @@ export const enum LayerId {
   LastLayer,
 }
 
-export interface State {
-  contexts: Array<CanvasRenderingContext2D>;
-  gl: WebGL2RenderingContext;
-  projectionMatrix: mat3;
-  worldMatrix: mat3;
-  webglRenderers: {
-    spriteRenderer: SpriteRenderer;
-    solidColorQuadRenderer: SolidColorQuadRenderer;
-    solidColorCircleRenderer: SolidColorQuadRenderer;
-  };
+export interface SimulationState {
   ecs: ECS;
-  tick: number;
   components: ComponentMap;
   queries: QueryMap;
-  assets: ReadonlyArray<Texture>;
-  textures: ReadonlyArray<WebGLTexture>;
   map: Map;
-  camera: Camera2d;
-  screenTransform: Camera2d;
   flags: Flags;
+  paths: Array<Path>;
+  bounds: AABB;
+  tickScheduler: TickScheduler<number>;
   structures: {
     boidQuadTrees: QuadTree[];
   };
-  paths: Array<Path>;
-  bounds: AABB;
+}
+
+export interface State extends SimulationState {
+  contexts: Array<CanvasRenderingContext2D>;
+  pixiRenderer: PIXI.AbstractRenderer;
+  pixiStage: PIXI.Container;
+  pixiTextures: PIXI.Texture[];
+  tick: number;
+  assets: ReadonlyArray<Texture>;
+  camera: Camera2d;
+  screenTransform: Camera2d;
 
   // Here for debugging
   selectedEntity: SelectedEntity | null;
-
-  tickScheduler: TickScheduler<number>;
 }
 
 export interface SelectedEntity {
@@ -110,10 +105,6 @@ const PathFollowingBehavior = (flags: Flags) => {
   return result;
 };
 
-export const ThrusterData = {
-  thrusters: types.ushort,
-};
-
 // ========== Helpers
 export const createComponents = (ecs: ECS, flags: Flags) => {
   const transform = ecs.defineComponent(Transform);
@@ -125,7 +116,6 @@ export const createComponents = (ecs: ECS, flags: Flags) => {
   const pathFollowingBehavior = ecs.defineComponent(
     PathFollowingBehavior(flags)
   );
-  const thrusters = ecs.defineComponent(ThrusterData);
   const bulletEmitter = ecs.defineComponent({
     frequency: types.u8,
   });
@@ -144,9 +134,7 @@ export const createComponents = (ecs: ECS, flags: Flags) => {
     height: types.u8,
     layer: types.u8,
   });
-  const sprite = ecs.defineComponent({
-    textureId: types.u8,
-  });
+  const sprite = ecs.defineComponent(types.any<PIXI.Sprite>());
   const teamBase = ecs.defineComponent({
     baseId: types.u8,
   });
@@ -174,7 +162,6 @@ export const createComponents = (ecs: ECS, flags: Flags) => {
     angularVelocity,
     seekingBehavior,
     physicsObject,
-    thrusters,
     pathFollowingBehavior,
     boidSeparation,
     boidAlignment,
@@ -182,9 +169,6 @@ export const createComponents = (ecs: ECS, flags: Flags) => {
     rotateAfterVelocity,
     speedLimit,
     team,
-    layers: Array(LayerId.LastLayer)
-      .fill(1)
-      .map(() => ecs.defineComponent()),
   };
 };
 
@@ -214,9 +198,7 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
     textured: ecs.createQuery(
       all<any>(components.texture, components.transform)
     ),
-    sprite: ecs.createQuery(
-      all<any>(components.sprite, components.transformMatrix)
-    ),
+    sprite: ecs.createQuery(all<any>(components.sprite, components.transform)),
     teamBase: ecs.createQuery(
       all<any>(components.teamBase, components.texture)
     ),
@@ -268,15 +250,6 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
     ),
     limitSpeeds: ecs.createQuery(
       all<any>(components.velocity, components.speedLimit)
-    ),
-    spriteLayers: components.layers.map((layer) =>
-      ecs.createQuery(
-        all<any>(
-          components.sprite,
-          any<any>(components.transformMatrix, components.transform),
-          layer
-        )
-      )
     ),
   };
 };

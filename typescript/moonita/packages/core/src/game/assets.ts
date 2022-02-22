@@ -1,4 +1,4 @@
-import * as twgl from "twgl.js";
+import * as PIXI from "pixi.js";
 
 // ========== Asset imports
 import textureBlueBullet from "/public/assets/blue_bullet.svg";
@@ -6,11 +6,6 @@ import textureYellowBase from "/public/assets/yellow_base.svg";
 import textureBulletSpawner from "/public/assets/bullet_spawner.svg";
 import texturePurpleBoid from "/public/assets/purple_boid.svg";
 import textureOrangeBoid from "/public/assets/orange_boid.svg";
-import quadVertexShader from "/packages/core/src/game/shaders/unitQuad.vert";
-import spriteFragmentShader from "/packages/core/src/game/shaders/sprite.frag";
-import solidColorFragmentShader from "/packages/core/src/game/shaders/solidColor.frag";
-import solidColorCircleFragmentShader from "/packages/core/src/game/shaders/solidColorCircle.frag";
-import circleVertexShader from "/packages/core/src/game/shaders/unitCircle.vert";
 
 export const enum TextureId {
   BlueBullet,
@@ -18,12 +13,6 @@ export const enum TextureId {
   BulletSpawner,
   PurpleBoid,
   OrangeBoid,
-}
-
-export const enum ShaderId {
-  SpriteShader,
-  SolidColorShader,
-  SolidColorCircleShader,
 }
 
 const assetPaths: Record<TextureId, string> = {
@@ -34,25 +23,10 @@ const assetPaths: Record<TextureId, string> = {
   [TextureId.OrangeBoid]: textureOrangeBoid,
 };
 
-const shaderSources: Record<ShaderId, [string, string]> = {
-  [ShaderId.SpriteShader]: [quadVertexShader, spriteFragmentShader],
-  [ShaderId.SolidColorShader]: [circleVertexShader, solidColorFragmentShader],
-  [ShaderId.SolidColorCircleShader]: [
-    circleVertexShader,
-    solidColorCircleFragmentShader,
-  ],
-};
-
 // Array version of assetPaths
 const assetPathArray: ReadonlyArray<string> = Array.from({
   ...assetPaths,
   length: Object.values(assetPaths).length,
-});
-
-// Array version of assetPaths
-const shaderSourceArray: ReadonlyArray<[string, string]> = Array.from({
-  ...shaderSources,
-  length: Object.values(shaderSources).length,
 });
 
 export interface Texture {
@@ -60,43 +34,21 @@ export interface Texture {
   inherentRotation: number;
 }
 
-// TODO: return promise for better load-time handling
-// (eg: displaying a spinner)
-export function createGpuAssets(
-  gl: WebGL2RenderingContext
-): ReadonlyArray<WebGLTexture> {
-  return assetPathArray.map((url) => {
-    const texture = gl.createTexture();
-    if (texture === null) throw new Error(`Failed to create texture`);
+export function loadPixiTextures(): Promise<PIXI.Texture[]> {
+  return new Promise((resolve) => {
+    const loader = new PIXI.Loader();
+    for (const [id_, path] of Object.entries(assetPaths)) {
+      loader.add(id_, path);
+    }
 
-    twgl.loadTextureFromUrl(gl, texture, {
-      src: url,
-      wrapS: gl.CLAMP_TO_EDGE,
-      wrapT: gl.CLAMP_TO_EDGE,
-      minMag: gl.LINEAR,
+    loader.load((loader, resources) => {
+      resolve(
+        Array.from<PIXI.LoaderResource>({
+          ...resources,
+          length: assetPathArray.length,
+        }).map((r: PIXI.LoaderResource) => r.texture!)
+      );
     });
-
-    // return new Promise((resolve) => {
-    //   image.addEventListener(
-    //     "load",
-    //     () => {
-    //       resolve(null);
-    //     },
-    //     { once: true }
-    //   );
-    // });
-
-    return texture;
-  });
-}
-
-export function createGpuPrograms(
-  gl: WebGL2RenderingContext
-): ReadonlyArray<WebGLProgram> {
-  return shaderSourceArray.map(([vertex, fragment]) => {
-    const program = twgl.createProgramFromSources(gl, [vertex, fragment]);
-
-    return program;
   });
 }
 

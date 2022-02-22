@@ -1,30 +1,9 @@
 import { QuadTree } from "../../QuadTree";
 import { TextureId } from "../assets";
 import { Flag } from "../common/Flags";
-import { transformMatrixFromTransform } from "../common/Transform";
-import { baseSize } from "../Map";
 import { LayerId, State } from "../State";
 import { renderCustomArrow } from "./debugArrows";
-import { renderLine, renderLinePath } from "./renderLinePath";
-import { renderGpuSprite, renderTexture } from "./renderTextures";
-
-export const renderMap = (state: State) => {
-  for (let i = 0; i < state.map.teams.length; i++) {
-    const team = state.map.teams[i];
-
-    renderGpuSprite(
-      state,
-      transformMatrixFromTransform(
-        team.base.x,
-        team.base.y,
-        baseSize,
-        baseSize,
-        team.base.rotation
-      ),
-      TextureId.YellowBase
-    );
-  }
-};
+import { renderLinePath } from "./renderLinePath";
 
 export const renderDebugPaths = (state: State) => {
   if (!state.flags[Flag.DebugShowBasePaths]) return;

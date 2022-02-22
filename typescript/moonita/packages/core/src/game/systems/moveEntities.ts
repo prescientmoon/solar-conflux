@@ -1,8 +1,8 @@
 import { Flag } from "../common/Flags";
-import { State } from "../State";
+import { SimulationState } from "../State";
 import { setAcceleration } from "./createEntity";
 
-export function updateVelocities(state: State) {
+export function updateVelocities(state: SimulationState) {
   state.queries.kinematics._forEach((eid) => {
     state.components.velocity.x[eid] += state.components.acceleration.x[eid];
     state.components.velocity.y[eid] += state.components.acceleration.y[eid];
@@ -12,7 +12,7 @@ export function updateVelocities(state: State) {
   });
 }
 
-export function moveEntities(state: State) {
+export function moveEntities(state: SimulationState) {
   state.queries.kinematics._forEach((eid) => {
     state.components.transform.position.x[eid] +=
       state.components.velocity.x[eid];
@@ -40,7 +40,7 @@ export function moveEntities(state: State) {
   });
 }
 
-export function rotateEntities(state: State) {
+export function rotateEntities(state: SimulationState) {
   state.queries.rotating._forEach((eid) => {
     state.components.transform.rotation[eid] +=
       state.components.angularVelocity[eid];

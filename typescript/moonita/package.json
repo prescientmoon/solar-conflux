@@ -7,7 +7,10 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "@pixi/core": "^6.2.2",
+    "@pixi/display": "^6.2.2",
     "gl-matrix": "^3.4.3",
+    "pixi.js": "^6.2.2",
     "preact": "^10.5.13",
     "runtypes": "^6.5.0",
     "twgl.js": "^4.21.2",

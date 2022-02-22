@@ -1,8 +1,9 @@
 import * as GameAction from "../GameAction";
+import * as PIXI from "pixi.js";
 import { boidTextureByTeam, TextureId } from "../assets";
 import { settings } from "../common/Settings";
 import { Vector2 } from "../common/Vector";
-import { LayerId, State } from "../State";
+import { LayerId, SimulationState, State } from "../State";
 import { insertBoidIntoQuadTree } from "./boidQuadTree";
 import { setEntityVec } from "../common/Entity";
 
@@ -19,6 +20,24 @@ export const unstretch = (state: State, entity: number) => {
   state.components.transform.scale.y[entity] = 1;
 };
 
+export const addSprite = (
+  state: State,
+  eid: number,
+  layer: LayerId,
+  id: TextureId
+) => {
+  state.ecs.addComponent(eid, state.components.sprite);
+  state.ecs.addComponent;
+
+  const sprite = new PIXI.Sprite(state.pixiTextures[id]);
+  const layerContainer = state.pixiStage.children[layer] as PIXI.Container;
+
+  sprite.anchor.set(0.5, 0.5);
+
+  state.components.sprite[eid] = sprite;
+  layerContainer.addChild(sprite);
+};
+
 export const createBullet = (
   state: State,
   startFrom: number,
@@ -32,13 +51,13 @@ export const createBullet = (
   const rotation = state.components.transform.rotation[startFrom];
 
   markEntityCreation(state, eid);
+  addSprite(state, eid, LayerId.BulletLayer, TextureId.BlueBullet);
 
   state.ecs.addComponent(eid, state.components.transform);
   state.ecs.addComponent(eid, state.components.velocity);
   state.ecs.addComponent(eid, state.components.acceleration);
   state.ecs.addComponent(eid, state.components.bullet);
   state.ecs.addComponent(eid, state.components.mortal);
-  state.ecs.addComponent(eid, state.components.texture);
 
   state.components.transform.position.x[eid] = positionX;
   state.components.transform.position.y[eid] = positionY;
@@ -55,11 +74,6 @@ export const createBullet = (
     state.tick + lifetime,
     GameAction.despawnEntity(eid)
   );
-
-  state.components.sprite.textureId[eid] = TextureId.BlueBullet;
-  state.components.texture.width[eid] = 30;
-  state.components.texture.height[eid] = 30;
-  state.components.texture.layer[eid] = LayerId.BulletLayer;
 
   return eid;
 };
@@ -86,7 +100,7 @@ export function limitSpeed(state: State, eid: number, to: number) {
 }
 
 export function setAcceleration(
-  state: State,
+  state: SimulationState,
   eid: number,
   x: number,
   y: number
@@ -112,29 +126,24 @@ export function createBoid(state: State, position: Vector2, team: number) {
   state.ecs.addComponent(eid, state.components.sprite);
   state.ecs.addComponent(eid, state.components.rotateAfterVelocity);
   state.ecs.addComponent(eid, state.components.team);
-  state.ecs.addComponent(eid, state.components.layers[LayerId.BulletLayer]);
 
   defaultTransform(state, eid);
   setPosition(state, eid, position.x, position.y);
-  setEntityVec(state.components.transform.scale, eid, { x: 15, y: 15 });
+  setEntityVec(state.components.transform.scale, eid, { x: 0.01, y: 0.01 });
   setVelocity(state, eid, 0, 0);
   setAcceleration(state, eid, 0, 0);
   limitSpeed(state, eid, settings.maxBoidVelocity);
 
   state.components.physicsObject.mass[eid] = 1;
 
-  state.components.sprite.textureId[eid] = boidTextureByTeam[team];
-  // state.components.texture.width[eid] = 10;
-  // state.components.texture.height[eid] = 10;
   state.components.team[eid] = team;
+
+  addSprite(state, eid, LayerId.BulletLayer, boidTextureByTeam[team]);
 
   // TODO: automate this process
   insertBoidIntoQuadTree(state, eid, team);
 
   state.components.pathFollowingBehavior.path[eid] = team;
-
-  // state.components.seekingBehavior.target.x[eid] = 0;
-  // state.components.seekingBehavior.target.y[eid] = 0;
 
   return eid;
 }

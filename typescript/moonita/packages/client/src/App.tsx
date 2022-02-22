@@ -24,13 +24,7 @@ export function App() {
             key={id}
             className="stack__stack--layer"
             emitRef={(canvas) => {
-              if (id === layers.length - 1)
-                emit(
-                  canvas.getContext("webgl2", {
-                    antialias: true,
-                    premultipliedAlpha: false,
-                  })! as any
-                );
+              if (id === layers.length - 1) emit(canvas as any);
               else emit(canvas.getContext("2d", {})!);
             }}
           ></Canvas>

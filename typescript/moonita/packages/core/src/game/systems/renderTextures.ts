@@ -1,13 +1,10 @@
-import { LayerId, State, Vector2 } from "../State";
+import { LayerId, State } from "../State";
 import { applyTransform } from "./renderWithTransform";
 import * as C from "../common/Camera";
 import * as T from "../common/Transform";
 import * as V from "../common/Vector";
 import * as AABB from "../common/AABB";
 import { Flag } from "../common/Flags";
-import { mat3, vec2 } from "gl-matrix";
-import { TextureId } from "../assets";
-import { computeTransformMatrix } from "../common/Entity";
 
 export const renderTextures = (state: State) => {
   const screen: AABB.AABB = {
@@ -112,48 +109,16 @@ export function renderTexture(
   context.restore();
 }
 
-function generateTextureMatrix(state: State, id: TextureId) {
-  const t = state.assets[id];
-  const m = mat3.create();
+export function syncPixiTransforms(state: State) {
+  state.queries.sprite._forEach((eid) => {
+    const sprite = state.components.sprite[eid];
 
-  // mat3.scale(m, m, [1 / 2, 1 / 2]);
-  mat3.translate(m, m, [0.5, 0.5]);
-  mat3.rotate(m, m, -t.inherentRotation);
+    sprite.position.x = state.components.transform.position.x[eid];
+    sprite.position.y = state.components.transform.position.y[eid];
 
-  return m;
-}
+    sprite.width = state.components.transform.scale.x[eid];
+    sprite.height = state.components.transform.scale.y[eid];
 
-function genericTextureMatrices(state: State) {
-  return state.assets.map((_, id) => generateTextureMatrix(state, id));
-}
-
-export const renderWebglSprites = (state: State) => {
-  // TODO: don't do this...
-  const matrices = genericTextureMatrices(state);
-  for (let layer = 0; layer < state.components.layers.length; layer++) {
-    state.queries.spriteLayers[layer]._forEach((eid) => {
-      const textureMatrix = matrices[state.components.sprite.textureId[eid]];
-      const transformMatrix =
-        state.components.transformMatrix[eid] ||
-        computeTransformMatrix(state, eid);
-      const textureId = state.components.sprite.textureId[eid];
-
-      renderGpuSprite(state, transformMatrix, textureId, textureMatrix);
-    });
-  }
-};
-
-export function renderGpuSprite(
-  state: State,
-  transformMatrix: mat3,
-  textureId: TextureId,
-  textureMatrix: mat3 = generateTextureMatrix(state, textureId)
-) {
-  const texture = state.textures[textureId];
-
-  state.webglRenderers.spriteRenderer.draw(
-    transformMatrix,
-    texture,
-    textureMatrix
-  );
+    sprite.rotation = state.components.transform.rotation[eid] + Math.PI / 2;
+  });
 }
