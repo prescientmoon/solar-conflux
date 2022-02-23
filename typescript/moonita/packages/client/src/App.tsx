@@ -5,28 +5,27 @@ import * as Array from "../../core/src/Array";
 import { Canvas } from "./components/Canvas";
 import { Stack } from "./components/Stack";
 
-const [contextStreams, contextEmitters] = Array.splitTuples(
-  layers.map(() => Stream.create<CanvasRenderingContext2D>())
+const [canvasStreams, canvasEmitters] = Array.splitTuples(
+  layers.map(() => Stream.create<HTMLCanvasElement>())
 );
 
-const contexts = Stream.sequence(contextStreams);
+const canvases = Stream.sequence(canvasStreams);
+const game = new Game(
+  canvases as Stream.Stream<[HTMLCanvasElement, HTMLCanvasElement]>
+);
 
-const game = new Game(contexts as any);
 game.initRenderer();
 game.initUpdater();
 
 export function App() {
   return (
     <Stack className="game__game--stack">
-      {contextEmitters.map((emit, id) => {
+      {canvasEmitters.map((emit, id) => {
         return (
           <Canvas
             key={id}
             className="stack__stack--layer"
-            emitRef={(canvas) => {
-              if (id === layers.length - 1) emit(canvas as any);
-              else emit(canvas.getContext("2d", {})!);
-            }}
+            emitRef={emit}
           ></Canvas>
         );
       })}

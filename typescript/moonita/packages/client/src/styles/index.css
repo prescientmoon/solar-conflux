@@ -13,7 +13,7 @@ body,
   box-sizing: border-box;
 }
 .game__game--stack {
-  background: black;
+  background: white;
 }
 
 .game__game--stack,

@@ -1,4 +1,3 @@
-import { applyGlobalCameraObject } from "../systems/renderWithTransform";
 import { Camera, identityCamera } from "./Camera";
 import { Vector2 } from "./Vector";
 

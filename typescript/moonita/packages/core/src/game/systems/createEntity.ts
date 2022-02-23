@@ -1,24 +1,17 @@
 import * as GameAction from "../GameAction";
 import * as PIXI from "pixi.js";
+import * as V from "../common/Vector";
 import { boidTextureByTeam, TextureId } from "../assets";
 import { settings } from "../common/Settings";
 import { Vector2 } from "../common/Vector";
-import { LayerId, SimulationState, State } from "../State";
+import { LayerId, SimulationState, State, stateIsComplete } from "../State";
 import { insertBoidIntoQuadTree } from "./boidQuadTree";
-import { setEntityVec } from "../common/Entity";
+import { identityTransform } from "../common/Transform";
 
-export const markEntityCreation = (state: State, eid: number) => {
+export function markEntityCreation(state: SimulationState, eid: number) {
   state.ecs.addComponent(eid, state.components.created);
   state.components.created.createdAt[eid] = state.tick;
-};
-
-/**
- * Reset the scaling of an entity
- */
-export const unstretch = (state: State, entity: number) => {
-  state.components.transform.scale.x[entity] = 1;
-  state.components.transform.scale.y[entity] = 1;
-};
+}
 
 export const addSprite = (
   state: State,
@@ -26,32 +19,31 @@ export const addSprite = (
   layer: LayerId,
   id: TextureId
 ) => {
-  state.ecs.addComponent(eid, state.components.sprite);
-  state.ecs.addComponent;
+  state.ecs.addComponent(eid, state.components.pixiObject);
 
   const sprite = new PIXI.Sprite(state.pixiTextures[id]);
-  const layerContainer = state.pixiStage.children[layer] as PIXI.Container;
+  const layerContainer = state.components.pixiObject.ref[state.camera].children[
+    layer
+  ] as PIXI.Container;
 
   sprite.anchor.set(0.5, 0.5);
-
-  state.components.sprite[eid] = sprite;
   layerContainer.addChild(sprite);
+
+  state.components.pixiObject.ref[eid] = sprite;
+  state.components.pixiObject.scaleBySpriteDimenssions[eid] = Number(true);
 };
 
 export const createBullet = (
-  state: State,
+  state: SimulationState,
   startFrom: number,
   velocity: number,
   lifetime: number
 ) => {
   const eid = state.ecs.createEntity();
 
-  const positionX = state.components.transform.position.x[startFrom];
-  const positionY = state.components.transform.position.y[startFrom];
-  const rotation = state.components.transform.rotation[startFrom];
+  const sourceTransform = state.components.transform[startFrom];
 
   markEntityCreation(state, eid);
-  addSprite(state, eid, LayerId.BulletLayer, TextureId.BlueBullet);
 
   state.ecs.addComponent(eid, state.components.transform);
   state.ecs.addComponent(eid, state.components.velocity);
@@ -59,15 +51,15 @@ export const createBullet = (
   state.ecs.addComponent(eid, state.components.bullet);
   state.ecs.addComponent(eid, state.components.mortal);
 
-  state.components.transform.position.x[eid] = positionX;
-  state.components.transform.position.y[eid] = positionY;
-  state.components.transform.rotation[eid] = rotation;
+  const transform = identityTransform();
+  state.components.transform[eid] = transform;
+  transform.position = V.clone(sourceTransform.position);
+  transform.rotation = sourceTransform.rotation;
 
-  unstretch(state, eid);
-  setAcceleration(state, eid, 0, 0);
-
-  state.components.velocity.x[eid] = Math.cos(rotation) * velocity;
-  state.components.velocity.y[eid] = Math.sin(rotation) * velocity;
+  state.components.velocity[eid].x =
+    Math.cos(sourceTransform.rotation) * velocity;
+  state.components.velocity[eid].y =
+    Math.sin(sourceTransform.rotation) * velocity;
   state.components.mortal.lifetime[eid] = lifetime;
 
   state.tickScheduler.schedule(
@@ -75,41 +67,22 @@ export const createBullet = (
     GameAction.despawnEntity(eid)
   );
 
+  if (stateIsComplete(state)) {
+    addSprite(state, eid, LayerId.BulletLayer, TextureId.BlueBullet);
+  }
+
   return eid;
 };
 
-export function defaultTransform(state: State, eid: number) {
-  setPosition(state, eid, 0, 0);
-  state.components.transform.scale.x[eid] = 1;
-  state.components.transform.scale.y[eid] = 1;
-  state.components.transform.rotation[eid] = 0;
-}
-
-export function setPosition(state: State, eid: number, x: number, y: number) {
-  state.components.transform.position.x[eid] = x;
-  state.components.transform.position.y[eid] = y;
-}
-
-export function setVelocity(state: State, eid: number, x: number, y: number) {
-  state.components.velocity.x[eid] = x;
-  state.components.velocity.y[eid] = y;
-}
-
-export function limitSpeed(state: State, eid: number, to: number) {
+export function limitSpeed(state: SimulationState, eid: number, to: number) {
   state.components.speedLimit[eid] = to;
 }
 
-export function setAcceleration(
+export function createBoid(
   state: SimulationState,
-  eid: number,
-  x: number,
-  y: number
+  position: Vector2,
+  team: number
 ) {
-  state.components.acceleration.x[eid] = x;
-  state.components.acceleration.y[eid] = y;
-}
-
-export function createBoid(state: State, position: Vector2, team: number) {
   const eid = state.ecs.createEntity();
 
   state.ecs.addComponent(eid, state.components.transform);
@@ -123,27 +96,33 @@ export function createBoid(state: State, position: Vector2, team: number) {
   state.ecs.addComponent(eid, state.components.boidSeparation);
   state.ecs.addComponent(eid, state.components.pathFollowingBehavior);
 
-  state.ecs.addComponent(eid, state.components.sprite);
   state.ecs.addComponent(eid, state.components.rotateAfterVelocity);
   state.ecs.addComponent(eid, state.components.team);
 
-  defaultTransform(state, eid);
-  setPosition(state, eid, position.x, position.y);
-  setEntityVec(state.components.transform.scale, eid, { x: 0.01, y: 0.01 });
-  setVelocity(state, eid, 0, 0);
-  setAcceleration(state, eid, 0, 0);
+  // Position
+  const transform = identityTransform();
+
+  transform.scale.x = 15;
+  transform.scale.y = 15;
+
+  state.components.transform[eid] = transform;
+  V.cloneInto(transform.position, position);
+
   limitSpeed(state, eid, settings.maxBoidVelocity);
 
+  state.components.velocity[eid] = V.origin();
+
+  // Mass & team
   state.components.physicsObject.mass[eid] = 1;
-
   state.components.team[eid] = team;
+  state.components.pathFollowingBehavior.path[eid] = team;
 
-  addSprite(state, eid, LayerId.BulletLayer, boidTextureByTeam[team]);
-
-  // TODO: automate this process
+  // TODO: automate this process?
   insertBoidIntoQuadTree(state, eid, team);
 
-  state.components.pathFollowingBehavior.path[eid] = team;
+  if (stateIsComplete(state)) {
+    addSprite(state, eid, LayerId.BulletLayer, boidTextureByTeam[team]);
+  }
 
   return eid;
 }

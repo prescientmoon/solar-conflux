@@ -5,10 +5,10 @@ import {
   maxActionCount,
   onDespawn,
 } from "../GameAction";
-import { State } from "../State";
+import { SimulationState } from "../State";
 import { spawnBullets } from "./spawnBullet";
 
-export function handleGameAction(state: State, task: Task<number>) {
+export function handleGameAction(state: SimulationState, task: Task<number>) {
   const action = task.task;
   const id = action & actionIdMask;
 
@@ -23,7 +23,7 @@ export function handleGameAction(state: State, task: Task<number>) {
   }
 }
 
-export function triggerEvent(state: State, event: TaskId) {
+export function triggerEvent(state: SimulationState, event: TaskId) {
   const tasks = state.tickScheduler.triggerEvent(event);
 
   for (let i = 0; i < tasks.length; i++) {

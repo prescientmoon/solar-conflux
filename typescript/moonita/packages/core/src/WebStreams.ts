@@ -52,7 +52,7 @@ export const mouseEvent =
     return () => window.removeEventListener(kind, listener);
   };
 
-export const mousePosition = (kind: MouseEventKind): Stream<Vector2> =>
+export const mousePosition = (_: MouseEventKind): Stream<Vector2> =>
   mapStream((e) => ({ x: e.clientX, y: e.clientY }), mouseEvent("mousemove"));
 
 export const mouseDownPosition = mousePosition("mousedown");

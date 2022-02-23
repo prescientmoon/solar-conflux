@@ -1,12 +1,16 @@
-import { State } from "../State";
+import { SimulationState } from "../State";
 
-export function insertBoidIntoQuadTree(state: State, id: number, team: number) {
+export function insertBoidIntoQuadTree(
+  state: SimulationState,
+  id: number,
+  team: number
+) {
   const tree = state.structures.boidQuadTrees[team];
 
   tree.insert(id);
 }
 
-export function updateBoidQuadTree(state: State, team: number) {
+export function updateBoidQuadTree(state: SimulationState, team: number) {
   const tree = state.structures.boidQuadTrees[team];
 
   tree.moveEntities();

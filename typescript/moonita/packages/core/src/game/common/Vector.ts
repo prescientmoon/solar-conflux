@@ -98,6 +98,14 @@ export const clone = (vec: Vector2): Vector2 => ({
   ...vec,
 });
 
+/** Explicit version of clone() */
+export function cloneInto(out: Vector2, in_: Vector2): Vector2 {
+  out.x = in_.x;
+  out.y = in_.y;
+
+  return out;
+}
+
 /** Rotate a vector around the origin by a given amount of radians */
 export const rotate = (vec: Vector2, angle: number): Vector2 => {
   if (angle === 0) return vec;

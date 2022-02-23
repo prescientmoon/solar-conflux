@@ -1,15 +1,15 @@
-import { State } from "../State";
+import { SimulationState } from "../State";
 
 /** Rotates all entities (which opted into this)
  * towards the direction they are moving in.
  */
-export function rotateAfterVelocity(state: State) {
+export function rotateAfterVelocity(state: SimulationState) {
   state.queries.rotateAfterVelocity._forEach((eid) => {
     const angle = Math.atan2(
-      state.components.velocity.y[eid],
-      state.components.velocity.x[eid]
+      state.components.velocity[eid].y,
+      state.components.velocity[eid].x
     );
 
-    state.components.transform.rotation[eid] = angle;
+    state.components.transform[eid].rotation = angle;
   });
 }

@@ -1,17 +1,27 @@
-import { mat3 } from "gl-matrix";
-import { all, any, ECS, types } from "wolf-ecs";
+import { all, ECS, types } from "wolf-ecs";
 import { QuadTree } from "../QuadTree";
 import { TickScheduler } from "../TickScheduler";
-import { Texture } from "./assets";
 import { AABB } from "./common/AABB";
 import { Camera as Camera2d } from "./common/Camera";
 import { Flag, Flags } from "./common/Flags";
 import { Path } from "./common/Path";
 import { Map } from "./Map";
+import { Transform } from "./common/Transform";
 import * as PIXI from "pixi.js";
+import type { Vector2 } from "./common/Vector";
+import * as V from "./common/Vector";
 
-export type ComponentMap = ReturnType<typeof createComponents>;
-export type QueryMap = ReturnType<typeof createQueries>;
+export type EntityId = number;
+export type SimulationComponentMap = ReturnType<
+  typeof createSimulationComponents
+>;
+export type FullComponentMap = SimulationComponentMap &
+  ReturnType<typeof createRenderingComponents>;
+
+export type SimulationQueryMap = ReturnType<typeof createSimulationQueries>;
+export type FullQueryMap = SimulationQueryMap &
+  ReturnType<typeof createRenderingQueries>;
+
 export type Query = ReturnType<ECS["createQuery"]>;
 
 export const enum LayerId {
@@ -24,10 +34,16 @@ export const enum LayerId {
   LastLayer,
 }
 
+export const enum StateKind {
+  Headless,
+  Full,
+}
+
 export interface SimulationState {
+  kind: StateKind;
   ecs: ECS;
-  components: ComponentMap;
-  queries: QueryMap;
+  components: SimulationComponentMap;
+  queries: SimulationQueryMap;
   map: Map;
   flags: Flags;
   paths: Array<Path>;
@@ -36,19 +52,25 @@ export interface SimulationState {
   structures: {
     boidQuadTrees: QuadTree[];
   };
+  tick: number;
 }
 
 export interface State extends SimulationState {
-  contexts: Array<CanvasRenderingContext2D>;
-  pixiRenderer: PIXI.AbstractRenderer;
-  pixiStage: PIXI.Container;
-  pixiTextures: PIXI.Texture[];
-  tick: number;
-  assets: ReadonlyArray<Texture>;
-  camera: Camera2d;
-  screenTransform: Camera2d;
+  // Overrides:
+  kind: StateKind.Full;
+  components: FullComponentMap;
+  queries: FullQueryMap;
 
-  // Here for debugging
+  // New props:
+  context: CanvasRenderingContext2D; // debug immediate mode rendering context
+  pixiRenderer: PIXI.AbstractRenderer; // main renderer
+  pixiStage: PIXI.Container; // root of the main renderer
+  pixiTextures: PIXI.Texture[]; // textures for use in the main renderer
+
+  camera: EntityId; // parent of the layer containers
+  screenTransform: EntityId; // flips and centers the system of coordinates
+
+  // Here for debugging:
   selectedEntity: SelectedEntity | null;
 }
 
@@ -58,29 +80,18 @@ export interface SelectedEntity {
 }
 
 // ========== Runtime type specs
-export const Vector2 = {
-  x: types.f32,
-  y: types.f32,
-};
-
-export const Transform = {
-  position: Vector2,
-  scale: Vector2,
-  rotation: types.f32,
-};
-
-export const TransformMatrix = types.any<mat3>();
+const typeVector2 = types.custom<Vector2>(() => V.origin());
 
 export const SeekingBehavior = {
-  target: Vector2,
+  target: typeVector2,
 };
 
 const PathFollowingBehavior = (flags: Flags) => {
   const result = {
     path: types.uint8,
     debugData: {
-      projection: Vector2,
-      force: Vector2,
+      projection: typeVector2,
+      force: typeVector2,
       hasProjection: types.ushort, // boolean
       followedSegment: types.ushort, // the index of the currently followed segment
     },
@@ -105,20 +116,31 @@ const PathFollowingBehavior = (flags: Flags) => {
   return result;
 };
 
+const SeparationBehavior = (flags: Flags) => {
+  const result = {
+    debugData: {
+      force: typeVector2,
+    },
+  };
+
+  if (!flags[Flag.DebugShowBoidSeparationForces]) {
+    // @ts-ignore
+    delete result.debugData.force;
+  }
+
+  return result;
+};
+
 // ========== Helpers
-export const createComponents = (ecs: ECS, flags: Flags) => {
-  const transform = ecs.defineComponent(Transform);
-  const transformMatrix = ecs.defineComponent(TransformMatrix);
-  const velocity = ecs.defineComponent(Vector2);
-  const acceleration = ecs.defineComponent(Vector2);
+export const createSimulationComponents = (ecs: ECS, flags: Flags) => {
+  const transform = ecs.defineComponent(types.any<Transform>());
+  const velocity = ecs.defineComponent(types.any<Vector2>());
+  const acceleration = ecs.defineComponent(typeVector2);
   const angularVelocity = ecs.defineComponent(types.f32);
   const seekingBehavior = ecs.defineComponent(SeekingBehavior);
   const pathFollowingBehavior = ecs.defineComponent(
     PathFollowingBehavior(flags)
   );
-  const bulletEmitter = ecs.defineComponent({
-    frequency: types.u8,
-  });
   const speedLimit = ecs.defineComponent(types.f32);
   const bullet = ecs.defineComponent();
   const mortal = ecs.defineComponent({
@@ -128,13 +150,6 @@ export const createComponents = (ecs: ECS, flags: Flags) => {
     createdAt: types.u32,
   });
   const team = ecs.defineComponent(types.u8);
-  const texture = ecs.defineComponent({
-    textureId: types.u8,
-    width: types.u8,
-    height: types.u8,
-    layer: types.u8,
-  });
-  const sprite = ecs.defineComponent(types.any<PIXI.Sprite>());
   const teamBase = ecs.defineComponent({
     baseId: types.u8,
   });
@@ -142,7 +157,7 @@ export const createComponents = (ecs: ECS, flags: Flags) => {
     mass: types.f32,
   });
 
-  const boidSeparation = ecs.defineComponent();
+  const boidSeparation = ecs.defineComponent(SeparationBehavior(flags));
   const boidAlignment = ecs.defineComponent();
   const boidCohesion = ecs.defineComponent();
   const rotateAfterVelocity = ecs.defineComponent();
@@ -151,12 +166,8 @@ export const createComponents = (ecs: ECS, flags: Flags) => {
     velocity,
     acceleration,
     transform,
-    transformMatrix,
     bullet,
-    bulletEmitter,
     mortal,
-    texture,
-    sprite,
     created,
     teamBase,
     angularVelocity,
@@ -172,7 +183,21 @@ export const createComponents = (ecs: ECS, flags: Flags) => {
   };
 };
 
-export const createQueries = (ecs: ECS, components: ComponentMap) => {
+export const createRenderingComponents = (ecs: ECS, _: Flags) => {
+  const pixiObject = ecs.defineComponent({
+    ref: types.any<PIXI.Container>(),
+    scaleBySpriteDimenssions: types.uint8, // boolean
+  });
+
+  return {
+    pixiObject,
+  };
+};
+
+export const createSimulationQueries = (
+  ecs: ECS,
+  components: SimulationComponentMap
+) => {
   return {
     kinematics: ecs.createQuery(
       all<any>(
@@ -187,21 +212,7 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
     bullets: ecs.createQuery(
       all<any>(components.transform, components.mortal, components.bullet)
     ),
-    bulletEmitters: ecs.createQuery(
-      all<any>(
-        components.created,
-        components.transform,
-        components.bulletEmitter
-      )
-    ),
     mortal: ecs.createQuery(all(components.mortal)),
-    textured: ecs.createQuery(
-      all<any>(components.texture, components.transform)
-    ),
-    sprite: ecs.createQuery(all<any>(components.sprite, components.transform)),
-    teamBase: ecs.createQuery(
-      all<any>(components.teamBase, components.texture)
-    ),
     boidSeek: ecs.createQuery(
       all<any>(
         components.seekingBehavior,
@@ -253,6 +264,32 @@ export const createQueries = (ecs: ECS, components: ComponentMap) => {
     ),
   };
 };
+
+export function createRenderingQueries(ecs: ECS, components: FullComponentMap) {
+  return {
+    pixiObject: ecs.createQuery(
+      all<any>(components.pixiObject, components.transform)
+    ),
+    teamBase: ecs.createQuery(
+      all<any>(components.teamBase, components.pixiObject)
+    ),
+  };
+}
+
+// ========== Helpers
+export function stateIsComplete(headless: SimulationState): headless is State {
+  return headless.kind === StateKind.Full;
+}
+
+/** Helper for getting the transform of the camera entity */
+export function getCamera(state: State): Camera2d {
+  return state.components.transform[state.camera];
+}
+
+/** Helper for getting the transform of the screen container entity */
+export function getScreenTransform(state: State): Camera2d {
+  return state.components.transform[state.screenTransform];
+}
 
 // ========== Constants
 export const layers = Array(LayerId.LastLayer)

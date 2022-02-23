@@ -1,14 +1,12 @@
-import { QuadTree } from "../../QuadTree";
-import { TextureId } from "../assets";
 import { Flag } from "../common/Flags";
-import { LayerId, State } from "../State";
+import { State } from "../State";
 import { renderCustomArrow } from "./debugArrows";
 import { renderLinePath } from "./renderLinePath";
 
 export const renderDebugPaths = (state: State) => {
   if (!state.flags[Flag.DebugShowBasePaths]) return;
 
-  const context = state.contexts[LayerId.DebugLayer];
+  const context = state.context;
 
   context.save();
   context.globalAlpha = 0.1;
@@ -48,7 +46,7 @@ export const renderDebugPaths = (state: State) => {
 export function renderDebugBounds(state: State) {
   if (!state.flags[Flag.DebugShowBounds]) return;
 
-  const context = state.contexts[LayerId.DebugLayer];
+  const context = state.context;
 
   context.strokeStyle = "black";
   context.lineWidth = 10;
@@ -65,7 +63,5 @@ export function renderDebugQuadTrees(state: State) {
   if (!state.flags[Flag.DebugShowQuadTree]) return;
 
   for (let i = 0; i < state.map.teams.length; i++)
-    state.structures.boidQuadTrees[i].render(
-      state.contexts[LayerId.DebugLayer]
-    );
+    state.structures.boidQuadTrees[i].render(state.context);
 }

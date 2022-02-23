@@ -62,7 +62,6 @@ export function transformMatrixFromTransform(
   const result = mat3.fromTranslation(mat3.create(), [x, y]);
 
   mat3.scale(result, result, [scaleX, scaleY]);
-
   mat3.rotate(result, result, rotation);
 
   return result;

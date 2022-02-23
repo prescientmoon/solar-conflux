@@ -1,6 +1,7 @@
-import { addMut, scale, Vector2 } from "./Vector";
+import { scale, Vector2 } from "./Vector";
 
 // ========== Types
+/** A camera is a transform with no rotation */
 export interface Camera {
   position: Vector2;
   scale: Vector2;
@@ -21,7 +22,8 @@ export function defaultScreenTransform(): Camera {
 
 // ========== Helpers
 export function translateLocalCoordinatesMut(camera: Camera, delta: Vector2) {
-  addMut(camera.position, camera.position, delta);
+  camera.position.x += delta.x * camera.scale.x;
+  camera.position.y += delta.y * camera.scale.y;
 
   return camera;
 }
@@ -31,15 +33,15 @@ export function setPositionGlobalCoordinatesMut(
   camera: Camera,
   position: Vector2
 ) {
-  camera.position.x = position.x / camera.scale.x;
-  camera.position.y = position.y / camera.scale.y;
+  camera.position.x = position.x;
+  camera.position.y = position.y;
 
   return camera;
 }
 
 export function translateGlobalCoordinatesMut(camera: Camera, delta: Vector2) {
-  camera.position.x += delta.x / camera.scale.x;
-  camera.position.y += delta.y / camera.scale.y;
+  camera.position.x += delta.x;
+  camera.position.y += delta.y;
 
   return camera;
 }
@@ -47,6 +49,17 @@ export function translateGlobalCoordinatesMut(camera: Camera, delta: Vector2) {
 export function scaleMut(camera: Camera, by: Vector2) {
   camera.scale.x *= by.x;
   camera.scale.y *= by.y;
+  return camera;
+}
+
+export function scaleAroundLocalPointMut(
+  camera: Camera,
+  at: Vector2,
+  by: Vector2
+) {
+  translateLocalCoordinatesMut(camera, at);
+  scaleMut(camera, by);
+  translateLocalCoordinatesMut(camera, scale(at, -1));
 
   return camera;
 }
@@ -56,24 +69,20 @@ export function scaleAroundGlobalPointMut(
   at: Vector2,
   by: Vector2
 ) {
-  translateGlobalCoordinatesMut(camera, scale(at, -1));
-  scaleMut(camera, by);
-  translateGlobalCoordinatesMut(camera, at);
-
-  return camera;
+  return scaleAroundLocalPointMut(camera, toLocalCoordinates(camera, at), by);
 }
 
 export function toLocalCoordinates(camera: Camera, point: Vector2): Vector2 {
   return {
-    x: point.x / camera.scale.x - camera.position.x,
-    y: point.y / camera.scale.y - camera.position.y,
+    x: (point.x - camera.position.x) / camera.scale.x,
+    y: (point.y - camera.position.y) / camera.scale.y,
   };
 }
 
 export function toGlobalCoordinates(camera: Camera, point: Vector2): Vector2 {
   return {
-    x: (point.x + camera.position.x) * camera.scale.x,
-    y: (point.y + camera.position.y) * camera.scale.y,
+    x: point.x * camera.scale.x + camera.position.x,
+    y: point.y * camera.scale.y + camera.position.y,
   };
 }
 

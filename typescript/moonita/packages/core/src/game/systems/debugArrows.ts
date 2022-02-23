@@ -2,7 +2,7 @@ import { Flag } from "../common/Flags";
 import { Vector2 } from "../common/Vector";
 import * as V from "../common/Vector";
 
-import { LayerId, State } from "../State";
+import { State } from "../State";
 
 const defaultTipSize: Vector2 = { x: 15, y: 5 };
 
@@ -65,5 +65,5 @@ export function renderPerpendicularArrows(
 export function renderDebugArrows(state: State) {
   if (!state.flags[Flag.DebugShowOriginArrow]) return;
 
-  renderPerpendicularArrows(state.contexts[LayerId.DebugLayer], 50);
+  renderPerpendicularArrows(state.context, 50);
 }

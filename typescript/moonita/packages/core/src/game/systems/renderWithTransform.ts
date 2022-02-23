@@ -1,6 +1,5 @@
 import { Camera } from "../common/Camera";
 import { Transform } from "../common/Transform";
-import { State } from "../State";
 
 export function applyTransform(
   context: CanvasRenderingContext2D,
@@ -15,25 +14,12 @@ export function applyTransform(
   if (rotation !== 0) context.rotate(rotation);
 }
 
-export function applyGlobalTransform(
-  state: State,
-  x: number,
-  y: number,
-  rotation: number,
-  scaleX: number,
-  scaleY: number
-) {
-  for (const context of state.contexts) {
-    applyTransform(context, x, y, rotation, scaleX, scaleY);
-  }
-}
-
 export function applyGlobalTransformObject(
-  state: State,
+  context: CanvasRenderingContext2D,
   transform2d: Transform
 ) {
-  applyGlobalTransform(
-    state,
+  applyTransform(
+    context,
     transform2d.position.x,
     transform2d.position.y,
     transform2d.rotation,
@@ -42,11 +28,12 @@ export function applyGlobalTransformObject(
   );
 }
 
-export function applyGlobalCameraObject(state: State, camera: Camera) {
-  for (const context of state.contexts) {
-    if (camera.scale.x !== 1 || camera.scale.y !== 1)
-      context.scale(camera.scale.x, camera.scale.y);
-    if (camera.position.x || camera.position.y)
-      context.translate(camera.position.x, camera.position.y);
-  }
+export function applyCameraObject(
+  context: CanvasRenderingContext2D,
+  camera: Camera
+) {
+  if (camera.position.x || camera.position.y)
+    context.translate(camera.position.x, camera.position.y);
+  if (camera.scale.x !== 1 || camera.scale.y !== 1)
+    context.scale(camera.scale.x, camera.scale.y);
 }

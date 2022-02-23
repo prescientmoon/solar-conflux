@@ -1,5 +1,4 @@
 import { Vector2 } from "../common/Vector";
-import { LayerId, State } from "../State";
 
 export type LinePath = Array<Vector2>;
 

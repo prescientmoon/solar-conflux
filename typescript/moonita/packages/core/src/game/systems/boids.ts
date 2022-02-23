@@ -1,21 +1,19 @@
 import * as GameAction from "../GameAction";
-import { getEntityVec, getPosition, getVelocity } from "../common/Entity";
+import { getPosition, getVelocity } from "../common/Entity";
 import { settings } from "../common/Settings";
 import * as V from "../common/Vector";
 import { applyForce } from "../physics";
-import { LayerId, State } from "../State";
+import { SimulationState, State } from "../State";
 import * as Segment from "../common/Segment";
 import { renderLine } from "./renderLinePath";
 import { Flag } from "../common/Flags";
 import { renderCustomArrow } from "./debugArrows";
 import { triggerEvent } from "./handleGameAction";
 import { renderCircle } from "./basicRenderers";
-import { vec4 } from "gl-matrix";
-import { transformMatrixFromTransform } from "../common/Transform";
 
 /** Move a boid in a given direction */
 function moveTowards(
-  state: State,
+  state: SimulationState,
   entity: number,
   force: V.Vector2,
   coefficient: number
@@ -32,17 +30,17 @@ function moveTowards(
 }
 
 // ========== Behaviors
-function seek(state: State) {
+function seek(state: SimulationState) {
+  // Reuse the same vector for applying forces
+  const result = V.origin();
+
   state.queries.boidSeek._forEach((eid) => {
     const position = getPosition(state, eid);
-    const target = {
-      x: state.components.seekingBehavior.target.x[eid],
-      y: state.components.seekingBehavior.target.y[eid],
-    };
+    const target = state.components.seekingBehavior.target[eid];
 
-    V.subMut(target, target, position);
+    V.subMut(result, target, position);
 
-    moveTowards(state, eid, target, settings.seekingCoefficinet);
+    moveTowards(state, eid, result, settings.seekingCoefficinet);
   });
 }
 
@@ -52,15 +50,17 @@ interface ProjectionWithLength {
   segment: number;
 }
 
-function pathFollow(state: State) {
+function pathFollow(state: SimulationState) {
+  const prediction = V.origin();
+
   state.queries.boidPathFollowing._forEach((eid) => {
     const path = state.paths[state.components.pathFollowingBehavior.path[eid]];
     const position = getPosition(state, eid);
-    const prediction = getVelocity(state, eid);
+    const velocity = getVelocity(state, eid);
 
     const predictionDistance = 30;
 
-    V.attemptNormalizeMut(prediction, prediction);
+    V.attemptNormalizeMut(prediction, velocity);
     V.scaleMut(prediction, prediction, predictionDistance);
     V.addMut(prediction, prediction, position);
 
@@ -91,9 +91,14 @@ function pathFollow(state: State) {
     const outsidePath =
       minProjection && minProjection.lengthSquared > path.radius ** 2;
 
-    if (state.flags[Flag.DebugShowPathfollowingProjections])
+    if (
+      state.flags[Flag.DebugShowPathfollowingForces] ||
+      state.flags[Flag.DebugShowSelectedEntityPath] ||
+      state.flags[Flag.DebugShowPathfollowingProjections]
+    ) {
       state.components.pathFollowingBehavior.debugData.hasProjection[eid] =
         Number(minProjection);
+    }
     if (state.flags[Flag.DebugShowSelectedEntityPath])
       state.components.pathFollowingBehavior.debugData.followedSegment[eid] =
         minProjection ? minProjection!.segment : path.points.length;
@@ -120,10 +125,9 @@ function pathFollow(state: State) {
 
       if (state.flags[Flag.DebugShowPathfollowingProjections]) {
         const saveProjectionInto =
-          state.components.pathFollowingBehavior.debugData.projection;
+          state.components.pathFollowingBehavior.debugData.projection[eid];
 
-        saveProjectionInto.x[eid] = position.x + target.x;
-        saveProjectionInto.y[eid] = position.y + target.y;
+        V.addMut(saveProjectionInto, position, target);
       }
 
       moveTowards(state, eid, target, settings.pathFollowingCoefficient / 4);
@@ -139,26 +143,29 @@ function pathFollow(state: State) {
 
       if (state.flags[Flag.DebugShowPathfollowingProjections]) {
         const saveProjectionInto =
-          state.components.pathFollowingBehavior.debugData.projection;
+          state.components.pathFollowingBehavior.debugData.projection[eid];
 
-        saveProjectionInto.x[eid] = minProjection.projection.x;
-        saveProjectionInto.y[eid] = minProjection.projection.y;
+        V.cloneInto(saveProjectionInto, minProjection.projection);
       }
     }
 
     if (state.flags[Flag.DebugShowPathfollowingForces]) {
-      const saveInto = state.components.pathFollowingBehavior.debugData.force;
+      const saveInto =
+        state.components.pathFollowingBehavior.debugData.force[eid];
 
-      saveInto.x[eid] = target.x;
-      saveInto.y[eid] = target.y;
+      V.cloneInto(saveInto, target);
     }
   });
 }
 
-export function separate(state: State) {
+export function separate(state: SimulationState) {
+  // Reuse temporary vector
+  const positionDelta = V.origin();
+
   state.queries.boidSeparation._forEach((eid) => {
     const position = getPosition(state, eid);
     const total = V.origin();
+    const differentTeamTotal = V.origin();
     const team = state.components.team[eid];
 
     for (let teamId = 0; teamId < state.map.teams.length; teamId++) {
@@ -169,6 +176,8 @@ export function separate(state: State) {
           : settings.separationDifferentTeamRadius
       );
 
+      const saveInto = teamId === team ? total : differentTeamTotal;
+
       for (let i = 0; i < result.used; i++) {
         const node = result.elements[i];
 
@@ -177,23 +186,42 @@ export function separate(state: State) {
         const otherPosition = getPosition(state, node);
         const dist = V.distance(position, otherPosition);
         const coefficient =
-          teamId === team ? 1 : settings.separationDiffereTeamCoefficient;
+          teamId === team
+            ? 1
+            : settings.separationDifferentTeamDistanecMultiplier;
 
-        V.subMut(otherPosition, position, otherPosition);
-        V.normalizeMut(otherPosition, otherPosition);
-        V.scaleMut(otherPosition, otherPosition, coefficient / dist);
+        V.subMut(positionDelta, position, otherPosition);
+        V.normalizeMut(positionDelta, positionDelta);
+        V.scaleMut(positionDelta, positionDelta, coefficient / dist);
 
-        V.addMut(total, total, otherPosition);
+        V.addMut(saveInto, saveInto, positionDelta);
       }
     }
 
     if (total.x || total.y) {
       moveTowards(state, eid, total, settings.separationCoefficient);
     }
+
+    if (differentTeamTotal.x || differentTeamTotal.y) {
+      moveTowards(
+        state,
+        eid,
+        differentTeamTotal,
+        settings.separationCoefficient *
+          settings.separationDiffereTeamCoefficient
+      );
+    }
+
+    if (state.flags[Flag.DebugShowBoidSeparationForces]) {
+      V.cloneInto(
+        state.components.boidSeparation.debugData.force[eid],
+        V.add(total, differentTeamTotal)
+      );
+    }
   });
 }
 
-export function align(state: State) {
+export function align(state: SimulationState) {
   state.queries.boidAlignment._forEach((eid) => {
     const team = state.components.team[eid];
     const position = getPosition(state, eid);
@@ -218,7 +246,7 @@ export function align(state: State) {
   });
 }
 
-export function cohese(state: State) {
+export function cohese(state: SimulationState) {
   state.queries.boidCohesion._forEach((eid) => {
     const team = state.components.team[eid];
     const position = getPosition(state, eid);
@@ -235,8 +263,7 @@ export function cohese(state: State) {
 
       if (node === eid) continue;
 
-      total.x += state.components.transform.position.x[node];
-      total.y += state.components.transform.position.y[node];
+      V.addMut(total, total, state.components.transform[eid].position);
       count++;
     }
 
@@ -260,7 +287,8 @@ export function simulateBoids(state: State) {
 }
 
 export function renderDebugBoidData(state: State) {
-  const context = state.contexts[LayerId.DebugLayer];
+  const context = state.context;
+
   context.save();
   if (state.flags[Flag.DebugShowPathfollowingProjections]) {
     context.strokeStyle = "black";
@@ -271,52 +299,61 @@ export function renderDebugBoidData(state: State) {
         return;
 
       const position = getPosition(state, eid);
-      const pathFollowing = getEntityVec(
-        state.components.pathFollowingBehavior.debugData.projection,
-        eid
-      );
+      const pathFollowing =
+        state.components.pathFollowingBehavior.debugData.projection[eid];
+
+      if (position === undefined || pathFollowing === undefined) return;
 
       renderLine(context, position, pathFollowing);
     });
   }
 
-  if (state.flags[Flag.DebugShowPathfollowingForces]) {
-    context.lineWidth = 1;
-    state.queries.boidPathFollowing._forEach((eid) => {
-      if (!state.components.pathFollowingBehavior.debugData.hasProjection)
-        return;
-      const force = getEntityVec(
-        state.components.pathFollowingBehavior.debugData.force,
-        eid
-      );
+  if (
+    state.flags[Flag.DebugShowPathfollowingForces] ||
+    state.flags[Flag.DebugShowBoidSeparationForces]
+  ) {
+    const temp = V.origin(); // reuse vector
 
+    function renderForce(eid: number, force: V.Vector2) {
       if (force.x === 0 && force.y === 0) return;
 
       const position = getPosition(state, eid);
-      V.scaleMut(force, force, 1000);
-      V.addMut(force, force, position);
 
-      renderCustomArrow(context, position, force, { x: 2, y: 1 });
-    });
+      V.scaleMut(temp, force, 1000);
+      V.addMut(temp, temp, position);
+
+      renderCustomArrow(context, position, temp, { x: 2, y: 1 });
+    }
+
+    context.lineWidth = 1;
+    if (state.flags[Flag.DebugShowPathfollowingForces])
+      state.queries.boidPathFollowing._forEach((eid) => {
+        if (!state.components.pathFollowingBehavior.debugData.hasProjection)
+          return;
+
+        const force =
+          state.components.pathFollowingBehavior.debugData.force[eid];
+
+        renderForce(eid, force);
+      });
+    if (state.flags[Flag.DebugShowBoidSeparationForces])
+      state.queries.boidPathFollowing._forEach((eid) => {
+        const force = state.components.boidSeparation.debugData.force[eid];
+
+        renderForce(eid, force);
+      });
   }
 
   if (state.flags[Flag.DebugShowPathfollowingGoals]) {
+    context.fillStyle = "rgba(100,100,100,0.3)";
+    context.save();
     for (const path of state.paths) {
       const lastPoint = path.points[path.points.length - 1].position;
 
-      // TODO: reimplement
-
-      // state.webglRenderers.solidColorCircleRenderer.draw(
-      //   transformMatrixFromTransform(
-      //     lastPoint.x,
-      //     lastPoint.y,
-      //     path.goalRadius,
-      //     path.goalRadius,
-      //     0
-      //   ),
-      //   vec4.fromValues(0.8, 0.8, 0.8, 0.6)
-      // );
+      renderCircle(context, lastPoint.x, lastPoint.y, path.goalRadius);
+      context.fill();
     }
+    context.restore();
   }
 
   if (
@@ -341,5 +378,31 @@ export function renderDebugBoidData(state: State) {
       );
     }
   }
+
+  if (state.flags[Flag.DebugShowBoidSeparationBonds]) {
+    context.lineWidth = 1;
+    state.queries.boidSeparation._forEach((eid) => {
+      const team = state.components.team[eid];
+      const position = getPosition(state, eid);
+
+      for (let teamId = 0; teamId < state.map.teams.length; teamId++) {
+        const result = state.structures.boidQuadTrees[teamId].retrieve(
+          position,
+          teamId === team
+            ? settings.separationRadius
+            : settings.separationDifferentTeamRadius
+        );
+
+        for (let i = 0; i < result.used; i++) {
+          const node = result.elements[i];
+
+          if (node === eid) continue;
+
+          renderLine(context, position, getPosition(state, node));
+        }
+      }
+    });
+  }
+
   context.restore();
 }

@@ -1,12 +1,11 @@
 import { Adt } from "./Adt";
 import { CircularBuffer } from "./CircularBuffer";
-import { AABB, center, pointInside, rawPointInside } from "./game/common/AABB";
+import { AABB, center, pointInside } from "./game/common/AABB";
 import { Vector2 } from "./game/common/Vector";
 import { Pair } from "./Types";
 import * as V from "./game/common/Vector";
-import { TypedArray } from "wolf-ecs";
-import { distanceSquared } from "./math";
 import { FlexibleTypedArray } from "./FlexibleTypedArray";
+import { Transform } from "./game/common/Transform";
 
 export type Node = number;
 
@@ -14,13 +13,6 @@ const enum TreeKind {
   Leaf,
   Parent,
 }
-
-type NumberTypedArray = TypedArray & Record<number, number>;
-
-type Positions = {
-  x: NumberTypedArray;
-  y: NumberTypedArray;
-};
 
 type Nodes = Adt<{
   [TreeKind.Leaf]: {
@@ -35,7 +27,7 @@ type Nodes = Adt<{
 
 export interface QuadTreeSettings {
   maxNodes: number;
-  positions: Positions;
+  transforms: Transform[];
   retriveInto: FlexibleTypedArray;
   entityMovementBuffer: FlexibleTypedArray;
 }
@@ -64,14 +56,13 @@ export class QuadTree {
   }
 
   private rawMoveEntities() {
-    const positions = this.settings.positions;
+    const transforms = this.settings.transforms;
 
     if (this.nodes.type === TreeKind.Leaf) {
       for (let i = 0; i < this.nodes.nodes.used; i++) {
         const node = this.nodes.nodes.get(i)!;
 
-        if (rawPointInside(this.bounds, positions.x[node], positions.y[node]))
-          continue;
+        if (pointInside(this.bounds, transforms[node].position)) continue;
         else {
           this.settings.entityMovementBuffer.push(node);
           this.nodes.nodes.remove(i);
@@ -94,7 +85,7 @@ export class QuadTree {
       for (let i = start; i < end; i++) {
         const id = this.settings.entityMovementBuffer.elements[i];
 
-        if (rawPointInside(this.bounds, positions.x[id], positions.y[id])) {
+        if (pointInside(this.bounds, transforms[id].position)) {
           this.assertInside(id);
           this.insert(id);
         } else this.settings.entityMovementBuffer.push(id);
@@ -140,17 +131,18 @@ export class QuadTree {
   ) {
     if (this.nodes.type === TreeKind.Leaf) {
       const maxSize = Math.max(this.bounds.size.x, this.bounds.size.y);
-      if (maxSize ** 2 * 2 >= radiusSquared) {
+      if (maxSize ** 2 * 2 <= radiusSquared) {
         // Optimization for spaces containing tons of entities
         for (let i = 0; i < this.nodes.nodes.used; i++)
           this.settings.retriveInto.push(this.nodes.nodes.get(i)!);
       } else {
         for (let i = 0; i < this.nodes.nodes.used; i++) {
           const node = this.nodes.nodes.get(i)!;
-          const x = this.settings.positions.x[node];
-          const y = this.settings.positions.y[node];
 
-          if (distanceSquared(x, y, near.x, near.y) <= radiusSquared) {
+          if (
+            V.distanceSquared(this.settings.transforms[node].position, near) <=
+            radiusSquared
+          ) {
             this.settings.retriveInto.push(node);
           }
         }
@@ -182,10 +174,9 @@ export class QuadTree {
   }
 
   public insert(node: Node) {
-    const x = this.settings.positions.x[node];
-    const y = this.settings.positions.y[node];
+    const position = this.settings.transforms[node].position;
 
-    if (!rawPointInside(this.bounds, x, y)) {
+    if (!pointInside(this.bounds, position)) {
       debugger;
       throw new Error(`Node ${node} not inside quad tree bounds!!!`);
     }
@@ -199,8 +190,8 @@ export class QuadTree {
         this.nodes.nodes!.tryPush(node);
       }
     } else if (nodes.type === TreeKind.Parent) {
-      const a = Number(x > this.center.x);
-      const b = Number(y > this.center.y);
+      const a = Number(position.x > this.center.x);
+      const b = Number(position.y > this.center.y);
 
       this.nodes.children![a][b].assertInside(node);
       this.nodes.children![a][b].insert(node);
@@ -242,13 +233,7 @@ export class QuadTree {
   }
 
   private assertInside(id: number) {
-    if (
-      !rawPointInside(
-        this.bounds,
-        this.settings.positions.x[id],
-        this.settings.positions.y[id]
-      )
-    )
+    if (!pointInside(this.bounds, this.settings.transforms[id].position))
       debugger;
   }
 

@@ -5,29 +5,31 @@ export const enum Flag {
   DebugShowQuadTree,
   DebugShowPathfollowingProjections,
   DebugShowPathfollowingForces,
+  DebugShowBoidSeparationForces,
   DebugShowPathfollowingGoals,
+  DebugShowBoidSeparationBonds,
   DebugGlobalState,
   DebugWrapping,
   DebugShowSelectedEntityPath,
   SpawnDebugBulletEmitter,
   SpawnDebugBoids,
-  TextureCulling,
 }
 
 export type Flags = Record<Flag, boolean>;
 
 export const defaultFlags: Flags = {
   [Flag.DebugShowOriginArrow]: true,
-  [Flag.DebugShowBasePaths]: false,
+  [Flag.DebugShowBasePaths]: true,
   [Flag.DebugShowBounds]: true,
-  [Flag.DebugShowQuadTree]: false,
+  [Flag.DebugShowQuadTree]: true,
   [Flag.DebugShowPathfollowingProjections]: false,
   [Flag.DebugShowPathfollowingForces]: false,
   [Flag.DebugShowPathfollowingGoals]: true,
+  [Flag.DebugShowBoidSeparationForces]: false,
+  [Flag.DebugShowBoidSeparationBonds]: false,
   [Flag.DebugGlobalState]: true,
   [Flag.DebugWrapping]: true,
   [Flag.DebugShowSelectedEntityPath]: false,
   [Flag.SpawnDebugBulletEmitter]: false,
   [Flag.SpawnDebugBoids]: true,
-  [Flag.TextureCulling]: true,
 };

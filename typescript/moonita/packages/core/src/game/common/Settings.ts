@@ -1,4 +1,4 @@
-const mul = 3;
+const mul = 1;
 
 export const settings = {
   maxBoidForce: 0.05,
@@ -7,9 +7,10 @@ export const settings = {
   alignmentRadius: mul * 50,
   alignmentCoefficient: mul,
   separationRadius: mul * 30,
-  separationDifferentTeamRadius: mul * 50,
+  separationDifferentTeamRadius: mul * 100,
   separationCoefficient: mul * 1.5,
-  separationDiffereTeamCoefficient: 10,
+  separationDifferentTeamDistanecMultiplier: 10,
+  separationDiffereTeamCoefficient: 5,
   cohesionRadius: mul * 50,
   cohesionCoefficient: mul,
   seekingCoefficinet: mul,

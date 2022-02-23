@@ -1,14 +1,19 @@
 import { Vector2 } from "./common/Vector";
-import { State } from "./State";
+import { SimulationState } from "./State";
 
-export function applyForce(state: State, entity: number, force: Vector2) {
+export function applyForce(
+  state: SimulationState,
+  entity: number,
+  force: Vector2
+): number {
   const mass = state.components.physicsObject.mass[entity];
 
   if (mass === undefined)
     throw new Error(`Entity ${entity} is not a physical object`);
 
-  state.components.acceleration.x[entity] += force.x / mass;
-  state.components.acceleration.y[entity] += force.y / mass;
+  const acceleration = state.components.acceleration[entity];
+  acceleration.x += force.x / mass;
+  acceleration.y += force.y / mass;
 
   return entity;
 }

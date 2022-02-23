@@ -1,5 +1,3 @@
-import * as GameAction from "./GameAction";
-import { ECS } from "wolf-ecs";
 import { Effect, Stream } from "../Stream";
 import {
   mouseDelta,
@@ -8,21 +6,26 @@ import {
   wheel,
 } from "../WebStreams";
 import * as Path from "./common/Path";
-import { assets, loadPixiTextures, TextureId } from "./assets";
+import { loadPixiTextures, TextureId } from "./assets";
 import { defaultFlags, Flag } from "./common/Flags";
 import * as V from "./common/Vector";
-import { basicMap, basicMapPathA } from "./Map";
+import { baseSize, basicMap, basicMapPathA } from "./Map";
 import {
-  createComponents,
-  createQueries,
+  createRenderingComponents,
+  createRenderingQueries,
+  createSimulationComponents,
+  createSimulationQueries,
+  getCamera,
+  getScreenTransform,
   LayerId,
   layers,
   State,
+  StateKind,
 } from "./State";
 import {
+  addSprite,
   createBoid,
   markEntityCreation,
-  setVelocity,
 } from "./systems/createEntity";
 import { renderDebugArrows } from "./systems/debugArrows";
 import {
@@ -35,191 +38,241 @@ import {
   renderDebugPaths,
   renderDebugQuadTrees,
 } from "./systems/renderMap";
-import { renderTextures, syncPixiTransforms } from "./systems/renderTextures";
-import { applyGlobalCameraObject } from "./systems/renderWithTransform";
+import { syncPixiTransforms } from "./systems/renderTextures";
+import { applyCameraObject } from "./systems/renderWithTransform";
 import * as Camera from "./common/Camera";
 import { renderDebugBoidData, simulateBoids } from "./systems/boids";
 import { rotateAfterVelocity } from "./systems/rotateAfterVelocity";
 import { limitSpeeds } from "./systems/limitSpeeds";
-import { QuadTree } from "../QuadTree";
+import { QuadTree, QuadTreeSettings } from "../QuadTree";
 import { AABB } from "./common/AABB";
 import { updateBoidQuadTree } from "./systems/boidQuadTree";
 import { FlexibleTypedArray } from "../FlexibleTypedArray";
 import { settings } from "./common/Settings";
 import { TickScheduler } from "../TickScheduler";
 import { handleGameAction } from "./systems/handleGameAction";
-import { mat3, vec2 } from "gl-matrix";
 import * as PIXI from "pixi.js";
-import { Layer } from "../../../client/src/components/Stack";
+import { identityTransform } from "./common/Transform";
+import { ECS } from "wolf-ecs";
+import * as GameAction from "./GameAction";
 
 export class Game {
   private state: State | null = null;
   private cancelers: Effect<void>[] = [];
 
   public constructor(
-    contexts: Stream<[...Array<CanvasRenderingContext2D>, HTMLCanvasElement]>
+    canvasElements: Stream<
+      [debugCanvas: HTMLCanvasElement, pixiCanvas: HTMLCanvasElement]
+    >
   ) {
-    const cancelContexts = contexts(async (contexts) => {
-      if (this.state === null) {
-        const ecs = new ECS(5000, false);
-        const flags = defaultFlags;
-        const components = createComponents(ecs, flags);
-        const queries = createQueries(ecs, components);
+    const cancelCanvasSubsciptions = canvasElements(
+      async ([debugCanvas, pixiCanvas]) => {
+        if (this.state === null) {
+          const ecs = new ECS(5000, false);
+          const flags = defaultFlags;
+          const components = {
+            ...createSimulationComponents(ecs, flags),
+            ...createRenderingComponents(ecs, flags),
+          };
 
-        contexts.forEach((ctx) => {
-          if (ctx instanceof CanvasRenderingContext2D)
-            ctx.imageSmoothingEnabled = false;
-        });
+          const queries = {
+            ...createSimulationQueries(ecs, components),
+            ...createRenderingQueries(ecs, components),
+          };
 
-        // TODO: extract bounds related functionality in it's own module
-        const bounds: AABB = {
-          position: {
-            x: -1200,
-            y: -1200,
-          },
-          size: {
-            x: 2400,
-            y: 2400,
-          },
-        };
+          const debugContext = debugCanvas.getContext("2d");
 
-        const quadTreeSettings = {
-          positions: components.transform.position,
-          maxNodes: 20,
-          retriveInto: new FlexibleTypedArray(settings.maxBoids, Uint16Array),
-          entityMovementBuffer: new FlexibleTypedArray(
-            settings.maxBoids,
-            Uint16Array
-          ),
-        };
+          if (!debugContext) throw new Error(`Couldn't create canvas context!`);
 
-        const canvas = contexts.pop() as HTMLCanvasElement;
-        const stage = new PIXI.Container();
-        const pixiTextures = await loadPixiTextures();
+          debugContext.imageSmoothingEnabled = false;
 
-        stage.name = "Root";
+          // TODO: extract bounds related functionality in it's own module
+          const bounds: AABB = {
+            position: {
+              x: -1200,
+              y: -1200,
+            },
+            size: {
+              x: 2400,
+              y: 2400,
+            },
+          };
 
-        for (let i = 0; i < layers.length; i++) {
-          const layer = new PIXI.Container();
-          layer.name = `Layer ${i}`;
-          stage.addChild(layer);
-        }
+          const quadTreeSettings: QuadTreeSettings = {
+            transforms: components.transform,
+            maxNodes: 20,
+            retriveInto: new FlexibleTypedArray(settings.maxBoids, Uint16Array),
+            entityMovementBuffer: new FlexibleTypedArray(
+              settings.maxBoids,
+              Uint16Array
+            ),
+          };
 
-        const g = new PIXI.Graphics();
-        g.beginFill(0xffffff, 1);
-        g.drawRect(-10, -10, 20, 20);
+          const stage = new PIXI.Container();
+          const cameraContainer = new PIXI.Container();
+          const pixiTextures = await loadPixiTextures();
 
-        stage.addChild(g);
+          stage.name = "Root";
+          cameraContainer.name = "Camera";
 
-        this.state = {
-          contexts: contexts as any,
-          pixiRenderer: PIXI.autoDetectRenderer({
-            view: canvas,
-          }),
-          pixiStage: stage,
-          pixiTextures,
-          tickScheduler: new TickScheduler(),
-          components,
-          queries,
-          ecs,
-          tick: 0,
-          selectedEntity: null,
-          assets,
-          map: basicMap,
-          paths: [basicMapPathA, Path.flip(basicMapPathA)],
-          camera: Camera.identityCamera(),
-          screenTransform: Camera.defaultScreenTransform(),
-          flags,
-          bounds,
-          structures: {
-            boidQuadTrees: [
-              new QuadTree(bounds, quadTreeSettings),
-              new QuadTree(bounds, quadTreeSettings),
-            ],
-          },
-        };
-
-        if (this.state.flags[Flag.DebugGlobalState])
-          (globalThis as any).state = this.state;
-
-        this.resizeContext();
-
-        if (this.state.flags[Flag.SpawnDebugBulletEmitter]) {
-          const eid = ecs.createEntity();
-
-          markEntityCreation(this.state, eid);
-
-          ecs.addComponent(eid, components.bulletEmitter);
-          ecs.addComponent(eid, components.transform);
-          ecs.addComponent(eid, components.texture);
-          ecs.addComponent(eid, components.angularVelocity);
-
-          this.state.components.transform.position.x[eid] = 40;
-          this.state.components.transform.position.y[eid] = 100;
-          this.state.components.transform.rotation[eid] = 0;
-          this.state.components.transform.scale.x[eid] = 1;
-          this.state.components.transform.scale.y[eid] = 1;
-          this.state.components.texture.width[eid] = 80;
-          this.state.components.texture.height[eid] = 80;
-          this.state.components.texture.textureId[eid] =
-            TextureId.BulletSpawner;
-          this.state.components.texture.layer[eid] = LayerId.BuildingLayer;
-          this.state.components.bulletEmitter.frequency[eid] = 5;
-          this.state.components.angularVelocity[eid] = 0.1;
-
-          this.state.tickScheduler.schedule(
-            10,
-            GameAction.handleBulletSpawner(eid),
-            5
-          );
-        }
-
-        if (this.state.flags[Flag.SpawnDebugBoids]) {
-          for (let team = 0; team < this.state.map.teams.length; team++) {
-            for (
-              let i = 0;
-              i < settings.maxBoids / this.state.map.teams.length;
-              i++
-            ) {
-              const p = team === 0 ? -900 : 900;
-              const eid = createBoid(
-                this.state,
-                V.add(V.random2dInsideOriginSquare(-100, 100), { x: p, y: p }),
-                team
-              );
-
-              const angle = 0; // randomBetween(0, TAU);
-
-              // setVelocity(this.state, eid, Math.cos(angle), Math.sin(angle));
-              setVelocity(this.state, eid, 0, 0);
-            }
+          for (let i = 0; i < layers.length; i++) {
+            const layer = new PIXI.Container();
+            layer.name = `Layer ${i}`;
+            cameraContainer.addChild(layer);
           }
 
-          this.state.selectedEntity = {
-            id: 90,
-            isPathFollower: true,
+          const g = new PIXI.Graphics();
+          g.beginFill(0xaa00ff, 1);
+          g.drawRect(-10, -10, 20, 20);
+
+          cameraContainer.addChild(g);
+          stage.addChild(cameraContainer);
+
+          const cameraId = ecs.createEntity();
+          const screenId = ecs.createEntity();
+
+          ecs.addComponent(cameraId, components.transform);
+          ecs.addComponent(cameraId, components.pixiObject);
+
+          ecs.addComponent(screenId, components.transform);
+          ecs.addComponent(screenId, components.pixiObject);
+
+          components.transform[cameraId] = identityTransform();
+          components.transform[screenId] = identityTransform();
+          components.transform[screenId].scale.y *= -1;
+
+          components.pixiObject.ref[cameraId] = cameraContainer;
+          components.pixiObject.ref[screenId] = stage;
+          components.pixiObject.scaleBySpriteDimenssions[cameraId] = 0;
+          components.pixiObject.scaleBySpriteDimenssions[screenId] = 0;
+
+          this.state = {
+            kind: StateKind.Full,
+            context: debugContext,
+            pixiRenderer: PIXI.autoDetectRenderer({
+              view: pixiCanvas,
+              backgroundAlpha: 0,
+            }),
+            pixiStage: stage,
+            pixiTextures,
+            tickScheduler: new TickScheduler(),
+            components,
+            queries,
+            ecs,
+            tick: 0,
+            selectedEntity: null,
+            map: basicMap,
+            paths: [basicMapPathA, Path.flip(basicMapPathA)],
+            camera: cameraId,
+            screenTransform: screenId,
+            flags,
+            bounds,
+            structures: {
+              boidQuadTrees: [
+                new QuadTree(bounds, quadTreeSettings),
+                new QuadTree(bounds, quadTreeSettings),
+              ],
+            },
           };
-        }
 
-        // Listen to resize events
-        const cancelWindowSizes = screenSizes((size) => {
-          if (!this.state) return;
+          for (const team of basicMap.teams) {
+            const eid = ecs.createEntity();
+            const transform = identityTransform();
 
-          size.x /= 2;
-          size.y /= 2;
+            ecs.addComponent(eid, components.transform);
+            components.transform[eid] = transform;
 
-          this.resizeContext();
-          Camera.translateGlobalCoordinatesMut(
-            this.state.screenTransform,
-            size
-          );
-        });
+            V.cloneInto(transform.position, team.base);
+            V.scaleMut(transform.scale, transform.scale, baseSize);
+            transform.rotation = team.base.rotation;
 
-        this.cancelers.push(cancelWindowSizes);
-      } else throw new Error("Oof, gotta handle this thing now???");
-    });
+            addSprite(
+              this.state,
+              eid,
+              LayerId.BuildingLayer,
+              TextureId.YellowBase
+            );
 
-    this.cancelers.push(cancelContexts);
+            console.log("here");
+          }
+
+          if (this.state.flags[Flag.DebugGlobalState])
+            (globalThis as any).state = this.state;
+
+          this.resizeContext({ x: window.innerWidth, y: window.innerHeight });
+
+          if (this.state.flags[Flag.SpawnDebugBulletEmitter]) {
+            const eid = ecs.createEntity();
+
+            markEntityCreation(this.state, eid);
+
+            ecs.addComponent(eid, components.transform);
+            ecs.addComponent(eid, components.angularVelocity);
+
+            const transform = identityTransform();
+
+            this.state.components.transform[eid] = transform;
+
+            transform.position.x = 40;
+            transform.position.y = 100;
+            transform.scale.x = 80;
+            transform.scale.y = 80;
+
+            addSprite(
+              this.state,
+              eid,
+              LayerId.BuildingLayer,
+              TextureId.BulletSpawner
+            );
+
+            this.state.components.angularVelocity[eid] = 0.1;
+
+            this.state.tickScheduler.schedule(
+              10,
+              GameAction.handleBulletSpawner(eid),
+              5
+            );
+          }
+
+          if (this.state.flags[Flag.SpawnDebugBoids]) {
+            for (let team = 0; team < this.state.map.teams.length; team++) {
+              for (
+                let i = 0;
+                i < settings.maxBoids / this.state.map.teams.length;
+                i++
+              ) {
+                const p = team === 0 ? -900 : 900;
+
+                createBoid(
+                  this.state,
+                  V.add(V.random2dInsideOriginSquare(-100, 100), {
+                    x: p,
+                    y: p,
+                  }),
+                  team
+                );
+              }
+            }
+
+            this.state.selectedEntity = {
+              id: 90,
+              isPathFollower: true,
+            };
+          }
+
+          // Listen to resize events
+          const cancelWindowSizes = screenSizes((size) => {
+            if (!this.state) return;
+
+            this.resizeContext(size);
+          });
+
+          this.cancelers.push(cancelWindowSizes);
+        } else throw new Error("Oof, gotta handle this thing now???");
+      }
+    );
+
+    this.cancelers.push(cancelCanvasSubsciptions);
 
     this.setupMouseDeltaHandler();
   }
@@ -229,18 +282,10 @@ export class Game {
       mouseDelta((delta) => {
         if (this.state === null) return;
 
-        Camera.toLocalScaleMut(this.state.screenTransform, delta);
-        Camera.translateGlobalCoordinatesMut(this.state.camera, delta);
+        const camera = this.state.components.transform[this.state.camera];
 
-        // const camera = this.state.worldMatrix;
-        // const deltaVec = vec2.fromValues(delta.x, delta.y);
-        // const originVec = vec2.create();
-        // const icamera = mat3.invert(mat3.create(), camera);
-
-        // vec2.transformMat3(deltaVec, deltaVec, icamera);
-        // vec2.transformMat3(originVec, originVec, icamera);
-        // vec2.subtract(deltaVec, deltaVec, originVec);
-        // mat3.translate(camera, camera, deltaVec);
+        Camera.toLocalScaleMut(getScreenTransform(this.state), delta);
+        Camera.translateGlobalCoordinatesMut(camera, delta);
       })
     );
 
@@ -255,38 +300,12 @@ export class Game {
 
         const clientPosition: V.Vector2 = mouseEventPosition(e);
         const inWorldCoordinates = Camera.toLocalCoordinates(
-          this.state.screenTransform,
+          getScreenTransform(this.state),
           clientPosition
         );
 
-        // const camera = this.state.worldMatrix;
-        // const deltaVec = vec2.fromValues(delta, delta);
-        // const gl = this.state.gl;
-
-        // const fixedClientPosition = vec2.fromValues(
-        //   clientPosition.x - gl.canvas.width / 2,
-        //   -clientPosition.y + gl.canvas.height / 2
-        // );
-
-        // // TODO: abstract this away
-        // mat3.multiply(
-        //   camera,
-        //   [
-        //     deltaVec[0],
-        //     0,
-        //     0,
-        //     0,
-        //     deltaVec[1],
-        //     0,
-        //     fixedClientPosition[0] * (1 - deltaVec[0]),
-        //     fixedClientPosition[1] * (1 - deltaVec[1]),
-        //     1,
-        //   ],
-        //   camera
-        // );
-
         Camera.scaleAroundGlobalPointMut(
-          this.state.camera,
+          this.state.components.transform[this.state.camera],
           inWorldCoordinates,
           scalingVec
         );
@@ -298,11 +317,11 @@ export class Game {
     if (!this.state) return vec;
 
     const inScreenSpace = Camera.toLocalCoordinates(
-      this.state.screenTransform,
+      getScreenTransform(this.state),
       vec
     );
 
-    return Camera.toLocalCoordinates(this.state.camera, inScreenSpace);
+    return Camera.toLocalCoordinates(getCamera(this.state), inScreenSpace);
   }
 
   public dispose() {
@@ -313,45 +332,32 @@ export class Game {
     this.cancelers = [];
   }
 
-  private resizeContext() {
+  private resizeContext(size: V.Vector2) {
     if (!this.state) return;
 
-    for (const context of this.state.contexts) {
-      context.canvas.width = window.innerWidth;
-      context.canvas.height = window.innerHeight;
-    }
+    const context = this.state.context;
+    context.canvas.width = size.x;
+    context.canvas.height = size.y;
 
-    this.state.pixiRenderer.resize(window.innerWidth, window.innerHeight);
+    this.state.pixiRenderer.resize(size.x, size.y);
 
-    this.state.pixiStage.transform.position.set(
-      this.state.pixiRenderer.view.width / 2,
-      this.state.pixiRenderer.view.height / 2
-    );
-    this.state.pixiStage.transform.scale.set(1, -1);
+    const screen = getScreenTransform(this.state);
 
-    this.state.screenTransform = Camera.defaultScreenTransform();
+    V.scaleMut(screen.position, size, 1 / 2);
   }
 
   public render() {
     if (!this.state) return;
 
     // Reset accumulated transforms
-    for (const context of this.state.contexts) {
-      context.resetTransform();
-    }
-
-    for (const context of this.state.contexts) {
-      if (context === this.state.contexts[LayerId.Unclearable]) continue;
-      context.clearRect(0, 0, 10000, 10000);
-    }
+    this.state.context.resetTransform();
+    this.state.context.clearRect(0, 0, 10000, 10000);
 
     syncPixiTransforms(this.state);
 
     // Apply base transforms
-    applyGlobalCameraObject(this.state, this.state.screenTransform);
-    applyGlobalCameraObject(this.state, this.state.camera);
-
-    renderTextures(this.state);
+    applyCameraObject(this.state.context, getScreenTransform(this.state));
+    applyCameraObject(this.state.context, getCamera(this.state));
 
     renderDebugQuadTrees(this.state);
     renderDebugArrows(this.state);

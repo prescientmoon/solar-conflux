@@ -1,48 +1,55 @@
 import { Flag } from "../common/Flags";
 import { SimulationState } from "../State";
-import { setAcceleration } from "./createEntity";
+import * as V from "../common/Vector";
 
 export function updateVelocities(state: SimulationState) {
   state.queries.kinematics._forEach((eid) => {
-    state.components.velocity.x[eid] += state.components.acceleration.x[eid];
-    state.components.velocity.y[eid] += state.components.acceleration.y[eid];
+    const acceleration = state.components.acceleration[eid];
+
+    V.addMut(
+      state.components.velocity[eid],
+      state.components.velocity[eid],
+      acceleration
+    );
 
     // TODO: rethink this
-    setAcceleration(state, eid, 0, 0);
+    acceleration.x = 0;
+    acceleration.y = 0;
   });
 }
 
 export function moveEntities(state: SimulationState) {
   state.queries.kinematics._forEach((eid) => {
-    state.components.transform.position.x[eid] +=
-      state.components.velocity.x[eid];
-    state.components.transform.position.y[eid] +=
-      state.components.velocity.y[eid];
+    const transform = state.components.transform[eid];
+
+    V.addMut(
+      transform.position,
+      transform.position,
+      state.components.velocity[eid]
+    );
 
     if (state.flags[Flag.DebugWrapping]) {
-      if (state.components.transform.position.x[eid] < state.bounds.position.x)
-        state.components.transform.position.x[eid] =
-          state.bounds.position.x + state.bounds.size.x;
+      if (transform.position.x < state.bounds.position.x)
+        transform.position.x = state.bounds.position.x + state.bounds.size.x;
       else if (
-        state.components.transform.position.x[eid] >
+        transform.position.x >
         state.bounds.position.x + state.bounds.size.x
       )
-        state.components.transform.position.x[eid] = state.bounds.position.x;
-      if (state.components.transform.position.y[eid] < state.bounds.position.y)
-        state.components.transform.position.y[eid] =
-          state.bounds.position.y + state.bounds.size.y;
+        transform.position.x = state.bounds.position.x;
+      if (transform.position.y < state.bounds.position.y)
+        transform.position.y = state.bounds.position.y + state.bounds.size.y;
       else if (
-        state.components.transform.position.y[eid] >
+        transform.position.y >
         state.bounds.position.y + state.bounds.size.y
       )
-        state.components.transform.position.y[eid] = state.bounds.position.y;
+        transform.position.y = state.bounds.position.y;
     }
   });
 }
 
 export function rotateEntities(state: SimulationState) {
   state.queries.rotating._forEach((eid) => {
-    state.components.transform.rotation[eid] +=
+    state.components.transform[eid].rotation +=
       state.components.angularVelocity[eid];
   });
 }
