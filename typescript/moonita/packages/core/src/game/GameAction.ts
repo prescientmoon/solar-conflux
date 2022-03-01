@@ -7,6 +7,7 @@ export const enum GameAction {
   DespawnEntity,
   HandleBulletSpawner,
   DebugLog,
+  ShootWand,
 }
 
 // ========== Constants
@@ -25,6 +26,10 @@ export function despawnEntity(eid: number) {
 
 export function handleBulletSpawner(eid: number) {
   return (eid << maxActionCount) | GameAction.HandleBulletSpawner;
+}
+
+export function shootWand(eid: number) {
+  return (eid << maxActionCount) | GameAction.ShootWand;
 }
 
 export function onDespawn(eid: number) {

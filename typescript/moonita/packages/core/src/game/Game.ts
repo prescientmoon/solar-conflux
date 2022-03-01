@@ -55,6 +55,16 @@ import * as PIXI from "pixi.js";
 import { identityTransform } from "./common/Transform";
 import { ECS } from "wolf-ecs";
 import * as GameAction from "./GameAction";
+import {
+  bubbleSpark,
+  bubbleSparkProjectile,
+  doubleSpell,
+  exampleWand,
+  speedUp,
+  VanillaCardId,
+  VanillaProjectileId,
+} from "./wand";
+import { spawnWand } from "./systems/interpretWands";
 
 export class Game {
   private state: State | null = null;
@@ -173,6 +183,21 @@ export class Game {
                 new QuadTree(bounds, quadTreeSettings),
               ],
             },
+
+            // Wand related props
+            wands: {
+              0: exampleWand,
+            },
+
+            cards: {
+              [VanillaCardId.BubbleSpark]: bubbleSpark,
+              [VanillaCardId.DoubleSpell]: doubleSpell,
+              [VanillaCardId.SpeedUp]: speedUp,
+            },
+
+            projectileBlueprints: {
+              [VanillaProjectileId.BubbleSpark]: bubbleSparkProjectile,
+            },
           };
 
           for (const team of basicMap.teams) {
@@ -192,14 +217,14 @@ export class Game {
               LayerId.BuildingLayer,
               TextureId.YellowBase
             );
-
-            console.log("here");
           }
 
           if (this.state.flags[Flag.DebugGlobalState])
             (globalThis as any).state = this.state;
 
           this.resizeContext({ x: window.innerWidth, y: window.innerHeight });
+
+          spawnWand(this.state, 0);
 
           if (this.state.flags[Flag.SpawnDebugBulletEmitter]) {
             const eid = ecs.createEntity();

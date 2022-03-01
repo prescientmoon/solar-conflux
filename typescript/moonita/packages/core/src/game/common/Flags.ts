@@ -21,7 +21,7 @@ export const defaultFlags: Flags = {
   [Flag.DebugShowOriginArrow]: true,
   [Flag.DebugShowBasePaths]: true,
   [Flag.DebugShowBounds]: true,
-  [Flag.DebugShowQuadTree]: true,
+  [Flag.DebugShowQuadTree]: false,
   [Flag.DebugShowPathfollowingProjections]: false,
   [Flag.DebugShowPathfollowingForces]: false,
   [Flag.DebugShowPathfollowingGoals]: true,

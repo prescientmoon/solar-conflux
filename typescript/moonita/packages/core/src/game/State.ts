@@ -1,20 +1,36 @@
-import { all, ECS, types } from "wolf-ecs";
-import { QuadTree } from "../QuadTree";
-import { TickScheduler } from "../TickScheduler";
-import { AABB } from "./common/AABB";
-import { Camera as Camera2d } from "./common/Camera";
-import { Flag, Flags } from "./common/Flags";
-import { Path } from "./common/Path";
-import { Map } from "./Map";
-import { Transform } from "./common/Transform";
 import * as PIXI from "pixi.js";
-import type { Vector2 } from "./common/Vector";
 import * as V from "./common/Vector";
+import { all, ECS, types } from "wolf-ecs";
+import { Flag, Flags } from "./common/Flags";
 
+import type { QuadTree } from "../QuadTree";
+import type { TickScheduler } from "../TickScheduler";
+import type { AABB } from "./common/AABB";
+import type { Camera as Camera2d } from "./common/Camera";
+import type { Path } from "./common/Path";
+import type { Map } from "./Map";
+import type { Transform } from "./common/Transform";
+import type { Vector2 } from "./common/Vector";
+import type {
+  Card,
+  CardId,
+  ProjectileBlueprint,
+  ProjectileBlueprintId,
+  Wand,
+  WandId,
+  WandState,
+} from "./wand";
+
+// ========== Types
+/** An unique identifier used for referencing an entity */
 export type EntityId = number;
+
+/** Type containing all the components registered during a server-side simulation */
 export type SimulationComponentMap = ReturnType<
   typeof createSimulationComponents
 >;
+
+/** Type containing all the components registered on a full-blown renderable simulation */
 export type FullComponentMap = SimulationComponentMap &
   ReturnType<typeof createRenderingComponents>;
 
@@ -24,21 +40,22 @@ export type FullQueryMap = SimulationQueryMap &
 
 export type Query = ReturnType<ECS["createQuery"]>;
 
+/** Pre-defined z-indices for pixi objects */
 export const enum LayerId {
-  BuildingLayer,
-  UnitLayer,
-  BulletLayer,
-  DebugLayer,
-  Unclearable,
-  WebglLayer,
-  LastLayer,
+  BuildingLayer, // Bases, towers, etc
+  UnitLayer, // moving units
+  BulletLayer, // the name is obvious, why are you reading this
+  DebugLayer, // Layer for debug tooling
+  LastLayer, // Here as an easy way to get the number of layers
 }
 
+/** The game can either run on the server (in headless mode) or on a client (in full blown mode) */
 export const enum StateKind {
   Headless,
   Full,
 }
 
+/** The state available to the game running on the server side */
 export interface SimulationState {
   kind: StateKind;
   ecs: ECS;
@@ -53,8 +70,14 @@ export interface SimulationState {
     boidQuadTrees: QuadTree[];
   };
   tick: number;
+
+  // Wand system related data
+  cards: Record<CardId, Card>;
+  wands: Record<WandId, Wand>;
+  projectileBlueprints: Record<ProjectileBlueprintId, ProjectileBlueprint>;
 }
 
+/** The state available to the game running the game on a client */
 export interface State extends SimulationState {
   // Overrides:
   kind: StateKind.Full;
@@ -162,6 +185,11 @@ export const createSimulationComponents = (ecs: ECS, flags: Flags) => {
   const boidCohesion = ecs.defineComponent();
   const rotateAfterVelocity = ecs.defineComponent();
 
+  const wandHolder = ecs.defineComponent({
+    wandId: types.uint8, // Wand id
+    wandState: types.custom<WandState>(),
+  });
+
   return {
     velocity,
     acceleration,
@@ -180,6 +208,7 @@ export const createSimulationComponents = (ecs: ECS, flags: Flags) => {
     rotateAfterVelocity,
     speedLimit,
     team,
+    wandHolder,
   };
 };
 

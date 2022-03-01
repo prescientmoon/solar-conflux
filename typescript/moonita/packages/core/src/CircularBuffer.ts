@@ -58,10 +58,18 @@ export class CircularBuffer<T> {
 
     const result = this.memory[this.start];
 
+    this.memory[this.start] = null as any;
+
     this.start = (this.start + 1) % this.size;
     this.used--;
 
     return result;
+  }
+
+  public pushMany(elements: T[]) {
+    for (let i = 0; i < elements.length; i++) {
+      this.push(elements[i]);
+    }
   }
 
   public push(e: T): T | null {
@@ -71,5 +79,24 @@ export class CircularBuffer<T> {
     this.tryPush(e);
 
     return deleted;
+  }
+
+  /** Save all the elements in the buffer as an array */
+  public toArray(): T[] {
+    const arr: T[] = [];
+
+    for (let i = 0; i < this.used; i++) arr.push(this.get(i)!);
+
+    return arr;
+  }
+
+  /** Delete all the elements in the buffer */
+  public clear() {
+    for (let i = 0; i < this.used; i++) {
+      this.set(i, null as any);
+    }
+
+    this.start = 0;
+    this.used = 0;
   }
 }

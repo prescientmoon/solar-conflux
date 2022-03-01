@@ -15,6 +15,7 @@ export const settings = {
   cohesionCoefficient: mul,
   seekingCoefficinet: mul,
   pathFollowingCoefficient: mul / 1.2,
+  maxDeckSize: 30,
   ups: 30,
 };
 

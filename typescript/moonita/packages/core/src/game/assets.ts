@@ -6,6 +6,7 @@ import textureYellowBase from "/public/assets/yellow_base.svg";
 import textureBulletSpawner from "/public/assets/bullet_spawner.svg";
 import texturePurpleBoid from "/public/assets/purple_boid.svg";
 import textureOrangeBoid from "/public/assets/orange_boid.svg";
+import textureBubbleSpark from "/public/assets/bubble_spark.svg";
 
 export const enum TextureId {
   BlueBullet,
@@ -13,6 +14,7 @@ export const enum TextureId {
   BulletSpawner,
   PurpleBoid,
   OrangeBoid,
+  BubbleSpark,
 }
 
 const assetPaths: Record<TextureId, string> = {
@@ -21,6 +23,7 @@ const assetPaths: Record<TextureId, string> = {
   [TextureId.BulletSpawner]: textureBulletSpawner,
   [TextureId.PurpleBoid]: texturePurpleBoid,
   [TextureId.OrangeBoid]: textureOrangeBoid,
+  [TextureId.BubbleSpark]: textureBubbleSpark,
 };
 
 // Array version of assetPaths
@@ -51,21 +54,6 @@ export function loadPixiTextures(): Promise<PIXI.Texture[]> {
     });
   });
 }
-
-export const assets: ReadonlyArray<Texture> = Object.entries(assetPaths).reduce(
-  (previous, current) => {
-    const image = new Image(100, 100);
-    image.src = current[1];
-
-    previous[current[0] as unknown as number] = {
-      image,
-      inherentRotation: Math.PI / 2,
-    };
-
-    return previous;
-  },
-  [] as Array<Texture>
-);
 
 // ========== Constants
 export const boidTextureByTeam = [TextureId.PurpleBoid, TextureId.OrangeBoid];

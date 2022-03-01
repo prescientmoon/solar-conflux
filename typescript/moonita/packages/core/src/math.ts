@@ -1,3 +1,8 @@
+// ========== types
+/** number between 0 and 2 pi */
+export type Angle = number;
+
+// ========== Helpers
 /**
  * Clamp a value between two other values.
  */

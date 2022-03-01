@@ -6,6 +6,7 @@ import {
   onDespawn,
 } from "../GameAction";
 import { SimulationState } from "../State";
+import { castWand } from "./interpretWands";
 import { spawnBullets } from "./spawnBullet";
 
 export function handleGameAction(state: SimulationState, task: Task<number>) {
@@ -20,6 +21,10 @@ export function handleGameAction(state: SimulationState, task: Task<number>) {
     spawnBullets(state, action >> maxActionCount);
   else if (id === GameAction.DebugLog) {
     console.log("Debug log!");
+  } else if (id === GameAction.ShootWand) {
+    const wid = action >> maxActionCount;
+
+    castWand(state, wid);
   }
 }
 
