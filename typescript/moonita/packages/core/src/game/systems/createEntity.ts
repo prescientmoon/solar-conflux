@@ -17,7 +17,8 @@ export const addSprite = (
   state: State,
   eid: number,
   layer: LayerId,
-  id: TextureId
+  id: TextureId,
+  name: null | string = null
 ) => {
   state.ecs.addComponent(eid, state.components.pixiObject);
 
@@ -29,14 +30,21 @@ export const addSprite = (
   sprite.anchor.set(0.5, 0.5);
   layerContainer.addChild(sprite);
 
+  if (name) sprite.name = name;
+
   state.components.pixiObject.ref[eid] = sprite;
   state.components.pixiObject.scaleBySpriteDimenssions[eid] = Number(true);
+
+  state.tickScheduler.scheduleEvent(
+    GameAction.onDespawn(eid), // when the entity get's despawned..
+    GameAction.clearSprite(eid) // ...delete it's sprite
+  );
 };
 
 export const createBullet = (
   state: SimulationState,
   startFrom: number,
-  velocity: number,
+  velocityScalar: number,
   lifetime: number
 ) => {
   const eid = state.ecs.createEntity();
@@ -52,14 +60,20 @@ export const createBullet = (
   state.ecs.addComponent(eid, state.components.mortal);
 
   const transform = identityTransform();
+
   state.components.transform[eid] = transform;
+
+  V.scaleMut(transform.scale, transform.scale, 10);
   transform.position = V.clone(sourceTransform.position);
   transform.rotation = sourceTransform.rotation;
 
-  state.components.velocity[eid].x =
-    Math.cos(sourceTransform.rotation) * velocity;
-  state.components.velocity[eid].y =
-    Math.sin(sourceTransform.rotation) * velocity;
+  const velocity = V.xBasis();
+
+  V.rotateMut(velocity, velocity, sourceTransform.rotation);
+  V.scaleMut(velocity, velocity, velocityScalar);
+
+  state.components.acceleration[eid] = V.origin();
+  state.components.velocity[eid] = velocity;
   state.components.mortal.lifetime[eid] = lifetime;
 
   state.tickScheduler.schedule(
@@ -68,7 +82,7 @@ export const createBullet = (
   );
 
   if (stateIsComplete(state)) {
-    addSprite(state, eid, LayerId.BulletLayer, TextureId.BlueBullet);
+    addSprite(state, eid, LayerId.BulletLayer, TextureId.BlueBullet, "Bullet");
   }
 
   return eid;
@@ -121,7 +135,7 @@ export function createBoid(
   insertBoidIntoQuadTree(state, eid, team);
 
   if (stateIsComplete(state)) {
-    addSprite(state, eid, LayerId.BulletLayer, boidTextureByTeam[team]);
+    addSprite(state, eid, LayerId.BulletLayer, boidTextureByTeam[team], "Boid");
   }
 
   return eid;

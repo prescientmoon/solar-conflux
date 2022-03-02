@@ -2,7 +2,8 @@ export class CircularBuffer<T> {
   public start = 0;
   public used = 0;
   private memory: T[];
-  public constructor(public size: number) {
+
+  public constructor(public readonly size: number) {
     this.memory = new Array(size);
   }
 
@@ -54,7 +55,7 @@ export class CircularBuffer<T> {
   }
 
   public tryPopFirst(): T | null {
-    if (this.size === 0) return null;
+    if (this.used === 0) return null;
 
     const result = this.memory[this.start];
 
@@ -98,5 +99,12 @@ export class CircularBuffer<T> {
 
     this.start = 0;
     this.used = 0;
+  }
+
+  /** Push every element inside the buffer into another object which supports pushing */
+  public pushContentsInto(into: { push: (v: T) => unknown }) {
+    for (let i = 0; i < this.used; i++) {
+      into.push(this.get(i)!);
+    }
   }
 }

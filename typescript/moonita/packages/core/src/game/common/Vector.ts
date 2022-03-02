@@ -107,13 +107,27 @@ export function cloneInto(out: Vector2, in_: Vector2): Vector2 {
 }
 
 /** Rotate a vector around the origin by a given amount of radians */
-export const rotate = (vec: Vector2, angle: number): Vector2 => {
-  if (angle === 0) return vec;
+export function rotateMut(into: Vector2, vec: Vector2, angle: number): Vector2 {
+  if (angle === 0) {
+    cloneInto(into, vec);
+    return into;
+  }
 
   const x = vec.x * Math.cos(angle) - vec.y * Math.sin(angle);
   const y = vec.x * Math.sin(angle) + vec.y * Math.cos(angle);
 
-  return { x, y };
+  // We cannot set those directly because each of them depends on the initial value of the other
+  into.x = x;
+  into.y = y;
+
+  return into;
+}
+
+/** Rotate a vector around the origin by a given amount of radians */
+export const rotate = (vec: Vector2, angle: number): Vector2 => {
+  if (angle === 0) return vec;
+
+  return rotateMut(origin(), vec, angle);
 };
 
 /** Calculates the angle between 2 vectors
@@ -200,6 +214,16 @@ export function limitMagnitudeMut(
 /** The origin vector */
 export function origin(): Vector2 {
   return { x: 0, y: 0 };
+}
+
+/** The (0, 1) vector */
+export function yBasis(): Vector2 {
+  return { x: 0, y: 1 };
+}
+
+/** The (1, 0) vector */
+export function xBasis(): Vector2 {
+  return { x: 1, y: 0 };
 }
 
 /** Calculate the dot product of 2 vectors */

@@ -5,6 +5,7 @@ export const enum GameEvent {
 
 export const enum GameAction {
   DespawnEntity,
+  ClearSprite,
   HandleBulletSpawner,
   DebugLog,
   ShootWand,
@@ -15,9 +16,9 @@ export const enum GameAction {
 export const maxActionCount = 6;
 export const maxEventCount = 4; // Same thing here
 // a maximum of 64 game actions should be enough for now
-export const actionIdMask = (maxActionCount << 1) - 1;
+export const actionIdMask = (1 << maxActionCount) - 1;
 // a maximum of 64 game events should be enough for now
-export const eventIdMask = (maxEventCount << 1) - 1;
+export const eventIdMask = (1 << maxEventCount) - 1;
 
 // ========== Constructors
 export function despawnEntity(eid: number) {
@@ -30,6 +31,10 @@ export function handleBulletSpawner(eid: number) {
 
 export function shootWand(eid: number) {
   return (eid << maxActionCount) | GameAction.ShootWand;
+}
+
+export function clearSprite(eid: number) {
+  return (eid << maxActionCount) | GameAction.ClearSprite;
 }
 
 export function onDespawn(eid: number) {

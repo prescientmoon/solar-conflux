@@ -2,7 +2,7 @@ import { TextureId } from "./assets";
 import type { Adt } from "../Adt";
 import type { Vector2 } from "./common/Vector";
 import type { CircularBuffer } from "../CircularBuffer";
-import type { Angle } from "../math";
+import { Angle, TAU } from "../math";
 import * as V from "./common/Vector";
 
 // Constants
@@ -24,7 +24,8 @@ export interface ProjectileStats {
   damage: number;
   speed: number;
   bounces: number;
-  lifetime: number;
+  lifetime: [from: number, to: number];
+  spread: number;
 }
 
 /**
@@ -147,7 +148,8 @@ export function noStats(): ProjectileStats {
     damage: 0,
     speed: 0,
     bounces: 0,
-    lifetime: 0,
+    lifetime: [0, 0],
+    spread: 0,
   };
 }
 
@@ -172,7 +174,12 @@ export function mergeStatsMut(
   into.damage = a.damage + b.damage;
   into.speed = a.speed + b.speed;
   into.bounces = a.bounces + b.bounces;
-  into.lifetime = a.lifetime + b.lifetime;
+  into.spread = a.spread + b.spread;
+
+  into.lifetime = [
+    a.lifetime[0] + b.lifetime[0],
+    a.lifetime[1] + b.lifetime[1],
+  ]; // kind of like vector addition? Might want to go all in and represent this as a vector one day
 
   return into;
 }
@@ -181,19 +188,19 @@ export function mergeStatsMut(
 // Example wand
 export const exampleWand: Wand = {
   shuffle: false,
-  castDelay: 300,
-  rechargeDelay: 300,
+  castDelay: 1,
+  rechargeDelay: 60,
   manaRecharge: 100,
   maxMana: 400,
-  spread: 0,
+  spread: TAU / 36,
   capacity: 0,
 
   cards: [
     VanillaCardId.SpeedUp,
     VanillaCardId.DoubleSpell,
     VanillaCardId.BubbleSpark,
-    VanillaCardId.SpeedUp,
     VanillaCardId.BubbleSpark,
+    VanillaCardId.SpeedUp,
   ],
 };
 
@@ -203,8 +210,9 @@ export const bubbleSparkProjectile: ProjectileBlueprint = {
   stats: {
     damage: 5,
     bounces: 3,
-    lifetime: 1000,
-    speed: 1,
+    lifetime: [100, 200],
+    speed: 3,
+    spread: 0,
   },
 };
 
@@ -254,7 +262,7 @@ export const speedUp: Card = {
       type: "modifier",
       stats: {
         ...noStats(),
-        speed: 1,
+        speed: 5,
       },
     },
   ],

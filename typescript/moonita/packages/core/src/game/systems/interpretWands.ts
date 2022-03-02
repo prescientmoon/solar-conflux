@@ -1,12 +1,16 @@
+import * as GameAction from "../GameAction";
+import * as V from "../common/Vector";
+
 import { CircularBuffer } from "../../CircularBuffer";
 import { settings } from "../common/Settings";
 import { shootWand } from "../GameAction";
-import { EntityId, SimulationState } from "../State";
+import { EntityId, LayerId, SimulationState, stateIsComplete } from "../State";
 import {
   Card,
   CardId,
   CardRef,
   CastState,
+  mergeStats,
   mergeStatsMut,
   noStats,
   ProjectileKind,
@@ -14,7 +18,10 @@ import {
   WandId,
   WandState,
 } from "../wand";
-import * as V from "../common/Vector";
+import { identityTransform } from "../common/Transform";
+import { addSprite } from "./createEntity";
+import { normalizeAngle, randomBetween } from "../../math";
+import { Flag } from "../common/Flags";
 
 function getCard(state: SimulationState, cardId: CardId): Card {
   const card = state.cards[cardId];
@@ -46,7 +53,11 @@ function emptyCastState(): CastState {
 }
 
 function resetWandState(wand: Wand, wandState: WandState) {
+  // Clear all 3 piles
   wandState.deck.clear();
+  wandState.discarded.clear();
+  wandState.hand.clear();
+
   wandState.deck.pushMany(
     wand.cards.map((id, index) => ({
       index,
@@ -91,7 +102,7 @@ function draw(wandState: WandState, castState: CastState): CardRef | null {
   // we don't want to allow infinite recursion
   // were a spell keeps calling itself.
   if (card === null) {
-    if (!wandState.discarded.size) return null; // Nothing to wrap!
+    if (wandState.discarded.used === 0) return null; // Nothing to wrap!
 
     const discarded = wandState.discarded.toArray(); // Save discarded pile into array
     wandState.discarded.clear(); // Empty out discarded pile
@@ -121,6 +132,9 @@ function drawAndUpdateCastState(
 
   const cardId = cardRef.id;
   const card = getCard(state, cardId);
+
+  if (state.flags[Flag.DebugWandExecutionLogs])
+    console.log(`Drew ${card.name}`);
 
   // Pay mana cost
   if (wandState.mana >= card.manaCost) {
@@ -173,30 +187,54 @@ function drawAndUpdateCastState(
         drawAndUpdateCastState(state, castState, wandState, wand);
       }
     }
-  } else drawAndUpdateCastState(state, castState, wandState, wand); // If not enough mana on the wand, skip to the next spell
+  } else {
+    if (state.flags[Flag.DebugWandExecutionLogs])
+      console.log(`Not enough mana to cast ${card.name}:(`);
+    drawAndUpdateCastState(state, castState, wandState, wand); // If not enough mana on the wand, skip to the next spell
+  }
+}
+
+function scheduleWandCast(
+  state: SimulationState,
+  delay: number,
+  wid: EntityId
+) {
+  state.tickScheduler.schedule(state.tick + delay, shootWand(wid));
 }
 
 export function castWand(state: SimulationState, eid: EntityId) {
-  console.log("here");
   const castState = emptyCastState();
   const wandState = state.components.wandHolder.wandState[eid];
   const wand = state.wands[state.components.wandHolder.wandId[eid]];
 
   drawAndUpdateCastState(state, castState, wandState, wand);
 
+  wandState.hand.pushContentsInto(wandState.discarded);
+  wandState.hand.clear();
+
+  // console.log({ castState, wandState });
+
+  executeCastState(state, wand, castState, eid);
+
+  if (state.flags[Flag.DebugWandExecutionLogs])
+    console.log(`Remaining mana ${wandState.mana}`);
+
   if (wandState.deck.size === 0 || castState.forceRecharge) {
-    console.log("Recharge!!!");
+    if (state.flags[Flag.DebugWandExecutionLogs]) console.log("Recharge!!!");
 
     resetWandState(wand, wandState);
-  }
 
-  console.log({ castState, wandState });
+    scheduleWandCast(state, Math.max(wand.castDelay, wand.rechargeDelay), eid);
+  } else {
+    scheduleWandCast(state, wand.castDelay, eid);
+  }
 }
 
-export function spawnWand(state: SimulationState, wandId: WandId) {
-  console.log("here");
-  const wid = state.ecs.createEntity(); // The id of the wand
-
+export function spawnWand(
+  state: SimulationState,
+  wandId: WandId,
+  wid = state.ecs.createEntity()
+) {
   state.ecs.addComponent(wid, state.components.wandHolder);
 
   const wand = getWand(state, wandId);
@@ -207,4 +245,73 @@ export function spawnWand(state: SimulationState, wandId: WandId) {
   state.tickScheduler.schedule(state.tick + wand.castDelay, shootWand(wid));
 
   return wid;
+}
+
+export function executeCastState(
+  state: SimulationState,
+  wand: Wand,
+  castState: CastState,
+  holderId: EntityId
+) {
+  for (const projectile of castState.projectiles) {
+    const blueprint = state.projectileBlueprints[projectile.blueprint];
+    const projectileId = state.ecs.createEntity();
+
+    const stats = mergeStats(castState.stats, blueprint.stats);
+
+    // Transform component
+    const transform = identityTransform();
+
+    V.cloneInto(
+      transform.position,
+      state.components.transform[holderId].position
+    );
+    V.scaleMut(transform.scale, transform.scale, 10);
+
+    state.ecs.addComponent(projectileId, state.components.transform);
+    state.components.transform[projectileId] = transform;
+
+    // Projectile component
+    state.ecs.addComponent(projectileId, state.components.projectile);
+    state.components.projectile.damage[projectileId] = stats.damage;
+    state.components.projectile.bounces[projectileId] = stats.bounces;
+
+    // Velocity component
+    const spread = wand.spread + stats.spread;
+    const rotation = normalizeAngle(
+      projectile.direction +
+        state.components.transform[holderId].rotation +
+        randomBetween(-spread, spread)
+    );
+
+    const velocity = V.xBasis();
+
+    V.scaleMut(velocity, velocity, stats.speed);
+    V.rotateMut(velocity, velocity, rotation);
+
+    state.ecs.addComponent(projectileId, state.components.velocity);
+    state.components.velocity[projectileId] = velocity;
+
+    // Client only components
+    if (stateIsComplete(state)) {
+      // Sprite component
+      addSprite(state, projectileId, LayerId.BulletLayer, blueprint.sprite);
+    }
+
+    // Randomize lifetimes so making infinite wisps isn't that easy
+    const lifetime = Math.floor(
+      randomBetween(stats.lifetime[0], stats.lifetime[1])
+    );
+
+    if (lifetime === -1) {
+      if (state.flags[Flag.DebugWandExecutionLogs])
+        console.log("Infinite wisp!");
+    } else {
+      // Kill projectile after a while
+      state.tickScheduler.schedule(
+        state.tick + lifetime,
+        GameAction.despawnEntity(projectileId)
+      );
+    }
+  }
 }

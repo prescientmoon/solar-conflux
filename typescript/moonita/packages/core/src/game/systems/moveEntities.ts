@@ -19,7 +19,7 @@ export function updateVelocities(state: SimulationState) {
 }
 
 export function moveEntities(state: SimulationState) {
-  state.queries.kinematics._forEach((eid) => {
+  state.queries.movesWithVelocity._forEach((eid) => {
     const transform = state.components.transform[eid];
 
     V.addMut(

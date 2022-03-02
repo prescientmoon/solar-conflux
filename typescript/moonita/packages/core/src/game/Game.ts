@@ -1,3 +1,9 @@
+import * as Path from "./common/Path";
+import * as V from "./common/Vector";
+import * as Camera from "./common/Camera";
+import * as PIXI from "pixi.js";
+import * as GameAction from "./GameAction";
+
 import { Effect, Stream } from "../Stream";
 import {
   mouseDelta,
@@ -5,10 +11,8 @@ import {
   screenSizes,
   wheel,
 } from "../WebStreams";
-import * as Path from "./common/Path";
 import { loadPixiTextures, TextureId } from "./assets";
 import { defaultFlags, Flag } from "./common/Flags";
-import * as V from "./common/Vector";
 import { baseSize, basicMap, basicMapPathA } from "./Map";
 import {
   createRenderingComponents,
@@ -40,7 +44,6 @@ import {
 } from "./systems/renderMap";
 import { syncPixiTransforms } from "./systems/renderTextures";
 import { applyCameraObject } from "./systems/renderWithTransform";
-import * as Camera from "./common/Camera";
 import { renderDebugBoidData, simulateBoids } from "./systems/boids";
 import { rotateAfterVelocity } from "./systems/rotateAfterVelocity";
 import { limitSpeeds } from "./systems/limitSpeeds";
@@ -51,10 +54,8 @@ import { FlexibleTypedArray } from "../FlexibleTypedArray";
 import { settings } from "./common/Settings";
 import { TickScheduler } from "../TickScheduler";
 import { handleGameAction } from "./systems/handleGameAction";
-import * as PIXI from "pixi.js";
 import { identityTransform } from "./common/Transform";
 import { ECS } from "wolf-ecs";
-import * as GameAction from "./GameAction";
 import {
   bubbleSpark,
   bubbleSparkProjectile,
@@ -224,8 +225,6 @@ export class Game {
 
           this.resizeContext({ x: window.innerWidth, y: window.innerHeight });
 
-          spawnWand(this.state, 0);
-
           if (this.state.flags[Flag.SpawnDebugBulletEmitter]) {
             const eid = ecs.createEntity();
 
@@ -252,11 +251,13 @@ export class Game {
 
             this.state.components.angularVelocity[eid] = 0.1;
 
-            this.state.tickScheduler.schedule(
-              10,
-              GameAction.handleBulletSpawner(eid),
-              5
-            );
+            // this.state.tickScheduler.schedule(
+            //   10,
+            //   GameAction.handleBulletSpawner(eid),
+            //   5
+            // );
+
+            spawnWand(this.state, 0, eid);
           }
 
           if (this.state.flags[Flag.SpawnDebugBoids]) {

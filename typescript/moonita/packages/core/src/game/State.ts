@@ -105,7 +105,7 @@ export interface SelectedEntity {
 // ========== Runtime type specs
 const typeVector2 = types.custom<Vector2>(() => V.origin());
 
-export const SeekingBehavior = {
+const SeekingBehavior = {
   target: typeVector2,
 };
 
@@ -154,6 +154,11 @@ const SeparationBehavior = (flags: Flags) => {
   return result;
 };
 
+const Projectile = {
+  damage: types.i8, // signed to encode healing
+  bounces: types.u8, // amount of bounces left
+};
+
 // ========== Helpers
 export const createSimulationComponents = (ecs: ECS, flags: Flags) => {
   const transform = ecs.defineComponent(types.any<Transform>());
@@ -179,6 +184,8 @@ export const createSimulationComponents = (ecs: ECS, flags: Flags) => {
   const physicsObject = ecs.defineComponent({
     mass: types.f32,
   });
+
+  const projectile = ecs.defineComponent(Projectile);
 
   const boidSeparation = ecs.defineComponent(SeparationBehavior(flags));
   const boidAlignment = ecs.defineComponent();
@@ -209,6 +216,7 @@ export const createSimulationComponents = (ecs: ECS, flags: Flags) => {
     speedLimit,
     team,
     wandHolder,
+    projectile,
   };
 };
 
@@ -228,6 +236,9 @@ export const createSimulationQueries = (
   components: SimulationComponentMap
 ) => {
   return {
+    movesWithVelocity: ecs.createQuery(
+      all<any>(components.transform, components.velocity)
+    ),
     kinematics: ecs.createQuery(
       all<any>(
         components.transform,

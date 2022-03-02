@@ -1,4 +1,5 @@
 export const enum Flag {
+  // Visual tools
   DebugShowOriginArrow,
   DebugShowBasePaths,
   DebugShowBounds,
@@ -11,6 +12,12 @@ export const enum Flag {
   DebugGlobalState,
   DebugWrapping,
   DebugShowSelectedEntityPath,
+
+  // Logging related stuff
+  DebugWandExecutionLogs,
+  DebugEventLogs,
+
+  // Spawning related stuff
   SpawnDebugBulletEmitter,
   SpawnDebugBoids,
 }
@@ -30,6 +37,10 @@ export const defaultFlags: Flags = {
   [Flag.DebugGlobalState]: true,
   [Flag.DebugWrapping]: true,
   [Flag.DebugShowSelectedEntityPath]: false,
-  [Flag.SpawnDebugBulletEmitter]: false,
+
+  [Flag.DebugWandExecutionLogs]: true,
+  [Flag.DebugEventLogs]: false,
+
+  [Flag.SpawnDebugBulletEmitter]: true,
   [Flag.SpawnDebugBoids]: true,
 };

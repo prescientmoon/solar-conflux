@@ -1,30 +1,40 @@
 import { Task, TaskId } from "../../TickScheduler";
+import { Flag } from "../common/Flags";
 import {
   actionIdMask,
   GameAction,
   maxActionCount,
   onDespawn,
 } from "../GameAction";
-import { SimulationState } from "../State";
+import { SimulationState, stateIsComplete } from "../State";
 import { castWand } from "./interpretWands";
+import { clearSprite } from "./renderTextures";
 import { spawnBullets } from "./spawnBullet";
 
 export function handleGameAction(state: SimulationState, task: Task<number>) {
   const action = task.task;
   const id = action & actionIdMask;
 
+  const payload = action >> maxActionCount;
+
+  if (state.flags[Flag.DebugEventLogs])
+    console.log(
+      // @ts-ignore enum indexing
+      `${GameAction[id]} ${payload}`
+    );
+
   if (id === GameAction.DespawnEntity) {
-    const eid = action >> maxActionCount;
-    triggerEvent(state, onDespawn(eid));
-    state.ecs.destroyEntity(eid);
+    triggerEvent(state, onDespawn(payload));
+    state.ecs.destroyEntity(payload);
   } else if (id === GameAction.HandleBulletSpawner)
-    spawnBullets(state, action >> maxActionCount);
+    spawnBullets(state, payload);
   else if (id === GameAction.DebugLog) {
     console.log("Debug log!");
+  } else if (id === GameAction.ClearSprite) {
+    if (stateIsComplete(state)) clearSprite(state, payload);
+    else throw new Error("Impossible"); // TODO: check this at compile time
   } else if (id === GameAction.ShootWand) {
-    const wid = action >> maxActionCount;
-
-    castWand(state, wid);
+    castWand(state, payload);
   }
 }
 

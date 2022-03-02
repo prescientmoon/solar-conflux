@@ -22,3 +22,13 @@ export function syncPixiTransforms(state: State) {
     if (isSprite) pixiObject.rotation += Math.PI / 2;
   });
 }
+
+export function clearSprite(state: State, eid: number) {
+  const pixiObject = state.components.pixiObject.ref[eid];
+
+  if (!pixiObject.parent)
+    throw new Error("Cannot clear sprites with no parent (yet)");
+
+  pixiObject.parent.removeChild(pixiObject);
+  pixiObject.destroy();
+}

@@ -1,5 +1,3 @@
-import { CircularBuffer } from "./CircularBuffer";
-
 export type TaskId = number;
 export interface Task<T> {
   task: T;
@@ -12,7 +10,9 @@ export interface TaskLocation {
   index: number;
 }
 
-/** A general purpouse event emitter. */
+/** A general purpouse event emitter with support for
+ * intervals and specific tick scheduling.
+ */
 export class TickScheduler<T> {
   private tasks = new Map<number, Task<T>[]>();
   private nextTaskId = 0;
@@ -22,11 +22,9 @@ export class TickScheduler<T> {
     if (!this.tasks.has(tick)) this.tasks.set(tick, []);
   }
 
-  public constructor() {}
-
   /** An event is a task which has to manually get triggered. */
-  public scheduleEvent(tick: number, task: T) {
-    return this.schedule(-tick, task, null);
+  public scheduleEvent(event: number, task: T) {
+    return this.schedule(-event, task, null);
   }
 
   /** Manually trigger an event, returning all the tasks we have to handle */
@@ -35,7 +33,7 @@ export class TickScheduler<T> {
 
     if (tasks === undefined) return [];
 
-    this.handleTick(id);
+    this.handleTick(-id);
 
     return tasks;
   }
