@@ -26,6 +26,7 @@ export interface ProjectileStats {
   bounces: number;
   lifetime: [from: number, to: number];
   spread: number;
+  recoil: number;
 }
 
 /**
@@ -188,9 +189,9 @@ export function mergeStatsMut(
 // Example wand
 export const exampleWand: Wand = {
   shuffle: false,
-  castDelay: 1,
+  castDelay: 5,
   rechargeDelay: 1,
-  manaRecharge: 20,
+  manaRecharge: 10,
   maxMana: 400,
   spread: TAU / 36,
   capacity: 0,

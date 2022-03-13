@@ -1,10 +1,10 @@
 import * as GameAction from "../GameAction";
+import * as V from "../common/Vector";
+import * as Segment from "../common/Segment";
 import { getPosition, getVelocity } from "../common/Entity";
 import { settings } from "../common/Settings";
-import * as V from "../common/Vector";
 import { applyForce } from "../physics";
 import { SimulationState, State } from "../State";
-import * as Segment from "../common/Segment";
 import { renderLine } from "./renderLinePath";
 import { Flag } from "../common/Flags";
 import { renderCustomArrow } from "./debugArrows";

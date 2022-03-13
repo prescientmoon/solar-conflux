@@ -4,15 +4,19 @@ import * as V from "../common/Vector";
 import { boidTextureByTeam, TextureId } from "../assets";
 import { settings } from "../common/Settings";
 import { Vector2 } from "../common/Vector";
-import { LayerId, SimulationState, State, stateIsComplete } from "../State";
+import {
+  EntityId,
+  LayerId,
+  SimulationState,
+  State,
+  stateIsComplete,
+} from "../State";
 import { insertBoidIntoQuadTree } from "./boidQuadTree";
 import { identityTransform } from "../common/Transform";
+import { BarOptions, createBar } from "../ui";
+import { getLayer } from "../common/Entity";
 
-export function markEntityCreation(state: SimulationState, eid: number) {
-  state.ecs.addComponent(eid, state.components.created);
-  state.components.created.createdAt[eid] = state.tick;
-}
-
+/** Attach a sprite onto an entity */
 export const addSprite = (
   state: State,
   eid: number,
@@ -23,9 +27,7 @@ export const addSprite = (
   state.ecs.addComponent(eid, state.components.pixiObject);
 
   const sprite = new PIXI.Sprite(state.pixiTextures[id]);
-  const layerContainer = state.components.pixiObject.ref[state.camera].children[
-    layer
-  ] as PIXI.Container;
+  const layerContainer = getLayer(state, layer);
 
   sprite.anchor.set(0.5, 0.5);
   layerContainer.addChild(sprite);
@@ -50,8 +52,6 @@ export const createBullet = (
   const eid = state.ecs.createEntity();
 
   const sourceTransform = state.components.transform[startFrom];
-
-  markEntityCreation(state, eid);
 
   state.ecs.addComponent(eid, state.components.transform);
   state.ecs.addComponent(eid, state.components.velocity);
@@ -92,6 +92,34 @@ export function limitSpeed(state: SimulationState, eid: number, to: number) {
   state.components.speedLimit[eid] = to;
 }
 
+export function createUiBar(
+  state: State,
+  parent: EntityId,
+  uiBarOptions: BarOptions
+) {
+  const eid = state.ecs.createEntity();
+
+  state.ecs.addComponent(eid, state.components.uiBar);
+  state.ecs.addComponent(eid, state.components.pixiObject);
+  state.ecs.addComponent(eid, state.components.transform);
+  state.ecs.addComponent(eid, state.components.positionOnlyChild);
+
+  state.components.positionOnlyChild.childOf[eid] = parent;
+  state.components.positionOnlyChild.offset[eid] = V.origin();
+
+  state.components.uiBar[eid] = 255;
+  state.components.pixiObject.scaleBySpriteDimenssions[eid] = 0;
+  state.components.transform[eid] = identityTransform();
+
+  state.components.pixiObject.ref[eid] = createBar(
+    getLayer(state, LayerId.UiLayer),
+    uiBarOptions
+  );
+
+  return eid;
+}
+
+// {{{
 export function createBoid(
   state: SimulationState,
   position: Vector2,
@@ -140,3 +168,4 @@ export function createBoid(
 
   return eid;
 }
+// }}}

@@ -25,15 +25,12 @@ import {
   State,
   StateKind,
 } from "./State";
-import {
-  addSprite,
-  createBoid,
-  markEntityCreation,
-} from "./systems/createEntity";
+import { addSprite, createBoid } from "./systems/createEntity";
 import { renderDebugArrows } from "./systems/debugArrows";
 import {
   moveEntities,
   rotateEntities,
+  updateOffsetOnlyChildrenPositions,
   updateVelocities,
 } from "./systems/moveEntities";
 import {
@@ -64,7 +61,12 @@ import {
   VanillaCardId,
   VanillaProjectileId,
 } from "./wand";
-import { spawnWand, updateWandTimers } from "./systems/interpretWands";
+import {
+  spawnWand,
+  updateWandTimers,
+  updateWandVisualTimers,
+} from "./systems/interpretWands";
+import { updateBarValues } from "./ui";
 
 export class Game {
   private state: State | null = null;
@@ -227,8 +229,6 @@ export class Game {
           if (this.state.flags[Flag.SpawnDebugBulletEmitter]) {
             const eid = ecs.createEntity();
 
-            markEntityCreation(this.state, eid);
-
             ecs.addComponent(eid, components.transform);
             ecs.addComponent(eid, components.angularVelocity);
 
@@ -378,7 +378,10 @@ export class Game {
     this.state.context.resetTransform();
     this.state.context.clearRect(0, 0, 10000, 10000);
 
+    // Render-related updates
     syncPixiTransforms(this.state);
+    updateWandVisualTimers(this.state);
+    updateBarValues(this.state);
 
     // Apply base transforms
     applyCameraObject(this.state.context, getScreenTransform(this.state));
@@ -413,6 +416,8 @@ export class Game {
 
     rotateEntities(this.state);
     rotateAfterVelocity(this.state);
+
+    updateOffsetOnlyChildrenPositions(this.state);
 
     for (let team = 0; team < this.state.map.teams.length; team++) {
       updateBoidQuadTree(this.state, team);

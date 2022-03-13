@@ -1,9 +1,16 @@
-import { Flag } from "../common/Flags";
-import { SimulationState } from "../State";
 import * as V from "../common/Vector";
+import * as E from "wolf-ecs";
+import { Flag } from "../common/Flags";
+import { SimpleSystem } from "../State";
 
-export function updateVelocities(state: SimulationState) {
-  state.queries.kinematics._forEach((eid) => {
+export const updateVelocities = SimpleSystem(
+  (components) =>
+    E.all<any>(
+      components.transform,
+      components.velocity,
+      components.acceleration
+    ),
+  (state, eid) => {
     const acceleration = state.components.acceleration[eid];
 
     V.addMut(
@@ -15,11 +22,12 @@ export function updateVelocities(state: SimulationState) {
     // TODO: rethink this
     acceleration.x = 0;
     acceleration.y = 0;
-  });
-}
+  }
+);
 
-export function moveEntities(state: SimulationState) {
-  state.queries.movesWithVelocity._forEach((eid) => {
+export const moveEntities = SimpleSystem(
+  (components) => E.all<any>(components.transform, components.velocity),
+  (state, eid) => {
     const transform = state.components.transform[eid];
 
     V.addMut(
@@ -44,12 +52,29 @@ export function moveEntities(state: SimulationState) {
       )
         transform.position.y = state.bounds.position.y;
     }
-  });
-}
+  }
+);
 
-export function rotateEntities(state: SimulationState) {
-  state.queries.rotating._forEach((eid) => {
+export const rotateEntities = SimpleSystem(
+  (components) => E.all<any>(components.transform, components.angularVelocity),
+  (state, eid) => {
     state.components.transform[eid].rotation +=
       state.components.angularVelocity[eid];
-  });
-}
+  }
+);
+
+// This *could* be done in a lazy way, but I myself am too lazy to implement that
+export const updateOffsetOnlyChildrenPositions = SimpleSystem(
+  (components) =>
+    E.all<any>(components.transform, components.positionOnlyChild),
+  (state, eid) => {
+    const parent = state.components.positionOnlyChild.childOf[eid];
+    const offset = state.components.positionOnlyChild.offset[eid];
+
+    V.addMut(
+      state.components.transform[eid].position,
+      state.components.transform[parent].position,
+      offset
+    );
+  }
+);

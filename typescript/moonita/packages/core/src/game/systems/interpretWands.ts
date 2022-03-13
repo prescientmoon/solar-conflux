@@ -10,8 +10,8 @@ import {
   LayerId,
   SimpleSystem,
   SimulationState,
+  State,
   stateIsComplete,
-  System,
 } from "../State";
 import {
   Card,
@@ -27,7 +27,7 @@ import {
   WandState,
 } from "../wand";
 import { identityTransform } from "../common/Transform";
-import { addSprite } from "./createEntity";
+import { addSprite, createUiBar } from "./createEntity";
 import { normalizeAngle, randomBetween } from "../../math";
 import { Flag } from "../common/Flags";
 
@@ -252,6 +252,22 @@ export function spawnWand(
 
   state.tickScheduler.schedule(state.tick + wand.castDelay, shootWand(wid));
 
+  if (stateIsComplete(state)) {
+    state.ecs.addComponent(wid, state.components.wandStateIndicators);
+
+    const barId = createUiBar(state, wid, {
+      padding: V.create(1, 1),
+      size: V.create(50, 10),
+      backgroundColor: [0x222222, 0.4],
+      barColor: [0x4444dd, 1],
+    });
+
+    state.components.positionOnlyChild.offset[barId].y += 40;
+    state.components.wandStateIndicators[wid] = {
+      manaIndicator: barId,
+    };
+  }
+
   return wid;
 }
 
@@ -332,5 +348,19 @@ export const updateWandTimers = SimpleSystem(
 
     // Recharge mana
     wandState.mana = Math.min(wandState.mana + wand.manaRecharge, wand.maxMana);
+  }
+);
+
+export const updateWandVisualTimers = SimpleSystem<State>(
+  (components) =>
+    E.all<any>(components.wandHolder, components.wandStateIndicators),
+  (state, eid) => {
+    const indicators = state.components.wandStateIndicators[eid];
+    const wandState = state.components.wandHolder.wandState[eid];
+    const wand = getWand(state, state.components.wandHolder.wandId[eid]);
+
+    state.components.uiBar[indicators.manaIndicator] = Math.floor(
+      (255 * wandState.mana) / wand.maxMana
+    );
   }
 );

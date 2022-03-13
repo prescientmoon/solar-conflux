@@ -46,6 +46,7 @@ export const enum LayerId {
   BuildingLayer, // Bases, towers, etc
   UnitLayer, // moving units
   BulletLayer, // the name is obvious, why are you reading this
+  UiLayer, // Layer for ui stuff?
   DebugLayer, // Layer for debug tooling
   LastLayer, // Here as an easy way to get the number of layers
 }
@@ -175,9 +176,6 @@ export const createSimulationComponents = (ecs: ECS, flags: Flags) => {
   const mortal = ecs.defineComponent({
     lifetime: types.u16,
   });
-  const created = ecs.defineComponent({
-    createdAt: types.u32,
-  });
   const team = ecs.defineComponent(types.u8);
   const teamBase = ecs.defineComponent({
     baseId: types.u8,
@@ -198,13 +196,17 @@ export const createSimulationComponents = (ecs: ECS, flags: Flags) => {
     wandState: types.custom<WandState>(),
   });
 
+  const positionOnlyChild = ecs.defineComponent({
+    childOf: types.uint8,
+    offset: typeVector2,
+  });
+
   return {
     velocity,
     acceleration,
     transform,
     bullet,
     mortal,
-    created,
     teamBase,
     angularVelocity,
     seekingBehavior,
@@ -218,17 +220,32 @@ export const createSimulationComponents = (ecs: ECS, flags: Flags) => {
     team,
     wandHolder,
     projectile,
+    positionOnlyChild,
   };
 };
 
 export const createRenderingComponents = (ecs: ECS, _: Flags) => {
+  type WandStateIndicators = {
+    manaIndicator: EntityId;
+  };
+
+  const pixiContainer = types.any<PIXI.Container>();
+
   const pixiObject = ecs.defineComponent({
-    ref: types.any<PIXI.Container>(),
+    ref: pixiContainer,
     scaleBySpriteDimenssions: types.uint8, // boolean
   });
 
+  const uiBar = ecs.defineComponent(types.u8);
+
+  const wandStateIndicators = ecs.defineComponent(
+    types.any<WandStateIndicators>()
+  );
+
   return {
     pixiObject,
+    uiBar,
+    wandStateIndicators,
   };
 };
 
@@ -237,19 +254,6 @@ export const createSimulationQueries = (
   components: SimulationComponentMap
 ) => {
   return {
-    movesWithVelocity: ecs.createQuery(
-      all<any>(components.transform, components.velocity)
-    ),
-    kinematics: ecs.createQuery(
-      all<any>(
-        components.transform,
-        components.velocity,
-        components.acceleration
-      )
-    ),
-    rotating: ecs.createQuery(
-      all<any>(components.transform, components.angularVelocity)
-    ),
     bullets: ecs.createQuery(
       all<any>(components.transform, components.mortal, components.bullet)
     ),

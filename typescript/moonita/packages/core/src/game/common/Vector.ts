@@ -12,6 +12,10 @@ export interface PolarVector2 {
 }
 
 // ========== Helpers
+/** Base constructor */
+export function create(x: number, y: number) {
+  return { x, y };
+}
 
 export const difference = (a: Vector2, b: Vector2): Vector2 => ({
   x: a.x - b.x,
