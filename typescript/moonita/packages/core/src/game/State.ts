@@ -39,6 +39,7 @@ export type FullQueryMap = SimulationQueryMap &
   ReturnType<typeof createRenderingQueries>;
 
 export type Query = ReturnType<ECS["createQuery"]>;
+export type RawQuery = Parameters<ECS["createQuery"]>[0];
 
 /** Pre-defined z-indices for pixi objects */
 export const enum LayerId {
@@ -329,6 +330,40 @@ export function getCamera(state: State): Camera2d {
 /** Helper for getting the transform of the screen container entity */
 export function getScreenTransform(state: State): Camera2d {
   return state.components.transform[state.screenTransform];
+}
+
+/** Memoize a query creation */
+export function System<T extends SimulationState>(
+  rawQuery: (components: T["components"]) => RawQuery,
+  system: (state: T, query: Query) => void
+): (state: T) => void {
+  let query: Query | null = null;
+
+  return (state) => {
+    if (query === null)
+      query = state.ecs.createQuery(rawQuery(state.components));
+
+    system(state, query);
+  };
+}
+
+/** System which simply iterates over the entities in it's query */
+export function SimpleSystem<T extends SimulationState>(
+  rawQuery: (components: T["components"]) => RawQuery,
+  system: (state: T, entity: EntityId) => void
+): (state: T) => void {
+  return System(rawQuery, (state, query) => {
+    for (let i = 0; i < query.archetypes.length; i++) {
+      const arch = query.archetypes[i].entities;
+
+      // Backward iteration helps prevent double counting entities
+      for (let j = arch.length - 1; j >= 0; j--) {
+        const id = arch[j];
+
+        system(state, id);
+      }
+    }
+  });
 }
 
 // ========== Constants

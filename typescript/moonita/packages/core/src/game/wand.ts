@@ -189,8 +189,8 @@ export function mergeStatsMut(
 export const exampleWand: Wand = {
   shuffle: false,
   castDelay: 1,
-  rechargeDelay: 60,
-  manaRecharge: 100,
+  rechargeDelay: 1,
+  manaRecharge: 20,
   maxMana: 400,
   spread: TAU / 36,
   capacity: 0,

@@ -38,7 +38,7 @@ export const defaultFlags: Flags = {
   [Flag.DebugWrapping]: true,
   [Flag.DebugShowSelectedEntityPath]: false,
 
-  [Flag.DebugWandExecutionLogs]: true,
+  [Flag.DebugWandExecutionLogs]: false,
   [Flag.DebugEventLogs]: false,
 
   [Flag.SpawnDebugBulletEmitter]: true,

@@ -13,7 +13,7 @@ specifiers:
   typescript: ^4.3.2
   vite: ^2.6.4
   vite-plugin-glsl: ^0.0.9
-  wolf-ecs: ^2.1.1
+  wolf-ecs: ^2.1.3
   ws: ^8.3.0
 
 dependencies:
@@ -24,7 +24,7 @@ dependencies:
   preact: 10.6.2
   runtypes: 6.5.0
   twgl.js: 4.21.2
-  wolf-ecs: 2.1.1
+  wolf-ecs: 2.1.3
   ws: 8.3.0
 
 devDependencies:
@@ -1340,8 +1340,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /wolf-ecs/2.1.1:
-    resolution: {integrity: sha512-Wxdvv7hiJQdbRmfv/plm8xSPRyRg4dPkwajVEZf1mjt4ctumLAdZcvc4LIkFCvhLEABrX/KgTgpA5ucUGymahw==}
+  /wolf-ecs/2.1.3:
+    resolution: {integrity: sha512-zTmUsc85VrvFWi7BtZGgF2ZVtcohtMEeSC3fQrWVOENDJkXEm380EFsthr6tFWRJACFLWkw0zUCR6aBFuyTq+A==}
     dev: false
 
   /ws/8.3.0:

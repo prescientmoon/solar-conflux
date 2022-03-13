@@ -2,7 +2,6 @@ import * as Path from "./common/Path";
 import * as V from "./common/Vector";
 import * as Camera from "./common/Camera";
 import * as PIXI from "pixi.js";
-import * as GameAction from "./GameAction";
 
 import { Effect, Stream } from "../Stream";
 import {
@@ -65,7 +64,7 @@ import {
   VanillaCardId,
   VanillaProjectileId,
 } from "./wand";
-import { spawnWand } from "./systems/interpretWands";
+import { spawnWand, updateWandTimers } from "./systems/interpretWands";
 
 export class Game {
   private state: State | null = null;
@@ -410,6 +409,7 @@ export class Game {
     updateVelocities(this.state);
     limitSpeeds(this.state);
     moveEntities(this.state);
+    updateWandTimers(this.state);
 
     rotateEntities(this.state);
     rotateAfterVelocity(this.state);

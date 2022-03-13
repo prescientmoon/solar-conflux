@@ -1,10 +1,18 @@
 import * as GameAction from "../GameAction";
 import * as V from "../common/Vector";
+import * as E from "wolf-ecs";
 
 import { CircularBuffer } from "../../CircularBuffer";
 import { settings } from "../common/Settings";
 import { shootWand } from "../GameAction";
-import { EntityId, LayerId, SimulationState, stateIsComplete } from "../State";
+import {
+  EntityId,
+  LayerId,
+  SimpleSystem,
+  SimulationState,
+  stateIsComplete,
+  System,
+} from "../State";
 import {
   Card,
   CardId,
@@ -315,3 +323,14 @@ export function executeCastState(
     }
   }
 }
+
+export const updateWandTimers = SimpleSystem(
+  (components) => E.all(components.wandHolder),
+  (state, eid) => {
+    const wandState = state.components.wandHolder.wandState[eid];
+    const wand = getWand(state, state.components.wandHolder.wandId[eid]);
+
+    // Recharge mana
+    wandState.mana = Math.min(wandState.mana + wand.manaRecharge, wand.maxMana);
+  }
+);
