@@ -102,6 +102,7 @@ export interface WandState {
   hand: CircularBuffer<CardRef>; // Cards currently used
 
   // Other data
+  rechargeDelay: number; // accumulate delay to be applied once the deck has been depleted
   mana: number; // amount of mana available
 }
 
@@ -116,6 +117,9 @@ export interface ProjectileCastData {
 export interface CastState {
   stats: ProjectileStats;
   projectiles: Array<ProjectileCastData>;
+
+  /** Delay to run once the current casts gets executed */
+  castDelay: number;
 
   /** Spells like formations change where projectiles get launched from / what direction they take */
   accumulatedTransform: {
@@ -189,7 +193,7 @@ export function mergeStatsMut(
 // Example wand
 export const exampleWand: Wand = {
   shuffle: false,
-  castDelay: 5,
+  castDelay: 3,
   rechargeDelay: 1,
   manaRecharge: 10,
   maxMana: 400,

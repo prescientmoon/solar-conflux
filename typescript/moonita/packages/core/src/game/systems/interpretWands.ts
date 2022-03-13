@@ -57,6 +57,7 @@ function emptyCastState(): CastState {
     stats: noStats(),
     forceRecharge: false,
     projectiles: [],
+    castDelay: 0,
   };
 }
 
@@ -66,6 +67,10 @@ function resetWandState(wand: Wand, wandState: WandState) {
   wandState.discarded.clear();
   wandState.hand.clear();
 
+  // Reset the accumulated delay
+  wandState.rechargeDelay = wand.rechargeDelay;
+
+  // Readd cards into the decks
   wandState.deck.pushMany(
     wand.cards.map((id, index) => ({
       index,
@@ -82,6 +87,7 @@ function emptyWandState(state: SimulationState, wandId: WandId): WandState {
     hand: new CircularBuffer(settings.maxDeckSize),
     deck: new CircularBuffer(settings.maxDeckSize),
     mana: wand.maxMana,
+    rechargeDelay: 0,
   };
 
   resetWandState(wand, wandState);
@@ -144,9 +150,15 @@ function drawAndUpdateCastState(
   if (state.flags[Flag.DebugWandExecutionLogs])
     console.log(`Drew ${card.name}`);
 
-  // Pay mana cost
+  // Make sure mana cost can be paid
   if (wandState.mana >= card.manaCost) {
+    // Pay mana cost
     wandState.mana -= card.manaCost;
+
+    // Apply delays
+    castState.castDelay += card.castDelay;
+    wandState.rechargeDelay += card.rechargeDelay;
+
     for (const effect of card.effects) {
       if (effect.type === "multicast") {
         for (const cast of effect.formation) {
@@ -215,12 +227,12 @@ export function castWand(state: SimulationState, eid: EntityId) {
   const wandState = state.components.wandHolder.wandState[eid];
   const wand = state.wands[state.components.wandHolder.wandId[eid]];
 
+  castState.castDelay = wand.castDelay;
+
   drawAndUpdateCastState(state, castState, wandState, wand);
 
   wandState.hand.pushContentsInto(wandState.discarded);
   wandState.hand.clear();
-
-  // console.log({ castState, wandState });
 
   executeCastState(state, wand, castState, eid);
 
@@ -230,11 +242,16 @@ export function castWand(state: SimulationState, eid: EntityId) {
   if (wandState.deck.size === 0 || castState.forceRecharge) {
     if (state.flags[Flag.DebugWandExecutionLogs]) console.log("Recharge!!!");
 
-    resetWandState(wand, wandState);
+    scheduleWandCast(
+      state,
+      // Require at least 1 tick of waiting. Else wait whatever accumulated delay is bigger
+      Math.max(1, castState.castDelay, wandState.rechargeDelay),
+      eid
+    );
 
-    scheduleWandCast(state, Math.max(wand.castDelay, wand.rechargeDelay), eid);
+    resetWandState(wand, wandState);
   } else {
-    scheduleWandCast(state, wand.castDelay, eid);
+    scheduleWandCast(state, castState.castDelay, eid);
   }
 }
 
