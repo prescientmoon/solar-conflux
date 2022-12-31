@@ -1,0 +1,33 @@
+{
+  "lspconfig": {
+    "sumneko_lua": {
+      "Lua.workspace.library": [
+        "/home/adrielus/Projects/Foreign/vscode-factoriomod-debug/sumneko-3rd/factorio/library",
+        "/home/adrielus/.steam/steam/steamapps/common/Factorio/data"
+      ],
+      "Lua.runtime.plugin": "/home/adrielus/Projects/Foreign/vscode-factoriomod-debug/sumneko-3rd/factorio/plugin.lua",
+      "Lua.workspace.checkThirdParty": false,
+      "Lua.runtime.version": "Lua 5.2",
+      "Lua.runtime.special": {
+        "__object_name": "type"
+      },
+      "Lua.runtime.builtin": {
+        "io": "disable",
+        "os": "disable",
+        "coroutine": "disable",
+        "package": "disable",
+        "math": "disable",
+        "debug": "disable"
+      },
+      "Lua.diagnostics.globals": [
+        "__DebugAdapter",
+        "__Profiler"
+      ]
+    }
+  },
+  "neodev": {
+    "library": {
+      "enabled": false
+    }
+  }
+}
