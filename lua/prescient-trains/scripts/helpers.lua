@@ -53,7 +53,7 @@ end
 ---@param at integer
 ---@param value T
 function M.list_insert(list, at, value)
-  table.insert(list,at, value)
+  table.insert(list, at, value)
 end
 
 ---Shallow copies some table
@@ -64,7 +64,8 @@ function M.copy(object)
   local result = {}
 
   for k, v in pairs(object) do
-    result[k] = v end
+    result[k] = v
+  end
 
   return result
 end
