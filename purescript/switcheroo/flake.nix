@@ -20,6 +20,10 @@
                    [ console
                      effect
                      prelude
+                     exists
+                     tuples
+                     indexed-monad
+                     aff
                    ];
 
                  dir = ./.;
