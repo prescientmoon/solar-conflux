@@ -8,7 +8,7 @@ import Data.Identity (Identity(..))
 import Effect (Effect)
 import Effect.Console (log)
 import Safe.Coerce (coerce)
-import Swictheroo.Stream (Finished, Producer, constantProducer, runConsumeM_)
+import Swictheroo.Stream (ConsumeM, Producer, constantProducer, runConsumeM_, unitProducer)
 import Swictheroo.Stream as Stream
 
 type Producers m =
@@ -17,7 +17,7 @@ type Producers m =
   , ping :: Producer m Boolean
   }
 
-program :: forall m. Monad m => Producers m -> Finished m String Unit
+program :: forall m. Monad m => Producers m -> ConsumeM m Unit Unit String
 program producers = Ix.do
   Stream.replace producers.download
   a <- Stream.pull
@@ -28,7 +28,9 @@ program producers = Ix.do
   Stream.replace producers.ping
   c <- Stream.pull
 
-  Stream.terminate $ Array.fold
+  Stream.replace unitProducer
+
+  pure $ Array.fold
     [ "Download: "
     , show a
     , ", Report: "
@@ -104,7 +106,7 @@ Note that in an actual production codebase we would receive
   allow mocking and to not tie ourselves to a specific monad.
 -}
 
-{- One could thing about this approach is 
+{- One cool thing about this approach is 
 that simple state can be kept without the need for StateT!
 (because we can simply pass around values)
 -}
