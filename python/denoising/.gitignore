@@ -1,4 +1,4 @@
 .direnv
 .ipynb_checkpoints
 .envrc
-.pyc
+*.pyc
