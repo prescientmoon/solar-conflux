@@ -170,7 +170,7 @@ def largest_eigenvalue(a, c, e, initial_x, kmax):
   assert_valid_tridiagonal(a, c, e)
 
   x = initial_x
-  for i in range(kmax):
+  for _ in range(kmax):
     q = multiply_vector(a, c, e, x)
     assert not np.allclose(q, 0)
     x = q/np.linalg.norm(q)
