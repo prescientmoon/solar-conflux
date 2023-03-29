@@ -43,23 +43,7 @@ def to_csr(a, c, e):
   """
   assert_valid_tridiagonal(a, c, e)
 
-  n = len(c)
-
-  values = np.zeros(n * 3 + 1)
-  values[::3] = a
-  values[1::3] = c
-  values[2::3] = e
-  
-  col_indices = np.zeros_like(values)
-  col_indices[1::3] = np.arange(1, n + 1)
-  col_indices[2::3] = np.arange(0, n)
-  col_indices[3::3] = np.arange(1, n + 1)
-
-  index_ptr = np.zeros(n + 2)
-  index_ptr[1:n+1] = np.arange(2, n * 3 + 2, 3)
-  index_ptr[n+1] = n * 3 + 1
-
-  return sp.sparse.csr_array((values, col_indices, index_ptr))
+  return sp.sparse.diags((a, c, e), offsets=(0, 1, -1), format="csr")
 
 def to_array(a, c, e):
   """
@@ -229,6 +213,12 @@ def scale(s, m):
     assert np.allclose(result, s * to_array(*m))
 
   return result
+
+def transpose(a, c, e):
+  """
+  Computes the transpose of a tridiagonal matrix.
+  """
+  return create(a, e, c)
 
 # Small sanity check for the above code
 def main():

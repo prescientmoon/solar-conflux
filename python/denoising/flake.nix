@@ -9,7 +9,7 @@
       (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          pyDeps = p: with p; [ numpy scipy matplotlib ];
+          pyDeps = p: with p; [ numpy scipy matplotlib pillow ];
         in
         rec {
           devShell = pkgs.mkShell {
