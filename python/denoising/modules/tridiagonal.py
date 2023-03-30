@@ -156,7 +156,7 @@ def largest_eigenvalue(a, c, e, initial_x, kmax):
   x = initial_x
   for _ in range(kmax):
     q = multiply_vector(a, c, e, x)
-    assert not np.allclose(q, 0)
+    assert not np.allclose(q, 0) # Sanity check
     x = q/np.linalg.norm(q)
 
   # Computes the eigenvalue from the eigenvector
