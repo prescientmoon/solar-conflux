@@ -219,17 +219,4 @@ def transpose(a, c, e):
   Computes the transpose of a tridiagonal matrix.
   """
   return create(a, e, c)
-
-# Small sanity check for the above code
-def main():
-  a, c, e = create(3*np.ones(4), 2*np.ones(3), 3*np.ones(3))
-
-  rhs = np.ones(4)
-  result = solve(a, c, e, rhs)
-  print(f"m={to_array(a, c, e)}")
-  print(f"{rhs=}")
-  print(f"{result=}")
-  print(to_array(a, c, e) @ result)
-  print(largest_eigenvalue(a, c, e, np.ones(4), 50))
-
 # main()
