@@ -1,0 +1,129 @@
+\subsection{Independent sets}
+
+We will begin with the first possible way of defining what a \textit{matroid} is. This way is arguably the simplest one because all of the properties are arugably inuitive. When speaking about matroids we will always deal with finite sets, and the way we obtain a matroid from a finitie set is to declare some of it subsets to be special. Intuitively they are the \textit{independent } sets in some specific way and should obey some of this propertis, this is precisely what the definition involves.
+
+
+\begin{defn}
+    Let $E$ be a finite set, possibly empty and $\mathcal{I}$ a collection of subsets of $E$ (i.e. some subset of the power set $2^E$ of E). We call the ordered pair $M = (E, \mathcal{I})$ a matroid if the following three properties are satisfied
+
+    \begin{enumerate}
+        \item We have $\emptyset \in \mathcal{I}$.
+        
+        \item If $I \in \mathcal{I}$ and $J \subset I$, then $J \in \mathcal{I}$.
+        
+        \item If $I, J \in \mathcal{I}$ and $|I| < |J|$, then there exists $e \in J - I$ so that $I \cup e \in \mathcal{I}$.
+    \end{enumerate}
+
+    We call elements of $\mathcal{I}$ \textbf{independent sets}.
+\end{defn}
+
+There are also a few alternatives to property 3 that are equivalent:
+
+"If $I, J \in \mathcal{I} $ and $|J| = |I| + 1$, then there exists $e \in J - I$ such that $I \cup e \in \mathcal{I}$."
+
+"If $X \subseteq E$ and $I_1, I_2$ are maximal members of $\{ I \in \mathcal{I} | I \subseteq X \}$, then $|I_1| = |I_2|$."
+
+The definition of a matroid is designed to include precisely the property that makes a subset of elements "independent". This leads us to our first examples, namely the so called vector matroids arising from linear algebra. What we would intuitively like is that some subsets of vectors \textit{independent} in a matroid way precisely  when it is \textit{linearly independent}, in particular, this means that the subsets have the same properties.
+
+We will stick to the same terminology as \cite{oxley1}. Let $A \in \mat_{m \times n}(\mathbb{F})$, by which we mean that $A$ is a $m \times n$ matrix with coefficients in a field $\mathbb{F}$. In the article we will not just be interested with $\mathbb{F} = \mathbb{C} \; \mathrm{or}\; \mathbb{R} $ but also in finite fields, in particular $\mathbb{Z} / p\mathbb{Z}$ by which me mean integers modulo $p$ where $p$ is a prime number and will denote it by $\mathbb{F}_p$. We will pick a concrete example of $A \in  \in \mat_{3 \times 4}(\mathbb{R})$ to illustrate that the set of columns of a matrix has a natural matroid structure. Suppose
+
+$$A = \begin{pmatrix}
+
+2 & 0 & 2 & 0 \\
+1 & -1 & 0 & 0 \\
+0 & 3 & 3 & 0
+
+
+\end{pmatrix}.$$
+
+We would like to consider the set of labels of columns of the matrix $A$ and form a matroid on it. This means we start with $E = \{1,2,3,4\}$ so a finite set where the number $1$ corresponds to the column $\begin{pmatrix} 2 & 1 & 0 \end{pmatrix} ^ T$, the number 2 corresonds to $\begin{pmatrix}  0 & -1 & 3  \end{pmatrix} ^ T$ and so forth. We now declare that a subset of $E$ is called indpependent iff the corresponding set of column vectors is linearly independent as a set of vectors in $\mathbb{R}^3$. Now we can explicitly check what this means in our example. The sets $\{1\}$, $\{2\}$, $\{3\}$ are all independent because they correspond to non-zero vectors. For the two-element subsets we see that $\{1,2\}$, $\{1,3\}$ and $\{2,3\}$ are all independent, while andy two element subset containg the last columt is not. Finally the 3-element subset $\{1,2,3\}$ is not indpenedent because as vectors, the first and the second columnt sum up to the third. So to conclude the set of all independent sets is
+$$\{\emptyset, \{1\}, \{2\}, \{3\}, \{1,2\}, \{1,3\}, \{2,3\} \}$$
+
+which does indeed satisfy the properties of collection of independent sets of a matroid. This is not a coincidande, we will prove that a collection of subsets formed from a matrix in the above way is always a matroid.
+
+\begin{theorem}
+
+    Let $A \in \mathrm{Mat} _{m \times n}(\mathbb{F})$ and $E = \{1, 2, \cdots, n\}$ be a finite set of $n$ elements where the element $i$ corresponds to the $i$-th column of the matrix $A$. We call a subset $I \subset E$ independent iff the column vectors memebers of $I$ correspond to form a linearly independent set as members of $\mathbb{F}^n$, and denote the collection of all independent subsets as $\mathcal{I}$. Then $M = (M, \mathcal{I})$ is a matroid and we denote it by $M[A]$.
+    
+\end{theorem}
+
+\begin{proof}
+    We need to check that the collection $\mathcal{I}$ satisfies the three propertis for the collection of independent sets given in the definition. First, $\emptyset$ is trivially in $\mathcal{I}$. The second property is also satisfied because if $J \subset I$ and $I \in \mathcal{I}$ this means that the vectors corresponding to $I$ form a linearly independent set. In particular, if $v_1, v_2, \cdots v_j, v_{j+1}, \cdots v_{i}$ are all of the column vectors corresponding to $I$, and that first $j$ are also in $J$, that means $|I| = i$, $|J| = j$ and $j \leq i$. Then if for some linear combination we have $a_1v_1 + \cdots + a_jv_j = 0$, where $a_i \in \mathbb{F}$ then also $a_1v_1 + \cdots + a_jv_j + 0 \cdot a_{j+1} + \cdots + 0 * a_i = 0$ and since the vectors of $I$ are linearly independent it now follows that $a_1 = a_2 = \cdots a_j = 0$ as well. So the vectors corresponding to the elements of $J$ are linearly independent as well, which means by definitino $J \in \mathcal{I}$.
+
+    Finally, the third property. We assume that $J, I \in \mathcal{I}$ and $|J| < |I|$. We denote by $V_J$ and $V_I$ the vector subspaces of $\mathbb{F}^n$ spanned by vectors corresponding to $J$ and $J$ respectively. Because the vectors corresponding to $J$ and $I$ respectively are linearly independent, they also form a basis for $V_J$ and $V_I$ respectively. For any $e \in I - J$ we denote by $v(e) \in \mathbb{F}^n$ the column vector of $A$ corresponding to $e$. If $\dim (V_J \cup v(e)) = \dim (V_J) = |J|$ this means that $v(e)$ is already in $V(J)$ because the vectors corrsponding to $J$ are linearly independent and if we do not increase the dimension, this means that $v(e)$ can be expressed as a linear combination of vectors corresponding to $J$. However, this cannot hold true for \textit{every} $e \in I - J$. If it would than for every $e \in I - J$, the vector $v(e) \in V_J$, and because for $f \in I \cap J$ we trivially have $v(f) \in V_J$ by definition, we would then have $V_I \subseteq V_J$. But this would mean that 
+
+    $$|I| = \dim(V_I) = \dim(V_J) = |J| < |I|$$
+     which is a contradition. So there is at least one $e \in I - J$ so that $\dim(V_J \cup v(e)) = \dim(V_J) + 1$, which means the vectors corresponding to $J \cup e$ form a linearly independent subset. Finally, this means that $J \cup e \in \mathcal{I}$ which proves the third property.
+\end{proof}
+
+In order to talk about any classification of matroids we have to say when the two matroids is equal. Intuitively, it is nothing deep, the definition will just say that the two are \textit{equal} if one can relabel the elements of one to the elements of other and not change the independent sets.
+
+\begin{defn}
+    We call two matroids $M = (E, \mathcal{I})$ and $N = (F, \mathcal{J})$ isomorphic and denote it by $M \sim N$ if there exists a bijection $f: E \to F$ so that a subset $K \subset F$ is independent iff $K = f(L)$ for some independent set $L \in \mathcal{I}$.
+\end{defn}
+
+
+\begin{defn}
+    We call a matroid $M$ representable, if $M$ is isomorphic to a matrix matroid $N[A]$ for some $A \in \mat_{m \times n}(\mathbb{F})$ over some field $\mathbb{F}$ and we call it $\mathbb{F}$-representable if it is representable over specific field $\mathbb{F}$.
+\end{defn}
+
+At this point we will also define an important class of matroids that will serve as examples.
+
+\begin{defn}
+    Let $E = \{1, 2, \cdots, n\}$ and $\mathcal{I} = \{ L \subset E \; \text{such that} \; |L| \leq m\}$. Then $(E, \mathcal{I})$ is a matroid which we denote by $U_{m,n}$ and call it a uniform matroid of rank $m$ on an $m$ element set.
+\end{defn}
+
+It is easy to check that $U_{m,n}$ is indeed a matroid.
+
+\subsubsection{Bases}
+
+Let $M = (E, \mathcal{I})$ be a matroid. We call a subset $B \subset E$ a basis if it is a maximal independent set. That means that $B$ is an independent set and $B$ is not properly contained inside any other independent set. It turns out that bases for matroid have some similarities properties as bases in vector subspace. In particular, all bases have the same size.
+
+\begin{theorem}
+    Let $M = (E, \mathcal{I})$ be a matroid. All bases of $M$ have the same size.
+\end{theorem}
+
+\begin{proof}
+    Suppose not and without loss of generality let $B$ and $S$ be two bases with $|B| < |S|$. By the third property of independent sets we know there exists $e \in S - B$ such that $ B \cup e \in \mathcal{I}$. However, $B$ is properly contained inside $B \cup e$, another independent set, which is a contradiction.
+\end{proof}
+
+
+
+
+
+
+\subsection{Circuits} 
+As mentioned before we can define a matroid in different forms, one of this other definitions is in term if circuits. But before this definition we need to introduce an aditional concept. 
+That is, a minimal dependent set, this are dependent sets whose all proper subsets are independent.
+
+Now, we can state the following:
+\begin{defn}
+A circuit will be a minimal dependent set of an arbitrary matroid $M$. This can be denoted by $C$ or $\mathcal{C(M)}$. Additionally, we define a circuit of a Matroid $M$, that has $n$ elements, as an $n-circuit$.
+\end{defn}
+
+Similarly, as with the independent sets, we can use the circuits to formulate a definition for a given matroid. And moreover,in the same way we can use the indepent sets of a matroid to determine its circuits, we can use the circuits of a matroid to determine its independent sets.
+
+So,we can characterize the concept of a matroid in the following way:
+
+\begin{defn}
+    Let E be a non-empty finite set, and C a collection of subsets of E, called circuits, such that:
+
+    \begin{enumerate}
+        \item $\emptyset \in \mathcal{C}$
+
+        \item If $\mathcal{C_1}$ and $\mathcal{C_2}$ are members of $C$ and $C_1 \subseteq C_2$, then $C_1 = C_2.$
+
+        \item If $\mathcal{C_1}$ and $\mathcal{C_2}$ are distinct members of C and there exist an $e \in C_1 \cap C_2$, then there is a member $C_3$ of $C$, such that $C_3 \subseteq (C_1  \cup C_2) - e$
+    \end{enumerate}
+    
+\end{defn}
+
+Hence, We can say that a set $X \subseteq E$ is independet if and only if, it does not contain any circuit.
+
+As and example, let
+
+
+From this, we see that the concept of circuits points towards the direction of something similar to a complement of the independent sets. We now have the following theorem.
+
+Let $E$ be a set and C be a collection of subsets of $E$ satisfiying the previous three conditions. Let  $I$  be the collection of subsets of $E$ that contain no member fo $C$. The the pair $(E,I)$ is a matroid having $C$ as its collection of circuits.
+

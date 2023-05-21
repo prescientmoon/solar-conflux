@@ -1,0 +1,51 @@
+\documentclass{article}
+\usepackage{graphicx} 
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+
+% copypasted from 
+% https://www.dickimawbooks.com/latex/thesis/html/amsthm.html
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}
+\newtheorem{conj}{Conjecture}
+
+\theoremstyle{remark}
+\newtheorem*{note}{Note}
+\newtheorem{remark}{Remark}
+
+
+\usepackage{verbatim}
+\usepackage{tabularx}
+\usepackage{indentfirst} % Indent first paragraph in each section
+\usepackage[a4paper, total={6in, 8.1in}]{geometry}
+\usepackage{setspace}
+
+
+\newcommand{\mat}{\text{Mat}}
+\onehalfspacing
+
+\title{Cryptomorphic Descriptions of Matroids}
+\author{Adriel Matei, Béla Schneider, Javier Vela Castro, Juš Kocutar}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\input{2_introduction}
+
+\section{Definitions}
+\input{3_definitions}
+
+\input{U24}
+
+
+\nocite{*} 
+\bibliographystyle{abbrv}
+\bibliography{sources}
+
+
+\end{document}

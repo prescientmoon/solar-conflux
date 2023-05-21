@@ -1,0 +1,48 @@
+We will consider the uniform matroid $U_{2,4}$ and show that it is $\mathbb{F}_3$-representable, while it is not $\mathbb{F}_2$-representable. First, $U_{2,4}= (\{1,2,3,4\}, \mathcal{I})$ where the bases are all of the two element subsets of $\{1,2,3,4\}$, so the set of bases 
+
+$$\mathcal{B} = \{\{1,2\}, \{1,3\}, \{1,4\}, \{2,3\}, \{2,4\}, \{3,4\}\}$$.
+
+Suppose $U_{2,4}$ were $\mathbb{F}_2$-representable. Then there is some $A = \mat_{m \times 4}(\mathbb{F}_2)$, 
+
+$$A = \begin{pmatrix}
+    v_1 & v_2 & v_3 & v_4
+\end{pmatrix}$$
+
+so that $U_{2,4} \sim M[A]$. We have the following observation.
+
+\begin{lemma}
+\label{f2lema}
+    Suppose a set of vectors $A = \{w_1, w_2, \cdots, w_r\} \subset \mathbb{F}_2^n$ is minimaly linarly dependent, that means that it is linarly dependent but any proper subset of it is linearly independent. Then $w_1 + w_2 + \cdots + w_r = 0$.
+\end{lemma}
+
+\begin{proof}
+    Because $A$ is linearly dependent, there exists a set of scalars $\{a_1, a_2, \cdots, a_r\}\in \mathbb{F}_2$ not all zero such that
+    
+    $$\sum_{i=1}^r a_iv_i = 0.$$
+    
+    If for some $1\leq j \leq r$ we have $a_j = 0$ then we also have 
+    
+    $$\sum\limits_{\substack{i = 1 \\ i \neq j}} ^r a_iv_i = 0$$
+
+    but not all out of $a_1, \cdots a_{j-1}, a_{j+1}, \cdots a_r$ are 0. This means that ${v_1, \cdots, v_{j-1}, v_{j+1}, \cdots, v_r}$ is linearly dependent, which is not true by assumption. Therefore for all $1\leq j \leq r$ we have $a_j \neq 0$. But since the field is $\mathbb{F}_2$ this forces $a_j = 1$ for all $j$. Hence we obtained what we want, namely
+
+     $$\sum_{i=1}^r a_iv_i = 0 =  \sum_{i=1}^r 1 \cdot v_i = 0.$$
+    
+\end{proof}
+
+If the matroid $U_{2,4} \sim M[A]$ for the above $A$ then we would have all of the three element subsets of vectors to be minimaly linearly dependent. This means by \ref{f2lema} that $v_1 + v_2 + v_3 = 0$ and $v_1 + v_2 + v_3 = 0$. However, we are in $\mathbb{F}_2$ so 
+
+
+$$v_1 + v_2 + v_3 = 0 \iff v_1 + v_2 + (v_3 + v_3) = v_3 \iff v_1 + v_2 = v_3 $$
+
+And in the same way $v_1 + v_2 = v_4$. This implies that
+$$v_3 + v_4 = (v_1 + v_2 )+ (v_1 + v_2) = 0$$
+so the set $\{v_3, v_4\}$ is linearly dependent which is a contradiction. So $U_{2,4}$ is not $\mathbb{F}_2$-representable. However $U_{2,4}$ is $\mathbb{F}_3$-representable, for instance the following matrix taken from \cite[20]{oxley1} works
+
+$$A = \begin{pmatrix}
+    1 & 0 & 1 & 1 \\
+    0 & 1 & 1 & 2
+\end{pmatrix}$$
+since we see that no vector is 0, so all singletons are independent. No vector is a scalar multiple of each other, so two element subsets are independent. Finally, no 3-element subsets can be independent, since the dimension of the $\mathbb{F}_3^2$ is 2 so dimension of any subspace is at most 2.
+
+In the succeding sections we will also consider an example of a matroid, which is not representable over any field.
