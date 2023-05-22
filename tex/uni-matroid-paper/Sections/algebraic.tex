@@ -1,37 +1,21 @@
 \section{Algebraic matroids}
 
-An interesting concept of independence arises in the study of field theory. We will present an interesting class of matroids derived from the concept of algebraic independence. The topics discussed here are furthered elaborated on in~\cite{milne2022}. We start by introducing a lemma that's crucial for the following proofs, and it's prerequisites.
+An interesting concept of independence arises in the study of field theory. We will present an interesting class of matroids derived from the concept of algebraic independence. 
+
+TODO: write down the proofs, add example.
 
 \begin{defn}
-    A partially ordered set is a pair containing a set $S$ and a reflexive anti-symmetric transitive relation $\leq$. A totally ordered set is a partially ordered set for which $\leq$ is total, i.e.\ $\forall x, y \in S, x \leq y \lor y \leq x$.
+    A subset $S \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent if it doesn't satisfy any nontrivial polynomial with coefficients in $\mathbb F$.
 \end{defn}
 
-\begin{defn}
-    An element $m \in S$ is said to be maximal with respect to a partially ordered set $(S, \leq)$ if $\forall s \in S, s \geq m \implies s = m$.
-\end{defn}
+Transcendental numbers are special cases of single element algebraically independent sets. Although it is well known that the complex numbers $e$ and $\pi$ are transcendental over $\mathbb{Q} $, it hasn't yet been proven that $\{e, \pi \}$ is algebraically independent.
 
-\begin{defn}
-    An element $u$ is said to be an upper bound for a subset $S$ of a partially ordered set if $\forall s \in S, u \geq s$.
-\end{defn}
+\begin{theorem}
+    Given a finite subset $E \subseteq \mathbb K / \mathbb F$, the pair $(E, \mathcal I)$  where $\mathcal I$ is the set of algebraically independent subsets of $E$ forms a matroid.
+\end{theorem}
 
-\begin{lemma}[Zorn]\label{lem:Zorn}
-   Given a partially ordered set $P$, with the property that any totally ordered subset has an upper bound in $P$, then a maximal element for $P$ exists.
-\end{lemma}
-
-This lemma is equivalent to the axiom of choice, and will be assumed for the rest of the section.
-
-\begin{defn}
-    In a field $L / F$, we say that $\{ x _1 \ldots x _n \} \subseteq L / F$ is algebraically independent on $F$ if there's no nontrivial polynomial with coefficients in $F$ that's satisfied by $x _1 \ldots x _n$. We say an infinite set is algebraically independent if all it's finite subsets are algebraically independent.
-\end{defn}
-
-   In particular, the special case of single element algebraically independent sets are known as transcendental numbers. For example, $\pi$  and $e$ are transcendental, but it hasn't been proven that $\{ \pi , e\}$ is independent. Can we form a matroid here? Yes! A maximally algebraically independent set is known as a transcendental basis\footnote{
-A transcendental basis is usually defined as an algebraically independent set $S$ such that $F(S)$ is algebraic on $L$, but it is not hard to prove that this is equivalent to our definition.
-   }, and it's length is known as the transcendental degree.
-
-\begin{lemma}
-   A transcendental basis always exists.
-\end{lemma}
+    Although~\cite{oxley1} offers a proof based on independent sets and the concept of algebraic dependence, we will instead present a much shorter proof based on the basis of our supposed matroid. The part focused on proving the exchange lemma is inspired by~\cite{milne2022}, although the rest will be a lot more simple (no need to involve Zorn's lemma) because we are working in a finite subset.
 
 \begin{proof}
-    Consider the set $\mathcal S$ of algebraically independent subsets of $L / F$ patially ordered by inclusion. Let $T$ be a totally ordered subset of $\mathcal S$. Consider $B = \bigcup_{X \in \mathcal S} X$.
+    TODO
 \end{proof}
