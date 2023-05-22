@@ -19,3 +19,19 @@ An interesting concept of independence arises in the study of field theory. We w
 \end{lemma}
 
 This lemma is equivalent to the axiom of choice, and will be assumed for the rest of the section.
+
+\begin{defn}
+    In a field $L / F$, we say that $\{ x _1 \ldots x _n \} \subseteq L / F$ is algebraically independent on $F$ if there's no nontrivial polynomial with coefficients in $F$ that's satisfied by $x _1 \ldots x _n$. We say an infinite set is algebraically independent if all it's finite subsets are algebraically independent.
+\end{defn}
+
+   In particular, the special case of single element algebraically independent sets are known as transcendental numbers. For example, $\pi$  and $e$ are transcendental, but it hasn't been proven that $\{ \pi , e\}$ is independent. Can we form a matroid here? Yes! A maximally algebraically independent set is known as a transcendental basis\footnote{
+A transcendental basis is usually defined as an algebraically independent set $S$ such that $F(S)$ is algebraic on $L$, but it is not hard to prove that this is equivalent to our definition.
+   }, and it's length is known as the transcendental degree.
+
+\begin{lemma}
+   A transcendental basis always exists.
+\end{lemma}
+
+\begin{proof}
+    Consider the set $\mathcal S$ of algebraically independent subsets of $L / F$ patially ordered by inclusion. Let $T$ be a totally ordered subset of $\mathcal S$. Consider $B = \bigcup_{X \in \mathcal S} X$.
+\end{proof}
