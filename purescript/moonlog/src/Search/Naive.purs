@@ -45,7 +45,8 @@ branch = uncons >>> case _ of
 
 solve :: forall r. Array (Constructor Expression) -> Run (SOLVE r) (Array Substitution)
 solve [] = pure [HashMap.empty]
-solve goals = do
+solve goals 
+    | otherwise = do
     -- traceM $ "Solving " <> show goals
     branches <- branch goals
     -- traceM $ "Finished solving " <> show goals

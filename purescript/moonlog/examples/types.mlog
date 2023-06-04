@@ -1,0 +1,26 @@
+HasType ctx (Var name) ty
+    Member (Tuple name ty) ctx
+HasType ctx (Call f a) to
+    HasType ctx f (Function from to)
+    HasType ctx a from
+HasType ctx (Lambda argument body) (Function from to)
+    HasType [ (Tuple argument from) | ctx ] body to
+
+Eval (Call f a) result
+    Eval f f'
+    Eval a a'
+    EvalCall f' a' result
+Eval (Lambda name inside) (Lambda name result)
+    Eval inside result
+Eval v v
+
+EvalCall (Lambda name body) arg result
+    Substitute name arg body result
+EvalCall f a (Call f a)
+
+Substitute name arg (Var name) arg
+Substitute name arg (Call f a) (Call f' a')
+    Substitute name arg f f'
+    Substitute name arg a a'
+Substitute name arg (Lambda name inside) (Lambda name inside)
+Substitute name arg a a
