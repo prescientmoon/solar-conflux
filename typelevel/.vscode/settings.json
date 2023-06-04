@@ -1,0 +1,5 @@
+{
+  "[purescript]": {
+    "editor.formatOnSave": false
+  }
+}
