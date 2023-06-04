@@ -1,0 +1,185 @@
+lockfileVersion: 5.3
+
+specifiers:
+  '@thi.ng/ecs': ^0.7.2
+  typescript: ^4.5.2
+
+dependencies:
+  '@thi.ng/ecs': 0.7.2
+
+devDependencies:
+  typescript: 4.5.2
+
+packages:
+
+  /@thi.ng/api/8.3.2:
+    resolution: {integrity: sha512-sZBbrBtSzXQlCcyxkFwOysvvU9bqcsEQJCqSpxtSmju16c1RjDGLQ/hdv755QRBkNywKykypNBwutUtpaejUfA==}
+    engines: {node: '>=12.7'}
+    dev: false
+
+  /@thi.ng/arrays/2.1.2:
+    resolution: {integrity: sha512-QS0uJFln7xeCyJcDtqjXdov1ta7PMSYjrb17AjjUvSfvPUkLArCJMVTJBl4k9QrFirp8N3Blc1e8xZJgeK9lrg==}
+    engines: {node: '>=12.7'}
+    dependencies:
+      '@thi.ng/api': 8.3.2
+      '@thi.ng/checks': 3.1.2
+      '@thi.ng/compare': 2.1.2
+      '@thi.ng/equiv': 2.1.2
+      '@thi.ng/errors': 2.1.2
+      '@thi.ng/random': 3.2.2
+    dev: false
+
+  /@thi.ng/associative/6.1.2:
+    resolution: {integrity: sha512-Bf1gncNPmAxe6j4cRMhi0nj+2qLUVQznA2VA5U+pqMoI42mOf8zvC28U0GpUzJ+9h53Sv6+P11oDHEQs6qsleA==}
+    engines: {node: '>=12.7'}
+    dependencies:
+      '@thi.ng/api': 8.3.2
+      '@thi.ng/arrays': 2.1.2
+      '@thi.ng/binary': 3.1.2
+      '@thi.ng/checks': 3.1.2
+      '@thi.ng/compare': 2.1.2
+      '@thi.ng/dcons': 3.1.2
+      '@thi.ng/equiv': 2.1.2
+      '@thi.ng/errors': 2.1.2
+      '@thi.ng/transducers': 8.1.2
+      tslib: 2.3.1
+    dev: false
+
+  /@thi.ng/binary/3.1.2:
+    resolution: {integrity: sha512-7PajvPvxT8iG0c4xPg9v/x7tiTWESz/VQMIHvX3pT9mO0wqKJoc4jWUFXCnWqHItnBwNsuEvRPI6I8KjqPnXIg==}
+    engines: {node: '>=12.7'}
+    dependencies:
+      '@thi.ng/api': 8.3.2
+    dev: false
+
+  /@thi.ng/checks/3.1.2:
+    resolution: {integrity: sha512-DyypenoE0bh7hpeBDihHaPqxJmUe2AtQI9dcyGwkizjmaanBSHzJlfckkz46CYoDcq51DnJWn23+GLVJ3qFYhA==}
+    engines: {node: '>=12.7'}
+    dependencies:
+      tslib: 2.3.1
+    dev: false
+
+  /@thi.ng/compare/2.1.2:
+    resolution: {integrity: sha512-0BmxdiG9ybDlzA03dCt6fisjhx9eyP81ODD9JNHT+rNuizt6SApzywjvr+J2GT5HG76SzaSQE8WpvGbScwAS8Q==}
+    engines: {node: '>=12.7'}
+    dependencies:
+      '@thi.ng/api': 8.3.2
+    dev: false
+
+  /@thi.ng/compose/2.1.2:
+    resolution: {integrity: sha512-z0d6G2y3vYlR5IJRn0ehTSyk+2bLhQwnQXxr7EBADq7qlARu0Wco0WIkO2y6FmLDF2M4NKvho8F9K1iqt1jXyQ==}
+    engines: {node: '>=12.7'}
+    dependencies:
+      '@thi.ng/api': 8.3.2
+      '@thi.ng/errors': 2.1.2
+    dev: false
+
+  /@thi.ng/dcons/3.1.2:
+    resolution: {integrity: sha512-RPxxa0DCbmZ4Y9+ffP6WRv6zbwcH14gthxhDycAnpplryu4vgIjNeOV2XW80S2qAINN2RDkC52jO7iA30HzDIw==}
+    engines: {node: '>=12.7'}
+    dependencies:
+      '@thi.ng/api': 8.3.2
+      '@thi.ng/checks': 3.1.2
+      '@thi.ng/compare': 2.1.2
+      '@thi.ng/equiv': 2.1.2
+      '@thi.ng/errors': 2.1.2
+      '@thi.ng/random': 3.2.2
+      '@thi.ng/transducers': 8.1.2
+    dev: false
+
+  /@thi.ng/ecs/0.7.2:
+    resolution: {integrity: sha512-HeEIif+gJm57sdlnWURUrUi/kKWUfc1P/dGk6CNuo4Sg1fo8XPCWR5y2dSLN+dsUyMlw9LAJWR/rvhDOwK//6w==}
+    engines: {node: '>=12.7'}
+    dependencies:
+      '@thi.ng/api': 8.3.2
+      '@thi.ng/associative': 6.1.2
+      '@thi.ng/binary': 3.1.2
+      '@thi.ng/checks': 3.1.2
+      '@thi.ng/dcons': 3.1.2
+      '@thi.ng/errors': 2.1.2
+      '@thi.ng/idgen': 2.1.2
+      '@thi.ng/logger': 1.1.2
+      '@thi.ng/malloc': 6.1.2
+      '@thi.ng/transducers': 8.1.2
+      tslib: 2.3.1
+    dev: false
+
+  /@thi.ng/equiv/2.1.2:
+    resolution: {integrity: sha512-S0QZmWXIO5d/TQSLsyFLYT3/j9nKRuJMUEJYz8seFnQQ9ydrAjV4o5pIHbXiWnjllHAWYa/iN6LJ8xuV8nXxag==}
+    engines: {node: '>=12.7'}
+    dev: false
+
+  /@thi.ng/errors/2.1.2:
+    resolution: {integrity: sha512-3XdabkDNqrL76HVlt3q01zqMRLnSB8FFjJchiYWT/RVkAI2OBogE+eBy4KhYc0mvssYPfdnP9ikjDrV1CC2rVg==}
+    engines: {node: '>=12.7'}
+    dev: false
+
+  /@thi.ng/hex/2.1.2:
+    resolution: {integrity: sha512-JFUApXIn7HWFYEZMQLtf9rZ1aeXFFI8ggdJrA45PzVC0kl73J8yeRHlXn3kjV7spd7jk7oatdEm4JnvadbT4EQ==}
+    engines: {node: '>=12.7'}
+    dev: false
+
+  /@thi.ng/idgen/2.1.2:
+    resolution: {integrity: sha512-15jngVT0kdlrWeTfeXnLBTN8RZW7nCrs2r8c2dj3OGm8cbQDwnd9LxwlYMhu37flMTG55cFiVbiftTK6TEvGWA==}
+    engines: {node: '>=12.7'}
+    dependencies:
+      '@thi.ng/api': 8.3.2
+      '@thi.ng/errors': 2.1.2
+      tslib: 2.3.1
+    dev: false
+
+  /@thi.ng/logger/1.1.2:
+    resolution: {integrity: sha512-zMUAkz7TJ6maTxerWiimGdoCsKR+v1kCyTkRxT1ii0dtTkvhtjhSPpnFAIMM/S4+7PdKxpiTqAl3oFNTt+EN7A==}
+    engines: {node: '>=12.7'}
+    dev: false
+
+  /@thi.ng/malloc/6.1.2:
+    resolution: {integrity: sha512-PPAJmN17CS+HhmKCwFrgXYNXsSSs5zRZJdE5CsCqvvKHnKg+YsAoHFudkmmpIilLdCzFkyZK6gHBT+63jD/xbw==}
+    engines: {node: '>=12.7'}
+    dependencies:
+      '@thi.ng/api': 8.3.2
+      '@thi.ng/binary': 3.1.2
+      '@thi.ng/checks': 3.1.2
+      '@thi.ng/errors': 2.1.2
+    dev: false
+
+  /@thi.ng/math/5.1.2:
+    resolution: {integrity: sha512-iOzs+cy19sxlOxk6OW5xDx5+rsvbXahqOf9Y323zs14VPS/I7rJl9SMY2F5MDbxZf65m3si6nolzOVW0a52C4Q==}
+    engines: {node: '>=12.7'}
+    dependencies:
+      '@thi.ng/api': 8.3.2
+    dev: false
+
+  /@thi.ng/random/3.2.2:
+    resolution: {integrity: sha512-QJD+F2kXfFyTI//EEVnVHP4XdeBhm9tlxavaAZizfIRKwWWxhrAHdk8BDPnN3nQe74Ana6UZy2NMrb3nb0A/gQ==}
+    engines: {node: '>=12.7'}
+    dependencies:
+      '@thi.ng/api': 8.3.2
+      '@thi.ng/checks': 3.1.2
+      '@thi.ng/errors': 2.1.2
+      '@thi.ng/hex': 2.1.2
+    dev: false
+
+  /@thi.ng/transducers/8.1.2:
+    resolution: {integrity: sha512-nMZNrMA8yJfvFpVtIYF31bBHsGJGadci+I3/VqUBneBfWM2aFbJcOjYAyLq7Xe15RBTx9eGfBikPGTcvz5ILfA==}
+    engines: {node: '>=12.7'}
+    dependencies:
+      '@thi.ng/api': 8.3.2
+      '@thi.ng/arrays': 2.1.2
+      '@thi.ng/checks': 3.1.2
+      '@thi.ng/compare': 2.1.2
+      '@thi.ng/compose': 2.1.2
+      '@thi.ng/errors': 2.1.2
+      '@thi.ng/math': 5.1.2
+      '@thi.ng/random': 3.2.2
+    dev: false
+
+  /tslib/2.3.1:
+    resolution: {integrity: sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==}
+    dev: false
+
+  /typescript/4.5.2:
+    resolution: {integrity: sha512-5BlMof9H1yGt0P8/WF+wPNw6GfctgGjXp5hkblpyT+8rkASSmkUKMXrxR0Xg8ThVCi/JnHQiKXeBaEwCeQwMFw==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
+    dev: true
