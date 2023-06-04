@@ -6,7 +6,7 @@ import Data.Array (length, mapWithIndex)
 import Data.Array as Array
 import Data.Either (Either)
 import Data.Foldable (foldMap, for_, minimum)
-import Data.FoldableWithIndex (forWithIndex_)
+import Data.FoldableWithIndex (foldlWithIndex, forWithIndex_)
 import Data.Generic.Rep (class Generic)
 import Data.HashMap (HashMap)
 import Data.HashMap as HashMap
@@ -16,12 +16,11 @@ import Data.Int (toNumber)
 import Data.Lens (Lens')
 import Data.Lens.Record (prop)
 import Data.List (List(..), (:))
-import Data.List as List
 import Data.Maybe (Maybe(..), fromJust, fromMaybe)
 import Data.Number (infinity)
 import Data.Show.Generic (genericShow)
 import Data.Traversable (for)
-import Data.Tuple (Tuple(..), fst, uncurry)
+import Data.Tuple (Tuple(..), fst, snd, uncurry)
 import Data.Tuple.Nested (type (/\), (/\))
 import Functorio.Lens (modifyAt)
 import Math (sin)
@@ -70,8 +69,8 @@ blueBelt :: BeltConfig
 blueBelt = { speed: 45.0, delay: 4.0/8.0 }
 
 -- | Example factory
-myFactory :: Factory
-myFactory = Map.fromArray machines
+myFactory1 :: Factory
+myFactory1 = Map.fromArray machines
     where
     machines = mapWithIndex Tuple 
         [ Provider [0, 1] $ startsAtZero $ \t -> 40.0 + 10.0 * sin t
@@ -80,6 +79,19 @@ myFactory = Map.fromArray machines
         -- , Belt { input: 2, output: 5, config: blueBelt }
         , Consumer 3
         , Consumer 4
+        ]
+
+myFactory :: Factory
+myFactory = Map.fromArray machines
+    where
+    machines = mapWithIndex Tuple 
+        [ Provider [0, 1, 2] $ startsAtZero $ \t -> 80.0
+        , Belt { input: 0, output: 3, config: yellowBelt }
+        , Belt { input: 1, output: 4, config: redBelt }
+        , Belt { input: 2, output: 5, config: blueBelt }
+        , Consumer 3
+        , Consumer 4
+        , Consumer 5
         ]
 
 ---------- Helpers for real functions
@@ -190,7 +202,7 @@ tryFindBoundImpl (targetId /\ targetSide) = do
                 evalExpr expr <*> pure time 
             BiRelationship id raw 
                 | Just relationship <- focusBiRelationship (targetId /\ targetSide) raw -> do
-                    f <- once id fail $ tryFindBoundImpl relationship.p2 
+                    f <- once id fail $ tryFindValueImpl $ fst relationship.p2 
                     f (relationship.p1top2 time)
             _ -> fail
         # runReader constraints 
@@ -225,29 +237,27 @@ collectConstraintsImpl at = case _ of
     Provider for amount -> do
         forWithIndex_ for \index id -> do
             let limit ports time 
-                  = outputs ports time
-                  # Array.findMap (\(id' /\ f) -> if id == id' then Just (f time) else Nothing)
-                  # unsafePartial fromJust -- TODO: error handling
+                  = ports
+                  # map (\port -> port.id /\ port.maxOutput time)
+                  # outputs (amount time)
+                  # Array.findMap (\(id' /\ f) -> if id == id' then Just f else Nothing)
+                  # unsafePartial fromJust
             constrain $ Limit (PortDependent for limit) Input id
         where
-        outputs :: Array PortData -> Number -> Array (PortId /\ RealFunction)
-        outputs ports time 
-            = outputsImpl (length ports) (List.fromFoldable sorted) amount 
+        outputs :: Number -> Array (PortId /\ Number) -> Array (PortId /\ Number)
+        outputs total ports
+            = ports
+            # Array.sortWith snd
+            # foldlWithIndex (\index (past /\ remaining) (id /\ value) -> do
+                        let current 
+                              | lengthLeft <- remaining / toNumber (count - index), value >= lengthLeft = lengthLeft
+                              | otherwise = value
+                        ((id /\ current):past) /\ (remaining - current))
+              (Nil /\ total)
+            # fst
             # Array.fromFoldable 
-            # Array.zipWith (_.id >>> Tuple) sorted
             where
-            sorted :: Array PortData
-            sorted = Array.sortWith (_.maxOutput >>> (#) time) ports
-
-        outputsImpl :: Int -> List PortData -> RealFunction -> List RealFunction 
-        outputsImpl 1 (head:Nil) remaining = pure \time -> min (head.maxOutput time) (remaining time)
-        outputsImpl n (head:tail) remaining = current:(outputsImpl (n - 1) tail $ remaining - current)
-            where
-            current time 
-                | head.maxOutput time >= (remaining time) / (toNumber n) = (remaining time) / (toNumber n)
-                | otherwise = head.maxOutput time
-        outputsImpl _ _ _ = Nil
-
+            count = length ports
     Consumer for -> do
         constrain $ Limit (Literal infinity) Output for
     Belt { input, output, config } -> do

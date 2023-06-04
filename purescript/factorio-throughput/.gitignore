@@ -9,3 +9,8 @@
 /.psa*
 /.spago
 dist
+*.aux
+*.fls
+*.fdb_*
+*.synctex*
+*.log
