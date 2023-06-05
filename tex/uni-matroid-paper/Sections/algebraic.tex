@@ -14,8 +14,47 @@ Transcendental numbers are special cases of single element algebraically indepen
     Given a finite subset $E \subseteq \mathbb K / \mathbb F$, the pair $(E, \mathcal I)$  where $\mathcal I$ is the set of algebraically independent subsets of $E$ forms a matroid.
 \end{theorem}
 
-    Although~\cite{oxley1} offers a proof based on independent sets and the concept of algebraic dependence, we will instead present a much shorter proof based on the basis of our supposed matroid. The part focused on proving the exchange lemma is inspired by~\cite{milne2022}, although the rest will be a lot more simple (no need to involve Zorn's lemma) because we are working in a finite subset.
+    Although~\cite{oxley1} offers a proof based on independent sets and the concept of algebraic dependence, we will instead present a proof based on the basis of our supposed matroid. The part focused on proving the exchange lemma is inspired by~\cite{milne2022}, although the rest will be a lot more simple (no need to involve Zorn's lemma) because we are working in a finite subset.
+
+
+  We start by proving the following lemma:
+  \begin{lemma}\label{lem:algebraic-indep-smaller-than-dep}
+    Given finite $A, B \subseteq \mathbb K / \mathbb F$, such that $A$ is independent over $\mathbb F$ and dependent on $B$ (over $\mathbb F$). Then $|B| \geq |A|$.
+  \end{lemma}
+
+  \begin{proof}
+    We will prove the statement by induction on the number of elements in $A \setminus B$:
+    \begin{enumerate}
+      \item If $A \setminus B = \varnothing $ then $A \subseteq B$ and $|A| \leq |B|$ follows trivially.
+      \item Assume the statemenet is true for some $|A \setminus B| = k - 1$. We will attempt to prove it for $|A \setminus B| = k$. Let $a _1 \ldots a _n$ be the elements of $A$ such that $a _1 \ldots a_k$ are all the members of $A \cap B$ for some $k$. Let $ a _1 \ldots a_k, b _{k + 1} \ldots b _m$ be the elements of $B$. It remains to prove that $m \geq n$.
+
+        As $a _{k + 1}$ is not dependent on $\{a _1 \ldots a_k\}$ but is dependent on $B = \{a _1 \ldots a _k, b _{k + 1} \ldots b_m\}$, there must exist some $k + 1 \leq j \leq m$ such that $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$ but  not on $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$. Because $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$, we know there exists some polynomial $f \in \mathbb F[x _1 \ldots x _{j + 1}]$ such that 
+        \begin{align*}
+           f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, X) \neq  0 \land 
+           f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0.
+        \end{align*}
+
+      We can write $f$ as
+      \begin{align*}
+        f(x _1 \ldots x _{j + 1}) 
+        = \sum_i f _i(x _1 \ldots x _{j - 1}, x _{j + 1}) x _j ^i.
+      \end{align*}
+
+        We know that $f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, X) \neq  0$, therefore at least one of $f _i \neq 0$. Let $g = f _i $ such that $f _i \neq 0$. Because $a _{j + 1}$ is not algebraic over $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$, we know that 
+        \begin{align*}
+          g(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, a _{k + 1}) \neq 0.
+        \end{align*}
+
+        This implies that $f(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, X, a _{k + 1}) \neq 0$. Since $ f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0$, we can conclude that $b_j$ is algebraic over $\{a _1 \ldots a _{k + 1}, b _{k + 2} \ldots b _j\}$.
+
+        Construct $B' = B + a _{k + 1} - b_j$. Having proven that $b_j$ is dependent on a subset of $B'$, it is also dependent on $B'$. We recall that $A$ is dependent on $B$, so by the transitivity of algebraic dependence (TODO prove this), we know that $A$ is algebraic over $B'$. We also notice that $A$ and $B'$ have $k + 1$ elements in common, therefore the statement is proven by the induction hypothesis.
+    \end{enumerate}
+  \end{proof}
 
 \begin{proof}
-    TODO
+    We will construct the matroid using the basis definition. We need to first show that at least a basis exists, and then show that the exchange lemma holds.
+
+  We consider the partially ordered set of independent subsets of $E$ ordered by inclusion. We notice that $ \varnothing $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\varnothing $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element, so a basis exists.
+
+  It now remains to prove the exchange property. That is, given two basis $A, B \subseteq \mathcal B$ and some $a \in A \setminus B$, we can find some $b \in B \setminus A$ such that $B - b + a \in \mathcal B$. Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - 1$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that 
 \end{proof}
