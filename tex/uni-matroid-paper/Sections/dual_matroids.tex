@@ -1,0 +1,81 @@
+\section{Dual Matroids}
+The concept of duality is another of the most notable parts in Matroid Theory. Since it helps to extend some of the concepts previously defined, such as the notion of orthogonality in vector spaces and the concept of a planar dual of a plane graph. So in this section we will introduce the definitions and basic properties of dual matroids.
+
+\begin{theorem}
+    Let $M$ be a matroid given by $(E,B)$, and B*$(M)$ be ${E(M) - B:B\in B(M)}$. Then B*$(M)$ is the set of bases of a matroid on $E(M)$
+\end{theorem}
+
+Or in other words, B* is the set of all the complement independent bases of $B$. Then we can give the following definition.
+
+\begin{defn}
+    Let M be a matroid with the pair (E,B), given B* as defined above, the new matroid M*=(E,B*) is the dual of M.
+\end{defn}
+
+As an example, let $U_{k,n}$, be a k-uniform matroid. Then, given the definition above, the dual of this matroid is given by $U_{k,n}$* $= U_{n-k,n}$
+
+Lemma. The set $B$ of bases of a matroid M has the following property:
+\begin{enumerate}
+    \item If $B_1$ and $B_2$ are in $B$, and $x\in B_2 - B_1$, then there exist and element $y$ of $B_1 - B_2$ such that $(B_1 - y) \cup x \in B$ 
+\end{enumerate}
+
+Proof, TODO
+
+
+Given this new characterization of matroids we also have some additional notation. That is, given a matroid M with a dual M*, the $bases$ of the matroid M* are called $cobases$ of M, similarly the $independent sets$ of M* are called $coindependent sets$ of M, the circuits of M* are called $cocircuits$ of M, $hyperplanes$ are called $cohyperplanes$, and the $spanning sets$ are called $cospnning sets$ of M.
+
+This leads us to the following propositions.
+
+Proposition:
+Let M be a matroid in a set E and suppose $X \subseteq E$. Then
+
+    \begin{enumerate}
+        \item $X$ is independent if and only if $E-X$ is cospanning.
+
+        \item $X$ is spanning if and only if $E-X$ is coindependent.
+
+        \item $X$ is a hyperplane if and only if $E-X$ is a cocircuit
+
+        \item $X$ is a circuit if and only if $E-X$ is a cohyperplane.
+    \end{enumerate}
+
+
+
+\begin{proof}
+    All of the proofs are fairly easy and follow directly from the definitions. [We will prove a) and b)]
+
+    a) Suppose $X$ is independent. This means there exists a basis $B \in \mathcal{B}(M)$ so that $X \subset B$. Because $X \subset B \subset E$ and the operation of taking complements is "inclusion reversing" we have $E-B \subset E - X$. Verifying directly, if $x \in E - B$ this means $x \in E$ and $x \notin B$. Because $X \subset B$ this implies that $x \in E$ and $x \notin X$ so by definition $x \in E - X$ and the conclusion follows. Because $E - B$ is a cobasis and $E - X$ is a set containing a cobasis, then it is a cospanning by definion.
+
+    Similarly if $E - X$ is cospanning then it contains a cobasis which is by definition of the form $E - B$ for some $B \in \mathcal{B}(M)$. By the analagous reasoning as for the forward direction $E - B \subset E - X$ implies $X \subset B$. That is because if $x \in X$ then $x \notin E - X$ and $x \notin X - B$. This means $x \in B$ concluding $X \in B$. Since $B$ is an independent set then $X$ is independent set as well, we are done.
+
+    b) Same as a). A set $X\subset E$ being spanning implies it contains a $B \in \mathcal{B}(M)$. So  $B \susbet X$ which implies $E - X \subset E - B$. Because $E - B$ is cobasis by definition, any of its subsets are coindependent. 
+
+    If $E - X$ is coindependent, it is contained in a cobasis, so by definition there exists a $B \in \mathcal{B}$ so that $E - X \subset E - B$. As before this implies that $B \subset X$ and $X$ is spanning.
+
+    c)  If $X$ is a hyperplane, then $X$ is not spanning but for all $y \in E - X$ we have $X \cup y$ is spanning, which means there is for every such $y$ a basis $B_y \in \mathcal{B}$ so that $B_y \subset X \cup y $. By b) we know that $X$ is not spanning implies $E - X$ is not coindependent. But for any $z \in E - X$ we have $(E-X)-z = E - (X \cup z)$ is coindependent because $X \cup z$ is spanning. So $E - X$ is a cocircuit by definition.
+
+    Conversly, if $E - X$ is a cocirucuit, then $E-X$ is not coindependent but for all $x \in E - X$ we have $(E - X) - x$ = $E - (X \cup x)$ is coindependent. By b) this means that $X$ is not spanning but for all $x \in E-X$, we have $X \cup x$ is spanning, so $X$ is a hyperplane.
+
+    d) Same as things before.
+    
+\end{proof}
+
+
+From the way in which the dual is defined, that is,as the dual of the matroid can be in some way, said to be build with the complement bases of the set of the orginal matroid, then we can see that:
+
+
+Proposition: 
+$r(M) + r$*$(M) = |E(M)|$
+
+From this, we can formulate a formula for the corank function of the matroid M, r*. 
+
+
+Proposition: For all subsets X of the ground set E of a Matroid M,
+
+$r$*$(X)=r(E-X)+|X|-r(M)$
+
+Proof TODO
+
+Now, we will formulate another important point, the so called, orthogonality, which refers to the link between circuits and cocircuits. 
+
+Proposition: For a given matroid M, let C be a circuit and C* be a cocircuit. Then,  
+$|C \cap C*| != 1$.
