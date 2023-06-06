@@ -1,16 +1,20 @@
 \section{Algebraic matroids}
 
-An interesting concept of independence arises in the study of field theory. We will present an interesting class of matroids derived from the concept of algebraic independence. 
+An interesting concept of independence arises in the study of field theory. We will present an interesting class of matroids derived from the concept of algebraic independence. For the rest of this section we will use the notation $\mathbb K / \mathbb F$ to refer to some field $\mathbb K$ and a subfield $\mathbb F$.
 
 TODO: write down the proofs, add example.
 
+
 \begin{defn}
-    A subset $S \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent if it doesn't satisfy any nontrivial polynomial with coefficients in $\mathbb F$.
+  A subset $\{ s_1 \ldots s _n \} \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent (over $\mathbb F$) if it doesn't satisfy any nontrivial polynomial with coefficients in $\mathbb{F} $, i.e.
+  \begin{align*}
+  \forall f \in F[X _1 \ldots X _n], \neg\left( f \neq  0 \land  f(s _1 \ldots s _n) = 0\right).
+  \end{align*}
 \end{defn}
 
 Transcendental numbers are special cases of single element algebraically independent sets. Although it is well known that the complex numbers $e$ and $\pi$ are transcendental over $\mathbb{Q} $, it hasn't yet been proven that $\{e, \pi \}$ is algebraically independent.
 
-\begin{theorem}
+\begin{theorem}\label{thm:algebraic-matroids-are-matroids}
     Given a finite subset $E \subseteq \mathbb K / \mathbb F$, the pair $(E, \mathcal I)$  where $\mathcal I$ is the set of algebraically independent subsets of $E$ forms a matroid.
 \end{theorem}
 
@@ -19,7 +23,7 @@ Transcendental numbers are special cases of single element algebraically indepen
 
   We start by proving the following lemma:
   \begin{lemma}\label{lem:algebraic-indep-smaller-than-dep}
-    Given finite $A, B \subseteq \mathbb K / \mathbb F$, such that $A$ is independent over $\mathbb F$ and dependent on $B$ (over $\mathbb F$). Then $|B| \geq |A|$.
+    Consider finite $A, B \subseteq \mathbb K / \mathbb F$, such that $A$ is independent over $\mathbb F$ and dependent on $B$ (over $\mathbb F$). Then $|B| \geq |A|$.
   \end{lemma}
 
   \begin{proof}
@@ -51,10 +55,22 @@ Transcendental numbers are special cases of single element algebraically indepen
     \end{enumerate}
   \end{proof}
 
+We will now show that all basis in our supposed matroid have equal cardinality.
+
+\begin{lemma}\label{lem:algebraic-matroid-equal-size-basis}
+  Given some finite subset $E \subseteq \mathbb K / \mathbb F$, maximal independent subsets of $E$ (in the partially ordered set induced by inclusion) have equal cardinality.
+\end{lemma}
+
 \begin{proof}
-    We will construct the matroid using the basis definition. We need to first show that at least a basis exists, and then show that the exchange lemma holds.
+  Let $A$ and $B$ be maximal independent subsets of $E$. If both sets are $\varnothing$, then our proof is done. If one set is $\varnothing$ and one isn't, we clearly have a contradiction, as $\varnothing$ is a strict subset of the other set, hence not maximal. We therefore assume the existence of some $a \in A$ and $b \in B$. 
+
+  We know that $A$ is maximal, therefore any $b \in B$ is algebraically dependent on $A$. We can therefore conclude that $B$ is algebraically dependent over $B$. We recall that $B$ is also independent, which means we can use lemma (\ref{lem:algebraic-indep-smaller-than-dep}) to prove that $|A| \geq |B|$. We can apply a similar argument to show that $|B| \geq |A|$, which together with our previous statement shows that $|A| = |B|$, proving the lemma.
+\end{proof}
+
+\begin{proof}[Proof of theorem (\ref{thm:algebraic-matroids-are-matroids})]
+    We will construct the matroid using the basis definition. We need to first show that at least one exists, and then show that the exchange property holds.
 
   We consider the partially ordered set of independent subsets of $E$ ordered by inclusion. We notice that $ \varnothing $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\varnothing $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element, so a basis exists.
 
-  It now remains to prove the exchange property. That is, given two basis $A, B \subseteq \mathcal B$ and some $a \in A \setminus B$, we can find some $b \in B \setminus A$ such that $B - b + a \in \mathcal B$. Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - 1$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that 
+  It now remains to prove the exchange property. That is, given two basis $A, B \subseteq \mathcal B$ and some $a \in A \setminus B$, we can find some $b \in B \setminus A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two basis have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-basis})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \geq n - 1$, hence a contradiction.
 \end{proof}
