@@ -1,6 +1,6 @@
 \subsection{Independent sets}
 
-We will begin with the first possible way of defining what a \textit{matroid} is. This way is arguably the simplest one because all of the properties are quite intuitive. When speaking about matroids we will always deal with finite sets, and the way we obtain a matroid from a finite set is to select some special selection of its subsets. Informally, in some way, these special sets correspond to the \textit{independent} sets, and should obey some distinctive properties. This idea is precisely what the definition is about.
+We will begin with the first possible way of defining what a \textit{matroid} is. This way is arguably the simplest one because all of the properties are quite intuitive. When speaking about matroids we will always deal with finite sets, and the way we obtain a matroid from a finite set is to select some special selection of its subsets. Informally, in some way, these special sets correspond to the \textit{independent} sets, and should obey some distinctive properties. This idea is precisely what the following definition is about.
 
 \begin{defn}
     Let $E$ be a finite set, possibly empty and $\mathcal{I}$ a collection of subsets of $E$ (i.e. some subset of the power set $2^E$ of E). We call the ordered pair $M = (E, \mathcal{I})$ a matroid if the following three properties are satisfied
@@ -35,8 +35,8 @@ $$A = \begin{pmatrix}
 
 \end{pmatrix}.$$
 
-We would like to consider the set of labels of columns of the matrix $A$ and form a matroid on it. This means we start with $E = \{1,2,3,4\}$ so a finite set where the number $1$ corresponds to the column $\begin{pmatrix} 2 & 1 & 0 \end{pmatrix} ^ T$, the number 2 corresponds to $\begin{pmatrix}  0 & -1 & 3  \end{pmatrix} ^ T$ and so forth. We now declare that a subset of $E$ is called independent iff the corresponding set of column vectors is linearly independent as a set of vectors in $\mathbb{R}^3$. Now we can explicitly check what this means in our example. The sets $\{1\}$, $\{2\}$, $\{3\}$ are all independent because they correspond to non-zero vectors. For the two-element subsets we see that $\{1,2\}$, $\{1,3\}$ and $\{2,3\}$ are all independent, while any two element subsets containing the last column are not. Finally, the 3-element subset $\{1,2,3\}$ is not independent because as vectors, the first and the second column sum up to the third. So to conclude, the collection of all independent sets is
-$$\mathcal{I} = \{\emptyset, \{1\}, \{2\}, \{3\}, \{1,2\}, \{1,3\}, \{2,3\} \}$$
+We would like to consider the set of labels of columns of the matrix $A$ and form a matroid on it. This means we start with $E = \{1,2,3,4\}$ so a finite set where the number $1$ corresponds to the column $\begin{pmatrix} 2 & 1 & 0 \end{pmatrix} ^ T$, the number 2 corresponds to $\begin{pmatrix}  0 & -1 & 3  \end{pmatrix} ^ T$ and so forth. We now declare that a subset of $E$ is called independent if and oly if the corresponding set of column vectors is linearly independent as a set of vectors in $\mathbb{R}^3$. Now we can explicitly check what this means in our example. The sets $\{1\}$, $\{2\}$, $\{3\}$ are all independent because they correspond to non-zero vectors. For the two-element subsets we see that $\{1,2\}$, $\{1,3\}$ and $\{2,3\}$ are all independent, while any two element subsets containing the last column are not. Finally, the 3-element subset $\{1,2,3\}$ is not independent because as vectors, the first and the second column sum up to the third. So to conclude, the collection of all independent sets is
+$$\mathcal{I} = \{\varnothing, \{1\}, \{2\}, \{3\}, \{1,2\}, \{1,3\}, \{2,3\} \}$$
 
 which does indeed satisfy the properties of collection of independent sets of a matroid. This is not a coincidence, we will prove that a collection of subsets formed from a matrix in the above way is always a matroid.
 
@@ -58,7 +58,7 @@ which does indeed satisfy the properties of collection of independent sets of a 
 In order to talk about any classification of matroids we have to say when the two matroids are equal. Intuitively, it is nothing deep, the definition will just rephrase that the two are \textit{equal} if it is possible to relabel the elements of one to the elements of the other and not change the independent sets.
 
 \begin{defn}
-    We call two matroids $M = (E, \mathcal{I})$ and $N = (F, \mathcal{J})$ isomorphic and denote it by $M \sim N$ if there exists a bijection $f: E \to F$ so that a subset $K \subset F$ is independent iff $K = f(L)$ for some independent set $L \in \mathcal{I}$.
+    We call two matroids $M = (E, \mathcal{I})$ and $N = (F, \mathcal{J})$ isomorphic and denote it by $M \sim N$ if there exists a bijection $f: E \to F$ so that a subset $K \subset F$ is independent if and only if $K = f(L)$ for some independent set $L \in \mathcal{I}$.
 \end{defn}
 
 
