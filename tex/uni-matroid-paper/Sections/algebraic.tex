@@ -2,8 +2,7 @@
 
 An interesting concept of independence arises in the study of field theory. We will present an interesting class of matroids derived from the concept of algebraic independence. For the rest of this section we will use the notation $\mathbb K / \mathbb F$ to refer to some field $\mathbb K$ and a subfield $\mathbb F$.
 
-TODO: write down the proofs, add example.
-
+TODO: add example, prove transitivity.
 
 \begin{defn}
   A subset $\{ s_1 \ldots s _n \} \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent (over $\mathbb F$) if it doesn't satisfy any nontrivial polynomial with coefficients in $\mathbb{F} $, i.e.
@@ -13,6 +12,20 @@ TODO: write down the proofs, add example.
 \end{defn}
 
 Transcendental numbers are special cases of single element algebraically independent sets. Although it is well known that the complex numbers $e$ and $\pi$ are transcendental over $\mathbb{Q} $, it hasn't yet been proven that $\{e, \pi \}$ is algebraically independent.
+
+We will now discuss the notion of algebraic dependence.
+
+\begin{defn}
+  Let $a \in \mathbb K / \mathbb F$ and $B = \{b _1 \ldots b _n \} \subseteq  \mathbb K / \mathbb F$. We say that $a$ is algebraically dependent on $B$ (over $ \mathbb{F} $) if $a$ is algebraic over $\mathbb F(b _1 \ldots b _n )$. Given some $A \subseteq  \mathbb K / \mathbb{F} $, we say that $A$ is algebraically dependent on $B$ (over $\mathbb{F} $) if every element of $A$ if algebraic on $B$ (over $\mathbb{F} $).
+\end{defn}
+
+\begin{lemma}\label{lem:algebraic-dependence-transitivity}
+  Consider $A, B, C \in \mathbb K / \mathbb{F} $ such that $A$ is algebraic over $B$ and $B$ is algebraic over $C$. It then follows that $A$ is algebraic over $C$.
+\end{lemma}
+
+\begin{proof}
+  TODO
+\end{proof}
 
 \begin{theorem}\label{thm:algebraic-matroids-are-matroids}
     Given a finite subset $E \subseteq \mathbb K / \mathbb F$, the pair $(E, \mathcal I)$  where $\mathcal I$ is the set of algebraically independent subsets of $E$ forms a matroid.
@@ -30,7 +43,7 @@ Transcendental numbers are special cases of single element algebraically indepen
     We will prove the statement by induction on the number of elements in $A \setminus B$:
     \begin{enumerate}
       \item If $A \setminus B = \varnothing $ then $A \subseteq B$ and $|A| \leq |B|$ follows trivially.
-      \item Assume the statemenet is true for some $|A \setminus B| = k - 1$. We will attempt to prove it for $|A \setminus B| = k$. Let $a _1 \ldots a _n$ be the elements of $A$ such that $a _1 \ldots a_k$ are all the members of $A \cap B$ for some $k$. Let $ a _1 \ldots a_k, b _{k + 1} \ldots b _m$ be the elements of $B$. It remains to prove that $m \geq n$.
+      \item Assume the statemenet is true for some $|A \setminus B| = |A| - (k + 1)$ (where $k = |A \cap B$). We will attempt to prove it for $|A \setminus B| = |A| - k$. Let $a _1 \ldots a _n$ be the elements of $A$ such that $a _1 \ldots a_k$ are all the members of $A \cap B$ for some $k$. Let $ a _1 \ldots a_k, b _{k + 1} \ldots b _m$ be the elements of $B$. It remains to prove that $m \geq n$.
 
         As $a _{k + 1}$ is not dependent on $\{a _1 \ldots a_k\}$ but is dependent on $B = \{a _1 \ldots a _k, b _{k + 1} \ldots b_m\}$, there must exist some $k + 1 \leq j \leq m$ such that $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$ but  not on $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$. Because $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$, we know there exists some polynomial $f \in \mathbb F[x _1 \ldots x _{j + 1}]$ such that 
         \begin{align*}
@@ -51,7 +64,7 @@ Transcendental numbers are special cases of single element algebraically indepen
 
         This implies that $f(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, X, a _{k + 1}) \neq 0$. Since $ f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0$, we can conclude that $b_j$ is algebraic over $\{a _1 \ldots a _{k + 1}, b _{k + 2} \ldots b _j\}$.
 
-        Construct $B' = B + a _{k + 1} - b_j$. Having proven that $b_j$ is dependent on a subset of $B'$, it is also dependent on $B'$. We recall that $A$ is dependent on $B$, so by the transitivity of algebraic dependence (TODO prove this), we know that $A$ is algebraic over $B'$. We also notice that $A$ and $B'$ have $k + 1$ elements in common, therefore the statement is proven by the induction hypothesis.
+        Construct $B' = B + a _{k + 1} - b_j$. Having proven that $b_j$ is dependent on a subset of $B'$, it is also dependent on $B'$. All other elements of $B$ are also dependent on $B'$ (because any variable is algebraic over a field extension it generates, i.e. $t$ is algebraic over $\mathbb F(t)$). We recall that $A$ is dependent on $B$, so by the transitivity of algebraic dependence (lemma (\ref{lem:algebraic-dependence-transitivity})), we know that $A$ is algebraic over $B'$. We also notice that $A$ and $B'$ have $k + 1$ elements in common, therefore the statement is proven by the induction hypothesis.
     \end{enumerate}
   \end{proof}
 
