@@ -19,12 +19,30 @@ We will now discuss the notion of algebraic dependence.
   Let $a \in \mathbb K / \mathbb F$ and $B = \{b _1 \ldots b _n \} \subseteq  \mathbb K / \mathbb F$. We say that $a$ is algebraically dependent on $B$ (over $ \mathbb{F} $) if $a$ is algebraic over $\mathbb F(b _1 \ldots b _n )$. Given some $A \subseteq  \mathbb K / \mathbb{F} $, we say that $A$ is algebraically dependent on $B$ (over $\mathbb{F} $) if every element of $A$ if algebraic on $B$ (over $\mathbb{F} $).
 \end{defn}
 
-\begin{lemma}\label{lem:algebraic-dependence-transitivity}
-  Consider $A, B, C \in \mathbb K / \mathbb{F} $ such that $A$ is algebraic over $B$ and $B$ is algebraic over $C$. It then follows that $A$ is algebraic over $C$.
+Before continuing onto the next lemma, we remind the reader that a field $\mathbb K$ and a subfield $\mathbb{F}$ induce a vector space, with scalars being elements of $\mathbb{F} $ and vectors being elements of $\mathbb K$. Moreover, the vector space induced by $\mathbb{F} (a)$ over $\mathbb{F} $ when $a$ is algebraic over $\mathbb{F} $ is finite dimenssional.
+
+\begin{lemma}\label{lem:algebraic-transitivity}
+  Consider $a, b \in \mathbb K / \mathbb{F} $ such that $a$ is algebraic over $\mathbb{F}(b) $ and $b$ is algebraic over $\mathbb{F}$. It then follows that $a$ is algebraic over $\mathbb{F}$.
 \end{lemma}
 
 \begin{proof}
-  TODO
+  The vector spaces induced by $\mathbb{F} (b)$ and $\mathbb{F} (b)(a)$ must both be finite dimenssional over $\mathbb{F} $ and $\mathbb{F} (b)$ respectively (because $b$ is algebraic over $\mathbb{F} $ and $a$ is algebraic over $\mathbb{F} (b)$ respectively). It follows that $\mathbb{F} (b)(a)$ is finitely dimenssional over $\mathbb{F}$ (this can easly be seen by noticing that given a basis $a _i $ for $\mathbb{F} (b)(a)$ over $\mathbb{F} (b)$ and a basis $b _i $ for $\mathbb{F} (b)$ over $\mathbb{F} $, we can form a basis $a _i b _i $ for $\mathbb{F} (b)(a)$ over $\mathbb{F} $). 
+
+  Let $n$ be the dimenssion of $\mathbb{F} (b)(a)$ over $\mathbb{F} $. Let $S = \{a _0 \ldots a _n \}$. Because $|S| = n + 1$, $S$ cannot be linearly independent (in the vector space induced by $\mathbb{F} (b)(a)$ over $\mathbb{F} $), which means a polynomial $f \in \mathbb{F} [x]$ exists such that $f(a) = 0$.
+\end{proof}
+
+\begin{lemma}\label{lem:algebraic-dependence-transitivity}
+  Consider $A, B, C \subseteq \mathbb K / \mathbb{F} $ such that $A$ is algebraically dependent on $B$ and $B$ is algebraically dependent on $C$. It then follows that $A$ is algebraically dependent on $C$.
+\end{lemma}
+
+\begin{proof}
+  We will proceed by induction on the size of $B$:
+  \begin{enumerate}
+    \item If $|B| = 1$ then the result trivially follows from lemma (\ref{lem:algebraic-transitivity}).
+    \item Assume the result is true for $|B| = n$. We will attempt to prove it for $|B| = n + 1$. Let $a \in A$. We have to show that $a$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$. Given $1 \leq i \leq n$, each $b _i$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$ (because $B$ is algebraically dependent on $C$ (over $\mathbb{F}$)). It then follows that each such $b _i $ is also algebraic over $\mathbb{F}(c _1 \ldots c _k, b _{n + 1}) = \mathbb{F} (b _{n + 1} )(c _1 \ldots c _k )$. Moreover, we know that $a$ is algebraic over $\mathbb{F} (b _1 \ldots b _{n + 1})$, which means it is also algebraic over $\mathbb{F} (b _{n + 1})(b _1 \ldots b _n )$. It then follows from the induction hypothesis (applied with $\mathbb{F} (b _{n + 1})$ as the base field, $A = \{a\}$, $B = \{b _1 \ldots b _n \}$ and the same $C$) that $a$ is algebraic over $\mathbb{F} (b _{n + 1})(c _1 \ldots c _k ) = \mathbb{F} (c _1 \ldots c _k )(b _{n + 1})$. 
+
+      We recall that $b _{n + 1}$ is algebraic on $\mathbb{F} (c _1 \ldots c _k )$ (because $B$ is algebraically dependent on $C$ (over $\mathbb{F} $)). We can now apply lemma (\ref{lem:algebraic-transitivity}) to prove that $a$ is algebraic over $\mathbb{F} (c _1 \ldots c _n)$.
+  \end{enumerate}
 \end{proof}
 
 \begin{theorem}\label{thm:algebraic-matroids-are-matroids}
@@ -85,5 +103,6 @@ We will now show that all basis in our supposed matroid have equal cardinality.
 
   We consider the partially ordered set of independent subsets of $E$ ordered by inclusion. We notice that $ \varnothing $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\varnothing $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element, so a basis exists.
 
-  It now remains to prove the exchange property. That is, given two basis $A, B \subseteq \mathcal B$ and some $a \in A \setminus B$, we can find some $b \in B \setminus A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two basis have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-basis})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \geq n - 1$, hence a contradiction.
+  It now remains to prove the exchange property. That is, given two basis $A, B \subseteq \mathcal B$ and some $a \in A \setminus B$, we can find some $b \in B \setminus A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two basis have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-basis})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \leq n - 1$, hence a contradiction.
 \end{proof}
+
