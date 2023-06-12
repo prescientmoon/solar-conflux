@@ -1,6 +1,30 @@
 \section{Dual Matroids}
-The concept of \textit{duality} is another of the most notable parts in Matroid Theory. Since it helps to extend some of the concepts previously defined, such as the notion of orthogonality in vector spaces and the concept of a planar dual of a plane graph. So in this section we will introduce the definitions and basic properties of dual matroids.
+The concept of \textit{duality} is another of the most notable parts in Matroid Theory. Since it helps to extend some of the concepts previously defined, such as the notion of orthogonality in vector spaces and the concept of a planar dual of a plane graph. So in this section we will introduce the definitions and  properties of dual matroids.
 
+Before starting with the formal definitions, and the existing porperties and theorems is important that we state the most importan concept of this chapter, that is, similar to the chapter name, the concept of a $dual$, or more precisely, the $dual of a matroid$.\\
+
+If we Matroid M, with sets $(E,B)$, or in other words M is a matroid on E with B as its collection of bases. Then its dual will refer to a different and new matroid, with notation M*. This new matroid has the property that it is "related" to the original matroid, so it has the same ground set E of the original matroid M, but a different basis set, this new basis set will be defined as B*, so this gives us that M* will be defined by the following pair of sets (E,B*). Where B* will a set such that is is the complement of the bases set B in M, which implies that, the bases set of M and M* will be always disjoint.
+
+This can be seen more clearly in the following digram:
+\begin{figure}[H]
+    \centering
+\begin{tikzpicture}
+        \filldraw[fill=gray] (-2,-2) rectangle (3,1.8) node [text=black,above] {$E$} node at (19:3) [text= black, left = 2pt] {$B^*$};
+        \scope % B
+        \clip (0,0) circle (1);
+        \fill[white] (0,0) circle (1.5);
+        \endscope
+        \draw (0,0) circle (1) node [text=black,above] {$B$};
+\end{tikzpicture}
+\caption{Venn diagram showing, B thebasus set of M, and B* the basis set of M*}%
+\label{graphic}%
+\end{figure}
+
+As we know form previous chapters the basis set of a matroid is obtained from its set of independet sets $I$, which is at the same time obtained of its ground set $E$.
+Using this diagram we highligth a few things that will be useful later in the chapter.
+The first thing is that basis set of a matroid is given by a subset of E, the reiming elements in E that are not in de basis if added to the basis will be linearly dependent, but also we can take any remianing elemetn of E and echange it with an element in the basis and we will have another basis for E. With this intuition in mind, we can continue with a theorem.
+
+To formalize the definition of B* we have the following:
 \begin{theorem}
     Let $M$ be a matroid given by $(E,B)$, and B*$(M)$ be $\{E(M) - B:B\in B(M)\}$. Then B*$(M)$ is the set of bases of a matroid on $E(M)$
 \end{theorem}
@@ -11,23 +35,42 @@ Or in other words, B* is the set of all the complement independent bases of $B$.
     Let M be a matroid with the pair (E,B), given B* as defined above, the new matroid M*=(E,B*) is the dual of M.
 \end{defn}
 
-As an example, let $U_{k,n}$, be a k-uniform matroid. Then, given the definition above, the dual of this matroid is given by $U_{k,n}$* $= U_{n-k,n}$
+In the theorem we say that B*$(M)$ is the set of bases of a matroid on $E(M)$, but this is not be trivially clear, so we need to prove it.
+
+However to prove it we will mahe use of the following result, that comes from our properties of the basis set B of our matroid M in Section 2.2
 
 Lemma. The set $B$ of bases of a matroid M has the following property:
-\begin{enumerate}
-    \item If $B_1$ and $B_2$ are in $B$, and $x\in B_2 - B_1$, then there exist and element $y$ of $B_1 - B_2$ such that $(B_1 - y) \cup x \in B$ 
-\end{enumerate}
+$(B2)^*$ If $B_1$ and $B_2$ are in B and $x \in B_2 - B_1$,then there is exist and element $y$ of $B_1 - B_2$ such that $(B_1 - y) \cup x \in B$
 
-Proof, TODO
+\textit{For comparison this was the original (B2): \\
+$(B2)$ If $B_1,B_2\in\mathcal{B}$ and $x\in B_1 - B_2$, then there exists a $y\in B_2 - B_1$ such that $(B_1 - x)\cup y \in\mathcal{B}$.}\\
+
+First we will prove $(B2)^*$:
+\begin{proof}
+  We note that $B_1$ is by definition a base, this means that if we add a new element in the ground set to it, it will become a minimal dependet set, in other words $B_1 \cup x$ contains a unique circuit $C_1 \in C$. Since we have $C_1$ a dependent set and $B_2$ another base, and thus independet, then $C_1 - B_2$ will be non-empty, so there exists and element $y$ such that $y \in C_1 - B_2$, but as $C_1$ is the circuit created from $B_1 \cup x$, then $y \in (B_1 \cup x) - B_2$, but as $x \neq y$, then $y \in B_1 - B_2$. Now, lets take $B_1 - y$, this will not be a basis, but it will be an independent set, if now we take $(B_1 - y)\cup x$, this will clearly not contain the circuit $C_1$, since this was the unique circuit generated from $B_1 \cup x$, so the set $(B_1 - y)\cup x$ must be independent. Finally, we observe that $(B_1 - y)\cup x$ implies that we add and elemnts to the set and we take out one element to the set, so the cardinality will remain equal, that is: $|(B_1 - y)\cup x|=|B_1|$.
+As we have that $(B_1 - y)\cup x$ is and independent set and has the same cardinality as the the base $B_1$, then by definition $(B_1 - y)\cup x$ is also a base.  
+\end{proof}
+
+Now, we prove that $B^*(M)$ is the set of a base of a matroid on $E(M)$
+\begin{proof}
+    As $B(M)$ is non-empty, $B^*(M)$ is non-empty, hence, the property $(B_1)$ holds for $B^*(M)$. 
+    Now, consider two members of $B^*(M)$, $B^*_1$ and $B^*_2$, not equal such that there exists an element $x \in (B^*_1 - B^*_2)$. Let, $B_1 = E - B^*_1$ and $B_2 = E - B^*_2$. We can see that $B^*_1 - B^*_2 = B_2 - B_1$, thus $x \in B_2 - B_1$. By $(B2)^*$, there exists and element $y \in  B_1 - B_2$ such that $(B_1 - y)\cup x$ is a base of $M$, but observe that $B_1 - B_2 = B^*_2 - B^*_1$, hence this is the same as saying that there exists and element $y \in  B^*_2 - B^*_1$ such that $(B_1 - y)\cup x$ is a base of $M$. Hence, by definition of dual, $E-((B_1 - y)\cup x) \in B^*(M)$. But, $E-((B_1 - y)\cup x) = ((E-B_1)-x)\cup y) = (B_1^* - x)\cup y$, which is in the family $B^*$. Thus, $B^*(M)$ satisfes $(B2)$. As $B^*(M)$ satisfies properties $(B1)$ and $(B2)$, this is indeed the set of bases of a matroid on $E$.
+\end{proof}
+
+The matroid M*, is the dual of M. Note that by the way is defined, and thanks to the proof above we see that $B(M^*)=B^*(M)$, moreover, due the nature that the definition of dual has, this is, that is the complement of the basis set, we have that
+\begin{itemize}
+    \item \textit{The dual of the dual of a matroid M is the matroid M itself, $i.e., (M^*)^* = M$}
+\end{itemize}
+This is because if we take the complement $B^*$ of the basis set $B$, and then we take this complement $B^*$ and take its complement once again, we will return to the original set $B$, or in other words: If $E-(E - B) = B$.\\
+
+As an example, let $U_{k,n}$, be a k-uniform matroid. We know that its bases will be all the k-element subsets of $E(U_{k,n})$, we know that this matroid is defined over a set of $n$ elements, and its basis has exactly $k$ elements, hence the bases of $U_{k,n}$* are be all $(n-k)-element$ subsets of the ground set, as this will be the complement of the basis set of $U_{k,n}$. This is equal to saying that the dual of the matroid $U_{k,n}$ is given by $U_{k,n}$* $= U_{n-k,n}$\\
 
 
-    Given this new characterization of matroids we also have some additional notation. That is, given a matroid M with a dual M*, the \textit{bases} of the matroid M* are called \textit{cobases} of M, similarly the \textit{independent sets} of M* are called \textit{coindependent sets} of M, the circuits of M* are called \textit{cocircuits} of M, \textit{hyperplanes} are called \textit{cohyperplanes}, and the \textit{spanning sets} are called \textit{cospanning sets} of M.
+Now that we have introduced duals is useful to give some additional notation. That is, given a matroid $M$ with a dual $M^*$, the \textit{bases} of the matroid $M^*$ are called \textit{cobases} of $M$. Similarly, the \textit{independent sets} of $M^*$ are called \textit{coindependent sets} of $M$, the circuits of $M^*$ are called \textit{cocircuits} of $M$, \textit{hyperplanes} are called \textit{cohyperplanes}, and the \textit{spanning sets} are called \textit{cospanning sets} of $M$ and so on.\\
 
-This leads us to the following propositions.
+This leads us to some elemenary relationships between these sets. 
 
-Proposition:
-Let M be a matroid in a set E and suppose $X \subseteq E$. Then
-
+$Proposition:$ Let M be a matroid in a set E and suppose $X \subseteq E$. Then,
     \begin{enumerate}
         \item $X$ is independent if and only if $E-X$ is cospanning.
 
@@ -38,10 +81,8 @@ Let M be a matroid in a set E and suppose $X \subseteq E$. Then
         \item $X$ is a circuit if and only if $E-X$ is a cohyperplane.
     \end{enumerate}
 
-
-
 \begin{proof}
-    All of the proofs are fairly easy and follow directly from the definitions. [We will prove a) and b)]
+    All of the proofs follow directly from the definitions. [We will prove a) and b)]
 
     a) Suppose $X$ is independent. This means there exists a basis $B \in \mathcal{B}(M)$ so that $X \subset B$. Because $X \subset B \subset E$ and the operation of taking complements is "inclusion reversing" we have $E-B \subset E - X$. Verifying directly, if $x \in E - B$ this means $x \in E$ and $x \notin B$. Because $X \subset B$ this implies that $x \in E$ and $x \notin X$ so by definition $x \in E - X$ and the conclusion follows. Because $E - B$ is a cobasis and $E - X$ is a set containing a cobasis, then it is a cospanning by definion.
 
@@ -56,26 +97,205 @@ Let M be a matroid in a set E and suppose $X \subseteq E$. Then
     Conversly, if $E - X$ is a cocirucuit, then $E-X$ is not coindependent but for all $x \in E - X$ we have $(E - X) - x$ = $E - (X \cup x)$ is coindependent. By b) this means that $X$ is not spanning but for all $x \in E-X$, we have $X \cup x$ is spanning, so $X$ is a hyperplane.
 
     d) Same as things before.
+\end{proof}\\
+
+Similar to the case with the bases and cobases, The ranK function of the dual matroid is usually denoted by $r^*$, and is normally referred as the $corank$ $function$ of $M$. Using the definition of bases of the dual matroid, this is, that is build with the complement bases of the set of the orginal matroid, as well as the fact that matroid and its dual are both on the same ground set, we have the following:
+
+\textit{Proposition:} $r(M) + r$*$(M) = |E(M)|=|E(M^*)|$
+
+And in fact, we can generalize this to obtain an explicit formula for the for the corank function of the matroid. 
+
+\textit{Proposition:} For all subsets X of the ground set E of a Matroid M,\\
+$r^*(X)=r(E-X)+|X|-r(M)$
+
+\begin{proof}
+    Let $I^*$ be a independet subset of $X$ in $M^*$, such that it is not a subset of some other set in $X$, this is $r^*(X)=|I^*|$. Similarly, let $I$ be a independent subset of $E-X$ in $M$, such that it is not a subset of some other set in $E-X$, this is $r(E-X)=|I|$. And let $B$ be an independent subset of $E-I^*$, such that it is not a subset of some other set in $E-I^*$ and contains $I$. Since, this are independent subsets that are not subsets of any other element in their respective sets, then we have $r(B)=r(E-I^*)$ and $r(E-I^*)=r(M)$, and hence $B$ is a base of M.
+    Now, let $B^*=E-B$, since $B$ is a base of $M$, by definition $B$ is a base of $M^*$. We can onserve that $I^*\subseteq B^*$ and  $B^*\cap X=I^*$. Similarly, $I\subseteq B$ and  $B\cap (E-X)=I$. In particular we see that, $|B\cap X|=|B|-|I|$, thus
+    $|X|=|X\cap B|+|X\cap B^*|=|B|-|I|+|I^*|=r(M)-r(E-X)+r^*(X)$
+\end{proof}
+
+For can now give and example for the concepts given until know.
+
+\textit{Example:}
+
+
+
+
+Now, we will formulate another important point, the so called, orthogonality, which refers to the link between circuits and cocircuits. 
+
+\textit{Proposition:} For a given matroid M, let C be a circuit and C* be a cocircuit. Then,  
+$|C \cap C*| \neq 1$.
+
+\begin{proof}
+    We will prove this by contradiction. Suppose $C \cap C* = \{x\}$, for some $x \in E$, this is, there exists and element in the intersection such that the cardinality will be 1. Now consider the hyperplane $H=E-C^*$, and recall that the closure $cl(H)=H$. We can onserve that by the way in which it is defined if $x\in C^*$, then $x\notin H$, but $C-x\subseteq H$. Moreover, we have that $x\in cl(C-x)$ hence $x\in cl(H)=H$. Then $x\notin C^*$, which is a contradiction. So, $C \cap C* \neq \{x\}$, which implies $|C \cap C*| \neq 1$.
+\end{proof}
+
+%Subsection
+Now we will talk about duals of representble matroids.
+Let A be an $m \times n$ matrix over the field $F$, and let M be vector matroid $M[A]$ of $A$. Then we have that the groud set of  
+of $M$is the set $E$ of column labels of $A$. Note that, in general, $M[A]$ does note uniquely determine A. Furthermore, M remains unchanged if we perform any of the following operarations on A, which include the \textit{elementary row operations} seen in the linear algebra courses.
+\begin{enumerate}
+    \item Interchange two rows.
+    \item Multiply a row by a non-zero member of $F$
+    \item Replace a row by the sumof that row with another row.
+    \item Adjoin or remove a zero row
+    \item Interchanging two columns (the labels moving with the columns)
+    \item Multiply a column by a non-zero member of $F$
+\end{enumerate}
+
+The reason for this is because when constructiong the matroid $M$ form a matrix $A$, we only care about the independence (or dependence) that each column vector in the matrix has with one another. So, as long as the independence and dependece between this is keep the same, the values inside the columns are not relevant.
+
+Assume that the matrix A is non-zero. It is known that by using the operations previusly mentioned A can be reduced to be of the form $[I_r|D]$, where $I_r$ is the $r \times r$ identity matrix and $D$ is some $r \times (n-r)$ matrix over $F$. We can clearly see that $r(M)=r$ (the dimension fo the identity matrix). 
+
+Suppose that the columns of $[I_r|D]$ are labelled, in order, in the following form, $e_1, e_2,...,e_n$. This will be the ground set $E=\{e_1, e_2,...,e_n\}$. Then, we see that $\{e_1, e_2,...,e_r\}$ is a basis $B$ of $M$, once agina due to the dimesion of the identity matrix. We also label both, the rows and colums of $D$, in the following form, for the rows from top to bottom, $e_1, e_2,...,e_r$ and for the columns,  $e_{r+1}, e_{r+2},...,e_n$. This way to represent $M[A]$ can be seen more clearly in the following figure. We will refer to both $[I_r|D]$ and $D$ as the \textit{standard representative matrices} for $M$, \textit{with respect to $\{e_1, e_2,...,e_r\}$}. Similarly, we use \textit{reduced standard representative matrix} if we want to refer only to $D$.
+
+\begin{figure}
+    \centering
+
+    \caption{Standard representative matrices for M}
+    \label{fig:enter-label}
+\end{figure}
+
+Note that, in the figure, in $[I_r|D]$ only the columns are labelled, but in $D$, both the rows and columns ae labeled.
+
+We can now use this construction to determine the dual of a vector matroid using the following theorem.
+
+\begin{theorem}
+    Let M be the vector matroid of the matrix $[I_r|D]$ where the columns of this matrix are labelled, in order, $e_1, e_2,...,e_n$ and $1\leq r< n$. Then $M^*$ is the vector matroid of $[-D^T|I_{n-r}]$ where its columns are also labelled $e_1, e_2,...,e_n$ in that order.
+\end{theorem}
+
+\begin{proof}
+    
+\end{proof}
+
+By convention the form $[−D^T |I_{n−r}]$ instead of $[D^T |I_{n−r}]$. However it is important to remark that this does not bring any problem, because, as we previusly stated, the use of \textit{elementary row operations} does not affect the matroid of a matrix. 
+
+From the previous theorem a remarkable result follows almost directly. 
+
+\textit{Corollary: If a matroid \textit{M} is \textit{representable} over a field \textit{F}, then \textit{M*} is also representable over \textit{F}.}
+
+$Example:$ Consider the vector matroid $M$ with the following representation over $R$
+        \begin{figure}[H]
+            $$A = \begin{bmatrix}
+                1 & 0 & 0 & 1 & 0 & 1 \\
+                0 & 1 & 0 & 1 & -1 & 0 \\
+                0 & 0 & 1 & 0 & 1 & 1 \\
+            \end{bmatrix}$$
+        \end{figure}
+        
+The by the theorem the corresponding dual matroid $M^*$ is the vector matroid represented by 
+        \begin{figure}[H]
+            $$A^* = \begin{bmatrix}
+                -1 & -1 & 0 & 1 & 0 & 0 \\
+                0 & 1 & -1 & 0 & 1 & 0 \\
+                -1 & 0 & -1 & 0 & 0 & 1 \\
+            \end{bmatrix}$$
+        \end{figure}
+As and interesting note, this vector matroid $A$ is associated to the graph $K_4$ 
+       \begin{figure}[H]
+        \centering
+            \begin{tikzpicture}[
+                node distance = 15mm and 15mm,
+                V/.style = {circle, draw, fill=gray!30},
+                every edge quotes/.style = {auto, font=\footnotesize, sloped}
+                    ]
+                \begin{scope}[nodes=V]
+                \node (1) {}; 
+                \node (2) [below of=1] {}; 
+                \node (3) [below left of=2] {}; 
+                \node (4) [below right of=2] {}; 
+                \end{scope}
+                \draw (1) to (2); 
+                \draw (1) to (3);
+                \draw (1) to (4); 
+                \draw (2) to (3);
+                \draw (2) to (4); 
+                \draw (3) to (4);
+            \end{tikzpicture}
+            \caption{$K_4$, the complete graph on 4 vertices}
+            \label{fig:enter-label}
+        \end{figure}
+
+Aditionally, from this we can also verify the $rank$ and $corank$ propositions established before. This is, we can clearly observe that $A$ has a ground set $E=\{e_1, e_2, \dots , e_6\}$ with 6 elements, where each $e_i; i =1,2, \dots,6$ represents a column, hence $|E|=6$. We also see that $A$ has rank $r(A)=3$, which can be easily verified by observing the first 3 columns that correspond to the identity matrix in the construction of the form $[I_r|D]$. Similarly, if we observe the dual we notice that also $r(A^*)=3$. \\So, $r(A)+r(A^*)= 3 + 3 = 6 = |E|$\\
+
+
+%
+
+We have seen many concepts related to dual matroids, including some representations for vector matroids, however we have not gone that much into detail with graphic matroids. So, the reader could still be wondering, \textit{"Is it possible to have a graphic matroid whose dual is not grahic?"}
+
+To answer that we have the following theorem
+
+\begin{theorem}
+    \item  The dual of a graphic matroid is itself graphic if and only if the underlying graph is planar.
+\end{theorem}
+
+\begin{proof}
     
 \end{proof}
 
 
-From the way in which the dual is defined, that is,as the dual of the matroid can be in some way, said to be build with the complement bases of the set of the orginal matroid, then we can see that:
+
+$Example:$ Let us consider the bipartite graph $K_{3,3}$.
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance={15mm}, thick, main/.style = {draw, circle}] 
+    \node[main] (1) {}; 
+    \node[main] (2) [below of=1] {}; 
+    \node[main] (3) [right of=1] {}; 
+    \node[main] (4) [below of=3] {}; 
+    \node[main] (5) [right of=3] {}; 
+    \node[main] (6) [below of=5] {}; 
+    \draw (1) to (2); 
+    \draw (1) to (4);
+    \draw (1) to (6); 
+    \draw (3) to (2);
+    \draw (3) to (4); 
+    \draw (3) to (6);
+    \draw (5) to (2); 
+    \draw (5) to (4);
+    \draw (5) to (6);
+    \end{tikzpicture}
+\end{figure}
+
+We can see it has 9 edges, so the ground set is $E=\{1,2,3, \dots, 9\} $.
+
+\begin{figure}[H]
+The matrix associated to the matroid $M(K_{3,3})$ is the following:
+$$J = \begin{bmatrix}
+    1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1\\
+    0 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 1\\
+    0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1\\
+    0 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1\\
+    0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 1\\
+\end{bmatrix}$$
+\end{figure}
+
+This is because if we label the columns of $J$ as $E = \{e_1,\dots, e_9\}$ and define a matroid $M(J)$ on $E$, it is easy to see that we associate each column of $J$ to the correspondingly labeled edge in $K_{3,3}$, so that they generate the same matroid. Moreover, this means that we can take a basis for the column space of $J$, such as, $B = \{e_1, e_2, e_3, e_4, e_5\}$, such that it corresponds to a spanning tree $T$ of $K_{3,3}$. Adding any other column to B gives a linear dependency,
+hence a circuit in M(A); likewise, adding any edge to T generates a cycle
 
 
-Proposition: 
-$r(M) + r$*$(M) = |E(M)|$
 
-From this, we can formulate a formula for the corank function of the matroid M, r*. 
+So we have, 
+\begin{figure}[H]
+    $$B=\!\!\!\begin{bmatrix}
+    1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1\\
+    0 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 1\\
+    0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1\\
+    0 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1\\
+    0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 1\\
+    \end{bmatrix}
+  %
+  B^*=\!\!\!\begin{bmatrix} 
+1 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 0\\
+0 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 0\\
+0 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 0\\
+1 & 1 & 1 & 1 & 1 & 0 & 0 & 0 & 1\\
+\end{bmatrix}$$
+\end{figure}
 
+Where, $r(M) = 5$ and $r^*(M)=4$, and $|E(M)|=9$.
+Hence, we see that $r(M) + r^*(M) = |E(M)|$ holds.
 
-Proposition: For all subsets X of the ground set E of a Matroid M,
+Also, in this example, both matroids are vector matroids over the field $\mathbb{F}_2$. 
+However, although $M(K_{3,3})$ is a graphic matroid, its dual, $M^*(K_{3,3})$ is not graphic. This results points to the following:
 
-$r$*$(X)=r(E-X)+|X|-r(M)$
-
-Proof TODO
-
-Now, we will formulate another important point, the so called, orthogonality, which refers to the link between circuits and cocircuits. 
-
-Proposition: For a given matroid M, let C be a circuit and C* be a cocircuit. Then,  
-$|C \cap C*| != 1$.

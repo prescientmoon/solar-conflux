@@ -1,9 +1,32 @@
 \subsection{$U_{2,4}$}
 
-We will consider the uniform matroid $U_{2,4}$ and show that it is $\mathbb{F}_3$-representable, while it is not $\mathbb{F}_2$-representable. First, $U_{2,4}= (\{1,2,3,4\}, \mathcal{I})$ where the bases are all of the two element subsets of $\{1,2,3,4\}$, so the set of bases 
+We will consider the uniform matroid $U_{2,4}$ and show that it is $\mathbb{F}_3$-representable, while it is not $\mathbb{F}_2$-representable. First, $U_{2,4}= (\{1,2,3,4\}, \mathcal{I})$ where the bases are all of the two element subsets of $\{1,2,3,4\}$, so the matroid looks like: 
 
-$$\mathcal{B} = \{\{1,2\}, \{1,3\}, \{1,4\}, \{2,3\}, \{2,4\}, \{3,4\}\}$$.
+\begin{center}
+\begin{tikzpicture}
 
+\matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
+ & & &\textcolor{cyan}{
+1234} & & & &\\
+ \textcolor{blue}{
+123}& &\textcolor{blue}{
+124} & &\textcolor{blue}{
+134} &  & \textcolor{blue}{
+234}  \\
+\textcolor{red}{12} & \textcolor{red}{13} & \textcolor{red}{14} & & \textcolor{red}{23} & \textcolor{red}{
+24} & \textcolor{red}{
+34} \\
+\textcolor{orange}{1}& &\textcolor{orange}{2} & & \textcolor{orange}{3}& & \textcolor{orange  }{4} \\
+& & & \textcolor{orange}{\emptyset} &  & & \\
+&&&&&& \\};
+
+\foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
+\draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
+
+\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit} }
+
+\end{tikzpicture}
+\end{center}
 Suppose $U_{2,4}$ were $\mathbb{F}_2$-representable. Then there is some $A = \mat_{m \times 4}(\mathbb{F}_2)$, 
 
 $$A = \begin{pmatrix}

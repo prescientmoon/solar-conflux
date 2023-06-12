@@ -8,6 +8,14 @@
 \usepackage[demo]{graphicx}
 \usepackage{subfig}
 
+% just took these from the presentation. might have some errors, idk how this stuff works
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat = newest}
+\usetikzlibrary{matrix}
+\usepackage[dvipsnames]{xcolor}
+\usetikzlibrary{perspective}
+
 
 % copypasted from 
 % https://www.dickimawbooks.com/latex/thesis/html/amsthm.html
@@ -34,6 +42,7 @@
 \newcommand{\mat}{\text{Mat}}
 \newcommand{\cl}{\mathrm{cl}}
 \newcommand{\caf}{\mathcal{F}}
+\newcommand{\rank}{\text{r}}
 
 \onehalfspacing
 
@@ -52,6 +61,8 @@
 
 \section{Definitions}
 \input{3_definitions}
+
+\input{closure}
 
 \input{one_more_equivalence_because_why_not}
 
