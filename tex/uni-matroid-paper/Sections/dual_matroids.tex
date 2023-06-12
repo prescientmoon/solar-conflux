@@ -209,6 +209,28 @@ We can now use this construction to determine the dual of a vector matroid using
 \end{theorem}
 
 \begin{proof}
+    We assume that $[I_r|D]$ is as in the contruction of the theorem above. Then $[-D^T|I_{n-r}]$ is as follows
+
+
+    Let $B$ be a basis of $M$. We need to show that $E-B$ is a basis of the vector matroid of $[-D^T|I_{n-r}]$. We can rearrege the columns of $[-D^T|I_{n-r}]$, such that $B=\{e_1,\dots,e_s, e_{r+1}, \dots , e_{r+(r-s)}$, for some $s \leq r$. This is possible becasue we know that it does not affect the corresponding matroid, so the only change it bring to rearrange rows and columns of $[I_r|D]$ is the rearrenge of columns and rows of $[-D^T|I_{n-r}]$. 
+    Using this we can partition $[I_r|D]$ in the following form
+
+    \begin{figure}
+        $$\begin{bmatrix}
+    I_{r-s} & 0 & D_11 & D_12\\
+    0 & I_s & D_21 & D_22\\
+    \end{bmatrix}
+  % 
+  \rightarrow
+  \begin{bmatrix}
+    D_11^T & D_21^T & I_{r-s} & 0\\
+    D_12^T & D_22^T & 0 & I_{n-(2r-s)}\\
+    \end{bmatrix}$$
+
+    Such that, for the original matrix $I_{r-s}$ has the column space size of $e_1 \dots e_{r-s}$. $I_s$ has $e_{r-t+1} \dots e_r$, 
+
+    
+\end{figure}
     
 \end{proof}
 
@@ -276,7 +298,8 @@ To answer that we have the following theorem
 \end{theorem}
 
 \begin{proof}
-    
+    TODO
+    Hello
 \end{proof}
 
 

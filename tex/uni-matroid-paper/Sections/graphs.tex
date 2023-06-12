@@ -1,6 +1,5 @@
 \section{Graphic matroids}
 
-TRYING TO DO GRAPHS, DONT LAUGH! (DO NOT TOUCH!)
 
 First, we do not define graphs in completely the same way as in the graph theory class. We used the definition that a graph $G$ is an ordered pair $G = (V, E)$ where $V$ is a finite set (of vertices) and $E$ is a collection of two-element subsets of $V$ (of edges). We will extend the notion of edge to include \textit{loops} and \textit{parallel edges}. For this, we will first illustrate the two notions. Intuitively a loop is an edge going from a vertex to itself, one can also have multiple loops on a single vertex.
 
@@ -148,7 +147,7 @@ The show the first property suppose we have two sets of edges of cycles such tha
 \end{proof}
 
 \begin{defn}
-    We call a matroid $M$ graphic it is isomporphic to $(E, \mathcal{I})$ where $E$ is the set of edges of some graph and the set of circuits is given by the set of all edge cycles.
+    We call a matroid $M$ graphic if it is isomporphic to $(E, \mathcal{I})$ where $E$ is the set of edges of some graph and the set of circuits is given by the set of all edge cycles.
 \end{defn}
 
 We thus know that given any graph $G$ we have natural matroid structure on its set of edges, by declaring graph cycles to be circuits. Because we know other equivalent descriptions of matroids it is natural to ask what are the independent sets or bases in the case of graphic matroids. 

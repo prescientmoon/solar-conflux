@@ -3,6 +3,8 @@
 \usepackage{amsmath, amsfonts, amssymb, amsthm}
 \usepackage{tikz}
 \usepackage{float}
+\usepackage{hyperref}
+
 
 \usetikzlibrary{graphs}
 \usepackage[demo]{graphicx}
@@ -14,18 +16,19 @@
 \pgfplotsset{compat = newest}
 \usetikzlibrary{matrix}
 \usepackage[dvipsnames]{xcolor}
-\usetikzlibrary{perspective}
+
 
 
 % copypasted from 
 % https://www.dickimawbooks.com/latex/thesis/html/amsthm.html
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
+\newtheorem{defn}{Definition}
 \newtheorem{lemma}{Lemma}
 
 \theoremstyle{definition}
-\newtheorem{defn}{Definition}
-\newtheorem{conj}{Conjecture}
+\newtheorem{exmp}{Example}[section]
+
 
 \theoremstyle{remark}
 \newtheorem*{note}{Note}
@@ -43,6 +46,7 @@
 \newcommand{\cl}{\mathrm{cl}}
 \newcommand{\caf}{\mathcal{F}}
 \newcommand{\rank}{\text{r}}
+\newcommand{\ev}{\mathrm{ev}}
 
 \onehalfspacing
 
@@ -56,11 +60,15 @@
 
 \maketitle
 
+\tableofcontents
+
 \section{Introduction}
 \input{2_introduction}
 
-\section{Definitions}
+
 \input{3_definitions}
+
+
 
 \input{closure}
 
@@ -69,7 +77,7 @@
 \input{U24}
 
 
-\input{graphs}
+
 \input{algebraic}
 
 \input{dual_matroids}

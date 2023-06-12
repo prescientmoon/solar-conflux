@@ -5,13 +5,22 @@ An interesting concept of independence arises in the study of field theory. We w
 TODO: perhaps add an example
 
 \begin{defn}
-  A subset $\{ s_1 \ldots s _n \} \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent (over $\mathbb F$) if it doesn't satisfy any nontrivial polynomial with coefficients in $\mathbb{F} $, i.e.
-  \begin{align*}
-  \forall f \in F[X _1 \ldots X _n], \neg\left( f \neq  0 \land  f(s _1 \ldots s _n) = 0\right).
-  \end{align*}
+  A subset $S = \{ s_1 \ldots s _n \} \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent (over $\mathbb F$) if there does not exist any 
+  nonzero multivariable polynomial in $n$ variables $f \in \mathbb{F}[X _1 \ldots X _n]$, with coefficients in $\mathbb{F} $, such that the evaluation homomorphism $\ev_{(s_1, s_2,\cdots,s_n)}(f) = 0.$  
+  %\begin{align*}
+  %\text{for all } f \in \mathbb{F}[X _1 \ldots X _n], \left( f \neq  0 \land  f(s _1 \ldots s _n) = 0\right).
+  %\end{align*}
 \end{defn}
+Intuitively, the definition says that if we just multiply and add the elements of $S$ and multiplying them with elements of $\mathbb{K}$ we will never get 0.
 
-Transcendental numbers are special cases of single element algebraically independent sets. Although it is well known that the complex numbers $e$ and $\pi$ are transcendental over $\mathbb{Q} $, it hasn't yet been proven that $\{e, \pi \}$ is algebraically independent.
+
+
+We know that an element $x\in \mathbb{R}$ is called transcendental with respect to $\mathbb{Q}$ if for nonzero polynomials with rational coefficients $\ev_{x}(p) \neq 0$. That means that any nontrivial polynomial evaluated at $x$ will never give 0.
+Comparing with the definition of algebraically independent sets above, we see that a singleton ${x}$ is algebraically independent by our defintion, if for any nonzero  single variable ($n = 1$) polynomial $p$ with coefficients in $\mathbb{Q}$ we will have that $\ev_{x}(p) \neq 0$. This is precisely the definition of transcendental numbers.
+
+
+
+Although it is well known that the complex numbers $e$ and $\pi$ are transcendental over $\mathbb{Q}$, it hasn't yet been proven that $\{e, \pi \}$ is algebraically independent.
 
 We will now discuss the notion of algebraic dependence.
 
@@ -19,7 +28,7 @@ We will now discuss the notion of algebraic dependence.
   Let $a \in \mathbb K / \mathbb F$ and $B = \{b _1 \ldots b _n \} \subseteq  \mathbb K / \mathbb F$. We say that $a$ is algebraically dependent on $B$ (over $ \mathbb{F} $) if $a$ is algebraic over $\mathbb F(b _1 \ldots b _n )$. Given some $A \subseteq  \mathbb K / \mathbb{F} $, we say that $A$ is algebraically dependent on $B$ (over $\mathbb{F} $) if every element of $A$ if algebraic on $B$ (over $\mathbb{F} $).
 \end{defn}
 
-Before continuing onto the next lemma, we remind the reader that a field $\mathbb K$ and a subfield $\mathbb{F}$ induce a vector space, with scalars being elements of $\mathbb{F} $ and vectors being elements of $\mathbb K$. Moreover, the vector space induced by $\mathbb{F} (a)$ over $\mathbb{F} $ when $a$ is algebraic over $\mathbb{F} $ is finite dimenssional.
+Before continuing onto the next lemma, we remind the reader that a field $\mathbb K$ and a subfield $\mathbb{F}$ induce a vector space, with scalars being elements of $\mathbb{F} $ and vectors being elements of $\mathbb K$. Moreover, the vector space induced by $\mathbb{F} (a)$ over $\mathbb{F} $ when $a$ is algebraic over $\mathbb{F} $ is finite dimensional.
 
 \begin{lemma}\label{lem:algebraic-transitivity}
   Consider $a, b \in \mathbb K / \mathbb{F} $ such that $a$ is algebraic over $\mathbb{F}(b) $ and $b$ is algebraic over $\mathbb{F}$. It then follows that $a$ is algebraic over $\mathbb{F}$.

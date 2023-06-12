@@ -1,9 +1,9 @@
 \section{Closure}
 
 
-We will introduce one more important notion, that is the one of closure operator. As the name operator suggests, it will be a map between objects of the same type. Our objects will of course be the subsets of the ground set of a matroid. The idea of the closure operator is that to any subset $X \subset E$ it adds whatever is left in $E$ that does not change the rank function when added to $X$. In doing so it will produce \textit{closed sets} which are in matroid theory called flats, which will have many desirable properties. 
+We will introduce one more important notion, the one of closure operator. As the name operator suggests, it is a map between objects of the same type. Our objects are of course the subsets of the ground set of a matroid. The idea of the closure operator is that it adds to any subset $X \subset E$ whatever is left in $E$ that does not change the rank when added to $X$. In doing so it will produce \textit{closed sets} which are in matroid theory called flats, another collection of subsets with distinctive properties. 
 
-Closure will also have desirable interpretation in the case of our prototypical examples of representable and graphic matroids. In the case of representable matroids, in will just add to $X$ all elements which are in the vector span of $X$ and contained in $E$. In the case of graphic matroids it will add to any set of edges all the possible edges that create cycles between its sets of vertices (and will not increase the spanning forrest).
+Closure will also admit desirable interpretation in the case of the prototypical examples of representable and graphic matroids. In the case of representable matroids, in will add to $X$ all elements which are in the vector span of $X$ and contained in $E$ (thus it will not increase the vector rank of $E$). In the case of graphic matroids it will add to any set of edges all edges that create cycles between its sets of vertices (thus will not increase the size of spanning forrest).
 
 \begin{defn}
     Let $M = (E, \mathcal{I})$ be a matroid. The closure operator is a function $\cl: 2^E \to 2^E$ such that
@@ -30,99 +30,103 @@ Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Th
 
 
 \begin{proof}
-    All of the four statements in the only if direction (assuming $\cl$ is the closure operator) are pretty straightforward. 
-    Thus, we first assume $\cl$ is the closure operator and would like to show the four properties.
+    All of the four statements in the only if direction (assuming $\cl$ is the closure operator) are pretty straightforward and we will prove them first. We first assume $\cl$ is the closure operator and would like to show the four properties.
 
     \begin{enumerate}
         \item If $X\subset E$ is arbitrary and we pick any element $x \in X$ then $X \cup x = X$. Consequently $r(X \cup x)= r(X)$ thus $x \in \cl(X)$ by defintion of the closure operator which shows the inclusion $X \subset \cl(X)$.
 
         \item Let $X \subset Y \subset E$
-        and $x \in \cl(X)$. This is equivalent to saying $\rank(X \cup x) = \rank(X)$. Because we would like to show that $x \in \cl(Y)$ we would thus also like to show that $\rank(Y \cup x) = \rank(Y).$ In particular, we now see we can without loss of generality assume $x \in \cl(X) - Y$ otherwise the result trivially follows. This immediatly incentivizes us to check some rank function inequalities containing the sets $X, Y - X$ and these sets containing $x.$ In particular, we see it would be quite nice if we would come to the inequality 
+        and $x \in \cl(X)$. This is equivalent to saying $\rank(X \cup x) = \rank(X)$. Because we would like to show that $x \in \cl(Y)$ we would by definition like that $\rank(Y \cup x) = \rank(Y).$ In particular, we observe that we can without loss of generality assume $x \in \cl(X) - Y$ since the result trivially follows if $x$ is already in $Y$. 
+        
+        This immediatly incentivizes us to check some rank function inequalities containing the sets $X, Y - X$ and these sets containing $x.$ In particular, it would be good if we would come to the inequality 
         $\rank(Y\cup x) \leq \rank(Y)$.
-        So our goal is to choose a smart set $A$ such that $Y \cup A = Y \cup x$ while $\rank(Y \cap A) = \rank(A)$ and we could use the semi-modular inequality of the rank function. More specifically,
+        So our goal is to choose a suitable set $A$ such that $Y \cup A = Y \cup x$ while $\rank(Y \cap A) = \rank(A)$ and we could use the semi-modular inequality of the rank function (R3). More specifically, what we would like is
 
-        $$\rank(\underbrace{Y \cup A}_{ = Y  \cup x}) + \underbrace{\rank(Y \cap A)}_{ = \rank(A)} \leq \rank(Y) + \rank(A)$$
+        $$\rank(\underbrace{Y \cup A}_{ = Y  \cup x}) + \underbrace{\rank(Y \cap A)}_{ = \rank(A)} \leq \rank(Y) + \rank(A).$$
 
-        One $A$ that does the job is $A = X \cup x.$ Then we have, since $X \subset Y$ that $Y \cup A = Y \cup X \cup x = Y \cup x$, and since we are assuming $x \in \cl(X) - Y$ we have $Y \cap (X \cup x) = X $.
+        One $A$ that does exactly this is $A = X \cup x.$ Then we have, since $X \subset Y$ that $Y \cup A = Y \cup X \cup x = Y \cup x$, and since we are assuming $x \in \cl(X) - Y$ we have $Y \cap (X \cup x) = X $.
 
         So $$\rank(Y\cup (X \cup x)) + \rank(X) \leq \rank(Y) + \rank(X \cup x)$$ and since $\rank(X \cup x) = \rank(X)$ by assumption, we have 
         $\rank(Y \cup x)\leq \rank(X)$ what we wanted to show. To conclude, the inequality $\rank(Y) \leq \rank(Y \cup x)$ follows by (R2) so we have $\rank(Y) \leq \rank(Y\cup x) \leq \rank(X)$ implying $\rank(Y \cup x ) = \rank(X)$ so by defintion $x \in \cl(Y)$.
 
-            So we have shown the inclusion $\cl(X) \subset \cl(Y)$ which was our goal.
+        So we have shown the inclusion $\cl(X) \subset \cl(Y)$ which was our goal.
 
-        \item By combining the first and the second property already proven the inclusion $\cl(X) \subset \cl(\cl(X))$  follows. We have to shown the reverse one as well, so suppose $z\in \cl(\cl(X))$. This means $\rank(\cl(X) \cup z)= \rank(\cl(X))) = \rank(X)$ where the last inequality follows by the \ref{rankextension}, namely for all $v \in \cl(X)$ we by definition have $\rank(X \cup v) = \rank(X)$ so by the \ref{rankextension} we have $\rank(\cl(X)) = \rank(X)$. But now we have, since $X \subset \cl(X)$ that $$\rank(X) \leq \rank(X \cup z) \leq \rank(\cl(X)\cup z) = \rank(X)$$
+        \item By combining the first and the second property already of closure we have already proven, the inclusion $\cl(X) \subset \cl(\cl(X))$  follows. We have to exhibit the reverse one as well, so suppose $z\in \cl(\cl(X))$. This means $\rank(\cl(X) \cup z)= \rank(\cl(X))) = \rank(X)$ where the last inequality follows by the \ref{rankextension}, namely for all $v \in \cl(X)$ we by definition have $\rank(X \cup v) = \rank(X)$ so by the \ref{rankextension} we have $\rank(\cl(X)) = \rank(X)$. But now we have, since $X \subset \cl(X)$ that $$\rank(X) \leq \rank(X \cup z) \leq \rank(\cl(X)\cup z) = \rank(X)$$
 
-       therefore the equality holds in all ineqalities above. In particular, this means that $\rank(X \cup z) = \rank(X)$ which by defintions means that $z \in \cl(X)$. So we have the inclusion $ \cl(\cl(X))\subset \cl(X)$ as well, which finally implies the desired equality of sets $\cl(\cl(X))= \cl(X).$
+       therefore the equality holds in all ineqalities above. In particular, this means that $\rank(X \cup z) = \rank(X)$ which by defintions means that $z \in \cl(X)$. So the desired inclusion $ \cl(\cl(X))\subset \cl(X)$ also holds, which finally implies the desired equality of sets $\cl(\cl(X))= \cl(X).$
 
         \item Let $X \subset E$ be arbitrary and $b \in \cl(X \cup a) - \cl(X)$. Since, $b \in \cl(X \cup a)$ we have $\rank((X\cup a)\cup b) = \rank((X\cup b) \cup a) = \rank(X \cup a)$ by definition. 
 
-        Now since $b \notin \cl(X)$ we also have by defninition that this implies $\rank(X \cup b)\neq \rank(X)$, and because $X \subset X \cup b$ we have by (R2) that $\rank(X \cup b) > \rank(X)$. In particular, since the rank function measures the size of the largest indpependent set inside of a given subset we have that $\rank(X \cup b) = \rank(X)+1.$ 
+        Now since $b \notin \cl(X)$ then by defninition $\rank(X \cup b)\neq \rank(X)$, and because $X \subset X \cup b$ we have by (R2) that $\rank(X \cup b) > \rank(X)$. In particular, since the rank function measures the size of the largest indpependent set inside of a given subset we have that $\rank(X \cup b) = \rank(X)+1.$ 
 
-        Now since $\rank(X \cup a \cup b) = \rank(X \cup a)$, and by the same reason as in the previous paragraph, since $\rank(X \cup a)$ is either $\rank(X)$ or $\rank(X) + 1$, we have it is in fact equal to $\rank(X) + 1$ since $\rank(X \cup a \cup b) \geq \rank(X \cup b)= \rank(X) + 1$.
+        Now since $\rank(X \cup a \cup b) = \rank(X \cup a)$, and by the same reason as in the previous paragraph, since $\rank(X \cup a)$ is either $\rank(X)$ or $\rank(X) + 1$, we have it is in fact equal to $\rank(X) + 1$ since $\rank(X \cup a) = \rank(X \cup a \cup b) \geq \rank(X \cup b)= \rank(X) + 1$.
 
-        So we have $r((X\cup b) \cup a) = \rank(X \cup b)$ or in other words, $a \in \cl(X \cup b)$ by definition.
+        So we have $r((X\cup b) \cup a) = \rank(X \cup b)$ or in other words, $a \in \cl(X \cup b)$ by definition, which is precisely what we wanted to show.
        
         \end{enumerate}
 
 
 
-    Now for the reverse direction, the complicated one. We assume we have a finite set $E$ and an arbitrary function function $\beta : 2^E \to 2^E$ satifying the properties of the closure operator listed above.
+    Now we prove the complicated reverse direction. We assume we have a finite set $E$ and an arbitrary function function $\beta : 2^E \to 2^E$ satifying the properties of the closure operator listed above.
 
     Unlike the proofs of the reverse implication of the cryptomorphisms in terms of bases, circuits or rank function, where we had a very straightforward way to spot where the independent sets should appear (for bases they are all of the subsets of members of $\mathcal{B}$, for circuits they are all sets which contain no members of $\mathcal{C}$ and for the rank function they are sets with the property that $\rank(X) = |X|$), this is now not the case, or is at least not immediatly appearent.
 
-    So we will not relate the function $\beta$ directly to the indepedent sets, but rather some other cryptomorphic defintion of matroids we have already proven. In particular, observe that the if $\cl(X) = E$ holds for some subset $X \subseteq E$ this means that the rank of $X$ is $r(E)$, or in other words the maximal indpendent set inside of $X$ is a \textbf{basis.}
+    So we will not relate the function $\beta$ directly to the indepedent sets, but rather some other cryptomorphic defintion of matroids we have already proven. In particular, observe that the if $\cl(X) = E$ holds for some subset $X \subseteq E$ this means that the rank of $X$ is $r(E)$, or in other words the maximal indpendent set inside of $X$ is a \textit{basis.}
 
-    So our goal is to look at the collection of all subsets such that $\beta(X)= E$ and prove that the subcollection of its \textbf{minimal sets} satisfies the axioms for the collection of bases of a matroid. Therefore we define $\mathcal{B}' = \{X \subset E\; |\; \beta(X) = E\;\}$ and call $\mathcal{B}$ the collection of minimal members of $\mathcal{B}$, for reminder, that are sets which are in $\mathcal{B}$ but do not contain any members of $\mathcal{B}$ as their proper subsets.
-
-
-
-We have to prove that $\mathcal{B}$ satisfies the basis axioms. The first one (B1) is evident since by the first property of closure operator we have the first inclsuion in $E\subset\beta(E) \subset E$ and the second follows because $\beta$ maps into $2^E$. So $E \in \mathcal{B}'$ which in particular implies that $\mathcal{B}'$ and consequently $\mathcal{B}$ are nonempty.
-
-For the second property (B2) assume $B_1, B_2$ are distinct elements of $\mathcal{B}.$ Because $\mathcal{B}$ constitutes of \textit{minimal} sets we know that if they are distinct one cannot be a subset of another. So let us pick any $x \in B_1 - B_2$.
-We observe two things, first, $\beta(B_1) = E$ and $\beta(B_1 - x) \neq E$ since $B_1$ is minimal. It is also clear that there exists $y \in B_2 - B_1$ such that $y \in E - \beta(B_1 - x)$, this is because, otherwise all of the elements of $B_2$ would be in $\beta(B_1-x)$, but then we would have that $B_2 \subset \beta(B_1 - x)$ by the second property of closure operator we would have that $E = \beta(B_2)\subset \beta(\beta(B_1 - e)) = \beta(B_1 - e) \neq E$. So by the fourth property of the closure operator we have that 
-
-$$y \in E - \beta(B_1 - x) = \beta((B_1 -x )\cup x)-\beta(B_1 - x)$$ which directly implies that $x \in \beta((B_1 - x)\cup y)$. Now we are done, because this means that 
-
-$$\beta((B_1-x)\cup y) = \beta(\beta((B_1-x )\cup y)) = \beta(\beta((B_1 - x)\cup y)\cup x) \supset \beta(B_1) = E.$$
+    So our goal is to look at the collection of all subsets such that $\beta(X)= E$ and prove that the subcollection of its \textit{minimal sets} satisfies the axioms for the collection of bases of a matroid. Therefore we define $\mathcal{B}' = \{X \subset E\; |\; \beta(X) = E\;\}$ and call $\mathcal{B}$ the collection of minimal members of $\mathcal{B}$, for reminder, that are sets which are in $\mathcal{B}$ but do not contain any members of $\mathcal{B}$ as their proper subsets.
 
 
-Thus $(B_1 - x) \cup y$ is in $\mathcal{B}'$ by definition, since its $\beta$ is $E$. We still have to show that $(B_1 - x)\cup y$ is minimal.
+\begin{enumerate}
 
-Therefore we will also prove separatly that all of the members of $\mathcal{B}$ have the same size. Let $B_{min}$ be a member of $\mathcal{B}$ with the smallest size and $B_3$ a member of $\mathcal{B}$ such that among all such possible pairs ($B_{min}$ has the smallest number of elements and $B_3$ is another member of $\mathcal{B}$ not equal to $B_{min}$) we have that $|B_{min} \cap B_3|$ is maximal. Since both elements are minimal members of $\mathcal{B}'$ they are not subsets of each other. In particular this means we can choose $x \in B_{min} - B_3$. 
+\item We have to prove that $\mathcal{B}$ satisfies the two basis axioms. The first one (B1) is evident since by the first property of closure operator we have the first inclsuion in $E\subset\beta(E) \subset E$ and the second follows because $\beta$ maps into $2^E$. So $E \in \mathcal{B}'$ which in particular implies that $\mathcal{B}'$ and consequently $\mathcal{B}$ are nonempty.
 
-We know that $\beta(B_{min}-x) \neq E$ and what is more, by the similar argument as before, there has to be $y \in B_3 - \beta(B_{min} - x)$, since otherwise $B_3 \subset \beta(B_{min} - x)$ which would mean that $E = \beta(B_3)\subset \beta(\beta(B_{min}-x)) = \beta(B_{min} - x)$ which is a contradiction. 
+\item
+    For the second property (B2) assume $B_1, B_2$ are distinct elements of $\mathcal{B}.$ Because $\mathcal{B}$ constitutes of \textit{minimal} sets we know that if they are distinct one cannot be a subset of another. So let us pick any $x \in B_1 - B_2$.
+    We observe two things, first, $\beta(B_1) = E$ and $\beta(B_1 - x) \neq E$ since $B_1$ is minimal. It is also clear that there exists $y \in B_2 - B_1$ such that $y \in E - \beta(B_1 - x)$, this is because, otherwise all of the elements of $B_2$ would be in $\beta(B_1-x)$, but then we would have that $B_2 \subset \beta(B_1 - x)$ by (CL2) we would have that $E = \beta(B_2)\subset \beta(\beta(B_1 - e)) = \beta(B_1 - e) \neq E$. So by (CL4) we have that we can exchange $x$ and $y$ in the following inclusion.
+    
+    $$y \in E - \beta(B_1 - x) = \beta((B_1 -x )\cup x)-\beta(B_1 - x)$$ which directly implies that $x \in \beta((B_1 - x)\cup y)$. Now we are done, because this means that 
+    
+    $$\beta((B_1-x)\cup y) = \beta(\beta((B_1-x )\cup y)) = \beta(\beta((B_1 - x)\cup y)\cup x) \supset \beta(B_1) = E.$$
+    
+    
+    Thus $(B_1 - x) \cup y$ is in $\mathcal{B}'$ by definition, since its $\beta$ is $E$. We still have to show that $(B_1 - x)\cup y$ is minimal.
+    
+    Therefore we will prove separatly that all of the members of $\mathcal{B}$ have the same size. Let $B_{min}$ be a member of $\mathcal{B}$ with the smallest size and $B_3$ a member of $\mathcal{B}$ such that among all such possible pairs ($B_{min}$ has the smallest number of elements and $B_3$ is another member of $\mathcal{B}$ not equal to $B_{min}$) we have that $|B_{min} \cap B_3|$ is maximal. Since both elements are minimal members of $\mathcal{B}'$ they are not subsets of each other. In particular this means we can choose $x \in B_{min} - B_3$. 
+    
+    We know that $\beta(B_{min}-x) \neq E$ and what is more, by the similar argument as before, there has to be $y \in B_3 - \beta(B_{min} - x)$, since otherwise $B_3 \subset \beta(B_{min} - x)$ which would mean that $E = \beta(B_3)\subset \beta(\beta(B_{min}-x)) = \beta(B_{min} - x)$ which is a contradiction. 
+    
+    So we have that $y \in \beta((B_{min}-x)\cup x) - \beta(B_{min} -x)$ and (CL4) we thus have $x \in \beta((B_{min}-x)\cup y)$ - we exchange $x$ and $y$. 
+    
+    However, we see two things. First
+    $$\beta((B_{min} - x) \cup y) \supset \beta(B_{min}) = E$$ so $(B_{min} - x) \cup y \in \mathcal{B}'$ and $|B_{min}|  = |(B_{min} - x)\cup y|$ so $(B_{min} - x)\cup y$ is a member of $\mathcal{B}'$ with the smallest possible number of elements. 
+    
+    Second we see that $|((B_{min}-x)\cup y) \cup B_3| = |B_{min}\cup B_3|+1$ which contradicts the maximality of pair $(B_{min} ,B_3)$. 
+    
+    So all the elements of $\mathcal{B}$ have the same size, which in  particular implies that $(B_1 - x) \cup y \in \mathcal{B}$ since its $\beta$  is $E$ what we wanted to show.
+    
 
-So we have that $y \in \beta((B_{min}-x)\cup x) - \beta(B_{min} -x)$ and by the fourth property of the closure operator we thus have $x \in \beta((B_{min}-x)\cup y)$. 
-
-However, we see two things. First
-$$\beta((B_{min} - x) \cup y) \supset \beta(B_{min}) = E$$ so $(B_{min} - x) \cup y \in \mathcal{B}'$ and obviously $|B_{min}|  = |(B_{min} - x)\cup y|$ so $(B_{min} - x)\cup y$ is a member of $\mathcal{B}'$ with the smallest possible numbe of elements. 
-
-Second we see that $|((B_{min}-x)\cup y) \cup B_3| = |B_{min}\cup B_3|+1$ which contradicts the maximality of pair $(B_{min} ,B_3)$. 
-
-So all the elements of $\mathcal{B}$ have the same size, which in  particular implies that $(B_1 - x) \cup y \in \mathcal{B}$ since its $\beta$  is $E$ what we wanted to show.
+\end{enumerate}
 
 
-
-
-The last thing to check is if $\beta$ is in fact the closure operator for the matroid with the basis set $\mathcal{B}.$ First we introduce some notation, let $M = (E, \mathcal{I})$ be the matroid we are interested in, that is the one with the basis set $\mathcal{B}$ and we denote its rank function by $\rank'$ and its closure operator by $\cl'$. Our goal is to show that for all subsets $X$ we have that $\cl'(X) = \beta(X)$, i.e. the operators coincide.
+The last thing to check is if $\beta$ is, in fact, the closure operator for the matroid with the basis set $\mathcal{B}.$ We first introduce some notation, let $M = (E, \mathcal{I})$ be the matroid we are interested in, meaning the one with the basis set $\mathcal{B}$ and we denote its rank function by $\rank'$ and its closure operator by $\cl'$. Our goal is to show that for all subsets $X$ we have that $\cl'(X) = \beta(X)$, i.e. the operators coincide.
 
 We know that $\beta$ and $\cl'$ already do coincide on some sets, precisely the ones that contain a basis, for such $X$ we have $\beta(X) = \cl'(X) = E.$
 
-Second thing to note is that $\beta$ preserves rank, i.e., we always have $\rank'(\beta(X)) = \rank'(X)$ for all $X\subset E$. We will prove this by contradiction, let $\rank'(M) = n$. Suppose there is some subset $X$ with $k  = \rank'(X)<\rank'(\beta(X)) = l$ (it has to be less than because $X \subset \beta(X)$). Then the largest indepenent set $L$ of $\beta(X)$ has the size $l$. We know $L$ is some basis of $B$, i.e. $L \subset B$. Let us observe the set $X \cup (B-L)$.  Its largest independent set has the size at most $k + (n-l)<n$, because the largest independent set of $X$ has size $k$ and we added $|B-L| = n - l$ elements to it, so we increase it by at most $n-l$. The point is that because $k<l$ we have $k + (n-l)<n$, which in particular means that there is no basis in $X \cup (B-L)$ and that its rank is less than $n.$
+Second thing to note is that $\beta$ preserves rank, i.e., we always have $\rank'(\beta(X)) = \rank'(X)$ for all $X\subset E$. We will prove this by contradiction, let $\rank'(M) = n$. Suppose there is some subset $X$ with $k  = \rank'(X)<\rank'(\beta(X)) = l$ (applying $\beta$ to $X$ has to increase the rank because $X \subset \beta(X)$). Then the largest indepenent set $L$ of $\beta(X)$ has the size $l$. We know $L$ is in some basis $B$ of $\mathcal{B}$, i.e. $L \subset B$. Let us observe the set $X \cup (B-L)$.  Its largest independent set has the size at most $k + (n-l)<n$, because the largest independent set of $X$ has size $k$ and we added $|B-L| = n - l$ elements to it, so we increase it by at most $n-l$. The point is that because $k<l$ we have $k + (n-l)<n$, which in particular means that \textit{there is no basis} in $X \cup (B-L)$ and that its rank is less than $n.$
 
 
 But on the other hand, we have
 
-$L \subset \beta(X) \subset \beta(X \cup (B-L))$ and $B-L \subset \beta(X \cup (B-L))$ which in particular means that $B \subset \beta(X \cup (B-L)$. Finally, this would mean that  
+$$L \subset \beta(X) \subset \beta(X \cup (B-L))$$ and $$B-L \subset \beta(X \cup (B-L))$$ which in particular means that $B \subset \beta(X \cup (B-L)$. Finally, this would mean that  
 $E = \beta(B)\subset \beta(\beta(X \cup (B-L))) = \beta(X \cup (B-L))$ which would imply, by definition of $\mathcal{B}$ that $X \cup (B-L)
-\in \mathcal{B}$ - which ultimately means it contains a basis of our matroid. But we have already established this is not the case so we have come upon a contradiciton. Therefore $\beta$ preserves rank.
+\in \mathcal{B}$ - which ultimately means it \textit{contains a basis} of our matroid. But we have already established this is not the case so we have come upon a contradiciton. Therefore $\beta$ preserves rank.
 The fact that $\beta$ preserves rank and looking at the definition of the closure operator, namely that it puts in all of the elements which preserve rank we have thus obtained the inclusion $\beta(X) \subset \cl'(X)$ for all subsets $X.$
 
-Finally, suppose for contradiction that for some $X$ the latter inclusion $\beta(X) \subset \cl'(X)$ is proper and additionally assume that $X$ is a maximal set with this properties (at some point this will have to stop since for $X =E$ the equality holds.) First, we pick $x \in E - \cl'(X)$ such that $\cl'(X\cup x) - \cl'(X)$ is nonempty (there exists such an $x$ because $X$ does not contain a basis, otherwise, the equality $\beta(X) = \cl'(X) = E$ would hold).
-Because of the maximality of $X$ we thus know tha $\beta(X\cup x) = \cl'(X \cup x)$ holds. Also since the inclusion $\beta(X) \subset \cl'(X)$ is proper, we can pick $r \in \cl'(X) - \beta(X)$. In particular, we then have that $r \in \beta(X\cup x) - \beta(X)$ so by the fourth property of $\beta$ we have $x \in \beta(X\cup r)$.
+Finally, suppose for contradiction that for some $X$ the latter inclusion $\beta(X) \subset \cl'(X)$ is proper and additionally assume that $X$ is a maximal set with this properties (at some point this will have to stop since for $X =E$ the equality $\beta(E) = \cl'(E) = E$ holds.) First, we pick $x \in E - \cl'(X)$ such that $\cl'(X\cup x) - \cl'(X)$ is nonempty (there exists such an $x$ because $X$ does not contain a basis, otherwise, the equality $\beta(X) = \cl'(X) = E$ would hold).
+Because of the maximality of $X$ we hence know that $\beta(X\cup x) = \cl'(X \cup x)$ holds. Also since the inclusion $\beta(X) \subset \cl'(X)$ is proper, we can pick $r \in \cl'(X) - \beta(X)$. In particular, we then have that $r \in \beta(X\cup x) - \beta(X)$ so by (CL4) we have $x \in \beta(X\cup r)$.
 
 However, this means that $X \cup x \subset \beta(X\cup r)$ and since $X\cup r \subset \cl'(X)$ we have that $\rank'(X\cup r) = 
-\rank'(X)$. But on the other hand $$\rank'(X) + 1= \rank(X\cup x) = \rank(\beta(X\cup x))\leq \rank(\beta(\beta(X\cup r))) = \rank(\beta(X\cup r)) = \rank'(X\cup r) = \rank'(X)$$
+\rank'(X)$. But on the other hand $$\rank'(X) + 1= \rank'(X\cup x) = \rank'(\beta(X\cup x))\leq \rank'(\beta(\beta(X\cup r))) = \rank'(\beta(X\cup r)) = \rank'(X\cup r) = \rank'(X)$$
 
 which is a contradiction. So our initial assumption that the inclusion $\beta(X) \subset \cl'(X)$ is proper for some $X$ was false, which implies that $\beta(X) = \cl'(X)$ for all $X$ and we are done.
 
@@ -132,5 +136,9 @@ which is a contradiction. So our initial assumption that the inclusion $\beta(X)
 \end{proof}
 
 
+With the definition of closure operator we can three more important family of subsets of a matroid.
 
+\begin{defn}
+    Let $M = (E, \mathcal{I})$ be a matroid with the rank function $\rank$ closure operator $\cl.$ We call a subset $X \subset E$ a flat if $\cl(X) = X$ holds. We call a subset $H \subset E$ a hyperplane if $H$ is a rank with $\rank(H) = \rank(E)-1$. Finally, we call a subset $S \subset E$ a spanning set if $\cl(S) = E$.
+\end{defn}
 
