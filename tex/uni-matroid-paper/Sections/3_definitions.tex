@@ -51,7 +51,7 @@ Below you find a representation of a matroid by writing all subsets of the groun
 \foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
 \draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
 
-\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{cyan}{Dependent set}}
+\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{cyan}{Dependent set}};
 
 \end{tikzpicture} % why does it say this??? Did you forget a semicolon?
 \end{center}
@@ -201,7 +201,7 @@ Here below, you find a depiction of the matroid we have seen in chapter 2.1. Thi
 \foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
 \draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
 
-\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Bases} \textcolor{cyan}{Dependent set}}
+\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Bases} \textcolor{cyan}{Dependent set}};
 
 \end{tikzpicture}
 \end{center}
@@ -281,7 +281,7 @@ So, we can characterize the concept of a matroid in the following way:
 
 Again, we will use the same matroid example as before, this time adding circuits to the drawing (in blue). As you can see, the circuits are minimal dependent sets where everything above it is a dependent set. Also note how all independent sets do not contain any circuit.
 
-\
+\begin{center}
 \begin{tikzpicture}
 
 \matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
@@ -302,7 +302,7 @@ Again, we will use the same matroid example as before, this time adding circuits
 \foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
 \draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
 
-\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}}
+\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}};
 
 \end{tikzpicture}
 \end{center}
@@ -495,7 +495,7 @@ Below, we again find our example matroid drawing. This time, instead of using a 
 \foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
 \draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
 
-\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}, $\text{Set}_{\rank(\text{Set})}$ }
+\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}, $\text{Set}_{\rank(\text{Set})}$ };
 
 \end{tikzpicture}
 \end{center}
@@ -576,7 +576,7 @@ Finally, we can prove Theorem 5:
 \end{proof}
 
 \begin{exmp}
-    \input{Sections/U24}
+    \input{U24}
 \end{exmp}
 
 
