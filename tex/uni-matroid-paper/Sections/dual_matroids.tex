@@ -1,9 +1,11 @@
 \section{Dual Matroids}
-The concept of \textit{duality} is another of the most notable parts in Matroid Theory. Since it helps to extend some of the concepts previously defined, such as the notion of orthogonality in vector spaces and the concept of a planar dual of a plane graph. So in this section we will introduce the definitions and  properties of dual matroids.
+The concept of \textit{duality} is an interesting feature of matroid theory. It helps to extend some of the constructions in our prototypical examples in representable and graphic matroids, such as the notion of orthogonality in vector spaces and the concept of a planar dual of a plane graph, to general matroids. In this section we will introduce the definitions and  properties of dual matroids.
 
-Before starting with the formal definitions, and the existing porperties and theorems is important that we state the most importan concept of this chapter, that is, similar to the chapter name, the concept of a $dual$, or more precisely, the $dual of a matroid$.\\
+%Before starting with the formal definitions, porperties and theorems is important that we state the most important concept of this chapter, that is, similar to the chapter name, the concept of a \textit{dual}, or more precisely, the \textit{dual of a matroid}.\\
 
-If we Matroid M, with sets $(E,B)$, or in other words M is a matroid on E with B as its collection of bases. Then its dual will refer to a different and new matroid, with notation M*. This new matroid has the property that it is "related" to the original matroid, so it has the same ground set E of the original matroid M, but a different basis set, this new basis set will be defined as B*, so this gives us that M* will be defined by the following pair of sets (E,B*). Where B* will a set such that is is the complement of the bases set B in M, which implies that, the bases set of M and M* will be always disjoint.
+% I DONT THING THE ABOVE PARAGRAPH ADDS ANY CONTENT
+
+If we have a matroid $M$, with sets $(E,B)$, or in other words $M$ is a matroid on $E$ with $B$ as its collection of bases. Then its dual will refer to a different and new matroid, which we denote by $M*$. This new matroid has the property that it is "related" to the original matroid, so it has the same ground set $E$ of the original matroid $M$, but a different basis set, this new basis collection will be called $B*$, so this gives us that $M*$ will be defined by the following pair of sets $(E,B*)$. Where $B^*$ will a set such that is is the complement of the bases set $B$ in $M$, which implies that, the bases set of $M$ and $M^*$ will be always disjoint.
 
 This can be seen more clearly in the following digram:
 \begin{figure}[H]
@@ -16,7 +18,7 @@ This can be seen more clearly in the following digram:
         \endscope
         \draw (0,0) circle (1) node [text=black,above] {$B$};
 \end{tikzpicture}
-\caption{Venn diagram showing, B thebasus set of M, and B* the basis set of M*}%
+\caption{Venn diagram showing, B the basis set of $M$, and $B^*$ the basis set of $M^*$}%
 \label{graphic}%
 \end{figure}
 
@@ -76,12 +78,12 @@ Notice how the ground set will be composed of 4 components $E=\{1,2,3,4\}$, and 
 
 
 
-As we know form previous chapters the basis set of a matroid is obtained from its set of independet sets $I$, which is at the same time obtained of its ground set $E$.
+We know that the basis set of a matroid is obtained from its set of independet sets $I$.
 Using this diagrams we highligth an idea that will be useful later in this chapter.
 This is, that the basis set of a matroid is given by a subset of $E$, the remaing elements in $E$ that are not in de basis if added to the basis will be linearly dependent, but also we can take any remaining element of $E$ and exchange it with an element in the basis and we will have another basis for $E$. With this intuition in mind, we can continue with a theorem.
 
 
-To formalize the definition of B* we have the following:
+To formalize the definition of $B^*$ we have the following:
 \begin{theorem}
     Let $M$ be a matroid given by $(E,B)$, and B*$(M)$ be $\{E(M) - B:B\in B(M)\}$. Then B*$(M)$ is the set of bases of a matroid on $E(M)$
 \end{theorem}
@@ -156,7 +158,7 @@ $Proposition:$ Let M be a matroid in a set E and suppose $X \subseteq E$. Then,
     d) Same as things before.
 \end{proof}\\
 
-Similar to the case with the bases and cobases, The ranK function of the dual matroid is usually denoted by $r^*$, and is normally referred as the $corank$ $function$ of $M$. Using the definition of bases of the dual matroid, this is, that is build with the complement bases of the set of the orginal matroid, as well as the fact that matroid and its dual are both on the same ground set, we have the following:
+Similar to the case with the bases and cobases, the rank function of the dual matroid is usually denoted by $r^*$, and is normally referred as the $corank$ $function$ of $M$. Using the definition of bases of the dual matroid, this is, that is build with the complement bases of the set of the orginal matroid, as well as the fact that matroid and its dual are both on the same ground set, we have the following:
 
 \begin{itemize}
     \item $r(M) + r$*$(M) = |E(M)|=|E(M^*)|$
@@ -212,25 +214,37 @@ We can now use this construction to determine the dual of a vector matroid using
     We assume that $[I_r|D]$ is as in the contruction of the theorem above. Then $[-D^T|I_{n-r}]$ is as follows
 
 
-    Let $B$ be a basis of $M$. We need to show that $E-B$ is a basis of the vector matroid of $[-D^T|I_{n-r}]$. We can rearrege the columns of $[-D^T|I_{n-r}]$, such that $B=\{e_1,\dots,e_s, e_{r+1}, \dots , e_{r+(r-s)}$, for some $s \leq r$. This is possible becasue we know that it does not affect the corresponding matroid, so the only change it bring to rearrange rows and columns of $[I_r|D]$ is the rearrenge of columns and rows of $[-D^T|I_{n-r}]$. 
+    Let $B$ be a basis of $M$. We need to show that $E-B$ is a basis of the vector matroid of $[-D^T|I_{n-r}]$. We can rearrege the columns of $[-D^T|I_{n-r}]$, such that $B=\{e_1,\dots,e_s, e_{r+1}, \dots , e_{r+(r-s)}$, for some $s \leq r$. This is possible becasue we know that it does not affect the corresponding matroid, so the only change it bring to rearrange rows and columns of $[I_r|D]$ is the re-arrenge of columns and rows of $[-D^T|I_{n-r}]$. 
+    
     Using this we can partition $[I_r|D]$ in the following form
-
-    \begin{figure}
+    \begin{figure}[H]
     $$\begin{bmatrix}
-    I_s & 0 & D_11 & D_12\\
+    I_s & 0 & D_{11} & D_{12\\
     0 & I_{r-s} & D_21 & D_22\\
     \end{bmatrix}
     % 
     \rightarrow
     \begin{bmatrix}
-    D_11^T & D_21^T & I_{r-s} & 0\\
-    D_12^T & D_22^T & 0 & I_{n-(2r-s)}\\
+    -D_{11}^T & -D_{21}^T & I_{r-s} & 0\\
+    -D_{12}^T & -D_{22}^T & 0 & I_{n-(2r-s)}\\
     \end{bmatrix}$$
+    \end{figure}
     First, lets analyse the partition of $[I_r|D]$.
-    We have that $B$ is a base, this means that it must have the same size as $I_r$. Due to the way the matrix $[I_r|D]$ is partitioned, that is, due to the fact that each component of this partition in the same level must have the same number of rows, this imples 
+    Here me made the partition such that the first component $I_s$ has columns from $(e_1 \dots e_s)$. $I_{r-s}$ has columns from $(e_{s+1} \dots e_r)$, $D_11$ and $D_21$ have from $(e_{r+1} \dots e_{2r-s})$, and finally $D_12$ and $D_22$ have from $(e_{(2r-s)+1} \dots e_n)$.
     
-\end{figure}
+    We have that $B$ is a base, this means that it must have the same size as $I_r$. Due to the way the matrix $[I_r|D]$ is partitioned, that is, if the we take the components in the partirion that contain the columns of the basis we have the following matrix:
+    \begin{figure}[H]
+        \centering
+        $$\begin{bmatrix}
+        I_s & D_{11}\\
+        0 & D_{21}\\
+        \end{bmatrix}$$
+    \end{figure}
+    As this matrix has the components that contain all the elements in the basis implies that it must have $rank = r$ (the rank of $[I_r|D]$), but here $I_s$ has $rank = s$, as it is the identity matrix. Hence, the the rank of $D_11$ is $r-s$, which also corresponds to the rank of $D_21^T$.
     
+    If we now observe the partition of $[-D^T|I_{n-r}]$, this will gave the same partition lengths in each component as the ones mentioned for $[I_r|D]$ above. 
+    
+    in the rigth side, we notice that following a similar reasoning this will have a rank of $n-(2r-s)$    
 \end{proof}
 
 By convention the form $[−D^T |I_{n−r}]$ instead of $[D^T |I_{n−r}]$. However it is important to remark that this does not bring any problem, because, as we previusly stated, the use of \textit{elementary row operations} does not affect the matroid of a matrix. 
