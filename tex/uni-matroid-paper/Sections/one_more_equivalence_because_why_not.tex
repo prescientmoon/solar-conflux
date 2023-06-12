@@ -16,6 +16,31 @@ $\caf$
         
 \end{theorem}
 
+As an example, we can once again return to our depiction from earlier. This time, we write flats in cursive and with a line below it. As one can see, every superset of a flat has a larger rank. One can see here that the ground set is indeed a flat, and the intersection of for example \textit{134} and \textit{24} is indeed another flat, \textit{4}. In this picture, only dependent sets are flats. However, if all supersets one larger than a certain independent set are also independent, then that independent set is a flat. We unfortunately do not have such a situation in this matroid. 
+
+\begin{center}
+\begin{tikzpicture}
+
+\matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
+ & & & \textcolor{cyan}{\underline{\textit{1234}}}_2 & & & &\\
+ \textcolor{cyan}{
+123}_2& &\textcolor{cyan}{
+124}_2 & &\textcolor{cyan}{\underline{\textit{134}}}_1 &  & \textcolor{cyan}{
+234}_2  \\
+\textcolor{red}{12}_2 & \textcolor{blue}{13}_1 & \textcolor{cyan}{14}_1 & & \textcolor{red}{23}_2 & \textcolor{cyan}{\underline{\textit{24}}}_1 & \textcolor{cyan}{
+34}_1 \\
+\textcolor{orange}{1}_1& &\textcolor{orange}{2}_1 & & \textcolor{orange}{3}_1& & \textcolor{blue}{\underline{\textit{4}}}_0 \\
+& & & \textcolor{orange}{\emptyset}_0 &  & & \\
+&&&&&& \\};
+
+\foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
+\draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
+
+\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}, $\text{Set}_{\rank(\text{Set})}$, \underline{\textit{Flat}} }
+
+\end{tikzpicture}
+\end{center}
+
 \begin{proof}
 Before we begin the proof, we have two notable observations. First, we see that the characterization of our collection $\caf$ follows a similar pattern as characterization of other encountered collections such as $\mathcal{I}$ or $\mathcal{C}$. Specifically, we mean that we have two initializing properties, for example, the collection is non-empty, has $\emptyset$ or $E$, is downard closed, closed under intersections, inclusions... Followed by the third property which really tells us something non-trivial about how the sets of the collection interect with each other. 
 Second, as with the previous proofs, we will see that it is not hard to prove the only if direction, i.e. knowing we have a collection of flats and proceeding further. However, we will require some clever ideas to prove the reverse direction.
@@ -43,7 +68,7 @@ So first suppose $\caf$ is a collection of flats and our goal is to prove that t
 
     Suppose we are given a finite set $E$ and collection $\caf$ of its subsets satisfying properies 1., 2. and 3. Then let us define a \textit{function} $f: 2^E \to \caf$ by the rule that for any $X$, we have $f(X)$ is the minimal member of $\caf$ containing $X$. Its clear what is our aim, namely to show that this is in fact a closure operator, then we will do two things at once - $E$ will be a matroid with a closure operator $f$ and the elements of $\caf$ will be precisely the flats.
 
-    First we have to check $f$ is well-defined. By the first property of $\caf$ we have that $E \in \caf$ and because for any subset $X \subset E$ we have $X \subset E$ we have that for every subset $X$ there \textit{exists} some element of $\caf$ such that $X$ is a subset of it (in the worst case it is $E$). Now, the minimal such subset has to be unique, since if $F_1, F_2$ have the same property that they are minimal members of $\caf$ including $X$ then by definition $F_1 \subset F_2$ and $F_2 \subset F_1$ hold so $F_1 = F_2.$
+    First we have to check $f$ is well-defined. By the first property of $\caf$ we have that $E \in \caf$ and because for any subset $X \subset E$ we have $X \subset E$ we have that for every subset $X$ there \textit{exists} some element of $\caf$ such that $X$ is a subset of it (in the worst case it is $E$). Now, the minimal such subset has to be unique, since if $F_1, F_2$ have the same property that they are minimal members of $\caf$ including $X$ then by the second property of $\caf$ we have that $F_1 \cap F_2 \in \caf$ and so $X \subset F_1\cap F_2$, so if they are not the same we are contradicting minimality of them. $ F_1 \subset F_2$ and $F_2 \subset F_1$ hold so $F_1 = F_2.$
 
     Now we check the closure axioms.
 
@@ -52,17 +77,17 @@ So first suppose $\caf$ is a collection of flats and our goal is to prove that t
     
     \item If $X \subset Y \subset E$ then $f(X)$ is the minimal member of $\caf$ containing $X$. Because $f(Y)$ is a minimal member of $\caf$ which contains $Y$ it thus also contains $X$ so by minimality of $f(X)$ we have $f(X)\subset f(Y)$ as desired.
 
-    \item If $X \subset E$ is arbitrary then we have that $f(f(X))$ is the minimal member of $\caf$ containing $f(X)$, but $f(X)$ is by defintion itself in $\caf$ and it contains $f(X)$. So we have that $f(X) \subset f(f(X)) \subset$ implying $f(f(X)) = f(X).$
+    \item If $X \subset E$ is arbitrary then we have that $f(f(X))$ is the minimal member of $\caf$ containing $f(X)$, but $f(X)$ is by defintion itself in $\caf$ and it contains $f(X)$. So we have that $f(X) \subset f(f(X)) \subset f(X)$ implying $f(f(X)) = f(X).$
 
     \item Up to this point we have not yet used the second and the third property of $\caf$ so we better require them now.
 
      Suppose $X \subset E$, $x \in E$ and $y \in f(X \cup x) - f(X)$. In particular, this means that $y \notin X$.
-   Our goal is to show $x \in f(X \cup y)$. Let us call $f(X) = F_1$, $f(X \cup x) = F_2$ and $f(X \cup y) = F_3$ to remind us that output of $f$ is always a member of $\caf$. By the second property of "closure operator" we have already proved, we have $F_1 \subset F_2$ and $F_1 \subset F_3$. Not just that, $F_2$ and $F_3$ are in fact one of the minimal elemetns of $\caf$ properly containing $F_1$.
+   Our goal is to show $x \in f(X \cup y)$. Let us call $f(X) = F_1$, $f(X \cup x) = F_2$ and $f(X \cup y) = F_3$ to remind us that output of $f$ is always a member of $\caf$. By the second property of "closure operator" we have already proved, we have $F_1 \subset F_2$ and $F_1 \subset F_3$. Not just that, $F_2$ and $F_3$ are in fact one of the minimal elements of $\caf$ properly containing $F_1$.
 
-     We know this, because by the third property of $\caf$, all of the minimal elements of $\caf$ containing $F_1$ \textit{partition} $E-F$, so in particular, there is some $F_2' \in \caf$ which contains $X\cup x$ and contains $X$ minimaly and some $F_3' \in \caf$ which contains $X \cup y$ and contains $X$ minimally. But $f(X \cup x)$ is an element of $\caf$ which contains $X \cup x$ minimally. It is now clear that $F_2= F_2'$ and $F_3 = F_3'$ because if $F_i'$ is a member of $\caf$ containing $X \cup x$ or $y$ then $f(X\cup x) \subset F_2'$ by definition.
+     We know this, because by the third property of $\caf$, all of the minimal elements of $\caf$ containing $F_1$ \textit{partition} $E-F_1$, so in particular, there is some $F_2' \in \caf$ which contains $X\cup x$ and contains $X$ minimaly and some $F_3' \in \caf$ which contains $X \cup y$ and contains $X$ minimally. So from $X \cup x \subset F_2' \in \caf$ we directly infer $F_2 \subset F_2'$ because $f(X \cup x)$ is an element of $\caf$ which contains $X \cup x$ minimally. It is now clear that $F_2= F_2'$ and $F_3 = F_3'$.
 
 
-     We are almost done. By the third property of $\caf$ and because $F_2$ and $F_3$ are members of $\caf$ properly containing $X$ we have that $(F_2-F_1)\cap (F_3 - F_1)$ is either empty or $F_2 = F_3$. It cannot be empty because, $y \in F_3 - F_1$ by definition and $y \in f(X\cup x)-f(X) = F_2 - F_1$ by assumption. So $F_2 = F_3$ which implies that $x \in F_3 = f(X \cup y).$ This shows the last closure axiom, and in particular, we know that we have a matroid with ground set $E$ and closure operator $f.$
+     We are almost done. By the third property of $\caf$, because $F_2$ and $F_3$ are minimal members of $\caf$ properly containing $X$ we have that $(F_2-F_1)\cap (F_3 - F_1)$ is either empty or $F_2 = F_3$. It cannot be empty because, $y \in F_3 - F_1$ by definition and $y \in f(X\cup x)-f(X) = F_2 - F_1$ by assumption. So $F_2 = F_3$ which implies that $x \in F_3 = f(X \cup y).$ This shows the last closure axiom, and in particular, we know that we have a matroid with ground set $E$ and closure operator $f.$
 
 
      Finally, it is clear by defnition that the collection of all subsets of $X$ such that $f(X) = X$ is precisely $\caf$, so $\caf$ is our collection of flats for this matroid.
