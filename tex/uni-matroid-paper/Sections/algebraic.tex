@@ -2,14 +2,12 @@
 
 An interesting concept of independence arises in the study of field theory. We will present an interesting class of matroids derived from the concept of algebraic independence. For the rest of this section we will use the notation $\mathbb K / \mathbb F$ to refer to some field $\mathbb K$ and a subfield $\mathbb F$.
 
-TODO: perhaps add an example
-
 \begin{defn}
-  A subset $S = \{ s_1 \ldots s _n \} \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent (over $\mathbb F$) if there does not exist any 
-  nonzero multivariable polynomial in $n$ variables $f \in \mathbb{F}[X _1 \ldots X _n]$, with coefficients in $\mathbb{F} $, such that the evaluation homomorphism $\ev_{(s_1, s_2,\cdots,s_n)}(f) = 0.$  
-  %\begin{align*}
-  %\text{for all } f \in \mathbb{F}[X _1 \ldots X _n], \left( f \neq  0 \land  f(s _1 \ldots s _n) = 0\right).
-  %\end{align*}
+	A subset $S = \{ s_1 \ldots s _n \} \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent (over $\mathbb F$) if there does not exist any
+	nonzero multivariable polynomial in $n$ variables $f \in \mathbb{F}[X _1 \ldots X _n]$, with coefficients in $\mathbb{F} $, such that the evaluation homomorphism $\ev_{(s_1, s_2,\cdots,s_n)}(f) = 0.$
+	%\begin{align*}
+	%\text{for all } f \in \mathbb{F}[X _1 \ldots X _n], \left( f \neq  0 \land  f(s _1 \ldots s _n) = 0\right).
+	%\end{align*}
 \end{defn}
 Intuitively, the definition says that if we just multiply and add the elements of $S$ and multiplying them with elements of $\mathbb{K}$ we will never get 0.
 
@@ -25,93 +23,94 @@ Although it is well known that the complex numbers $e$ and $\pi$ are transcenden
 We will now discuss the notion of algebraic dependence.
 
 \begin{defn}
-  Let $a \in \mathbb K / \mathbb F$ and $B = \{b _1 \ldots b _n \} \subseteq  \mathbb K / \mathbb F$. We say that $a$ is algebraically dependent on $B$ (over $ \mathbb{F} $) if $a$ is algebraic over $\mathbb F(b _1 \ldots b _n )$. Given some $A \subseteq  \mathbb K / \mathbb{F} $, we say that $A$ is algebraically dependent on $B$ (over $\mathbb{F} $) if every element of $A$ if algebraic on $B$ (over $\mathbb{F} $).
+	Let $a \in \mathbb K / \mathbb F$ and $B = \{b _1 \ldots b _n \} \subseteq  \mathbb K / \mathbb F$. We say that $a$ is algebraically dependent on $B$ (over $ \mathbb{F} $) if $a$ is algebraic over $\mathbb F(b _1 \ldots b _n )$. Given some $A \subseteq  \mathbb K / \mathbb{F} $, we say that $A$ is algebraically dependent on $B$ (over $\mathbb{F} $) if every element of $A$ if algebraic on $B$ (over $\mathbb{F} $).
 \end{defn}
 
 Before continuing onto the next lemma, we remind the reader that a field $\mathbb K$ and a subfield $\mathbb{F}$ induce a vector space, with scalars being elements of $\mathbb{F} $ and vectors being elements of $\mathbb K$. Moreover, the vector space induced by $\mathbb{F} (a)$ over $\mathbb{F} $ when $a$ is algebraic over $\mathbb{F} $ is finite dimensional.
 
 \begin{lemma}\label{lem:algebraic-transitivity}
-  Consider $a, b \in \mathbb K / \mathbb{F} $ such that $a$ is algebraic over $\mathbb{F}(b) $ and $b$ is algebraic over $\mathbb{F}$. It then follows that $a$ is algebraic over $\mathbb{F}$.
+	Consider $a, b \in \mathbb K / \mathbb{F} $ such that $a$ is algebraic over $\mathbb{F}(b) $ and $b$ is algebraic over $\mathbb{F}$. It then follows that $a$ is algebraic over $\mathbb{F}$.
 \end{lemma}
 
 \begin{proof}
-  The vector spaces induced by $\mathbb{F} (b)$ and $\mathbb{F} (b)(a)$ must both be finite dimenssional over $\mathbb{F} $ and $\mathbb{F} (b)$ respectively (because $b$ is algebraic over $\mathbb{F} $ and $a$ is algebraic over $\mathbb{F} (b)$ respectively). It follows that $\mathbb{F} (b)(a)$ is finitely dimenssional over $\mathbb{F}$ (this can easly be seen by noticing that given a basis $a _i $ for $\mathbb{F} (b)(a)$ over $\mathbb{F} (b)$ and a basis $b _i $ for $\mathbb{F} (b)$ over $\mathbb{F} $, we can form a basis $a _i b _j $ for $\mathbb{F} (b)(a)$ over $\mathbb{F} $). 
+	The vector spaces induced by $\mathbb{F} (b)$ and $\mathbb{F} (b)(a)$ must both be finite dimenssional over $\mathbb{F} $ and $\mathbb{F} (b)$ respectively (because $b$ is algebraic over $\mathbb{F} $ and $a$ is algebraic over $\mathbb{F} (b)$ respectively). It follows that $\mathbb{F} (b)(a)$ is finitely dimenssional over $\mathbb{F}$ (this can easly be seen by noticing that given a basis $a _i $ for $\mathbb{F} (b)(a)$ over $\mathbb{F} (b)$ and a basis $b _i $ for $\mathbb{F} (b)$ over $\mathbb{F} $, we can form a basis $a _i b _j $ for $\mathbb{F} (b)(a)$ over $\mathbb{F} $).
 
-  Let $n$ be the dimenssion of $\mathbb{F} (b)(a)$ over $\mathbb{F} $. Let $S = \{a ^0 \ldots a ^n \}$. Because $|S| = n + 1$, $S$ cannot be linearly independent (in the vector space induced by $\mathbb{F} (b)(a)$ over $\mathbb{F} $), which means a polynomial $f \in \mathbb{F} [x]$ exists such that $f(a) = 0$.
+	Let $n$ be the dimenssion of $\mathbb{F} (b)(a)$ over $\mathbb{F} $. Let $S = \{a ^0 \ldots a ^n \}$. Because $|S| = n + 1$, $S$ cannot be linearly independent (in the vector space induced by $\mathbb{F} (b)(a)$ over $\mathbb{F} $), which means a polynomial $f \in \mathbb{F} [x]$ exists such that $f(a) = 0$.
 \end{proof}
 
 \begin{lemma}\label{lem:algebraic-dependence-transitivity}
-  Consider $A, B, C \subseteq \mathbb K / \mathbb{F} $ such that $A$ is algebraically dependent on $B$ and $B$ is algebraically dependent on $C$. It then follows that $A$ is algebraically dependent on $C$.
+	Consider $A, B, C \subseteq \mathbb K / \mathbb{F} $ such that $A$ is algebraically dependent on $B$ and $B$ is algebraically dependent on $C$. It then follows that $A$ is algebraically dependent on $C$.
 \end{lemma}
 
 \begin{proof}
-  We will proceed by induction on the size of $B$:
-  \begin{enumerate}
-    \item If $|B| = 1$ then the result trivially follows from lemma (\ref{lem:algebraic-transitivity}).
-    \item Assume the result is true for $|B| = n$. We will attempt to prove it for $|B| = n + 1$. Let $a \in A$. We have to show that $a$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$. Given $1 \leq i \leq n$, each $b _i$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$ (because $B$ is algebraically dependent on $C$ (over $\mathbb{F}$)). It then follows that each such $b _i $ is also algebraic over $\mathbb{F}(c _1 \ldots c _k, b _{n + 1}) = \mathbb{F} (b _{n + 1} )(c _1 \ldots c _k )$. Moreover, we know that $a$ is algebraic over $\mathbb{F} (b _1 \ldots b _{n + 1})$, which means it is also algebraic over $\mathbb{F} (b _{n + 1})(b _1 \ldots b _n )$. It then follows from the induction hypothesis (applied with $\mathbb{F} (b _{n + 1})$ as the base field, $A = \{a\}$, $B = \{b _1 \ldots b _n \}$ and the same $C$) that $a$ is algebraic over $\mathbb{F} (b _{n + 1})(c _1 \ldots c _k ) = \mathbb{F} (c _1 \ldots c _k )(b _{n + 1})$. 
+	We will proceed by induction on the size of $B$:
+	\begin{enumerate}
+		\item If $|B| = 1$ then the result trivially follows from lemma (\ref{lem:algebraic-transitivity}).
+		\item Assume the result is true for $|B| = n$. We will attempt to prove it for $|B| = n + 1$. Let $a \in A$. We have to show that $a$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$. Given $1 \leq i \leq n$, each $b _i$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$ (because $B$ is algebraically dependent on $C$ (over $\mathbb{F}$)). It then follows that each such $b _i $ is also algebraic over $\mathbb{F}(c _1 \ldots c _k, b _{n + 1}) = \mathbb{F} (b _{n + 1} )(c _1 \ldots c _k )$. Moreover, we know that $a$ is algebraic over $\mathbb{F} (b _1 \ldots b _{n + 1})$, which means it is also algebraic over $\mathbb{F} (b _{n + 1})(b _1 \ldots b _n )$. It then follows from the induction hypothesis (applied with $\mathbb{F} (b _{n + 1})$ as the base field, $A = \{a\}$, $B = \{b _1 \ldots b _n \}$ and the same $C$) that $a$ is algebraic over $\mathbb{F} (b _{n + 1})(c _1 \ldots c _k ) = \mathbb{F} (c _1 \ldots c _k )(b _{n + 1})$.
 
-      We recall that $b _{n + 1}$ is algebraic on $\mathbb{F} (c _1 \ldots c _k )$ (because $B$ is algebraically dependent on $C$ (over $\mathbb{F} $)). We can now apply lemma (\ref{lem:algebraic-transitivity}) to prove that $a$ is algebraic over $\mathbb{F} (c _1 \ldots c _n)$.
-  \end{enumerate}
+		      We recall that $b _{n + 1}$ is algebraic on $\mathbb{F} (c _1 \ldots c _k )$ (because $B$ is algebraically dependent on $C$ (over $\mathbb{F} $)). We can now apply lemma (\ref{lem:algebraic-transitivity}) to prove that $a$ is algebraic over $\mathbb{F} (c _1 \ldots c _n)$.
+	\end{enumerate}
 \end{proof}
 
 \begin{theorem}\label{thm:algebraic-matroids-are-matroids}
-    Given a finite subset $E \subseteq \mathbb K / \mathbb F$, the pair $(E, \mathcal I)$  where $\mathcal I$ is the set of algebraically independent subsets of $E$ forms a matroid.
+	Given a finite subset $E \subseteq \mathbb K / \mathbb F$, the pair $(E, \mathcal I)$  where $\mathcal I$ is the set of algebraically independent subsets of $E$ forms a matroid.
 \end{theorem}
 
-    Although~\cite{oxley1} offers a proof based on independent sets and the concept of algebraic dependence, we will instead present a proof based on the basis of our supposed matroid. The part focused on proving the exchange lemma is inspired by~\cite{milne2022}, although the rest will be a lot more simple (no need to involve Zorn's lemma) because we are working in a finite subset.
+Although~\cite{oxley1} offers a proof based on independent sets and the concept of algebraic dependence, we will instead present a proof based on the basis of our supposed matroid. The part focused on proving the exchange lemma is inspired by~\cite{milne2022}, although the rest will be a lot more simple (no need to involve Zorn's lemma) because we are working in a finite subset.
 
 
-  We start by proving the following lemma:
-  \begin{lemma}\label{lem:algebraic-indep-smaller-than-dep}
-    Consider finite $A, B \subseteq \mathbb K / \mathbb F$, such that $A$ is independent over $\mathbb F$ and dependent on $B$ (over $\mathbb F$). Then $|B| \geq |A|$.
-  \end{lemma}
+We start by proving the following lemma:
+\begin{lemma}\label{lem:algebraic-indep-smaller-than-dep}
+	Consider finite $A, B \subseteq \mathbb K / \mathbb F$, such that $A$ is independent over $\mathbb F$ and dependent on $B$ (over $\mathbb F$). Then $|B| \geq |A|$.
+\end{lemma}
 
-  \begin{proof}
-    We will prove the statement by induction on the number of elements in $A \setminus B$:
-    \begin{enumerate}
-      \item If $A \setminus B = \varnothing $ then $A \subseteq B$ and $|A| \leq |B|$ follows trivially.
-      \item Assume the statemenet is true for some $|A \setminus B| = |A| - (k + 1)$ (where $k = |A \cap B$). We will attempt to prove it for $|A \setminus B| = |A| - k$. Let $a _1 \ldots a _n$ be the elements of $A$ such that $a _1 \ldots a_k$ are all the members of $A \cap B$ for some $k$. Let $ a _1 \ldots a_k, b _{k + 1} \ldots b _m$ be the elements of $B$. It remains to prove that $m \geq n$.
+\begin{proof}
+	We will prove the statement by induction on the number of elements in $A \setminus B$:
+	\begin{enumerate}
+		\item If $A \setminus B = \varnothing $ then $A \subseteq B$ and $|A| \leq |B|$ follows trivially.
+		\item Assume the statemenet is true for some $|A \setminus B| = |A| - (k + 1)$ (where $k = |A \cap B$). We will attempt to prove it for $|A \setminus B| = |A| - k$. Let $a _1 \ldots a _n$ be the elements of $A$ such that $a _1 \ldots a_k$ are all the members of $A \cap B$ for some $k$. Let $ a _1 \ldots a_k, b _{k + 1} \ldots b _m$ be the elements of $B$. It remains to prove that $m \geq n$.
 
-        As $a _{k + 1}$ is not dependent on $\{a _1 \ldots a_k\}$ but is dependent on $B = \{a _1 \ldots a _k, b _{k + 1} \ldots b_m\}$, there must exist some $k + 1 \leq j \leq m$ such that $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$ but  not on $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$. Because $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$, we know there exists some polynomial $f \in \mathbb F[x _1 \ldots x _{j + 1}]$ such that 
-        \begin{align*}
-           f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, X) \neq  0 \land 
-           f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0.
-        \end{align*}
+		      As $a _{k + 1}$ is not dependent on $\{a _1 \ldots a_k\}$ but is dependent on $B = \{a _1 \ldots a _k, b _{k + 1} \ldots b_m\}$, there must exist some $k + 1 \leq j \leq m$ such that $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$ but  not on $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$. Because $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$, we know there exists some polynomial $f \in \mathbb F[x _1 \ldots x _{j + 1}]$ such that
+		      \begin{align*}
+			      f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, X) \neq  0 \land
+			      f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0.
+		      \end{align*}
 
-      We can write $f$ as
-      \begin{align*}
-        f(x _1 \ldots x _{j + 1}) 
-        = \sum_i f _i(x _1 \ldots x _{j - 1}, x _{j + 1}) x _j ^i.
-      \end{align*}
+		      We can write $f$ as
+		      \begin{align*}
+			      f(x _1 \ldots x _{j + 1})
+			      = \sum_i f _i(x _1 \ldots x _{j - 1}, x _{j + 1}) x _j ^i.
+		      \end{align*}
 
-        We know that $f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, X) \neq  0$, therefore at least one of $f _i \neq 0$. Let $g = f _i $ such that $f _i \neq 0$. Because $a _{j + 1}$ is not algebraic over $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$, we know that 
-        \begin{align*}
-          g(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, a _{k + 1}) \neq 0.
-        \end{align*}
+		      We know that $f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, X) \neq  0$, therefore at least one of $f _i \neq 0$. Let $g = f _i $ such that $f _i \neq 0$. Because $a _{j + 1}$ is not algebraic over $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$, we know that
+		      \begin{align*}
+			      g(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, a _{k + 1}) \neq 0.
+		      \end{align*}
 
-        This implies that $f(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, X, a _{k + 1}) \neq 0$. Since $ f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0$, we can conclude that $b_j$ is algebraic over $\{a _1 \ldots a _{k + 1}, b _{k + 2} \ldots b _j\}$.
+		      This implies that $f(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, X, a _{k + 1}) \neq 0$. Since $ f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0$, we can conclude that $b_j$ is algebraic over $\{a _1 \ldots a _{k + 1}, b _{k + 2} \ldots b _j\}$.
 
-        Construct $B' = B + a _{k + 1} - b_j$. Having proven that $b_j$ is dependent on a subset of $B'$, it is also dependent on $B'$. All other elements of $B$ are also dependent on $B'$ (because any variable is algebraic over a field extension it generates, i.e. $t$ is algebraic over $\mathbb F(t)$). We recall that $A$ is dependent on $B$, so by the transitivity of algebraic dependence (lemma (\ref{lem:algebraic-dependence-transitivity})), we know that $A$ is algebraic over $B'$. We also notice that $A$ and $B'$ have $k + 1$ elements in common, therefore the statement is proven by the induction hypothesis.
-    \end{enumerate}
-  \end{proof}
+		      Construct $B' = B + a _{k + 1} - b_j$. Having proven that $b_j$ is dependent on a subset of $B'$, it is also dependent on $B'$. All other elements of $B$ are also dependent on $B'$ (because any variable is algebraic over a field extension it generates, i.e. $t$ is algebraic over $\mathbb F(t)$). We recall that $A$ is dependent on $B$, so by the transitivity of algebraic dependence (lemma (\ref{lem:algebraic-dependence-transitivity})), we know that $A$ is algebraic over $B'$. We also notice that $A$ and $B'$ have $k + 1$ elements in common, therefore the statement is proven by the induction hypothesis.
+	\end{enumerate}
+\end{proof}
 
 We will now show that all basis in our supposed matroid have equal cardinality.
 
 \begin{lemma}\label{lem:algebraic-matroid-equal-size-basis}
-  Given some finite subset $E \subseteq \mathbb K / \mathbb F$, maximal independent subsets of $E$ (in the partially ordered set induced by inclusion) have equal cardinality.
+	Given some finite subset $E \subseteq \mathbb K / \mathbb F$, maximal independent subsets of $E$ (in the partially ordered set induced by inclusion) have equal cardinality.
 \end{lemma}
 
 \begin{proof}
-  Let $A$ and $B$ be maximal independent subsets of $E$. If both sets are $\varnothing$, then our proof is done. If one set is $\varnothing$ and one isn't, we clearly have a contradiction, as $\varnothing$ is a strict subset of the other set, hence not maximal. We therefore assume the existence of some $a \in A$ and $b \in B$. 
+	Let $A$ and $B$ be maximal independent subsets of $E$. If both sets are $\varnothing$, then our proof is done. If one set is $\varnothing$ and one isn't, we clearly have a contradiction, as $\varnothing$ is a strict subset of the other set, hence not maximal. We therefore assume the existence of some $a \in A$ and $b \in B$.
 
-  We know that $A$ is maximal, therefore any $b \in B$ is algebraically dependent on $A$. We can therefore conclude that $B$ is algebraically dependent over $B$. We recall that $B$ is also independent, which means we can use lemma (\ref{lem:algebraic-indep-smaller-than-dep}) to prove that $|A| \geq |B|$. We can apply a similar argument to show that $|B| \geq |A|$, which together with our previous statement shows that $|A| = |B|$, proving the lemma.
+	We know that $A$ is maximal, therefore any $b \in B$ is algebraically dependent on $A$. We can therefore conclude that $B$ is algebraically dependent over $B$. We recall that $B$ is also independent, which means we can use lemma (\ref{lem:algebraic-indep-smaller-than-dep}) to prove that $|A| \geq |B|$. We can apply a similar argument to show that $|B| \geq |A|$, which together with our previous statement shows that $|A| = |B|$, proving the lemma.
 \end{proof}
 
 \begin{proof}[Proof of theorem (\ref{thm:algebraic-matroids-are-matroids})]
-    We will construct the matroid using the basis definition. We need to first show that at least one exists, and then show that the exchange property holds.
+	We will construct the matroid using the basis definition. We need to first show that at least one exists, and then show that the exchange property holds.
 
-  We consider the partially ordered set of independent subsets of $E$ ordered by inclusion. We notice that $ \varnothing $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\varnothing $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element, so a basis exists.
+	We consider the partially ordered set of independent subsets of $E$ ordered by inclusion. We notice that $ \varnothing $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\varnothing $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element, so a basis exists.
 
-  It now remains to prove the exchange property. That is, given two basis $A, B \subseteq \mathcal B$ and some $a \in A \setminus B$, we can find some $b \in B \setminus A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two basis have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-basis})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \leq n - 1$, hence a contradiction.
+	It now remains to prove the exchange property. That is, given two basis $A, B \subseteq \mathcal B$ and some $a \in A \setminus B$, we can find some $b \in B \setminus A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two basis have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-basis})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \leq n - 1$, hence a contradiction.
 \end{proof}
+
 
