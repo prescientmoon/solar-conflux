@@ -217,8 +217,8 @@ We can now use this construction to determine the dual of a vector matroid using
 
     \begin{figure}
     $$\begin{bmatrix}
-    I_{r-s} & 0 & D_11 & D_12\\
-    0 & I_s & D_21 & D_22\\
+    I_s & 0 & D_11 & D_12\\
+    0 & I_{r-s} & D_21 & D_22\\
     \end{bmatrix}
     % 
     \rightarrow
@@ -226,10 +226,8 @@ We can now use this construction to determine the dual of a vector matroid using
     D_11^T & D_21^T & I_{r-s} & 0\\
     D_12^T & D_22^T & 0 & I_{n-(2r-s)}\\
     \end{bmatrix}$$
-
-    Such that, for the original matrix $I_{r-s}$ has the column space size of $e_1 \dots e_{r-s}$. $I_s$ has $e_{r-t+1} \dots e_r$, 
-
-    We have that $B$ is a base, so 
+    First, lets analyse the partition of $[I_r|D]$.
+    We have that $B$ is a base, this means that it must have the same size as $I_r$. Due to the way the matrix $[I_r|D]$ is partitioned, that is, due to the fact that each component of this partition in the same level must have the same number of rows, this imples 
     
 \end{figure}
     
