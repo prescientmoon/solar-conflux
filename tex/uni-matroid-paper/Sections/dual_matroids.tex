@@ -20,9 +20,66 @@ This can be seen more clearly in the following digram:
 \label{graphic}%
 \end{figure}
 
+We also have the depiction from previous sections, but know we will also the one that will correspond to the dual on this specific case. To the \textbf{left} we have the depiction corresponding to the \textbf{original matroid}, and to the \textbf{rigth} we have the one corresponding to its \textbf{dual matroid}. 
+Notice how the ground set will be composed of 4 components $E=\{1,2,3,4\}$, and in the original matroid has bases $12$ and $23$, in red. So, its dual has bases $34$ and $14$, respectively, also in red but in the rigth-side diagram. This is because, the complement of the elements $12$ is $34$, and the complement of $23$ is $14$.
+
+
+\begin{tikzpicture}[H]
+\centering
+\matrix (a) [matrix of math nodes, column sep=0.3cm, row sep=0.6cm,]{
+ & & &\textcolor{cyan}{
+1234} & & & &\\
+ \textcolor{cyan}{
+123}& &\textcolor{cyan}{
+124} & &\textcolor{cyan}{
+134} &  & \textcolor{cyan}{
+234}  \\
+\textcolor{red}{12} & \textcolor{blue}{13} & \textcolor{cyan}{14} & & \textcolor{red}{23} & \textcolor{cyan}{
+24} & \textcolor{cyan}{
+34} \\
+\textcolor{orange}{1}& &\textcolor{orange}{2} & & \textcolor{orange}{3}& & \textcolor{blue}{4} \\
+& & & \textcolor{orange}{\emptyset} &  & & \\
+&&&&&& \\};
+
+\foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
+\draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
+
+\end{tikzpicture}
+\begin{tikzpicture}[H]
+\centering
+\matrix (a) [matrix of math nodes, column sep=0.3cm, row sep=0.6cm,]{
+ & & &\textcolor{cyan}{
+1234} & & & &\\
+ \textcolor{cyan}{
+123}& &\textcolor{cyan}{
+124} & &\textcolor{cyan}{
+134} &  & \textcolor{cyan}{
+234}  \\
+\textcolor{cyan}{12} & \textcolor{blue}{13} & \textcolor{red}{14} & & \textcolor{cyan}{23} & \textcolor{cyan}{
+24} & \textcolor{red}{
+34} \\
+\textcolor{orange}{1}& &\textcolor{blue}{2} & & \textcolor{orange}{3}& & \textcolor{orange}{4} \\
+& & & \textcolor{orange}{\emptyset} &  & & \\
+&&&&&& \\};
+
+\foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
+\draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
+\end{tikzpicture}
+
+\begin{center}
+\begin{tikzpicture}[H]
+\centering
+\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{blue}{Circuit}, \textcolor{cyan}{Dependent set}}
+\end{tikzpicture}
+\end{center}
+
+
+
+
 As we know form previous chapters the basis set of a matroid is obtained from its set of independet sets $I$, which is at the same time obtained of its ground set $E$.
-Using this diagram we highligth a few things that will be useful later in the chapter.
-The first thing is that basis set of a matroid is given by a subset of E, the reiming elements in E that are not in de basis if added to the basis will be linearly dependent, but also we can take any remianing elemetn of E and echange it with an element in the basis and we will have another basis for E. With this intuition in mind, we can continue with a theorem.
+Using this diagrams we highligth an idea that will be useful later in this chapter.
+This is, that the basis set of a matroid is given by a subset of $E$, the remaing elements in $E$ that are not in de basis if added to the basis will be linearly dependent, but also we can take any remaining element of $E$ and exchange it with an element in the basis and we will have another basis for $E$. With this intuition in mind, we can continue with a theorem.
+
 
 To formalize the definition of B* we have the following:
 \begin{theorem}
@@ -101,12 +158,16 @@ $Proposition:$ Let M be a matroid in a set E and suppose $X \subseteq E$. Then,
 
 Similar to the case with the bases and cobases, The ranK function of the dual matroid is usually denoted by $r^*$, and is normally referred as the $corank$ $function$ of $M$. Using the definition of bases of the dual matroid, this is, that is build with the complement bases of the set of the orginal matroid, as well as the fact that matroid and its dual are both on the same ground set, we have the following:
 
-\textit{Proposition:} $r(M) + r$*$(M) = |E(M)|=|E(M^*)|$
+\begin{itemize}
+    \item $r(M) + r$*$(M) = |E(M)|=|E(M^*)|$
+\end{itemize}
 
 And in fact, we can generalize this to obtain an explicit formula for the for the corank function of the matroid. 
 
-\textit{Proposition:} For all subsets X of the ground set E of a Matroid M,\\
-$r^*(X)=r(E-X)+|X|-r(M)$
+For all subsets X of the ground set E of a Matroid M,
+\begin{itemize}
+    \item $r^*(X)=r(E-X)+|X|-r(M)$
+\end{itemize}
 
 \begin{proof}
     Let $I^*$ be a independet subset of $X$ in $M^*$, such that it is not a subset of some other set in $X$, this is $r^*(X)=|I^*|$. Similarly, let $I$ be a independent subset of $E-X$ in $M$, such that it is not a subset of some other set in $E-X$, this is $r(E-X)=|I|$. And let $B$ be an independent subset of $E-I^*$, such that it is not a subset of some other set in $E-I^*$ and contains $I$. Since, this are independent subsets that are not subsets of any other element in their respective sets, then we have $r(B)=r(E-I^*)$ and $r(E-I^*)=r(M)$, and hence $B$ is a base of M.
@@ -114,33 +175,17 @@ $r^*(X)=r(E-X)+|X|-r(M)$
     $|X|=|X\cap B|+|X\cap B^*|=|B|-|I|+|I^*|=r(M)-r(E-X)+r^*(X)$
 \end{proof}
 
-For can now give and example for the concepts given until know.
-
-\textit{Example:}
-
-
-
-
-Now, we will formulate another important point, the so called, orthogonality, which refers to the link between circuits and cocircuits. 
-
-\textit{Proposition:} For a given matroid M, let C be a circuit and C* be a cocircuit. Then,  
-$|C \cap C*| \neq 1$.
-
-\begin{proof}
-    We will prove this by contradiction. Suppose $C \cap C* = \{x\}$, for some $x \in E$, this is, there exists and element in the intersection such that the cardinality will be 1. Now consider the hyperplane $H=E-C^*$, and recall that the closure $cl(H)=H$. We can onserve that by the way in which it is defined if $x\in C^*$, then $x\notin H$, but $C-x\subseteq H$. Moreover, we have that $x\in cl(C-x)$ hence $x\in cl(H)=H$. Then $x\notin C^*$, which is a contradiction. So, $C \cap C* \neq \{x\}$, which implies $|C \cap C*| \neq 1$.
-\end{proof}
 
 %Subsection
 Now we will talk about duals of representble matroids.
-Let A be an $m \times n$ matrix over the field $F$, and let M be vector matroid $M[A]$ of $A$. Then we have that the groud set of  
-of $M$is the set $E$ of column labels of $A$. Note that, in general, $M[A]$ does note uniquely determine A. Furthermore, M remains unchanged if we perform any of the following operarations on A, which include the \textit{elementary row operations} seen in the linear algebra courses.
+Let A be an $m \times n$ matrix over the field $F$, and let M be vector matroid $M[A]$ of $A$. Then we have that the groud set of $M$ is the set $E$ of column labels of $A$. Note that, in general, $M[A]$ does note uniquely determine $A$. Furthermore, M remains unchanged if we perform any of the following operarations on $A$, which include the \textit{elementary row operations} seen in the linear algebra courses.
 \begin{enumerate}
     \item Interchange two rows.
-    \item Multiply a row by a non-zero member of $F$
+    \item Multiply a row by a non-zero member of $\mathbb{F}$.
     \item Replace a row by the sumof that row with another row.
-    \item Adjoin or remove a zero row
-    \item Interchanging two columns (the labels moving with the columns)
-    \item Multiply a column by a non-zero member of $F$
+    \item Adjoin or remove a zero row.
+    \item Interchanging two columns (the labels moving with the columns).
+    \item Multiply a column by a non-zero member of $\mathbb{F}$.
 \end{enumerate}
 
 The reason for this is because when constructiong the matroid $M$ form a matrix $A$, we only care about the independence (or dependence) that each column vector in the matrix has with one another. So, as long as the independence and dependece between this is keep the same, the values inside the columns are not relevant.
@@ -149,13 +194,12 @@ Assume that the matrix A is non-zero. It is known that by using the operations p
 
 Suppose that the columns of $[I_r|D]$ are labelled, in order, in the following form, $e_1, e_2,...,e_n$. This will be the ground set $E=\{e_1, e_2,...,e_n\}$. Then, we see that $\{e_1, e_2,...,e_r\}$ is a basis $B$ of $M$, once agina due to the dimesion of the identity matrix. We also label both, the rows and colums of $D$, in the following form, for the rows from top to bottom, $e_1, e_2,...,e_r$ and for the columns,  $e_{r+1}, e_{r+2},...,e_n$. This way to represent $M[A]$ can be seen more clearly in the following figure. We will refer to both $[I_r|D]$ and $D$ as the \textit{standard representative matrices} for $M$, \textit{with respect to $\{e_1, e_2,...,e_r\}$}. Similarly, we use \textit{reduced standard representative matrix} if we want to refer only to $D$.
 
-\begin{figure}
+\begin{figure}[H]
     \centering
-
-    \caption{Standard representative matrices for M}
+    \includegraphics{Sections/SRF.png}
+    \caption{Standard representative matrices for M. [3]}
     \label{fig:enter-label}
 \end{figure}
-
 Note that, in the figure, in $[I_r|D]$ only the columns are labelled, but in $D$, both the rows and columns ae labeled.
 
 We can now use this construction to determine the dual of a vector matroid using the following theorem.
@@ -171,8 +215,10 @@ We can now use this construction to determine the dual of a vector matroid using
 By convention the form $[−D^T |I_{n−r}]$ instead of $[D^T |I_{n−r}]$. However it is important to remark that this does not bring any problem, because, as we previusly stated, the use of \textit{elementary row operations} does not affect the matroid of a matrix. 
 
 From the previous theorem a remarkable result follows almost directly. 
+\begin{itemize}
+    \item  \textbf{Corollary 1. :} If a matroid \textit{M} is \textit{representable} over a field $\mathbb{F}$, then \textit{M*} is also representable over the same field $\mathbb{F}$.
+\end{itemize}
 
-\textit{Corollary: If a matroid \textit{M} is \textit{representable} over a field \textit{F}, then \textit{M*} is also representable over \textit{F}.}
 
 $Example:$ Consider the vector matroid $M$ with the following representation over $R$
         \begin{figure}[H]
@@ -238,7 +284,7 @@ To answer that we have the following theorem
 $Example:$ Let us consider the bipartite graph $K_{3,3}$.
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[node distance={15mm}, thick, main/.style = {draw, circle}] 
+\begin{tikzpicture}[node distance={20mm}, thick, main/.style = {draw, circle}] 
     \node[main] (1) {}; 
     \node[main] (2) [below of=1] {}; 
     \node[main] (3) [right of=1] {}; 
@@ -255,6 +301,8 @@ $Example:$ Let us consider the bipartite graph $K_{3,3}$.
     \draw (5) to (4);
     \draw (5) to (6);
     \end{tikzpicture}
+    \caption{The bipartite graph $K_{3,3}$}
+    \label{fig:enter-label}
 \end{figure}
 
 We can see it has 9 edges, so the ground set is $E=\{1,2,3, \dots, 9\} $.
@@ -270,22 +318,34 @@ $$J = \begin{bmatrix}
 \end{bmatrix}$$
 \end{figure}
 
-This is because if we label the columns of $J$ as $E = \{e_1,\dots, e_9\}$ and define a matroid $M(J)$ on $E$, it is easy to see that we associate each column of $J$ to the correspondingly labeled edge in $K_{3,3}$, so that they generate the same matroid. Moreover, this means that we can take a basis for the column space of $J$, such as, $B = \{e_1, e_2, e_3, e_4, e_5\}$, such that it corresponds to a spanning tree $T$ of $K_{3,3}$. Adding any other column to B gives a linear dependency,
-hence a circuit in M(A); likewise, adding any edge to T generates a cycle
-
-
-
-So we have, 
+This is because if we label the columns of $J$ as $E = \{e_1,\dots, e_9\}$ and define a matroid $M(J)$ on $E$, it is easy to see that we associate each column of $J$ to the correspondingly labeled edge in $K_{3,3}$, so that they generate the same matroid. Moreover, this means that we can take a basis for the column space of $J$, such as, $B = \{e_1, e_2, e_3, e_4, e_5\}$, such that it corresponds to a spanning tree $T$ of $K_{3,3}$ (See Figure 8.). In other words, this means that adding any other column to $J$ gives a linear dependency, more precisely a circuit in $M(J)$, and adding any edge to $T$ generates a cycle.
 \begin{figure}[H]
-    $$B=\!\!\!\begin{bmatrix}
-    1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1\\
-    0 & 1 & 0 & 0 & 0 & 1 & 1 & 0 & 1\\
-    0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1\\
-    0 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1\\
-    0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 1\\
-    \end{bmatrix}
-  %
-  B^*=\!\!\!\begin{bmatrix} 
+    \centering
+    \begin{tikzpicture}[node distance={20mm}, thick, main/.style = {draw, circle}] 
+        \node[main] (1) {}; 
+        \node[main] (2) [below of=1] {}; 
+        \node[main] (3) [right of=1] {}; 
+        \node[main] (4) [below of=3] {}; 
+        \node[main] (5) [right of=3] {}; 
+        \node[main] (6) [below of=5] {}; 
+        \draw [ultra thick,red] (1) to (2); 
+        \draw [ultra thick,red] (1) to (4);
+        \draw [ultra thick,red] (1) to (6); 
+        \draw (3) to (2);
+        \draw [ultra thick,red] (3) to (4); 
+        \draw (3) to (6);
+        \draw (5) to (2); 
+        \draw (5) to (4);
+        \draw [ultra thick,red] (5) to (6);
+    \end{tikzpicture}
+    \caption{Graph $K_{3,3}$, showing in red an example of edges that form a spanning tree, that can be associated accordingly to the basis of $J$.}
+    \label{fig:enter-label}
+\end{figure}
+
+Now that we have show that $K_{3,3}$ has an associated matrix, which produces the same Matroid, we can use the Theorem 12. to obtain the corresponding dual. 
+So we get, 
+\begin{figure}[H]
+  $$J^*=\begin{bmatrix} 
 1 & 1 & 1 & 0 & 0 & 1 & 0 & 0 & 0\\
 0 & 1 & 1 & 1 & 0 & 0 & 1 & 0 & 0\\
 0 & 0 & 1 & 1 & 1 & 0 & 0 & 1 & 0\\
@@ -293,9 +353,9 @@ So we have,
 \end{bmatrix}$$
 \end{figure}
 
-Where, $r(M) = 5$ and $r^*(M)=4$, and $|E(M)|=9$.
+As a sanity check we can see that;
+$r(J) = 5$;  $r^*(J)=4$, and $|E(M)|=9$
 Hence, we see that $r(M) + r^*(M) = |E(M)|$ holds.
-
-Also, in this example, both matroids are vector matroids over the field $\mathbb{F}_2$. 
-However, although $M(K_{3,3})$ is a graphic matroid, its dual, $M^*(K_{3,3})$ is not graphic. This results points to the following:
+According to the \textbf{Corollary 1.}, \textit{If a matroid \textit{M} is \textit{representable} over a field $\mathbb{F}$, then \textit{M*} is also representable over $\mathbb{F}$} , here we see that, both matroids are vector matroids over the field $\mathbb{F}_2$. 
+Finally, in this example we can observe that $K_{3,3}$ is not a planar graph, this implies that, although $M(K_{3,3})$ is a graphic matroid, its dual, $M^*(K_{3,3})$ is not graphic.
 
