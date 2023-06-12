@@ -313,12 +313,10 @@ To get an intuition behind (C3), let us consider the matroid induced by the grap
 % Someone please fix this!
 
 
-
 \begin{figure}
 \caption{A graph of suspicious shape, having three cycles.}
-\centering
-\subfloat[\centering Graph]{
-
+\begin{subfigure}[h]{0.245\textwidth}
+  \caption{Graph}
 \begin{tikzpicture}[node distance={10mm}, thick, main/.style = {draw,circle,fill,inner sep=1pt}] 
   \node[main] (1) at (0,0) {}; 
   \node[main] (3) at (-0.5,0.5) {}; 
@@ -343,10 +341,9 @@ node[midway, right] {e} (4) ;
   \draw (10) to [bend right] (11);
   \draw (5) to (1);
 \end{tikzpicture} 
-}%
-
-\subfloat[\centering $C_1$]{
-
+\end{subfigure}
+\begin{subfigure}[h]{0.245\textwidth}
+  \caption{$C _1$}
 \begin{tikzpicture}[node distance={10mm}, thick, main/.style = {draw,circle,fill,inner sep=1pt}] 
   \node[main] (1) at (0,0) {}; 
   \node[main] (3) at (-0.5,0.5) {}; 
@@ -369,9 +366,9 @@ node[midway, right] {e} (4) ;
   \draw (10) to [bend right] (11);
   \draw (5) to (1);
 \end{tikzpicture} 
-}%
-\subfloat[\centering $C_2$]{
-
+\end{subfigure}
+\begin{subfigure}[h]{0.245\textwidth}
+  \caption{$C _2$}
 \begin{tikzpicture}[node distance={10mm}, thick, main/.style = {draw,circle,fill,inner sep=1pt}] 
   \node[main] (1) at (0,0) {}; 
   \node[main] (3) at (-0.5,0.5) {}; 
@@ -388,8 +385,9 @@ node[midway, right] {e} (4) ;
 node[midway, right] {e} (4) ;
   \draw (3) to [bend left] (4);
 \end{tikzpicture} 
-}%
-\subfloat[\centering $C_3$]{
+\end{subfigure}
+\begin{subfigure}[h]{0.245\textwidth}
+  \caption{$C _3$} 
 \begin{tikzpicture}[node distance={10mm}, thick, main/.style = {draw,circle,fill,inner sep=1pt}] 
   \node[main] (1) at (0,0) {}; 
   \node[main] (3) at (-0.5,0.5) {}; 
@@ -412,8 +410,8 @@ node[midway, right] {e} (4) ;
   \draw (10) to [bend right] (11);
   \draw (5) to (1);
 \end{tikzpicture} 
-}%
-\end{figure}
+\end{subfigure}
+                  \end{figure}
 
 We can say that a set $X \subseteq E$ is independent if and only if, it does not contain any circuit.
 
