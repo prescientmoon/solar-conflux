@@ -177,9 +177,6 @@ Similar to the set of independent sets, we can characterize the set of bases of 
     \end{enumerate}
     We will refer to these two properties as (B1) and (B2).
 \end{defn}
-
-
-
 Here below, you find a depiction of the matroid we have seen in chapter 2.1. This time, he have added the bases of the matroid, colored red. Two properties can be observed, first the bases are the maximal independent sets and both bases have two elements - the same size.
 
 \begin{figure}[h]
@@ -478,11 +475,19 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
     We define $D = \{C_e, e \in Y'\}$, $f(C_e) = c_e$ and $S = f(D)$. Furthermore, we know that $f$ is not injective by the Pigeonhole principe (we have $|D| = |Y'| > |X'| \geq |S|$). We also know, by the definition of $S$, that $f$ is surjective. We've shown a choice of $f$ exists. If it is not maximal, swap it with a maximal choice. We can now apply the statement proven by induction to finish the proof.
 \end{enumerate}
 
-  Let $\mathcal C'$ be the set of circuits in our newly defined matroid. It then remains to prove that $\mathcal C = \mathcal C'$. We already know from lemma (\ref{lem:circuits-have-properties}) that $\mathcal C' \subseteq \mathcal C$. It remains to prove that $\mathcal C \subseteq \mathcal C'$. This is equivalent to proving that satisfying (C1), (C2) and (C3) is enough to be considered a circuit. 
 
-  Assume a subset $C$ with these properties exists which is not a circuit. Clearly, $C \not\in \mathcal I$ is implied by the definition of $\mathcal I$ seen above. This implies that $C$ is dependent but not a circuit, which means $C$ is not miminal. 
+We now show that $C$ is a circuit for the newly defined matroid if and only if it is a member of $\mathcal C$. 
+\begin{enumerate}
+  \item[$\implies$]
+  If $C$ is a circuit, then $C \not\in \mathcal I$, which means that $C$ contains some $D \in \mathcal C$. As $C$ is minimally dependent, all it's proper subsets are independent, but members of $\mathcal C$ cannot be independent (as seen in the definition of $\mathcal I$), which implies that $C = D$, hence $C \in \mathcal C$.
+  \item[$\impliedby$]
+  Let $C \in \mathcal C$. Assume $C$ is not a circuit. Clearly, $C \not\in \mathcal I$ is implied by the definition of $\mathcal I$ seen above. This implies that $C$ is dependent but not a circuit, which means $C$ is not miminal. 
 
-  A proper subset $D  \subsetneq C$ must then exist such that $D$ is a circuit. We know from lemma (\ref{lem:circuits-have-properties}) that $D \in \mathcal C$. We have now constructed a contradiction to (C2), hence our assumption that such a circuit exists is false.
+  A proper subset $D  \subsetneq C$ must then exist such that $D$ is a circuit. We've already shown in the $\implies$ direction how this implies $D \in \mathcal C$. We have now constructed a contradiction to (C2), hence our assumption that such a circuit exists is false.
+
+\end{enumerate}
+
+
 
   We can now conclude that $(E, \mathcal I)$ is indeed a matroid with $\mathcal C$ as it's set of circuits.
 \end{proof}
