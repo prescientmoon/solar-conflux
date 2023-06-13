@@ -71,4 +71,8 @@ $$A = \begin{pmatrix}
 
 since we see that no vector is 0, so all singletons are independent. No vector is a scalar multiple of each other, so two element subsets are independent. Finally, no 3-element subsets can be independent, since the dimension of the $\mathbb{F}_3^2$ is 2, so the dimension of any subspace is at most 2.
 
-In the succeeding sections, we will also consider an example of a matroid, which is not representable over any field.
+We will also show that $U_{2,4}$ has an interesting property that it is not a graphic matroid. In other words, we can show that there is no graph $G$ such that $U_{2,4} \sim M$ where $M$ is the matroid formed by the set of edgs of $G$ with the usual rules. 
+
+We will show $U_{2,4}$ is not graphic by contradiction, that is assume $U_{2,4}$ is graphic and let $G$ be the graph it represents. Then $G$ has four edges and since all two-element subsets of $U_{2,4}$ are independent we see that $G$ has no loops or parallel edges. In particular, all three element subsets of $U_{2,4}$ are circuits, so in the graph the edges they correspond to form a cycle. Both if both sets $\{1,2,3,\}$ and $\{1,2,4\}$ corresonds to edge cycles without parallel edegs it immediatly follows that $3$ and $4$ connect the same vertices, i.e. are parallel edges, which is a contradiction. So $U_{2,4}$ is not graphic.
+
+%In the succeeding sections, we will also consider an example of a matroid, which is not representable over any field.

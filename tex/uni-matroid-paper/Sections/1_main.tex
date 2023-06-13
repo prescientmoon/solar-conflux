@@ -6,7 +6,9 @@
 \usepackage{hyperref}
 \usepackage{caption}
 \usepackage{subcaption}
-
+%This two lines make it so that each section starts in a new page, in case we want to use it
+%\usepackage{titlesec}
+%\newcommand{\sectionbreak}{\clearpage}
 
 \usetikzlibrary{graphs}
 \usepackage[demo]{graphicx}
@@ -19,13 +21,13 @@
 \usepackage[dvipsnames]{xcolor}
 
 
-
 % copypasted from 
 % https://www.dickimawbooks.com/latex/thesis/html/amsthm.html
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
 \newtheorem{defn}{Definition}
 \newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
 
 \theoremstyle{definition}
 \newtheorem{exmp}{Example}[section]
@@ -63,6 +65,8 @@
 
 \tableofcontents
 
+
+\newpage
 \section{Introduction}
 \input{2_introduction}
 
