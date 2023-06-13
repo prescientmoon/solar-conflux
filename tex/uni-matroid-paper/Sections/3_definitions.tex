@@ -417,6 +417,30 @@ We can say that a set $X \subseteq E$ is independent if and only if, it does not
 
 The concept of circuits points towards the direction of something similar to a complement of the independent sets, but not completely, since it is only the minimal dependent, and not all dependet subsets. We now have the following theorem.
 
+\begin{lemma}\label{lem:circuits-have-properties}
+  All circuits in a matroid satisfy (C1), (C2) and (C3).
+\end{lemma}
+
+\begin{proof} We will prove each property individually:
+  
+\begin{enumerate}
+    \item $\emptyset \in \mathcal I$, therefore $\emptyset$ is not dependent (which means it cannot be a circuit)
+    \item A counterexample to this clause would violate the $C _2$ being minimal.
+    \item Assume a counterexample exists. Because $C _1 \cup C _2 - e$ does not contain a circuit, it must be an element of $\mathcal I$. 
+
+        We claim that $C _2 \setminus C _1$ is nonempty. Assume this is not the case. That would imply $C _2 \subseteq C _1$, but $C _1 \neq C _2 $ by (C3), which means that $C _1 $ is a proper subset of $C _2$. As both $C _1 $ and $C _2 $ are members of $\mathcal C$, this violates (C2), and is a contradiction. We can then assume some $f \in C _2 \setminus C _1 $ exists.
+
+        As $C _2$ is minimally dependent, we know that $C _2 - f$ is independent. Let $I$ be a maximal independent subset of $C _2 \cup C _1$ which is a superset of $C _2 - f$. Clearly, $f \not\in I$ (otherwise $C _2 \subseteq I \in \mathcal I$). Furthermore, as $C _1 $ is a circuit, we know that $C _1 \not \subseteq I \in \mathcal I$ (otherwise $C _1$ would be independent). This means some $g \in C _1$ exists such that $g \not\in I$. As $f \in C _2  \setminus  C _2$, we know that $f \neq g$.
+
+        As $I \subseteq C _1 \cup C _2$ and $f, g \in C _1 \cup C _2$ but $f, g \not\in I$, we can infer that 
+        \begin{align*}
+        |I| \leq |C _1 \cup C _2 - f - g| = |C _1 \cup C _2| - 2.
+        \end{align*}
+
+        We also notice that $|C _1 \cup C _2 - e| = |C _1 \cup C _2 | - 1$. We can now conclude by transitivity with $|C _1 \cup C _2 | - 2 < |C _1 \cup C _2 | - 1$ that $|I| < |C _1 \cup C _2 - e|$. We recall that both $I$ and $C _1 \cup C _2 - e$ are members of $\mathcal I$. We can apply (I3) to generate a superset of $I$ which contradicts it's maximallity.
+\end{enumerate}
+\end{proof}
+
 \begin{theorem}\label{thm:matroid-circuit-definition}
 Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisfies the conditions outlined above. Let  $\mathcal I$  be the collection of subsets of $E$ that contain no member of $\mathcal C$, that is 
 
@@ -451,28 +475,13 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
     We define $D = \{C_e, e \in Y'\}$, $f(C_e) = c_e$ and $S = f(D)$. Furthermore, we know that $f$ is not injective by the Pigeonhole principe (we have $|D| = |Y'| > |X'| \geq |S|$). We also know, by the definition of $S$, that $f$ is surjective. We've shown a choice of $f$ exists. If it is not maximal, swap it with a maximal choice. We can now apply the statement proven by induction to finish the proof.
 \end{enumerate}
 
-It remains to prove that $\mathcal C $ is the set of circuits in the newly defined matroid. We start by proving that all circuits have these properties:
-\begin{enumerate}
-    \item $\emptyset \in \mathcal I$, therefore $\emptyset$ is not dependent (which means it cannot be a circuit)
-    \item A counterexample to this clause would violate the $C _2$ being minimal.
-    \item Assume a counterexample exists. Because $C _1 \cup C _2 - e$ does not contain a circuit, it must be an element of $\mathcal I$. 
+  Let $\mathcal C'$ be the set of circuits in our newly defined matroid. It then remains to prove that $\mathcal C = \mathcal C'$. We already know from lemma (\ref{lem:circuits-have-properties}) that $\mathcal C' \subseteq \mathcal C$. It remains to prove that $\mathcal C \subseteq \mathcal C'$. This is equivalent to proving that satisfying (C1), (C2) and (C3) is enough to be considered a circuit. 
 
-        We claim that $C _2 \setminus C _1$ is nonempty. Assume this is not the case. That would imply $C _2 \subseteq C _1$, but $C _1 \neq C _2 $ by (C3), which means that $C _1 $ is a proper subset of $C _2$. As both $C _1 $ and $C _2 $ are members of $\mathcal C$, this violates (C2), and is a contradiction. We can then assume some $f \in C _2 \setminus C _1 $ exists.
+  Assume a subset $C$ with these properties exists which is not a circuit. Clearly, $C \not\in \mathcal I$ is implied by the definition of $\mathcal I$ seen above. This implies that $C$ is dependent but not a circuit, which means $C$ is not miminal. 
 
-        As $C _2$ is minimally dependent, we know that $C _2 - f$ is independent. Let $I$ be a maximal independent subset of $C _2 \cup C _1$ which is a superset of $C _2 - f$. Clearly, $f \not\in I$ (otherwise $C _2 \subseteq I \in \mathcal I$). Furthermore, as $C _1 $ is a circuit, we know that $C _1 \not \subseteq I \in \mathcal I$ (otherwise $C _1$ would be independent). This means some $g \in C _1$ exists such that $g \not\in I$. As $f \in C _2  \setminus  C _2$, we know that $f \neq g$.
+  A proper subset $D  \subsetneq C$ must then exist such that $D$ is a circuit. We know from lemma (\ref{lem:circuits-have-properties}) that $D \in \mathcal C$. We have now constructed a contradiction to (C2), hence our assumption that such a circuit exists is false.
 
-        As $I \subseteq C _1 \cup C _2$ and $f, g \in C _1 \cup C _2$ but $f, g \not\in I$, we can infer that 
-        \begin{align*}
-        |I| \leq |C _1 \cup C _2 - f - g| = |C _1 \cup C _2| - 2.
-        \end{align*}
-
-        We also notice that $|C _1 \cup C _2 - e| = |C _1 \cup C _2 | - 1$. We can now conclude by transitivity with $|C _1 \cup C _2 | - 2 < |C _1 \cup C _2 | - 1$ that $|I| < |C _1 \cup C _2 - e|$. We recall that both $I$ and $C _1 \cup C _2 - e$ are members of $\mathcal I$. We can apply (I3) to generate a superset of $I$ which contradicts it's maximallity.
-\end{enumerate}
-
-    It now remains to prove that having these properties is enough to be considered a circuit. Assume a subset $C$ with these properties exists which is not a circuit. Clearly, $I \not\in \mathcal I$ is implied by the definition of $\mathcal I$ seen above. This implies that $C$ is dependent but not a circuit, which means $C$ is not miminal. A proper subset $D  \subsetneq C$ must then exists such that $D$ is a circuit. As proven above, $D$ satisfies the three axioms, hence $D \in \mathcal C$. We have now constructed a contradiction to (C2), hence our assumption that such a circuit exists is false.
-
-    We've proven that all circuits satisfy the three axioms, and that all subsets satisfying the axioms are circuits, which implies that $\mathcal C$ is indeed the set of circuits of the matroid we've constructed.
-
+  We can now conclude that $(E, \mathcal I)$ is indeed a matroid with $\mathcal C$ as it's set of circuits.
 \end{proof}
 
 \input{graphs}
