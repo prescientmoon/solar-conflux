@@ -1,18 +1,10 @@
-\section{Algebraic matroids} \label{sec:algebraic-matroids}
+\section{Algebraic matroids}\label{sec:algebraic-matroids}
 
-An interesting concept of independence arises in the study of field theory. We will present class of matroids derived from the concept of algebraic independence. For the rest of this section we will use the notation $\mathbb K / \mathbb F$ to refer to some field $\mathbb K$ and a subfield $\mathbb F$. See \hyperref[sec:appendinx-fields]{the appendix} for an introduction to fields and subfields.
-
-%TODO: perhaps add an example
-% just for you
-
-\begin{exmp}
-    For example, we might look at $\mathbb{F} = \mathbb{Q}$ and $\mathbb{K} = \mathbb{Q}(
-        \sqrt{3})  = \{a + b\sqrt{3}\quad |\quad a,b \in \mathbb{Q}\}$. Then it is easy to check that $\mathbb{Q}(\sqrt{3})$ is indeed a field containing $\mathbb{Q}$ as a subfield. 
-\end{exmp}
+An interesting concept of independence arises in the study of field theory. We will present class of matroids derived from the concept of algebraic independence. For the rest of this section we will use the notation $\mathbb K / \mathbb F$ to refer to some field $\mathbb K$ and a subfield $\mathbb F$. See \hyperref[sec:appendix-fields]{the appendix} for an introduction to fields and subfields.
 
 \begin{defn}
 	A subset $S = \{ s_1 \ldots s _n \} \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent (over $\mathbb F$) if there does not exist any
-	nonzero multivariable polynomial in $n$ variables $f \in \mathbb{F}[X _1 \ldots X _n]$, with coefficients in $\mathbb{F} $, such that the evaluation homomorphism $\ev_{(s_1, s_2,\cdots,s_n)}(f) = 0.$
+	nonzero multivariable polynomial in $n$ variables $f \in \mathbb{F}[X _1 \ldots X _n]$, with coefficients in $\mathbb{F} $, such that the evaluation homomorphism $\ev_{(s_1, s_2,\cdots,s_n)}(f) = 0$.
 	%\begin{align*}
 	%\text{for all } f \in \mathbb{F}[X _1 \ldots X _n], \left( f \neq  0 \land  f(s _1 \ldots s _n) = 0\right).
 	%\end{align*}
@@ -24,9 +16,7 @@ Intuitively, the definition says that if we just multiply and add the elements o
 We know that an element $x\in \mathbb{R}$ is called transcendental with respect to $\mathbb{Q}$ if for nonzero polynomials with rational coefficients $\ev_{x}(p) \neq 0$. That means that any nontrivial polynomial evaluated at $x$ will never give 0.
 Comparing with the definition of algebraically independent sets above, we see that a singleton ${x}$ is algebraically independent by our defintion, if for any nonzero  single variable ($n = 1$) polynomial $p$ with coefficients in $\mathbb{Q}$ we will have that $\ev_{x}(p) \neq 0$. This is precisely the definition of transcendental numbers.
 
-
-
-Although it is well known that the complex numbers $e$ and $\pi$ are transcendental over $\mathbb{Q}$, it hasn't yet been proven that $\{e, \pi \}$ is algebraically independent.
+Although it is well known in the mathematical community that the complex numbers $e$ and $\pi$ are transcendental over $\mathbb{Q}$, it hasn't yet been proven that $\{e, \pi \}$ is algebraically independent.
 
 We will now discuss the notion of algebraic dependence.
 
@@ -34,14 +24,14 @@ We will now discuss the notion of algebraic dependence.
 	Let $a \in \mathbb K / \mathbb F$ and $B = \{b _1, \ldots, b _n \} \subseteq  \mathbb K / \mathbb F$. We say that $a$ is algebraically dependent on $B$ (over $ \mathbb{F} $) if $a$ is algebraic over $\mathbb F(b _1, \ldots, b _n )$. Given some $A \subseteq  \mathbb K / \mathbb{F} $, we say that $A$ is algebraically dependent on $B$ (over $\mathbb{F} $) if every element of $A$ if algebraic on $B$ (over $\mathbb{F} $).
 \end{defn}
 
-Before continuing onto the next lemma, we remind the reader that a field $\mathbb{K}$ has a natural $\mathbb{K}$-vector space structure, thus scalars are elements of $\mathbb{F} $ and vectors being elements of $\mathbb K$. Moreover, the vector space induced by $\mathbb{F} (a)$ over $\mathbb{F} $ when $a$ is algebraic over $\mathbb{F} $ is finite dimensional.
+Before continuing onto the next lemma, we remind the reader that a field $\mathbb{K}$ has a natural $\mathbb{K}$-vector space structure, thus scalars are elements of $\mathbb{F} $ and vectors being elements of $\mathbb K$. Moreover, the vector space induced by $\mathbb{F} (a)$ over $\mathbb{F} $ when $a$ is algebraic over $\mathbb{F} $ is finite dimensional. For more details see lemmas (\ref{lem:field-extension-vector-space}) and (\ref{lem:algebraic-field-finite-vector-space}).
 
 \begin{lemma}\label{lem:algebraic-transitivity}
 	Consider $a, b \in \mathbb K / \mathbb{F} $ such that $a$ is algebraic over $\mathbb{F}(b) $ and $b$ is algebraic over $\mathbb{F}$. It then follows that $a$ is algebraic over $\mathbb{F}$.
 \end{lemma}
 
 \begin{proof}
-	The vector spaces induced by $\mathbb{F} (b)$ and $\mathbb{F} (b)(a)$ must both be finite dimenssional over $\mathbb{F} $ and $\mathbb{F} (b)$ respectively (because $b$ is algebraic over $\mathbb{F} $ and $a$ is algebraic over $\mathbb{F} (b)$ respectively). It follows that $\mathbb{F} (b)(a)$ is finitely dimenssional over $\mathbb{F}$ (this can easly be seen by noticing that given a basis $a _i $ for $\mathbb{F} (b)(a)$ over $\mathbb{F} (b)$ and a basis $b _i $ for $\mathbb{F} (b)$ over $\mathbb{F} $, we can form a basis $a _i b _j $ for $\mathbb{F} (b)(a)$ over $\mathbb{F} $).
+	The vector spaces induced by $\mathbb{F} (b)$ and $\mathbb{F} (b)(a)$ must both be finite dimenssional over $\mathbb{F} $ and $\mathbb{F} (b)$ respectively (because $b$ is algebraic over $\mathbb{F} $ and $a$ is algebraic over $\mathbb{F} (b)$ respectively). It follows that $\mathbb{F} (b)(a)$ is finitely dimenssional over $\mathbb{F}$ (this can be seen by noticing that given a basis $a _i $ for $\mathbb{F} (b)(a)$ over $\mathbb{F} (b)$ and a basis $b _i $ for $\mathbb{F} (b)$ over $\mathbb{F} $, we can form a basis $a _i b _j $ for $\mathbb{F} (b)(a)$ over $\mathbb{F} $).
 
 	Let $n$ be the dimenssion of $\mathbb{F} (b)(a)$ over $\mathbb{F} $. Let $S = \{a ^0 \ldots a ^n \}$. Because $|S| = n + 1$, $S$ cannot be linearly independent (in the vector space induced by $\mathbb{F} (b)(a)$ over $\mathbb{F} $), which means a polynomial $f \in \mathbb{F} [x]$ exists such that $f(a) = 0$.
 \end{proof}
