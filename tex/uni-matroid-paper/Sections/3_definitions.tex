@@ -27,7 +27,7 @@ or
 
 \textit{3.** If $X \subseteq E$ and $I_1, I_2$ are maximal members of $\{ I \in \mathcal{I} | I \subseteq X \}$, then $|I_1| = |I_2|$.}
 
-In  figure \ref{first1234} you find a representation of a matroid by writing all subsets of the ground set $\{1,2,3,4\}$ and coloring them accordingly. The independent sets are colored in orange. It is clear that the empty set is independent and that all subsets of independent sets are independent. The dependent sets, colored in cyan, are the sets that are not independent.
+In  figure \ref{fig:1234-matroid-independent-sets} we find a representation of a matroid by writing all subsets of the ground set $\{1,2,3,4\}$ and coloring them accordingly. The independent sets are colored in orange. It is clear that the empty set is independent and that all subsets of independent sets are independent. The dependent sets, colored in cyan, are the sets that are not independent.
 
 
 \begin{figure}[h]
@@ -58,7 +58,7 @@ In  figure \ref{first1234} you find a representation of a matroid by writing all
 \end{tikzpicture} % why does it say this??? Did you forget a semicolon?
 \end{center}
 \caption{Diagram of a 4-element matroid, with dependent and independent sets colored accordingly.}
-\label{first1234}
+\label{fig:1234-matroid-independent-sets}
 \end{figure}
 
 
@@ -171,7 +171,7 @@ Let $M = (E, \mathcal{I})$ be a matroid. We call a subset $B \subseteq E$ a \tex
 
 The concept of a bases is important because it allows us to define a \textit{rank function} of a matroid, which computes the size of the maximal independent subset inside a given subset of a matroid.  Because the sizes of all of such sets --- bases --- are equal, this will be a well-defined notion.
 
-In figure~\ref{1234bases}, we find a depiction of the matroid we've seen in section 2.1. In addition, we also highlight the bases of the matroid in red. Two properties can be observed:
+In figure~\ref{fig:1234-matroid-bases}, we find a depiction of the matroid we've seen in section 2.1. In addition, we also highlight the bases of the matroid in red. Two properties can be observed:
 \begin{enumerate}
     \item The bases are the maximally independent subsets, which means that all of their proper supersets are dependent. 
     \item Both bases contain two elements (they have the same size).
@@ -205,7 +205,7 @@ In figure~\ref{1234bases}, we find a depiction of the matroid we've seen in sect
 \end{tikzpicture}
 \end{center}
 \caption{Diagram of a 4-element matroid, with bases in red.}
-\label{1234bases}
+\label{fig:1234-matroid-bases}
 \end{figure}
 
 Similar to the set of independent sets, we can characterize the set of bases of $M$ using the following two properties.

@@ -22,12 +22,14 @@ Similarly, as with the independent set definition, we can use circuits to formul
     
 \end{defn}
 
-Again, we will use the same matroid example as before, this time adding circuits to the drawing (in blue). The circuits are minimal dependent sets where everything above them is a dependent set. Also note how all independent sets do not contain any circuit.
+\begin{exmp}
+  Consider figure (\ref{fig:1234-matroid-circuits}). This is the same matroid example as in figure (\ref{fig:1234-matroid-bases}). We've also highlighted circuits (in blue). The circuits are minimal dependent sets where sets above are dependent. Also note how all independent sets contain no circuits.
+\end{exmp}
 
-\begin{center}
 \begin{figure}
+  \label{fig:1234-matroid-circuits}
+\begin{center}
 \begin{tikzpicture}
-
 \matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
  & & &\textcolor{cyan}{
 1234} & & & &\\
@@ -50,8 +52,8 @@ Again, we will use the same matroid example as before, this time adding circuits
 % \caption{Figure 3: Diagram of a 4-element matroid}
 \end{tikzpicture}
 \caption{Diagram of a 4-element matroid, with circuits in blue}
-\end{figure}
 \end{center}
+\end{figure}
 
 To get an intuition behind (C3), let us consider the matroid induced by the graph in figure (\ref{fig:amogus}). We will discuss graphic matroids later, but for now consider cycles of the graph as circuits. The diagram highlights two two circuits --- $C_1$ and $C_2$ --- that share an edge ($e$). Taking the union of both circuits and removing $e$ yields a subgraph contains another cycle --- circuit $C_3$.
 
