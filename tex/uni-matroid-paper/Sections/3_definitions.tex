@@ -146,7 +146,6 @@ We will now define another important class of matroids. Due to its simplicity it
     
 It is easy to check that $U_{m,n}$ is indeed a matroid. 
 
-
 \begin{enumerate}
    
 
@@ -309,7 +308,7 @@ We are going to show the first cryptomorphism, referring to the idea that matroi
 The rank function is a function $\rank :2^E \rightarrow \mathbb{Z}_{\geq0}$ that, when given a $X\subseteq E(M)$, gives you the cardinality of a maximal independent set contained in $X$. In other words:
 
 $$ \rank(X) = \max\{\, |I| \; | \,\, I\in\mathcal{I} \text{ and } I\subseteq X \} $$
-For example,$\rank(E(M))=|B|$ for some $B\in\mathcal{B}(M)$, and we define $\rank(M) = \rank(E(M))$. We can characterize the rank function with the following properties:
+For example, $\rank(E(M))=|B|$ for some $B\in\mathcal{B}(M)$, and we define $\rank(M) = \rank(E(M))$. We can characterize the rank function with the following properties:
 
 \begin{theorem}
     Let $M$ be a matroid on a ground set $E$, and let $\rank : 2^E \rightarrow \mathbb{Z}_{\geq0}$ be its rank function. Then $\rank$ satisfies these properties.
@@ -364,7 +363,7 @@ Now, let us prove that the rank function of a matroid satisfies these properties
         
         Now, let us take a look at the set $I_{A\cup B}\cap A$. Since the set is contained in $A$ and $I_{A\cup B}$, the property (I2) tells us that $I_{A\cup B}\cap A$ is in independent set contained in $A$. Since the set may or may not be maximal we know by definition, $|I_{A\cup B}\cap A|\leq \rank(A)$. Similarly, $|I_{A\cup B}\cap B|\leq \rank(B) $.
 
-        We will now use the well known fact that for any sets $X$ and $Y$, it holds that $|X\cup Y|=|X|+|Y|-|X\cap Y|$, in other words 
+        We will now use the well known fact that for any sets $X$ and $Y$, it holds that $|X\cup Y|=|X|+|Y|-|X\cap Y|$, in other words $|X|+|Y|=|X\cup Y|+|X\cap Y|$.
         
         $$ \rank(A)+\rank(B) \geq |I_{A\cup B}\cap A|+|I_{A\cup B}\cap B| $$
         $$ = |(I_{A\cup B}\cap A)\cup(I_{A\cup B}\cap B)|+|(I_{A\cup B}\cap A)\cap(I_{A\cup B}\cap B)| $$
@@ -372,7 +371,7 @@ Now, let us prove that the rank function of a matroid satisfies these properties
 
         Since $I_{A\cup B}\subseteq A\cup B$, we see that $I_{A\cup B}\cap(A\cup B) = I_{A\cup B}$.
 
-        Because $I_{A\cap B}\subseteq I_{A\cup B}$ and $I_{A\cap B}\subseteq A\cup B$, it tells us that $I_{A\cup B}\cap (A\cap B) \supseteq I_{A\cap B}\cap (A\cap B) = I_{A\cap B} $. Let $e\in I_{A\cup B}\cap (A\cap B)$. Aiming for contradiction, suppose $e\notin I_{A\cap B}$. Since $I_{A\cap B}\cup e \subseteq I_{A\cup B} $, $I_{A\cap B}\cup e$ must be an independent set contained in $A\cap B$. This contradicts the fact that $I_{A\cap B}$ is a maximal in that regard. Thus, $e\in I_{A\cap B}$. This proves that $I_{A\cup B}\cap(A\cap B)\subseteq I_{A\cap B} $, which implies equality between the two sets.
+        Because $I_{A\cap B}\subseteq I_{A\cup B}$ and $I_{A\cap B}\subseteq A\cup B$, it tells us that $I_{A\cup B}\cap (A\cap B) \supseteq I_{A\cap B}\cap (A\cap B) = I_{A\cap B} $. Let $e\in I_{A\cup B}\cap (A\cap B)$. Aiming for contradiction, suppose $e\notin I_{A\cap B}$. Since $e\in I_{A\cup B}$, we can see that $I_{A\cap B}\cup e \subseteq I_{A\cup B} $, which implies that $I_{A\cap B}\cup e$ must be an independent set contained in $A\cap B$. This contradicts the fact that $I_{A\cap B}$ is a maximal in that regard. Thus, $e\in I_{A\cap B}$. This proves that $I_{A\cup B}\cap(A\cap B)\subseteq I_{A\cap B} $, which implies equality between the two sets.
 
         Thus,
 
