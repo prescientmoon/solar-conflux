@@ -6,6 +6,6 @@
 *.blg
 *.bbl
 *.pdf
-!./Material/*.pdf
 *.out
 *.toc
+!Material/*.pdf
