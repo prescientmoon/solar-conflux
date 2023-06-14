@@ -18,7 +18,7 @@ Closure also has interesting interpretation in the case of our main examples of 
 The operator has numerous important properties. This time we will immediately prove the reverse statement. Namely, that these characteristic properties \textit{uniquely characterize} the closure operator of a matroid.
 
 \begin{theorem}
-Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Then $\cl$ is the closure operator of $M$ \textbf{if and only if}
+Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Then $\cl$ is the closure operator of $M$ if and only if
 
 \begin{enumerate}
     \item[(CL1)] For any $X \subseteq E$ we have $X \subseteq \cl (X)$
@@ -35,9 +35,9 @@ Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Th
     All the four statements in the \textit{only if} direction (assuming $\cl$ is the closure operator) are pretty straightforward, and we will prove them first. We first assume $\cl$ is the closure operator and would like to show the four properties.
 
     \begin{enumerate}
-        \item If $X\subseteq E$ is arbitrary, and we pick any element $x \in X$ then $X \cup x = X$. Consequently, $r(X \cup x)= r(X)$ thus $x \in \cl(X)$ by definition of the closure operator which shows the inclusion $X \subseteq \cl(X)$.
+        \item[CL1] If $X\subseteq E$ is arbitrary, and we pick any element $x \in X$ then $X \cup x = X$. Consequently, $r(X \cup x)= r(X)$ thus $x \in \cl(X)$ by definition of the closure operator which shows the inclusion $X \subseteq \cl(X)$.
 
-        \item Let $X \subseteq Y \subseteq E$
+        \item[CL2] Let $X \subseteq Y \subseteq E$
         and $x \in \cl(X)$. This is equivalent to saying $\rank(X \cup x) = \rank(X)$. Because we would like to show that $x \in \cl(Y)$ we would by definition like that $\rank(Y \cup x) = \rank(Y).$ In particular, we observe that we can without loss of generality assume $x \in \cl(X) - Y$ since the result trivially follows if $x$ is already in $Y$. 
         
         This immediately incentivizes us to check some rank function inequalities containing the sets $X, Y - X$ and these sets containing $x.$ In particular, it would be good if we would come to the inequality 
@@ -53,11 +53,11 @@ Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Th
 
         So we have shown the inclusion $\cl(X) \subseteq \cl(Y)$ which was our goal.
 
-        \item By combining the first and the second property already of closure we have already proven, the inclusion $\cl(X) \subseteq \cl(\cl(X))$  follows. We have to exhibit the reverse one as well, so suppose $z\in \cl(\cl(X))$. This means $\rank(\cl(X) \cup z)= \rank(\cl(X))) = \rank(X)$ where the last inequality follows by the \ref{rankextension}, namely for all $v \in \cl(X)$ we by definition have $\rank(X \cup v) = \rank(X)$ so by the \ref{rankextension} we have $\rank(\cl(X)) = \rank(X)$. But now we have, since $X \subseteq \cl(X)$ that $$\rank(X) \leq \rank(X \cup z) \leq \rank(\cl(X)\cup z) = \rank(X)$$
+        \item[CL3] By combining the first and the second property already of closure we have already proven, the inclusion $\cl(X) \subseteq \cl(\cl(X))$  follows. We have to exhibit the reverse one as well, so suppose $z\in \cl(\cl(X))$. This means $\rank(\cl(X) \cup z)= \rank(\cl(X))) = \rank(X)$ where the last inequality follows by the \ref{rankextension}, namely for all $v \in \cl(X)$ we by definition have $\rank(X \cup v) = \rank(X)$ so by the \ref{rankextension} we have $\rank(\cl(X)) = \rank(X)$. But now we have, since $X \subseteq \cl(X)$ that $$\rank(X) \leq \rank(X \cup z) \leq \rank(\cl(X)\cup z) = \rank(X)$$
 
        therefore, the equality holds in all inequalities above. In particular, this means that $\rank(X \cup z) = \rank(X)$ which by definitions means that $z \in \cl(X)$. So the desired inclusion $ \cl(\cl(X))\subseteq \cl(X)$ also holds, which finally implies the desired equality of sets $\cl(\cl(X))= \cl(X).$
 
-        \item Let $X \subseteq E$ be arbitrary and $b \in \cl(X \cup a) - \cl(X)$. Since, $b \in \cl(X \cup a)$ we have $\rank((X\cup a)\cup b) = \rank((X\cup b) \cup a) = \rank(X \cup a)$ by definition. 
+        \item[CL4] Let $X \subseteq E$ be arbitrary and $b \in \cl(X \cup a) - \cl(X)$. Since, $b \in \cl(X \cup a)$ we have $\rank((X\cup a)\cup b) = \rank((X\cup b) \cup a) = \rank(X \cup a)$ by definition. 
 
         Now since $b \notin \cl(X)$ then by definition $\rank(X \cup b)\neq \rank(X)$, and because $X \subseteq X \cup b$ we have by (R2) that $\rank(X \cup b) > \rank(X)$. In particular, since the rank function measures the size of the largest independent set inside a given subset, we have that $\rank(X \cup b) = \rank(X)+1.$ 
 
