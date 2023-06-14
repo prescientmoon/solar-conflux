@@ -146,7 +146,7 @@ We consider a concrete example of a simple graph and build a matroid out of it. 
 Not surprisingly, the set $E$ with the collection $\mathcal{C}$ being as its set of circuits is, in fact, a matroid. We can check that $\emptyset$ is not in $\mathcal{C}$, none of its members is properly contained in another, and finally 'circuit elimination axiom' works for all three possibilities of taking pairs of elements of $\mathcal{C}$. We will now prove that this works for a general graph.
 %``stuff"
 
-\begin{theorem}
+\begin{theorem}\label{graphicproof}
 Let $G = (V, E)$ be a graph and let $\mathcal{C}$ be the collection of all sets of edges of cycles in $G$. Then $M$ with the ground set $E$ (the set of edges) is matroid with $\mathcal{C}$ as collection of circuits. In particular, if $C_1$, $C_2$ are distinct sets of edges of cycles  and $e \in C_1 \cap C_2 $ then there exists a set of edges of cycle $C_3$ such that $C_3 \subset C_1 \cap C_2 -e$.
 \end{theorem}
 
@@ -287,6 +287,12 @@ To conclude, the collection of edges of cycles $\mathcal{C}$ satisfies the circu
 
 \end{proof}
 
+
+%\begin{remark}
+  %  We also came up with an alternative proof of (C3) for simple graphs in theorem (\ref{graphicproof}), which is shorter, but is less intuitive than the one used, which merely formulized the notion of 'going around the graph'. 
+
+   % Namely, we know that if $C_1$ and $C_2$ are sets of edges of cycles and if $V_1$ and $V_2$ are their sets of vertices, then we know that $|V_1| = |C_1|$ and $|V_2| = |C_2|$. Because the cycles share an edge (we are assuming we are not in the trivial case $|C_1 \cap C_2| = 0$) then the subgraph induced by the edge set $C_1 \cup C_2 - e$ has $|V_1| + |V_2| - 2$ vertices, we just remove the vertices that $e$ connects.
+%\end{remark}
 
 \begin{defn}
     We call a matroid $M$ graphic if it is isomorphic to $(E, \mathcal{I})$ where $E$ is the set of edges of some graph and the set of circuits is given by the set of all edge cycles.
