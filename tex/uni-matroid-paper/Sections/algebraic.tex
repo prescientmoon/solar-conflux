@@ -98,7 +98,7 @@ We will now show that all bases in our supposed matroid have equal cardinality.
 \begin{proof}
 	Let $A$ and $B$ be maximal independent subsets of $E$. If both sets are $\emptyset$, then our proof is done. If one set is $\emptyset$ and one isn't, we clearly have a contradiction, as $\emptyset$ is a strict subset of the other set, hence not maximal. We therefore assume the existence of some $a \in A$ and $b \in B$.
 
-	We know that $A$ is maximal, therefore any $b \in B$ is algebraically dependent on $A$. We can therefore conclude that $B$ is algebraically dependent on $B$. We recall that $B$ is also independent, which means we can use lemma (\ref{lem:algebraic-indep-smaller-than-dep}) to prove that $|A| \geq |B|$. We can apply a similar argument to show that $|B| \geq |A|$, which together with our previous statement shows that $|A| = |B|$, proving the lemma.
+	We know that $A$ is maximal, therefore any $b \in B$ is algebraically dependent on $A$. Therefore, we can conclude that $B$ is algebraically dependent on $B$. Furthermore, we recall that $B$ is also independent, which means we can use the lemma (\ref{lem:algebraic-indep-smaller-than-dep}) to prove that $|A| \geq |B|$. We can apply a similar argument to show that $|B| \geq |A|$, which together with our previous statement shows that $|A| = |B|$, proving the lemma.
 \end{proof}
 
 \begin{proof}[Proof of theorem (\ref{thm:algebraic-matroids-are-matroids})]

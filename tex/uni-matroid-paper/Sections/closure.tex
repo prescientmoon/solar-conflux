@@ -3,7 +3,7 @@
 
 We will introduce one more important notion, the one of closure operator. As the name operator suggests, it is a map between objects of the same type. Our objects are of course the subsets of the ground set of a matroid. The idea of the closure operator is that it adds to any subset $X \subseteq E$ whatever is left in $E$ that does not change the rank when added to $X$. In doing so it will produce \textit{closed sets} which are in matroid theory called flats, another collection of subsets with distinctive properties. 
 
-Closure will also admit desirable interpretation in the case of the prototypical examples of representable and graphic matroids. In the case of representable matroids, in will add to $X$ all elements which are in the vector span of $X$ and contained in $E$ (thus it will not increase the vector rank of $E$). In the case of graphic matroids it will add to any set of edges all edges that create cycles between its sets of vertices (thus will not increase the size of spanning forrest).
+Closure will also admit desirable interpretation in the case of the prototypical examples of representable and graphic matroids. In the case of representable matroids, in will add to $X$ all elements which are in the vector span of $X$ and contained in $E$ (thus it will not increase the vector rank of $E$). In the case of graphic matroids it will add to any set of edges all edges that create cycles between its sets of vertices (thus will not increase the size of the spanning forest).
 
 \begin{defn}
     Let $M = (E, \mathcal{I})$ be a matroid. The closure operator is a function $\cl: 2^E \to 2^E$ such that
@@ -13,7 +13,7 @@ Closure will also admit desirable interpretation in the case of the prototypical
     
 \end{defn}
 
-The operator has numerour important properties and we will immediatly also prove the reverse statement. Namely that these characteristic properties \textit{uniquely characterize} the closure operator of a matroid.
+The operator has numerous important properties. And also, we will immediately prove the reverse statement. Namely, that these characteristic properties \textit{uniquely characterize} the closure operator of a matroid.
 
 \begin{theorem}
 Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Then $\cl$ is the closure operator of $M$ \textbf{if and only if}
@@ -30,15 +30,15 @@ Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Th
 
 
 \begin{proof}
-    All of the four statements in the only if direction (assuming $\cl$ is the closure operator) are pretty straightforward and we will prove them first. We first assume $\cl$ is the closure operator and would like to show the four properties.
+    All the four statements in the only if direction (assuming $\cl$ is the closure operator) are pretty straightforward, and we will prove them first. We first assume $\cl$ is the closure operator and would like to show the four properties.
 
     \begin{enumerate}
-        \item If $X\subseteq E$ is arbitrary and we pick any element $x \in X$ then $X \cup x = X$. Consequently $r(X \cup x)= r(X)$ thus $x \in \cl(X)$ by defintion of the closure operator which shows the inclusion $X \subseteq \cl(X)$.
+        \item If $X\subseteq E$ is arbitrary, and we pick any element $x \in X$ then $X \cup x = X$. Consequently, $r(X \cup x)= r(X)$ thus $x \in \cl(X)$ by definition of the closure operator which shows the inclusion $X \subseteq \cl(X)$.
 
         \item Let $X \subseteq Y \subseteq E$
         and $x \in \cl(X)$. This is equivalent to saying $\rank(X \cup x) = \rank(X)$. Because we would like to show that $x \in \cl(Y)$ we would by definition like that $\rank(Y \cup x) = \rank(Y).$ In particular, we observe that we can without loss of generality assume $x \in \cl(X) - Y$ since the result trivially follows if $x$ is already in $Y$. 
         
-        This immediatly incentivizes us to check some rank function inequalities containing the sets $X, Y - X$ and these sets containing $x.$ In particular, it would be good if we would come to the inequality 
+        This immediately incentivizes us to check some rank function inequalities containing the sets $X, Y - X$ and these sets containing $x.$ In particular, it would be good if we would come to the inequality 
         $\rank(Y\cup x) \leq \rank(Y)$.
         So our goal is to choose a suitable set $A$ such that $Y \cup A = Y \cup x$ while $\rank(Y \cap A) = \rank(A)$ and we could use the semi-modular inequality of the rank function (R3). More specifically, what we would like is
 
