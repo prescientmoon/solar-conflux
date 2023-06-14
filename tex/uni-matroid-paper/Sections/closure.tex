@@ -1,9 +1,11 @@
+
+\newpage
 \section{Closure Operator}
 
 
-We will introduce one more important notion, the one of closure operator. As the name operator suggests, it is a map between objects of the same type. Our objects are of course the subsets of the ground set of a matroid. The idea of the closure operator is that it adds to any subset $X \subseteq E$ whatever is left in $E$ that does not change the rank when added to $X$. In doing so it will produce \textit{closed sets} which are in matroid theory called flats, another collection of subsets with distinctive properties. 
+We will introduce one more important notion, the one of closure operator. As the name 'operator' suggests, it is a map between objects of the same type. Our objects are, of course, the subsets of the ground set of a matroid. The idea of the closure operator is that it adds to any subset $X \subseteq E$ whatever is left in $E$ that does not change the rank when added to $X$. In doing so it will produce \textit{closed sets} which are in matroid theory called flats, another collection of subsets with distinctive properties. 
 
-Closure will also admit desirable interpretation in the case of the prototypical examples of representable and graphic matroids. In the case of representable matroids, in will add to $X$ all elements which are in the vector span of $X$ and contained in $E$ (thus it will not increase the vector rank of $E$). In the case of graphic matroids it will add to any set of edges all edges that create cycles between its sets of vertices (thus will not increase the size of the spanning forest).
+Closure also has interesting interpretation in the case of our main examples of representable and graphic matroids. In the case of representable matroids, it adds to $X$ all elements which are in the vector span of $X$ and contained in $E$ (thus it will not increase the vector rank of $E$). In the case of graphic matroids it will add to any set of edges, all edges that create cycles between its sets of vertices (thus will not increase the size of the spanning forest).
 
 \begin{defn}
     Let $M = (E, \mathcal{I})$ be a matroid. The closure operator is a function $\cl: 2^E \to 2^E$ such that
@@ -13,7 +15,7 @@ Closure will also admit desirable interpretation in the case of the prototypical
     
 \end{defn}
 
-The operator has numerous important properties. And also, we will immediately prove the reverse statement. Namely, that these characteristic properties \textit{uniquely characterize} the closure operator of a matroid.
+The operator has numerous important properties. This time we will immediately prove the reverse statement. Namely, that these characteristic properties \textit{uniquely characterize} the closure operator of a matroid.
 
 \begin{theorem}
 Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Then $\cl$ is the closure operator of $M$ \textbf{if and only if}
@@ -89,9 +91,9 @@ Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Th
     $$\beta((B_1-x)\cup y) = \beta(\beta((B_1-x )\cup y)) = \beta(\beta((B_1 - x)\cup y)\cup x) \supset \beta(B_1) = E.$$
     
     
-    Thus $(B_1 - x) \cup y$ is in $\mathcal{B}'$ by definition, since its $\beta$ is $E$. We still have to show that $(B_1 - x)\cup y$ is minimal.
+    Thus, $(B_1 - x) \cup y$ is in $\mathcal{B}'$ by definition, since its $\beta$ is $E$. We still have to show that $(B_1 - x)\cup y$ is minimal.
     
-    Therefore we will prove separatly that all of the members of $\mathcal{B}$ have the same size. Let $B_{min}$ be a member of $\mathcal{B}$ with the smallest size and $B_3$ a member of $\mathcal{B}$ such that among all such possible pairs ($B_{min}$ has the smallest number of elements and $B_3$ is another member of $\mathcal{B}$ not equal to $B_{min}$) we have that $|B_{min} \cap B_3|$ is maximal. Since both elements are minimal members of $\mathcal{B}'$ they are not subsets of each other. In particular this means we can choose $x \in B_{min} - B_3$. 
+    Therefore, we will prove separately that all the members of $\mathcal{B}$ have the same size. Let $B_{min}$ be a member of $\mathcal{B}$ with the smallest size and $B_3$ a member of $\mathcal{B}$ such that among all such possible pairs ($B_{min}$ has the smallest number of elements and $B_3$ is another member of $\mathcal{B}$ not equal to $B_{min}$) we have that $|B_{min} \cap B_3|$ is maximal. Since both elements are minimal members of $\mathcal{B}'$ they are not subsets of each other. In particular, this means we can choose $x \in B_{min} - B_3$. 
     
     We know that $\beta(B_{min}-x) \neq E$ and what is more, by the similar argument as before, there has to be $y \in B_3 - \beta(B_{min} - x)$, since otherwise $B_3 \subseteq \beta(B_{min} - x)$ which would mean that $E = \beta(B_3)\subseteq \beta(\beta(B_{min}-x)) = \beta(B_{min} - x)$ which is a contradiction. 
     
@@ -102,7 +104,7 @@ Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Th
     
     Second we see that $|((B_{min}-x)\cup y) \cup B_3| = |B_{min}\cup B_3|+1$ which contradicts the maximality of pair $(B_{min} ,B_3)$. 
     
-    So all the elements of $\mathcal{B}$ have the same size, which in  particular implies that $(B_1 - x) \cup y \in \mathcal{B}$ since its $\beta$  is $E$ what we wanted to show.
+    So all the elements of $\mathcal{B}$ have the same size, which in  particular implies that $(B_1 - x) \cup y \in \mathcal{B}$ since it is $\beta$  is $E$ what we wanted to show.
     
 
 \end{enumerate}
@@ -112,31 +114,28 @@ The last thing to check is if $\beta$ is, in fact, the closure operator for the 
 
 We know that $\beta$ and $\cl'$ already do coincide on some sets, precisely the ones that contain a basis, for such $X$ we have $\beta(X) = \cl'(X) = E.$
 
-Second thing to note is that $\beta$ preserves rank, i.e., we always have $\rank'(\beta(X)) = \rank'(X)$ for all $X\subseteq E$. We will prove this by contradiction, let $\rank'(M) = n$. Suppose there is some subset $X$ with $k  = \rank'(X)<\rank'(\beta(X)) = l$ (applying $\beta$ to $X$ has to increase the rank because $X \subseteq \beta(X)$). Then the largest indepenent set $L$ of $\beta(X)$ has the size $l$. We know $L$ is in some basis $B$ of $\mathcal{B}$, i.e. $L \subseteq B$. Let us observe the set $X \cup (B-L)$.  Its largest independent set has the size at most $k + (n-l)<n$, because the largest independent set of $X$ has size $k$ and we added $|B-L| = n - l$ elements to it, so we increase it by at most $n-l$. The point is that because $k<l$ we have $k + (n-l)<n$, which in particular means that \textit{there is no basis} in $X \cup (B-L)$ and that its rank is less than $n.$
+Second thing to note is that $\beta$ preserves rank, i.e., we always have $\rank'(\beta(X)) = \rank'(X)$ for all $X\subseteq E$. We will prove this by contradiction, let $\rank'(M) = n$. Suppose there is some subset $X$ with $k  = \rank'(X)<\rank'(\beta(X)) = l$ (applying $\beta$ to $X$ has to increase the rank because $X \subseteq \beta(X)$). Then the largest independent set $L$ of $\beta(X)$ has the size $l$. We know $L$ is in some basis $B$ of $\mathcal{B}$, i.e. $L \subseteq B$. Let us observe the set $X \cup (B-L)$.  Its largest independent set has the size at most $k + (n-l)<n$, because the largest independent set of $X$ has size $k$ and we added $|B-L| = n - l$ elements to it, so we increase it by at most $n-l$. The point is that because $k<l$ we have $k + (n-l)<n$, which in particular means that \textit{there is no basis} in $X \cup (B-L)$ and that its rank is less than $n.$
 
 
 But on the other hand, we have
 
 $$L \subseteq \beta(X) \subseteq \beta(X \cup (B-L))$$ and $$B-L \subseteq \beta(X \cup (B-L))$$ which in particular means that $B \subseteq \beta(X \cup (B-L)$. Finally, this would mean that  
 $E = \beta(B)\subseteq \beta(\beta(X \cup (B-L))) = \beta(X \cup (B-L))$ which would imply, by definition of $\mathcal{B}$ that $X \cup (B-L)
-\in \mathcal{B}$ - which ultimately means it \textit{contains a basis} of our matroid. But we have already established this is not the case so we have come upon a contradiciton. Therefore $\beta$ preserves rank.
-The fact that $\beta$ preserves rank and looking at the definition of the closure operator, namely that it puts in all of the elements which preserve rank we have thus obtained the inclusion $\beta(X) \subseteq \cl'(X)$ for all subsets $X.$
+\in \mathcal{B}$ - which ultimately means it \textit{contains a basis} of our matroid. But we have already established this is not the case, so we have come upon a contradiction. Therefore, $\beta$ preserves rank.
+The fact that $\beta$ preserves rank and looking at the definition of the closure operator, namely that it puts in all the elements which preserve rank, we have thus obtained the inclusion $\beta(X) \subseteq \cl'(X)$ for all subsets $X.$
 
-Finally, suppose for contradiction that for some $X$ the latter inclusion $\beta(X) \subseteq \cl'(X)$ is proper and additionally assume that $X$ is a maximal set with this properties (at some point this will have to stop since for $X =E$ the equality $\beta(E) = \cl'(E) = E$ holds.) First, we pick $x \in E - \cl'(X)$ such that $\cl'(X\cup x) - \cl'(X)$ is nonempty (there exists such an $x$ because $X$ does not contain a basis, otherwise, the equality $\beta(X) = \cl'(X) = E$ would hold).
-Because of the maximality of $X$ we hence know that $\beta(X\cup x) = \cl'(X \cup x)$ holds. Also since the inclusion $\beta(X) \subseteq \cl'(X)$ is proper, we can pick $r \in \cl'(X) - \beta(X)$. In particular, we then have that $r \in \beta(X\cup x) - \beta(X)$ so by (CL4) we have $x \in \beta(X\cup r)$.
+Finally, suppose for contradiction that for some $X$ the latter inclusion $\beta(X) \subseteq \cl'(X)$ is proper and additionally assume that $X$ is a maximal set with these properties (at some point this will have to stop since for $X =E$ the equality $\beta(E) = \cl'(E) = E$ holds.) First, we pick $x \in E - \cl'(X)$ such that $\cl'(X\cup x) - \cl'(X)$ is nonempty (there exists such an $x$ because $X$ does not contain a basis, otherwise, the equality $\beta(X) = \cl'(X) = E$ would hold).
+Because of the maximality of $X$ we hence know that $\beta(X\cup x) = \cl'(X \cup x)$ holds. Also, since the inclusion $\beta(X) \subseteq \cl'(X)$ is proper, we can pick $r \in \cl'(X) - \beta(X)$. In particular, we then have that $r \in \beta(X\cup x) - \beta(X)$ so by (CL4) we have $x \in \beta(X\cup r)$.
 
 However, this means that $X \cup x \subseteq \beta(X\cup r)$ and since $X\cup r \subseteq \cl'(X)$ we have that $\rank'(X\cup r) = 
 \rank'(X)$. But on the other hand $$\rank'(X) + 1= \rank'(X\cup x) = \rank'(\beta(X\cup x))\leq \rank'(\beta(\beta(X\cup r))) = \rank'(\beta(X\cup r)) = \rank'(X\cup r) = \rank'(X)$$
 
 which is a contradiction. So our initial assumption that the inclusion $\beta(X) \subseteq \cl'(X)$ is proper for some $X$ was false, which implies that $\beta(X) = \cl'(X)$ for all $X$ and we are done.
 
-
-
-
 \end{proof}
 
 
-With the definition of closure operator we can three more important family of subsets of a matroid.
+With the definition of closure operator we can define three more important family of subsets of a matroid.
 
 \begin{defn}
     Let $M = (E, \mathcal{I})$ be a matroid with the rank function $\rank$ closure operator $\cl.$ We call a subset $X \subseteq E$ a flat if $\cl(X) = X$ holds. We call a subset $H \subseteq E$ a hyperplane if $H$ is a rank with $\rank(H) = \rank(E)-1$. Finally, we call a subset $S \subseteq E$ a spanning set if $\cl(S) = E$.
