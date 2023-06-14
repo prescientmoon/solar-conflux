@@ -161,7 +161,7 @@ It is easy to check that $U_{m,n}$ is indeed a matroid.
 
 Let $M = (E, \mathcal{I})$ be a matroid. We call a subset $B \subseteq E$ a \textit{basis} if it is a \textit{maximal independent set}. That means that $B$ is an independent set and $B$ is not properly contained inside any other independent set. It turns out that bases for matroids and bases for vector subspaces have some similarities in their properties. In particular the third property of independent sets immedietly guarantees us that all matroid bases have the same size, just like vector bases for finite-dimensional vector spaces.
 
-\begin{theorem}
+\begin{theorem} \label{thm:bases-have-equal-size}
     Let $M = (E, \mathcal{I})$ be a matroid. Then all bases of $M$ have the same size.
 \end{theorem}
 
@@ -169,9 +169,13 @@ Let $M = (E, \mathcal{I})$ be a matroid. We call a subset $B \subseteq E$ a \tex
     Aiming for contradiction, suppose that the theorem does not hold. Let $B$ and $S$ be two bases with $|B| < |S|$ - different size. By the third property of independent sets we know there exists $e \in S - B$ such that $ B \cup e \in \mathcal{I}$. However, then $B$ is properly contained inside $B \cup e$, another independent set, which contradicts its maximality. So the initial assumption that there exist two bases with different size is false.
 \end{proof}
 
-The concept of a basis is important because it allows us to define a \textit{rank function} of a matroid which is the size of the maximal independent subset inside a given subset of a matroid.  Because the sizes of all of such sets - bases - are equal, this will be a well-defined notion.
+The concept of a bases is important because it allows us to define a \textit{rank function} of a matroid, which computes the size of the maximal independent subset inside a given subset of a matroid.  Because the sizes of all of such sets --- bases --- are equal, this will be a well-defined notion.
 
-In figure \ref{1234bases} you find a depiction of the matroid we have seen in section 2.1. This time, we have added the bases of the matroid, colored red. Two properties can be observed. First of all, the bases are the maximal independent, which means that all of the sets they are strictly contained in are dependent. Second, both bases have two elements - the same size.
+In figure~\ref{1234bases}, we find a depiction of the matroid we've seen in section 2.1. In addition, we also highlight the bases of the matroid in red. Two properties can be observed:
+\begin{enumerate}
+    \item The bases are the maximally independent subsets, which means that all of their proper supersets are dependent. 
+    \item Both bases contain two elements (they have the same size).
+\end{enumerate}
 
 \begin{figure}[h]
 
@@ -207,19 +211,21 @@ In figure \ref{1234bases} you find a depiction of the matroid we have seen in se
 Similar to the set of independent sets, we can characterize the set of bases of $M$ using the following two properties.
 
 \begin{theorem}\label{thm:basis-properties}
-    Let $M$ be a matroid with $E$ as its ground set, and $\mathcal{B}$ be the set of bases of $M$, which we defined as the maximal independent sets. Then $\mathcal{B}$ satisfies the following properties.
+    Let $M$ be a matroid with $E$ as its ground set, and $\mathcal{B}$ be the set of bases (maximal independent sets) of $M$. Then $\mathcal{B}$ satisfies the following properties.
     \begin{enumerate}
-        \item[(B1)] $\mathcal{B}$ is non-empty
+        \item[(B1)] $\mathcal{B}$ is non-empty.
         \item[(B2)] If $B_1,B_2\in\mathcal{B}$ and $x\in B_1 - B_2$, then there exists $y\in B_2 - B_1$ such that $(B_1 - x)\cup y \in\mathcal{B}$.
     \end{enumerate}
 \end{theorem}
 
-Let us prove that the set of bases of a matroid satisfy the properties (B1) and (B2):
-\begin{proof}
-    To prove the first property observe that by defintion $\emptyset$ is always in $\mathcal{I}$ so the collection of independent sets is nonempty. This directly implies that the collection of bases is nonempty, because if we pick any independent set, there are finitely many independent sets it is included in. Than the we can pick the ones with the largest number of elements, since they are maximal. % for instance, an independent set with largest number of elements (there is at least one independent set! so we can talk about the largest one satisfying some properties) will be a basis, since it cannot be contained inside other independent set.
-    
-    
-    For the second property let $x\in B_2 - B_1$. We first note that (I2) implies that $B_1 - x$ is independent, since it is a subset of $B_1$. Since $|B_1-x|<|B_2|$, we can apply (I3) on independent sets $B_1-x$ and $B_2$ to get that there exists a $y\in B_2-(B_1-x)$ such that $(B_1-x)\cup y \in\mathcal{I}$. Since $|(B_1-x)\cup y|=|B_1|$ and that all maximal independent sets have the same cardinality, $(B_1-x)\cup y$ must be a maximal independent set - thus a basis. Because $y$ is also in $B_2-B_1$, the property is fulfilled.
+Let us prove that the set of bases of a matroid satisfies the properties (B1) and (B2):
+\begin{proof} We will prove each property individually:
+    \begin{enumerate}
+        \item[(B1)] 
+            To prove the first property, observe that by (I1), $\emptyset$ is always in $\mathcal{I}$ so the collection of independent sets is nonempty. This directly implies that the collection of bases is nonempty. We can now apply lemma (\ref{lem:nonempty-finite-posets-have-maximal-elements}) on the partially ordered set of independent sets induced by inclusion to prove that some basis must exist.
+        \item[(B2)]
+          For the second property let $x\in B_2 - B_1$. We first note that (I2) implies that $B_1 - x$ is independent, since it is a subset of $B_1$. Since $|B_1-x|<|B_2|$, we can apply (I3) on independent sets $B_1-x$ and $B_2$ to get some $y\in B_2-(B_1-x)$ such that $(B_1-x)\cup y \in\mathcal{I}$. Since $|(B_1-x) + y|=|B_1|$ and all maximal independent sets have the same cardinality (see theorem (\ref{thm:bases-have-equal-size})), $(B_1-x)\cup y$ must be a maximal independent set --- thus a basis. Because $y$ is also in $B_2-B_1$, the property is fulfilled.
+    \end{enumerate}
 \end{proof} 
 
 
