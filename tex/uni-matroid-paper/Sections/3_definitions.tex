@@ -206,7 +206,7 @@ In figure \ref{1234bases} you find a depiction of the matroid we have seen in se
 
 Similar to the set of independent sets, we can characterize the set of bases of $M$ using the following two properties.
 
-\begin{theorem}\label{basesproperties}
+\begin{theorem}\label{thm:basis-properties}
     Let $M$ be a matroid with $E$ as its ground set, and $\mathcal{B}$ be the set of bases of $M$, which we defined as the maximal independent sets. Then $\mathcal{B}$ satisfies the following properties.
     \begin{enumerate}
         \item[(B1)] $\mathcal{B}$ is non-empty
@@ -238,7 +238,7 @@ Even though we have already proven that the set of bases of a matroid is equicar
 
 We are going to show the first cryptomorphism, referring to the idea that matroids can be defined not by the collection of independent sets but by its collection of bases. To show that the two properties (B1) and (B2) are sufficient to describe the bases of $M$, we will prove that if $\mathcal{B}$ is any collection of subsets satisfying the bases axioms, then the independent sets are all of the possible subsets of the the elements of $\mathcal{B}$.
 
-\begin{theorem}
+\begin{theorem}\label{thm:basis-axioms-form-matroid}
     Let $\mathcal{B}$ be a collection of subsets of a non-empty finite set $E$, satisfying (B1) and (B2). Let $\mathcal{I}=\{ I\subseteq B \; | \; B\in\mathcal{B} \}$. Then $(E,\mathcal{I})$ is a matroid with $\mathcal{B}$ as its set of bases.
 \end{theorem}
 

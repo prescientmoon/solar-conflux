@@ -92,7 +92,7 @@ We start by introducing some useful lemmas:
 We will now show that all bases in our supposed matroid have equal cardinality.
 
 \begin{lemma}\label{lem:algebraic-matroid-equal-size-bases}
-	Given some finite subset $E \subseteq \mathbb K / \mathbb F$, maximal independent subsets of $E$ (in the partially ordered set induced by inclusion) have equal cardinality.
+	Given some finite subset $E \subseteq \mathbb K / \mathbb F$, maximally independent subsets (bases) of $E$ have equal cardinality.
 \end{lemma}
 
 \begin{proof}
@@ -102,11 +102,11 @@ We will now show that all bases in our supposed matroid have equal cardinality.
 \end{proof}
 
 \begin{proof}[Proof of theorem (\ref{thm:algebraic-matroids-are-matroids})]
-	We will construct the matroid using the basis definition. We need to first show that at least one exists, and then show that the exchange property holds.
-
-	We consider the partially ordered set of independent subsets of $E$ ordered by inclusion. We notice that $ \emptyset $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\emptyset $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element, so a basis exists.
-
-	It now remains to prove the exchange property. That is, given two bases $A, B \subseteq \mathcal B$ and some $a \in A \setminus B$, we can find some $b \in B \setminus A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two bases have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-bases})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \leq n - 1$, hence a contradiction.
+	We will construct the matroid using the basis definition (theorem (\ref{thm:basis-axioms-form-matroid})). We need to first show that at least one exists, and then show that the exchange property holds.
+	\begin{enumerate}
+		\item[(B1)] We consider the partially ordered set of independent subsets of $E$ ordered by inclusion. We notice that $ \emptyset $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\emptyset $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element, so a basis exists.
+		\item[(B2)] It now remains to prove the exchange property. That is, given two bases $A, B \subseteq \mathcal B$ and some $a \in A \setminus B$, we can find some $b \in B \setminus A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two bases have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-bases})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \leq n - 1$, hence a contradiction.
+	\end{enumerate}
 \end{proof}
 
 
