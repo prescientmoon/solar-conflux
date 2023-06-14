@@ -267,7 +267,7 @@ From the previous theorem a remarkable result follows almost directly.
 \end{corollary}
 
 \begin{proof}
-    We prove the Corollary above. Suppose we have a matroid $M$ with rank $m$, this is, the bases of $M$ have size $m$ (as well as its ground set). Then, by assumption, without loss of generality we can say that M can be represented by an $m \times n$ matrix $H$, such that $H=[I_{m \times m}|D_{m \times (n-m)}]$ over $\mathbb{F}$. Then by Theorem \ref{}
+    We prove the Corollary above. Suppose we have a matroid $M$ with rank $m$, this is, the bases of $M$ have size $m$. Then, by assumption, without loss of generality we can say that $M$ can be represented by an $m \times n$ matrix $H$ (with $1\leq n < m$), such that $H=[I_{m}|D_{m \times (n-m)}]$ over $\mathbb{F}$. Then by Theorem \ref{DualRepMat} its dual is represented by $H^*=[-D^T|I_{(n-m) \times (n-m)}]=[-D_{(n-m) \times m}|I_{(n-m)}]$, which clearly is still over the same field $\mathbb{F}$.
 \end{proof}
 
 \begin{exmp}
