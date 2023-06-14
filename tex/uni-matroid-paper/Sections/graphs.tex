@@ -172,7 +172,7 @@ To show that the set $E$ is a matroid with the collection $\mathcal{C}$ of cycle
 \begin{subfigure}[h]{0.245\textwidth}
   \caption{Graph}
 \begin{tikzpicture}[node distance={10mm}, thick, main/.style = {draw,circle,fill,inner sep=1pt}] 
-  \node[main] (1) at (0,0) {}; 
+  \node[main] (1) at (0,0) {v_1}; 
   \node[main] (3) at (-0.5,0.5) {}; 
   \node[main] (4) at (0, 1) {}; 
   \node[main] (5) at (0, -1) {}; 
@@ -183,8 +183,7 @@ To show that the set $E$ is a matroid with the collection $\mathcal{C}$ of cycle
   \node[main] (10) at (1, -1) {}; 
   \node[main] (11) at (0.75, -0.5) {}; 
   \draw (1) to [bend left] (3);
-  \draw (1) to [bend right=90]
-node[midway, right] {e} (4) ;
+  \draw (1) to [bend right=90] (4) ;
   \draw (3) to [bend left] (4);
   \draw (4) to [bend left] (7);
   \draw (7) to [bend left] (8);
@@ -193,8 +192,8 @@ node[midway, right] {e} (4) ;
   \draw (6) to (10);
   \draw (9) to [bend left] (11);
   \draw (10) to [bend right] (11);
-  \draw (5) to (1);
-  \draw (1) to (11)
+  \draw (5) -- node[midway,left] {e} (1);
+  \draw (1) to (11);
 \end{tikzpicture} 
 \end{subfigure}
 \begin{subfigure}[h]{0.245\textwidth}
@@ -290,14 +289,15 @@ To conclude, the collection of edges of cycles $\mathcal{C}$ satisfies the circu
 \end{proof}
 
 
-
 \begin{defn}
     We call a matroid $M$ graphic if it is isomporphic to $(E, \mathcal{I})$ where $E$ is the set of edges of some graph and the set of circuits is given by the set of all edge cycles.
 \end{defn}
 
+
+
 We thus know that given any graph $G$ we have natural matroid structure on its set of edges, by declaring graph cycles to be circuits. Because we know other equivalent descriptions of matroids it is natural to ask what are the independent sets or bases in the case of graphic matroids. 
 
-Suppose that the set of edges $B$ is a base of a graphic matroid. We know that this means that $B$ is independent (interpretation of which in the case of graphic matroids we do not yet know) however, adding any element of $E-B$ to $B$, i.e. any edge not in $B$ to $B$, we get a \textit{dependent set}, which means it contains a circuit. By our defintion this means that it has to contain an edge cycle. Combining all we see that the set of edges $B$ has the property that it does not contain any cycles, however adding any edge makes a cycle - this is the precisely one of the equivalent characterizations of \textit{spanning forrests} - we cannot say spanning trees because the graph might not be connencted. 
+Suppose that the set of edges $B$ is a base of a graphic matroid. We know that this means that $B$ is independent (we do not yet know how to spot the independent sets in graphs) however, adding any element of $E-B$ to $B$, i.e. any edge not in $B$ to $B$, we get a \textit{dependent set}, which means it contains a circuit. By our defintion this means that it has to contain an edge cycle. Combining all we see that the set of edges $B$ has the property that it does not contain any cycles, however adding any edge makes a cycle - this is the precisely one of the equivalent characterizations of \textit{spanning forrests} - we cannot say spanning trees because the graph might not be connencted. 
 
 Any independent set is a subset of some basis, so in graphic matroids the set of edges that is independent has to be a subset of some spanning forrest, which means it is just a forrest.
 
