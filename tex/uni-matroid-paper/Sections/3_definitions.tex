@@ -3,12 +3,12 @@
 
 \subsection{Independent sets}
 
-We will begin with the first possible way of defining what a \textit{matroid} is. This way is arguably the simplest one because the properties are intuitive and not hard to visualize. When speaking about matroids we will always deal with finite sets, and the way we obtain a matroid from a finite set is to select some special selection of its subsets.  these special sets correspond to the \textit{independent} sets, and should obey some distinctive properties. This idea is precisely what the following definition is about.
+We will begin with the first possible way of defining what a \textit{matroid} is. This way is arguably the simplest one because the properties are intuitive and not hard to visualize. When speaking about matroids, we will always deal with finite sets, and the way we obtain a matroid from a finite set is to select some special selection of its subsets.  These special sets correspond to the \textit{independent} sets, and should obey some distinctive properties. This idea is precisely what the following definition is about.
 
 \begin{defn}
-    Let $E$ be a finite set, possibly empty and $\mathcal{I}$ a collection of subsets of $E$ (i.e. some subset of the power set $2^E$ of E). We call the ordered pair $M = (E, \mathcal{I})$ a matroid if the following three properties are satisfied
+    Let $E$ be a finite set, possibly empty, and $\mathcal{I}$ a collection of subsets of $E$ (i.e. some subset of the power set $2^E$ of E). We call the ordered pair $M = (E, \mathcal{I})$ a matroid if the following three properties are satisfied
 
-    \begin{enumerate}
+    \begin{enumerate}[start=1,label={(\bfseries I\arabic):}]
         \item We have $\emptyset \in \mathcal{I}$.
         
         \item If $I \in \mathcal{I}$ and $J \subset I$, then $J \in \mathcal{I}$.
@@ -19,7 +19,7 @@ We will begin with the first possible way of defining what a \textit{matroid} is
     We call elements of $\mathcal{I}$ \textbf{independent sets}. We will refer to these three properties as (I1), (I2) and (I3).
 \end{defn}
 
-There are some  alternatives to property 3 that are equivalent, for example we could alternatively write
+There are some alternatives to the third property that are equivalent, for example we could alternatively write
 
 \textit{3.* If $I, J \in \mathcal{I} $ and $|J| = |I| + 1$, then there exists $e \in J - I$ such that $I \cup e \in \mathcal{I}$.}
 
@@ -27,10 +27,11 @@ or
 
 \textit{3.** If $X \subseteq E$ and $I_1, I_2$ are maximal members of $\{ I \in \mathcal{I} | I \subseteq X \}$, then $|I_1| = |I_2|$.}
 
-Below you find a representation of a matroid by writing all subsets of the ground set $\{1,2,3,4\}$ and coloring them accordingly. The independent sets are the ones colored in orange. You can clearly see that the empty set is independent and that all subsets of independent sets are independent. The dependent sets, colored in cyan, are the sets that are not independent.
+In  figure \ref{first1234} you find a representation of a matroid by writing all subsets of the ground set $\{1,2,3,4\}$ and coloring them accordingly. The independent sets are colored in orange. It is clear that the empty set is independent and that all subsets of independent sets are independent. The dependent sets, colored in cyan, are the sets that are not independent.
 
 
 \begin{figure}[h]
+
 \begin{center}
 \begin{tikzpicture}
 
@@ -57,6 +58,7 @@ Below you find a representation of a matroid by writing all subsets of the groun
 \end{tikzpicture} % why does it say this??? Did you forget a semicolon?
 \end{center}
 \caption{Diagram showing independent and dependent sets of a 4-element matroid.}
+\label{first1234}
 \end{figure}
 
 
@@ -177,7 +179,7 @@ Similar to the set of independent sets, we can characterize the set of bases of 
     \end{enumerate}
     We will refer to these two properties as (B1) and (B2).
 \end{defn}
-Here below, you find a depiction of the matroid we have seen in chapter 2.1. This time, he have added the bases of the matroid, colored red. Two properties can be observed, first the bases are the maximal independent sets and both bases have two elements - the same size.
+In figure 2 you find a depiction of the matroid we have seen in chapter 2.1. This time, he have added the bases of the matroid, colored red. Two properties can be observed, first the bases are the maximal independent sets and both bases have two elements - the same size.
 
 \begin{figure}[h]
 
@@ -304,11 +306,11 @@ Again, we will use the same matroid example as before, this time adding circuits
 \draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
 
 \node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}};
-
+% \caption{Figure 3: Diagram of a 4-element matroid}
 \end{tikzpicture}
 \end{center}
 
-To get an intuition behind (C3), let us consider the matroid induced by the graph above. We will discuss graphic matroid later, but just know that a circuit is a cycle in the graph. Here, we have two circuits, $C_1$ and $C_2$, that share an edge, $e$. If you take the union of both circuits and remove the edge $e$ from it, then that subgraph contains another cycle, circuit $C_3$.
+To get an intuition behind (C3), let us consider the matroid induced by the graph in figure 3. We will discuss graphic matroid later, but just know that a circuit is a cycle in the graph. Here, we have two circuits, $C_1$ and $C_2$, that share an edge, $e$. If you take the union of both circuits and remove the edge $e$ from it, then that subgraph contains another cycle, circuit $C_3$.
 
 % Someone please fix this!
 
