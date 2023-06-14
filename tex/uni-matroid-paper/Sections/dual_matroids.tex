@@ -6,9 +6,7 @@ The concept of \textit{duality} is an interesting feature of matroid theory. It 
 
 % I DONT THING THE ABOVE PARAGRAPH ADDS ANY CONTENT
 
-If we have a matroid $M$, with sets $(E,B)$, or in other words $M$ is a matroid on $E$ with $B$ as its collection of bases. Then its dual will refer to a different and new matroid, which we denote by $M^*$. This new matroid has the property that it is "related" to the original matroid, so it has the same ground set $E$ of the original matroid $M$, but a different basis set, this new basis collection will be called $B^*$, so this gives us that $M^*$ will be defined by the following pair of sets $(E,B^*)$. Where $B^*$ will a set such that it is the complement of the bases set $B$ in $M$, which implies that, the bases set of $M$ and $M^*$ will be always disjoint.
-
-This can be seen more clearly in the following digram:
+If we have a matroid $M$, with sets $(E,B)$, or in other words $M$ is a matroid on $E$ with $B$ as its collection of bases. Then its dual will refer to a different and new matroid, which we denote by $M^*$. This new matroid has the property that it is "related" to the original matroid, so it has the same ground set $E$ of the original matroid $M$, but a different basis set, this new basis collection will be called $B^*$, so this gives us that $M^*$ will be defined by the following pair of sets $(E,B^*)$. Where $B^*$ will a set such that it is the complement of the bases set $B$ in $M$, which implies that, the bases set of $M$ and $M^*$ will be always disjoint. This can be seen more clearly in the following digram:
 \begin{figure}[H]
     \centering
 \begin{tikzpicture}
@@ -25,7 +23,6 @@ This can be seen more clearly in the following digram:
 
 We also have the depiction from previous sections, but now we will also add the one that will correspond to the dual on this specific case. To the \textbf{left} we have the depiction corresponding to the \textbf{original matroid}, and to the \textbf{right} we have the one corresponding to its \textbf{dual matroid}. 
 Notice that the ground set will be composed of 4 components $E=\{1,2,3,4\}$, and in the original matroid has bases $12$ and $23$, in red. So, its dual has bases $34$ and $14$, respectively, also in red but in the right-side diagram. This is because the complement of the elements $12$ is $34$, and the complement of $23$ is $14$.
-
 
 \begin{tikzpicture}[H]
 \centering
@@ -76,6 +73,7 @@ Notice that the ground set will be composed of 4 components $E=\{1,2,3,4\}$, and
 \end{tikzpicture}
 \end{center}
 
+
 We know that the basis set of a matroid is obtained from its set of independent sets $I$.
 Using this diagrams, we highlight an idea that will be useful later in this chapter.
 This is, that the basis set of a matroid is given by a subset of $E$, the remaining elements in $E$ that are not in the basis if added to it will be linearly dependent. Aditionally we can take any remaining element of $E$ and exchange it with an element in the basis, and we will have another basis for $E$. With this intuition in mind, we can continue with a theorem.
@@ -83,7 +81,7 @@ This is, that the basis set of a matroid is given by a subset of $E$, the remain
 
 To formalize the definition of $B^*$ we have the following:
 \begin{theorem}\label{dualbasis}
-    Let $M$ be a matroid given by $(E,B)$, and $B^*(M)$ be $\{E(M) - B:B\in B(M)\}$. Then $B^*(M)$ is the set of bases of a matroid on $E(M)$
+    Let $M$ be a matroid given by $(E,B)$, and $B^*(M)$ be $\{E(M) - B|B\in B(M)\}$. Then $B^*(M)$ is the set of bases of a matroid on $E(M)$
 \end{theorem}
 
 Or in other words, B* is the set of all the complement independent bases of $B$. Then we can give the following definition.
@@ -142,17 +140,17 @@ Now that we have introduced duals is useful to give some additional notation. Th
 \begin{proof}
     Let us prove Theorem \ref{propositionsofdualrelations}. All of the proofs follow directly from the definitions.
 
-    1) $\Rightarrow$ Suppose $X$ is independent. This means there exists a basis $B \in \mathcal{B}(M)$ so that $X \subseteq B$. Because $X \subseteq B \subseteq E$ and the operation of taking complements is ``inclusion reversing" we have $E-B \subseteq E - X$. Verifying directly, if $x \in E - B$ this means $x \in E$ and $x \notin B$. Because $X \subseteq B$ this implies that $x \in E$ and $x \notin X$ so by definition $x \in E - X$ and the conclusion follows. Because $E - B$ is a cobasis and $E - X$ is a set containing a cobasis, then it is a cospanning by definition.
+    1) $\implies$ Suppose $X$ is independent. This means there exists a basis $B \in \mathcal{B}(M)$ so that $X \subseteq B$. Because $X \subseteq B \subseteq E$ and the operation of taking complements is ``inclusion reversing" we have $E-B \subseteq E - X$. Verifying directly, if $x \in E - B$ this means $x \in E$ and $x \notin B$. Because $X \subseteq B$ this implies that $x \in E$ and $x \notin X$ so by definition $x \in E - X$ and the conclusion follows. Because $E - B$ is a cobasis and $E - X$ is a set containing a cobasis, then it is a cospanning by definition.
 
-    $\Leftarrow$ Similarly if $E - X$ is cospanning then it contains a cobasis which is by definition of the form $E - B$ for some $B \in \mathcal{B}(M)$. By the analogous reasoning as for the forward direction $E - B \subseteq E - X$ implies $X \subseteq B$. That is because if $x \in X$ then $x \notin E - X$ and $x \notin X - B$. This means $x \in B$ concluding $X \in B$. Since $B$ is an independent set then $X$ is an independent set as well, we are done.
+    $\impliedby$ Similarly if $E - X$ is cospanning then it contains a cobasis which is by definition of the form $E - B$ for some $B \in \mathcal{B}(M)$. By the analogous reasoning as for the forward direction $E - B \subseteq E - X$ implies $X \subseteq B$. That is because if $x \in X$ then $x \notin E - X$ and $x \notin X - B$. This means $x \in B$ concluding $X \in B$. Since $B$ is an independent set then $X$ is an independent set as well, we are done.
 
-    2) $\Rightarrow$ A set $X\subseteq E$ being spanning implies it contains a $B \in \mathcal{B}(M)$. So  $B \subseteq X$ which implies $E - X \subseteq E - B$. Because $E - B$ is cobasis by definition, any of its subsets are coindependent. 
+    2) $\implies$ A set $X\subseteq E$ being spanning implies it contains a $B \in \mathcal{B}(M)$. So  $B \subseteq X$ which implies $E - X \subseteq E - B$. Because $E - B$ is cobasis by definition, any of its subsets are coindependent. 
 
-    $\Leftarrow$ If $E - X$ is coindependent, it is contained in a cobasis, so by definition there exists a $B \in \mathcal{B}$ so that $E - X \subseteq E - B$. As before this implies that $B \subseteq X$ and $X$ is spanning.
+    $\impliedby$ If $E - X$ is coindependent, it is contained in a cobasis, so by definition there exists a $B \in \mathcal{B}$ so that $E - X \subseteq E - B$. As before this implies that $B \subseteq X$ and $X$ is spanning.
 
-    3)  $\Rightarrow$ If $X$ is a hyperplane, then $X$ is not spanning, but for all $y \in E - X$ we have $X \cup y$ is spanning, which means there is for every such $y$ a basis $B_y \in \mathcal{B}$ so that $B_y \subseteq X \cup y $. By b) we know that $X$ is not spanning implies $E - X$ is not coindependent. But for any $z \in E - X$ we have $(E-X)-z = E - (X \cup z)$ is coindependent because $X \cup z$ is spanning. So $E - X$ is a cocircuit by definition.
+    3)  $\implies$ If $X$ is a hyperplane, then $X$ is not spanning, but for all $y \in E - X$ we have $X \cup y$ is spanning, which means there is for every such $y$ a basis $B_y \in \mathcal{B}$ so that $B_y \subseteq X \cup y $. By b) we know that $X$ is not spanning implies $E - X$ is not coindependent. But for any $z \in E - X$ we have $(E-X)-z = E - (X \cup z)$ is coindependent because $X \cup z$ is spanning. So $E - X$ is a cocircuit by definition.
 
-    $\Leftarrow$ Conversly, if $E - X$ is a cocircuit, then $E-X$ is not coindependent but for all $x \in E - X$ we have $(E - X) - x$ = $E - (X \cup x)$ is coindependent. By b) this means that $X$ is not spanning but for all $x \in E-X$, we have $X \cup x$ is spanning, so $X$ is a hyperplane.
+    $\impliedby$ Conversly, if $E - X$ is a cocircuit, then $E-X$ is not coindependent but for all $x \in E - X$ we have $(E - X) - x$ = $E - (X \cup x)$ is coindependent. By b) this means that $X$ is not spanning but for all $x \in E-X$, we have $X \cup x$ is spanning, so $X$ is a hyperplane.
 
     4) This follows the same process as the previous proofs.
 \end{proof}
@@ -210,10 +208,12 @@ We can now use this construction to determine the dual of a vector matroid using
 \end{theorem}
 
 \begin{proof}
-    We assume that $[I_r|D]$ is as in the contruction of the theorem above. Then $[-D^T|I_{n-r}]$ is as follows
+    We assume that $[I_r|D]$ is as in the contruction of the theorem above. Then $[-D^T|I_{n-r}]$ is as follows (See Figure \ref{MatRepresentationDual}).
     \begin{figure}[h]
         \centering
         \includegraphics{Sections/VMRDual.png}
+        \caption{Standart representative form of the dual of a matroid as established in Theorem \ref{DualRepMat}}
+        \label{MatRepresentationDual}
     \end{figure}
 
     Let $B$ be a basis of $M$. We need to show that $E-B$ is a basis of the vector matroid of $[-D^T|I_{n-r}]$. We can rearrange the columns of $[-D^T|I_{n-r}]$, such that $B=\{e_1,\dots,e_s, e_{r+1}, \dots, e_{r+(r-s)}$\}, for some $s \leq r$. This is possible because we know that it does not affect the corresponding matroid, so the only change it bring to rearrange rows and columns of $[I_r|D]$ is the rearrange of columns and rows of $[-D^T|I_{n-r}]$. 
@@ -324,7 +324,7 @@ To answer that we have the following theorem
 \begin{theorem}
     The dual of a graphic matroid is itself graphic if and only if the underlying graph is planar.
 \end{theorem}
-The proof for this theorem involves concepts outside of what was introdcued in this article. So it will not be given here. If you are interested in the proof it can be found in \cite{oxley1} (Section 2.3).
+The proof for this theorem involves concepts outside of what was introduced in this article. So it will not be given here. If you are interested in the proof it can be found in \cite{oxley1} (Section 2.3).
 
 \begin{exmp}
     Let us consider the bipartite graph $K_{3,3}$.

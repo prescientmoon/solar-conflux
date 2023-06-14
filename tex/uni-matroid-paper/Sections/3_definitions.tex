@@ -130,7 +130,7 @@ In order to talk about any classification of matroids we have to say when the tw
 
 
 \begin{defn}
-    We call a matroid $M$ representable, if $M$ is isomorphic to a matrix matroid $N[A]$ for some $A \in \mat_{m \times n}(\mathbb{F})$ over some field $\mathbb{F}$ and we call it $\mathbb{F}$-representable if it is representable over specific field $\mathbb{F}$.
+    We call a matroid $M$ representable, if $M$ is isomorphic to a matrix matroid $N[A]$ for some $A \in \mat_{m \times n}(\mathbb{F})$ over some field $\mathbb{F}$. Moreover, we  call it $\mathbb{F}$-representable if it is representable over specific field $\mathbb{F}$.
 \end{defn}
 
 We will now define another important class of matroids. Due to its simplicity it will be suitable as an example in many of the notions defined in the proceeding text.
@@ -306,20 +306,21 @@ We are going to show the first cryptomorphism, referring to the idea that matroi
 \newpage
 \section{Rank Function}
 
-The rank function is a function $r:2^E \rightarrow \mathbb{Z}_{\geq0}$ that, when given a $X\subseteq E(M)$, gives you the cardinality of the maximal independent set contained in $X$. In other words:
-$$ r(X) = \max\{\, |I| : I\in\mathcal{I} \text{ and } I\subseteq X \} $$
-For example, $r(M):=r(E(M))=|B|$ for some $B\in\mathcal{B}(M)$. Like all the previous times, we can characterize the rank function with the following properties:
+The rank function is a function $\rank :2^E \rightarrow \mathbb{Z}_{\geq0}$ that, when given a $X\subseteq E(M)$, gives you the cardinality of a maximal independent set contained in $X$. In other words:
 
-\begin{defn}
-    Let $E$ be a non-empty finite set, and let $\rank : 2^E \rightarrow \mathbb{Z}_{\geq0}$ be a function satisfying:
+$$ \rank(X) = \max\{\, |I| \; | \,\, I\in\mathcal{I} \text{ and } I\subseteq X \} $$
+For example,$\rank(E(M))=|B|$ for some $B\in\mathcal{B}(M)$, and we define $\rank(M) = \rank(E(M))$. We can characterize the rank function with the following properties:
+
+\begin{theorem}
+    Let $M$ be a matroid on a ground set $E$, and let $\rank : 2^E \rightarrow \mathbb{Z}_{\geq0}$ be its rank function. Then $\rank$ satisfies these properties.
     \begin{enumerate}
         \item[(R1)] If $X\subseteq E$, then $0 \leq \rank(X) \leq |X| $
         \item[(R2)] If $X\subseteq Y\subseteq E$, then $\rank(X)\leq\rank(Y)$
         \item[(R3)] If $X,Y\subseteq E$, then $\rank(X\cup Y)+\rank(X\cap Y) \leq \rank(X)+\rank(Y) $
     \end{enumerate}
-\end{defn}
+\end{theorem}
 
-In figure \ref{fig:1234-matroid-rank}, we again find our example matroid drawing. This time, instead of using a new color, we will denote the rank of each set by writing it in subscript below the set. We can see that the rank of any set is at most its cardinality, and each subset of some set has at most the rank of that set. As always, it takes a bit more effort to show that the last property holds for a given matroid.
+In figure \ref{fig:1234-matroid-rank}, we again find our example matroid drawing. We denote the rank of each set by writing it in subscript below the set. We can see that the rank of any set is at most its cardinality, and each subset of some set has at most the rank of that set. As always, it takes a bit more effort to show that the last property holds for a given matroid.
 
 \begin{center}
 \begin{tikzpicture}
@@ -351,24 +352,27 @@ In figure \ref{fig:1234-matroid-rank}, we again find our example matroid drawing
 \end{center}
 $$\text{Figure 4: Description of a 4-element matroid, with the rank of each set as subscript.}$$
 
-Now, let us prove that the rank function of a matroid satisfy these properties:
+Now, let us prove that the rank function of a matroid satisfies these properties.
 
 \begin{proof}
-    \,
     \begin{enumerate}
-        \item[(R1)] Since the co-domain is $\mathbb{Z}_{\geq0}$, $0\leq\rank(X)$. Since the maximal independent set contained in $X$ is... contained in $X$, the cardinality of that set must be smaller or equal to $|X|$. Thus, $0\leq\rank(X)\leq|X|$.
-        \item[(R2)] Let $I_X$ be a minimal independent set contained in $X$, so $\rank(X)=|I_X|$. $I_X\subseteq X\subseteq Y$ implies that $I_X$ is an independent set contained in $Y$. Since $I_X$ may or may not be a maximal independent set contained in $Y$, $\rank(X)=|I_X|\leq\rank(Y)$. 
-        \item[(R3)] We assume that $A\subseteq B\subseteq E$. Let $I_{A\cap B}$ be a maximal independent set contained in $A\cap B$. Since $A\cap B\subseteq A\cup B$, $I_{A\cap B}$ must be an independent set contained in $A\cup B$. Let $I_{A\cup B}$ be $I_{A\cap B}$ extended to be a \textbf{maximal} independent set contained in $A\cup B$. 
+        \item[(R1)] Since the co-domain of $\rank$ is $\mathbb{Z}_{\geq0}$ then  $\rank(X) \geq 0$. Let $I_X$ be a maximal independent set contained in $X$. By definition, we see that $|I_X|=\rank(X)$. Since $X\supseteq I_X$, it follows that $|X| \geq |I_X| = \rank(X)$.       Thus, $0\leq\rank(X)\leq|X|$ what we wanted to show.
         
-        Now, et us take a look at $I_{A\cup B}\cap A$. Since the set is contained in $A$, (I2) tells us that $I_{A\cup B}\cap A$ is in independent set contained in $A$. Since the set may or may not be maximal in that regard, $|I_{A\cup B}\cap A|\leq \rank(A)$. Similarly, $|I_{A\cup B}\cap B|\leq \rank(B) $.
+        \item[(R2)] Let $I_X$ be a minimal independent set contained in $X$, so $\rank(X)=|I_X|$. $I_X\subseteq X\subseteq Y$ implies that $I_X$ is an independent set contained in $Y$. Since $I_X$ is an independent set contained in $Y$ then by definition $|I_X|\leq \rank(Y)$ since $\rank(Y)$ is the size of the \textit{largest} independent set contained in $Y$. Finally, we get that $\rank(X)=|I_X|\leq \rank(Y)$ what we wanted to show.
         
-        $$ \rank(X)+\rank(Y) \geq |I_{A\cup B}\cap A|+|I_{A\cup B}\cap B| $$
+        \item[(R3)] We assume that $A\subseteq B\subseteq E$. Let $I_{A\cap B}$ be a maximal independent set contained in $A\cap B$. Since $A\cap B\subseteq A\cup B$, it means that $I_{A\cap B}$ must be an independent set contained in $A\cup B$. Let $I_{A\cup B}$ be $I_{A\cap B}$ \textit{extended} to be a \textbf{maximal} independent set contained in $A\cup B$. So $I_{A\cap B}\subseteq I_{A\cup B} \subseteq A\cup B$. 
+        
+        Now, let us take a look at the set $I_{A\cup B}\cap A$. Since the set is contained in $A$ and $I_{A\cup B}$, the property (I2) tells us that $I_{A\cup B}\cap A$ is in independent set contained in $A$. Since the set may or may not be maximal we know by definition, $|I_{A\cup B}\cap A|\leq \rank(A)$. Similarly, $|I_{A\cup B}\cap B|\leq \rank(B) $.
+
+        We will now use the well known fact that for any sets $X$ and $Y$, it holds that $|X\cup Y|=|X|+|Y|-|X\cap Y|$, in other words 
+        
+        $$ \rank(A)+\rank(B) \geq |I_{A\cup B}\cap A|+|I_{A\cup B}\cap B| $$
         $$ = |(I_{A\cup B}\cap A)\cup(I_{A\cup B}\cap B)|+|(I_{A\cup B}\cap A)\cap(I_{A\cup B}\cap B)| $$
         $$ = |I_{A\cup B}\cap (A\cup B)|+|I_{A\cup B}\cap (A\cap B)| $$
 
-        Since $I_{A\cup B}\subseteq A\cup B$, $I_{A\cup B}\cap(A\cup B) = I_{A\cup B}$.
+        Since $I_{A\cup B}\subseteq A\cup B$, we see that $I_{A\cup B}\cap(A\cup B) = I_{A\cup B}$.
 
-        Since $I_{A\cap B}\subseteq I_{A\cup B}$, $I_{A\cup B}\cap (A\cap B) \supset I_{A\cap B}\cap (A\cap B) = I_{A\cap B} $. Let $e\in I_{A\cup B}\cap (A\cap B)$. Aiming for contradiction, suppose $e\notin I_{A\cap B}$. Since $I_{A\cap B}\cup e \subseteq I_{A\cup B} $, $I_{A\cap B}\cup e$ must be an independent set contained in $A\cap B$. This contradicts the fact that $I_{A\cap B}$ is a maximal in that regard. Thus, $e\in I_{A\cap B}$. This proves that $I_{A\cup B}\cap(A\cap B)\subseteq I_{A\cap B} $, which implies equality between the two sets.
+        Because $I_{A\cap B}\subseteq I_{A\cup B}$ and $I_{A\cap B}\subseteq A\cup B$, it tells us that $I_{A\cup B}\cap (A\cap B) \supseteq I_{A\cap B}\cap (A\cap B) = I_{A\cap B} $. Let $e\in I_{A\cup B}\cap (A\cap B)$. Aiming for contradiction, suppose $e\notin I_{A\cap B}$. Since $I_{A\cap B}\cup e \subseteq I_{A\cup B} $, $I_{A\cap B}\cup e$ must be an independent set contained in $A\cap B$. This contradicts the fact that $I_{A\cap B}$ is a maximal in that regard. Thus, $e\in I_{A\cap B}$. This proves that $I_{A\cup B}\cap(A\cap B)\subseteq I_{A\cap B} $, which implies equality between the two sets.
 
         Thus,
 
