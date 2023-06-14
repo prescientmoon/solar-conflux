@@ -1,7 +1,50 @@
-\section{Partially ordered sets} \label{sec:appendix-poset}
- Hello world
+\newpage
+\section{Partially ordered sets}\label{sec:appendix-poset}
 
+\begin{defn}[Partially ordered set]
+ A partially ordered set is a pair containing a set $S$ and a partial order $\leq$. A partial order is a binary relation on $S$ with the following properties:
+ \begin{itemize}
+   \item $\forall x \in S, x \leq x$ (reflexivity)
+   \item $\forall a, b \in S, (a \leq b \land b \leq a) \implies a = b$ (anti-symmetry)
+   \item $\forall a, b, c \in S, (a \leq b \land b \leq c) \implies a \leq c$ (transitivity)
+ \end{itemize}
+ \end{defn}
+
+ \begin{exmp}
+   Given a set $U$, inclusion induces a partial order $(S, \subseteq )$ on any subset $S \subseteq 2 ^{U}$. All three properties follow from properties of $\subseteq $.
+ \end{exmp}
+
+ \begin{defn}[Maximal elements]
+   Given a partially ordered set $(S, \leq )$, an element $M \in S$ is said to be maximal if 
+   \begin{align*}
+    \forall c \in S,\: c \leq M \implies c = M.
+   \end{align*}
+ \end{defn}
+
+ \begin{remark}\label{rem:subsets-of-poset-are-posets}
+   Given a partially ordered set $(U, \leq )$ and a subset $S \subseteq U$, we can define a new partially ordered set $(S, \leq )$ by restricting $\leq$ to $S$.
+ \end{remark}
+
+ \begin{exmp}
+   Consider the partially ordered set induced by $\subseteq$ on the subsets of $U = \{1, 2, 3\}$. It can be checked by cases that $\{1, 2, 3\}$ is the only maximal element on $(2 ^U, \subseteq )$.
+ \end{exmp}
 
  \begin{lemma}\label{lem:nonempty-finite-posets-have-maximal-elements}
-   Every nonempty finite partially ordered set has at least one maximal element. 
+   Every nonempty finite partially ordered set $(S, \leq )$ has at least one maximal element. 
  \end{lemma}
+
+ \begin{proof}
+  We will prove the statement by induction on the size of $S$:
+  \begin{itemize}
+    \item If $S = \{e\}$ then $e$ is a maximal element.
+    \item Assume the statement holds for all $|S| = n$. We will attempt to prove it holds for $|S| = n + 1$ as well. 
+
+      Consider some arbitrary $s \in S$. By the induction hypothesis, $(S - s, \leq)$ (see remark (\ref{rem:subsets-of-poset-are-posets})) has a maximal element $M$. We will proceed by cases:
+      \begin{enumerate}
+        \item If $M$ is also a maximal element for $(S, \leq)$, we are done.
+        \item Otherwise, there must exist some $c \in S - M$ such that $M \leq  c$. If $c \in S - s$ we have a contraiction (because $M$ wouldn't be a valid maximal element for $(S - s, \leq )$). It then follows that $c = s$. 
+
+          We claim that $c$ is a maximal element. Consider $d \in S$ satisfying $c \leq d$. If $d = c$ we are done. Otherwise $d \in S - s$, so $d \leq M$ ($M$ is maximal for $(S - s, \leq )$), and by transitivity with $M \leq c$ we have $d \leq c$, which by anti-symmetri implies $d = c$.
+      \end{enumerate}
+  \end{itemize}
+ \end{proof}

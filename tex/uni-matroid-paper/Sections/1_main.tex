@@ -21,8 +21,7 @@
 \usepackage[dvipsnames]{xcolor}
 
 \usepackage[shortlabels]{enumitem}
-\usepackage[title]{appendix}
-
+\usepackage{appendix}
 
 % copypasted from 
 % https://www.dickimawbooks.com/latex/thesis/html/amsthm.html
@@ -100,10 +99,6 @@
 \input{conclusion}
 
 \begin{appendices}
-    % Nice appendix titles:
-    \renewcommand{\thesection}{\Alph{section} ---}
-
-
     \input{appendix-fields.tex}
     \input{appendix-poset.tex}
 \end{appendices}
