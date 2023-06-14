@@ -1,4 +1,4 @@
-x\subsection{Circuits}\label{sec:circuits}
+\subsection{Circuits}\label{sec:circuits}
 As mentioned above, we can define matroids in many different ways. One such way is defining matroids in terms of minimally dependent sets --- which we refer to as circuits.
 
 \begin{defn}
@@ -26,7 +26,7 @@ Similarly, as with the independent set definition, we can use circuits to formul
   Consider figure (\ref{fig:1234-matroid-circuits}). This is the same matroid example as in figure (\ref{fig:1234-matroid-bases}). We've also highlighted circuits (in blue). The circuits are minimal dependent sets where sets above are dependent. Also note how all independent sets contain no circuits.
 \end{exmp}
 
-\begin{figure}
+\begin{figure}[h]
 \begin{center}
 \begin{tikzpicture}
 \matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
@@ -60,7 +60,7 @@ To get an intuition behind (C3), let us consider the matroid induced by the grap
 \end{exmp}
 
 
-\begin{figure}
+\begin{figure}[h]
 \caption{A graph of suspicious shape, having three cycles.}
 \label{fig:amogus}
 \begin{subfigure}[h]{0.245\textwidth}
@@ -171,9 +171,9 @@ node[midway, right] {e} (4) ;
 \begin{proof} We will prove each property individually:
   
 \begin{enumerate}
-    \item $\emptyset \in \mathcal I$, therefore $\emptyset$ is not dependent (which means it cannot be a circuit)
-    \item A counterexample to this clause would violate the $C _2$ being minimal.
-    \item Assume a counterexample exists. Because $C _1 \cup C _2 - e$ does not contain a circuit, it must be an element of $\mathcal I$. 
+    \item[(C1)] $\emptyset \in \mathcal I$, therefore $\emptyset$ is not dependent (which means it cannot be a circuit)
+    \item[(C2)] A counterexample to this clause would violate $C _2$ being minimal.
+    \item[(C3)] Assume a counterexample exists. Because $C _1 \cup C _2 - e$ does not contain a circuit, it must be an element of $\mathcal I$. 
 
         We claim that $C _2 \setminus C _1$ is nonempty. Assume this is not the case. That would imply $C _2 \subseteq C _1$, but $C _1 \neq C _2 $ by (C3), which means that $C _1 $ is a proper subset of $C _2$. As both $C _1 $ and $C _2 $ are members of $\mathcal C$, this violates (C2), and is a contradiction. We can then assume some $f \in C _2 \setminus C _1 $ exists.
 

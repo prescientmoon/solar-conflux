@@ -21,6 +21,7 @@
 \usepackage[dvipsnames]{xcolor}
 
 \usepackage[shortlabels]{enumitem}
+\usepackage[title]{appendix}
 
 
 % copypasted from 
@@ -85,17 +86,12 @@
 \newpage
 \section{Introduction}
 \input{2_introduction}
-
-
 \input{3_definitions}
 
 %\input{graphic} already inside definitions
 
-
 \input{closure}
-
 \input{one_more_equivalence_because_why_not}
-
 
 %\input{U24} already put inside definitions section
 
@@ -103,14 +99,19 @@
 \input{dual_matroids}
 \input{conclusion}
 
-\appendix
-\input{appendix-fields.tex}
-\input{appendix-poset.tex}
+\begin{appendices}
+    % Nice appendix titles:
+    \renewcommand{\thesection}{\Alph{section} ---}
 
 
-\nocite{*} 
+    \input{appendix-fields.tex}
+    \input{appendix-poset.tex}
+\end{appendices}
+
+\nocite{*}
 \bibliographystyle{abbrv}
 \bibliography{sources}
 
 
 \end{document}
+
