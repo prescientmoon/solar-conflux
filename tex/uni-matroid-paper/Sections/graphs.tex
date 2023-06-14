@@ -1,10 +1,10 @@
 \section{Graphic Matroids}
 
 
-First, we do not define graphs in completely the same way as in the graph theory class. We used the definition that a graph $G$ is an ordered pair $G = (V, E)$ where $V$ is a finite set (of vertices) and $E$ is a collection of two-element subsets of $V$ (of edges). We will extend the notion of edge to include \textit{loops} and \textit{parallel edges}. For this, we will first illustrate the two notions. Intuitively a loop is an edge going from a vertex to itself, one can also have multiple loops on a single vertex.
+First, we are not just be interested in simple graphs. For reminder, a simple graph $G$ is an ordered pair $G = (V, E)$ where $V$ is a finite set (of vertices) and $E$ is a collection of two-element subsets of $V$ (of edges). We will extend the notion of edge to include \textit{loops} and \textit{parallel edges}. For this, we will first illustrate the two notions. Intuitively, a loop is an edge going from a vertex to itself and one can also have multiple loops on a single vertex. Parallel edges are intuitively multiple edges between the same vertices.
 
 
-For example, in the figure \ref{ilustratinloops}, we have a vertex $a$ with a single loop and vertex $d$ with 3 loops.
+%For example, in figure \ref{ilustratinloops}, we have a vertex $a$ with a single loop and vertex $d$ with 3 loops.
 
 \begin{figure}[H]
     \centering
@@ -79,7 +79,7 @@ For example, in the figure \ref{ilustratinloops}, we have a vertex $a$ with a si
 \end{figure}
 
 
-Above we see graphs $G$ and $H$, one has loops and the other has parallel edges. One way to formalize both constructions, as done in \cite{oxley1} (for them to behave in the way we would like them to behave) is to define a graph to be an ordered pair $(V, E)$, where $V$ is a finite set, so unchanged, however $E$ is a \textit{multiset} of edges. This allows the same two-element subset of $V$ to appear multiple (but at most finitely many) times in $E$, even though it is the same set. Hence, we get parallel edges. For loops, we can get to a multiset consisting of a single element twice, and we also allow it to appear multiple times...
+In figure \ref{ilustratinloops} we see graphs $G$ and $H$, the first one has loops and second other has parallel edges. One way to formalize both constructions, as done in \cite{oxley1} (for them to behave in the way we would like them to behave) is to define a graph to be an ordered pair $(V, E)$, where $V$ is a finite set, so unchanged, however $E$ is a \textit{multiset} of edges. This allows the same two-element subset of $V$ to appear multiple (but at most finitely many) times in $E$, even though it is the same set. Hence, we get parallel edges. For loops, we can get to a multiset consisting of a single element twice, and we also allow it to appear multiple times...
 However, the formal construction is not so important, as we will see in the future and one can usually restrict to simple graphs, which are by our terminology the ones without loops or parallel edges. However, we are interested in \textit{properties} loops and parallel edges have. In particular, we see that by our definition of a cycle (a path (a walk (a sequence of adjacent vertices) which does not repeat vertices) which can repeat only one vertex (the ending and the starting vertex)), we have that if a loop is in a cycle, then the whole cycle consists only of that loop - we have one vertex appearing multiple times in a sequence - the beginning/ending vertex. Also, for parallel edges, at most one from a class of parallel edges connecting the same two vertices can appear in a cycle.
 
 
