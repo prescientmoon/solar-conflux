@@ -1,0 +1,357 @@
+\subsection{Circuits}\label{sec:circuits}
+As mentioned above, we can define matroids in many different ways. One such way is defining matroids in terms of minimally dependent sets --- which we refer to as circuits.
+
+\begin{defn}
+Let $M = (E, \mathcal{I})$ be a matroid. Any subset $D \in \mathcal{I}$ which is not independent is called dependent. Circuits are minimal dependent sets of $M$. We will denote the collection by $\mathcal{C}(M)$. Additionally, we will refer to circuits of $M$ that have $n$ elements as $n$-circuits.
+\end{defn}
+
+The name is a reference to matroid circuits corresponding to circuits of the underlying graph when talking about graphic matroids (which we will discuss in section (\ref{sec:graphic-matroids})).
+
+Similarly, as with the independent set definition, we can use circuits to formulate an axiomatic definition of matroids. Moreover, in the same way we can use the independent sets of a matroid to determine its circuits, we can use the circuits of a matroid to determine its independent sets.
+
+\begin{defn}
+    Let $E$ be a non-empty finite set, and $\mathcal{C}$ a collection of subsets of $E$, called circuits, such that:
+
+    \begin{enumerate}
+        \item[C1)] $\emptyset \notin \mathcal{C}$
+
+        \item[(C2)] If $C_1$ and $C_2$ are members of $\mathcal{C}$ and $C_1 \subseteq C_2$, then $C_1 = C_2$.
+
+        \item[(C3)] If $C_1$ and $C_2$ are distinct members of $\mathcal{C}$ and there exist an $e \in C_1 \cap C_2$, then there is a member $C_3$ of $\mathcal{C}$, such that $C_3 \subseteq (C_1  \cup C_2) - e$
+    \end{enumerate}
+    
+\end{defn}
+
+Again, we will use the same matroid example as before, this time adding circuits to the drawing (in blue). The circuits are minimal dependent sets where everything above them is a dependent set. Also note how all independent sets do not contain any circuit.
+
+\begin{center}
+\begin{tikzpicture}
+
+\matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
+ & & &\textcolor{cyan}{
+1234} & & & &\\
+ \textcolor{cyan}{
+123}& &\textcolor{cyan}{
+124} & &\textcolor{cyan}{
+134} &  & \textcolor{cyan}{
+234}  \\
+\textcolor{red}{12} & \textcolor{blue}{13} & \textcolor{cyan}{14} & & \textcolor{red}{23} & \textcolor{cyan}{
+24} & \textcolor{cyan}{
+34} \\
+\textcolor{orange}{1}& &\textcolor{orange}{2} & & \textcolor{orange}{3}& & \textcolor{blue}{4} \\
+& & & \textcolor{orange}{\emptyset} &  & & \\
+&&&&&& \\};
+
+\foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
+\draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
+
+\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}};
+% \caption{Figure 3: Diagram of a 4-element matroid}
+\end{tikzpicture}
+\end{center}
+
+To get an intuition behind (C3), let us consider the matroid induced by the graph in figure (\ref{fig:amogus}). We will discuss graphic matroids later, but for now consider cycles of the graph as circuits. The diagram highlights two two circuits --- $C_1$ and $C_2$ --- that share an edge ($e$). Taking the union of both circuits and removing $e$ yields a subgraph contains another cycle --- circuit $C_3$.
+
+% Someone please fix this!
+
+
+\begin{figure}
+\label{fig:amogus}
+\caption{A graph of suspicious shape, having three cycles.}
+\begin{subfigure}[h]{0.245\textwidth}
+  \caption{Graph}
+\begin{tikzpicture}[node distance={10mm}, thick, main/.style = {draw,circle,fill,inner sep=1pt}] 
+  \node[main] (1) at (0,0) {}; 
+  \node[main] (3) at (-0.5,0.5) {}; 
+  \node[main] (4) at (0, 1) {}; 
+  \node[main] (5) at (0, -1) {}; 
+  \node[main] (6) at (1.5, -1) {}; 
+  \node[main] (7) at (0.75, 1.5) {}; 
+  \node[main] (8) at (1.5, 1) {}; 
+  \node[main] (9) at (0.5, -1) {}; 
+  \node[main] (10) at (1, -1) {}; 
+  \node[main] (11) at (0.75, -0.5) {}; 
+  \draw (1) to [bend left] (3);
+  \draw (1) to [bend right=90]
+node[midway, right] {e} (4) ;
+  \draw (3) to [bend left] (4);
+  \draw (4) to [bend left] (7);
+  \draw (7) to [bend left] (8);
+  \draw (8) to (6);
+  \draw (5) to (9);
+  \draw (6) to (10);
+  \draw (9) to [bend left] (11);
+  \draw (10) to [bend right] (11);
+  \draw (5) to (1);
+\end{tikzpicture} 
+\end{subfigure}
+\begin{subfigure}[h]{0.245\textwidth}
+  \caption{$C _1$}
+\begin{tikzpicture}[node distance={10mm}, thick, main/.style = {draw,circle,fill,inner sep=1pt}] 
+  \node[main] (1) at (0,0) {}; 
+  \node[main] (3) at (-0.5,0.5) {}; 
+  \node[main] (4) at (0, 1) {}; 
+  \node[main] (5) at (0, -1) {}; 
+  \node[main] (6) at (1.5, -1) {}; 
+  \node[main] (7) at (0.75, 1.5) {}; 
+  \node[main] (8) at (1.5, 1) {}; 
+  \node[main] (9) at (0.5, -1) {}; 
+  \node[main] (10) at (1, -1) {}; 
+  \node[main] (11) at (0.75, -0.5) {}; 
+  \draw (1) to [bend right=90]
+node[midway, right] {e} (4) ;
+  \draw (4) to [bend left] (7);
+  \draw (7) to [bend left] (8);
+  \draw (8) to (6);
+  \draw (5) to (9);
+  \draw (6) to (10);
+  \draw (9) to [bend left] (11);
+  \draw (10) to [bend right] (11);
+  \draw (5) to (1);
+\end{tikzpicture} 
+\end{subfigure}
+\begin{subfigure}[h]{0.245\textwidth}
+  \caption{$C _2$}
+\begin{tikzpicture}[node distance={10mm}, thick, main/.style = {draw,circle,fill,inner sep=1pt}] 
+  \node[main] (1) at (0,0) {}; 
+  \node[main] (3) at (-0.5,0.5) {}; 
+  \node[main] (4) at (0, 1) {}; 
+  \node[main] (5) at (0, -1) {}; 
+  \node[main] (6) at (1.5, -1) {}; 
+  \node[main] (7) at (0.75, 1.5) {}; 
+  \node[main] (8) at (1.5, 1) {}; 
+  \node[main] (9) at (0.5, -1) {}; 
+  \node[main] (10) at (1, -1) {}; 
+  \node[main] (11) at (0.75, -0.5) {}; 
+  \draw (1) to [bend left] (3);
+  \draw (1) to [bend right=90]
+node[midway, right] {e} (4) ;
+  \draw (3) to [bend left] (4);
+\end{tikzpicture} 
+\end{subfigure}
+\begin{subfigure}[h]{0.245\textwidth}
+  \caption{$C _3$} 
+\begin{tikzpicture}[node distance={10mm}, thick, main/.style = {draw,circle,fill,inner sep=1pt}] 
+  \node[main] (1) at (0,0) {}; 
+  \node[main] (3) at (-0.5,0.5) {}; 
+  \node[main] (4) at (0, 1) {}; 
+  \node[main] (5) at (0, -1) {}; 
+  \node[main] (6) at (1.5, -1) {}; 
+  \node[main] (7) at (0.75, 1.5) {}; 
+  \node[main] (8) at (1.5, 1) {}; 
+  \node[main] (9) at (0.5, -1) {}; 
+  \node[main] (10) at (1, -1) {}; 
+  \node[main] (11) at (0.75, -0.5) {}; 
+  \draw (1) to [bend left] (3);
+  \draw (3) to [bend left] (4);
+  \draw (4) to [bend left] (7);
+  \draw (7) to [bend left] (8);
+  \draw (8) to (6);
+  \draw (5) to (9);
+  \draw (6) to (10);
+  \draw (9) to [bend left] (11);
+  \draw (10) to [bend right] (11);
+  \draw (5) to (1);
+\end{tikzpicture} 
+\end{subfigure}
+                  \end{figure}
+
+We can say that a set $X \subseteq E$ is independent if and only if, it does not contain any circuit.
+
+The concept of circuits points towards the direction of something similar to a complement of the independent sets, but not completely, since it is only the minimal dependent, and not all dependet subsets. We now have the following theorem.
+
+\begin{lemma}\label{lem:circuits-have-properties}
+  All circuits in a matroid satisfy (C1), (C2) and (C3).
+\end{lemma}
+
+\begin{proof} We will prove each property individually:
+  
+\begin{enumerate}
+    \item $\emptyset \in \mathcal I$, therefore $\emptyset$ is not dependent (which means it cannot be a circuit)
+    \item A counterexample to this clause would violate the $C _2$ being minimal.
+    \item Assume a counterexample exists. Because $C _1 \cup C _2 - e$ does not contain a circuit, it must be an element of $\mathcal I$. 
+
+        We claim that $C _2 \setminus C _1$ is nonempty. Assume this is not the case. That would imply $C _2 \subseteq C _1$, but $C _1 \neq C _2 $ by (C3), which means that $C _1 $ is a proper subset of $C _2$. As both $C _1 $ and $C _2 $ are members of $\mathcal C$, this violates (C2), and is a contradiction. We can then assume some $f \in C _2 \setminus C _1 $ exists.
+
+        As $C _2$ is minimally dependent, we know that $C _2 - f$ is independent. Let $I$ be a maximal independent subset of $C _2 \cup C _1$ which is a superset of $C _2 - f$. Clearly, $f \not\in I$ (otherwise $C _2 \subseteq I \in \mathcal I$). Furthermore, as $C _1 $ is a circuit, we know that $C _1 \not \subseteq I \in \mathcal I$ (otherwise $C _1$ would be independent). This means some $g \in C _1$ exists such that $g \not\in I$. As $f \in C _2  \setminus  C _2$, we know that $f \neq g$.
+
+        As $I \subseteq C _1 \cup C _2$ and $f, g \in C _1 \cup C _2$ but $f, g \not\in I$, we can infer that 
+        \begin{align*}
+        |I| \leq |C _1 \cup C _2 - f - g| = |C _1 \cup C _2| - 2.
+        \end{align*}
+
+        We also notice that $|C _1 \cup C _2 - e| = |C _1 \cup C _2 | - 1$. We can now conclude by transitivity with $|C _1 \cup C _2 | - 2 < |C _1 \cup C _2 | - 1$ that $|I| < |C _1 \cup C _2 - e|$. We recall that both $I$ and $C _1 \cup C _2 - e$ are members of $\mathcal I$. We can apply (I3) to generate a superset of $I$ which contradicts it's maximallity.
+\end{enumerate}
+\end{proof}
+
+\begin{theorem}\label{thm:matroid-circuit-definition}
+Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisfies the conditions outlined above. Let  $\mathcal I$  be the collection of subsets of $E$ that contain no member of $\mathcal C$, that is 
+
+\begin{align}
+   % \forall X \in \mathcal{I}, \forall C \in \mathcal C,  C \not \subseteq X. 
+   \mathcal{I} = \{I \in 2^E |\; \text{for all } \; C \in \mathcal{C}\; \text{we have} \; C \not\subseteq I\}
+    \label{independent-sets-from-circuits}
+\end{align}
+
+    The pair $(E,\mathcal I)$ is a matroid having $\mathcal C$ as its collection of circuits.
+\end{theorem}
+
+\begin{proof} We start by showing that $\mathcal I $ satisfies the necessary conditions for $(E, \mathcal I )$ to be a matroid:
+    \begin{enumerate} 
+        \item The only subset of $\emptyset $ is $ \emptyset $, but $ \emptyset \not\in \mathcal C $, so $ \emptyset $ satisfies (\ref{independent-sets-from-circuits}), hence $\emptyset \in \mathcal I$.
+    \item Assume we have $X \subseteq Y \in \mathcal I$. Assume that $X \not\in I$, i.e.\ there exists some $C \in \mathcal C $ such that $C \subseteq X$. We recall that $\subseteq $ is transitive, thus $C \subseteq Y$ and $Y \not\in I$, hence a contradiction.
+    \item Given $X, Y \in \mathcal I $ with $|X| < |Y|$ we must show there exists some $e \in Y \setminus X$ such that $X \cup \{e\} \in \mathcal I$. Assume that such an $e$ does not exist, i.e.\ for all $e \in Y \setminus X$ we have some circuit $C _e \in \mathcal C $ such that $C _e \subseteq X \cup \{e\}$. We obviously have $e \in C_e$, because otherwise $C_e \subseteq X$ and $X \not\in \mathcal I$.
+
+
+     Let $X' = X \setminus Y$ and $Y' = Y \setminus X$. We will prove the statement by induction: given some set $S \subseteq X'$, a set of circuits $D \subseteq \mathcal C$ with $\forall C \in D, C \subseteq  S \cup Y$ and a surjective but not injective function $f : D \to S$ such that $f(D)$ is maximal in size and $\forall C \in D, f(C) \in C$, our statement is proven. We will use induction on the size of $S$:
+    \begin{enumerate}
+      \item If $S = \{e\}$ only has one element, we know that $f$ is not injective, so we must have distinct $C _1, C _2 \in D$ such that $e = f(C _1 ) = f(C _2)$. We can use the $3$-rd circuit axiom to generate some circuit $C _3 \subseteq C _1 \cup C _2 - e$. We recall that $C _1 , C _2 \subseteq S \cup Y $, so $C _3 \subseteq S \cup Y - e$ which implies $C _3 \subseteq Y$, which is a contradiction.
+        \item Inductive step. Assuming the statement is true for all choices of $S$ with $k$ elements, we will attempt to prove it is also true when $S$ has $k + 1$ elements. Recalling that $f$ is not injective, we must have distinct $C _1, C _2 \in D$ such that $f(C _1 ) = f(C _2)$. Let $g = f(C _1)$. We have $g \in C _1, C _2$, so by the $3$-rd circuit axiom we must have some circuit $C  _3 \subseteq C _1 \cup C _2 - g$. Let $S' = C _3 \cap X'$. 
+
+            For all $e \in S'$, we claim there must exist some $C_e \in D$ such that $e = f(C_e)$. Assume this is not the case, i.e.\ there is some $e \in S'$ such that no valid choice of $C_e$ exists. Given that $e \in S'$, we know that either $e \in C_1$ or $e \in C_2$. After a potential swap, we assume that $e \in C_1$. We can now define $f'(C) = e$ when $C = C_1$ and $f'(C) = f(C)$. Because no choice of $C_e$ exists, we know that $e \not\in f(D)$. Because $f(C _1 ) = f(C _2 )$ we have $f(D) = f(D - C _1 )$ which lets us compute $f'(D) = f(D) \cup \{e\}$, which means $f(D)$ was not maximal, hence a contradiction. Our claim is then true.
+
+            Define $D' = \{C_e | e \in S'\} \cup \{C _3 \}$. We've essentially proven in the last paragraph that $f : \{C_e | e \in S'\} \to S'$ is still a  surjective function. It then follows that $h = f : D' \to S'$ is surjective as well. By the Pigeonhole principle, we know $h$ cannot be injective, because $|D'| = |S'| + 1$. We are now almost ready to apply the induction hypothesis to $(S', D', h)$. We've shown a choice for $h$ exist. If this choice is not maximal, swap it with a maximal choice (we had to show that at least one choice exists for a maximal choice to exist). We can now apply the induction hypothesis, proving the statement.
+    \end{enumerate}
+
+    We notice that $X$ can be partitioned into $X'$ and $X \cap Y$, hence $|X| = |X'| + |X \cap Y|$. We can follow a similar process for $Y$. Combining the two together with the fact that $|X| < |Y|$ yields that $|X'| < |Y'|$. We know that $Y \in \mathcal I$ so $\forall e \in Y', C_e \not \subseteq  Y$, but $C_e \subseteq  X \cup \{e\}$ therefore there must exist some $c_e \in C_e \cap X'$. 
+
+    We define $D = \{C_e, e \in Y'\}$, $f(C_e) = c_e$ and $S = f(D)$. Furthermore, we know that $f$ is not injective by the Pigeonhole principe (we have $|D| = |Y'| > |X'| \geq |S|$). We also know, by the definition of $S$, that $f$ is surjective. We've shown a choice of $f$ exists. If it is not maximal, swap it with a maximal choice. We can now apply the statement proven by induction to finish the proof.
+\end{enumerate}
+
+
+We now show that $C$ is a circuit for the newly defined matroid if and only if it is a member of $\mathcal C$. 
+\begin{enumerate}
+  \item[$\implies$]
+  If $C$ is a circuit, then $C \not\in \mathcal I$, which means that $C$ contains some $D \in \mathcal C$. As $C$ is minimally dependent, all it's proper subsets are independent, but members of $\mathcal C$ cannot be independent (as seen in the definition of $\mathcal I$), which implies that $C = D$, hence $C \in \mathcal C$.
+  \item[$\impliedby$]
+  Let $C \in \mathcal C$. Assume $C$ is not a circuit. Clearly, $C \not\in \mathcal I$ is implied by the definition of $\mathcal I$ seen above. This implies that $C$ is dependent but not a circuit, which means $C$ is not miminal. 
+
+  A proper subset $D  \subseteqneq C$ must then exist such that $D$ is a circuit. We've already shown in the $\implies$ direction how this implies $D \in \mathcal C$. We have now constructed a contradiction to (C2), hence our assumption that such a circuit exists is false.
+
+\end{enumerate}
+
+
+
+  We can now conclude that $(E, \mathcal I)$ is indeed a matroid with $\mathcal C$ as it's set of circuits.
+\end{proof}
+
+\input{graphs}
+
+\section{Rank Function}
+
+The rank function is a function $r:2^E \rightarrow \mathbb{Z}_{\geq0}$ that, when given a $X\subseteq E(M)$, gives you the cardinality of the maximal independent set contained in $X$. In other words:
+$$ r(X) = \max\{\, |I| : I\in\mathcal{I} \text{ and } I\subseteq X \} $$
+For example, $r(M):=r(E(M))=|B|$ for some $B\in\mathcal{B}(M)$. Like all the previous times, we can characterize the rank function with the following properties:
+
+\begin{defn}
+    Let $E$ be a non-empty finite set, and let $\rank : 2^E \rightarrow \mathbb{Z}_{\geq0}$ be a function satisfying:
+    \begin{enumerate}
+        \item[(R1)] If $X\subseteq E$, then $0 \leq \rank(X) \leq |X| $
+        \item[(R2)] If $X\subseteq Y\subseteq E$, then $\rank(X)\leq\rank(Y)$
+        \item[(R3)] If $X,Y\subseteq E$, then $\rank(X\cup Y)+\rank(X\cap Y) \leq \rank(X)+\rank(Y) $
+    \end{enumerate}
+\end{defn}
+
+Below, we again find our example matroid drawing. This time, instead of using a new color, we will denote the rank of each set by writing it in subscript below the set. We can see that the rank of any set is atmost its cardinality and each subset of some set has at most the rank of that set. As always it takes a bit more effort to show that the last property holds for a given matroid.
+
+\begin{center}
+\begin{tikzpicture}
+
+\matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
+ & & &\textcolor{cyan}{
+1234}_2 & & & &\\
+ \textcolor{cyan}{
+123}_2& &\textcolor{cyan}{
+124}_2 & &\textcolor{cyan}{
+134}_1 &  & \textcolor{cyan}{
+234}_2  \\
+\textcolor{red}{12}_2 & \textcolor{blue}{13}_1 & \textcolor{cyan}{14}_1 & & \textcolor{red}{23}_2 & \textcolor{cyan}{
+24}_1 & \textcolor{cyan}{
+34}_1 \\
+\textcolor{orange}{1}_1& &\textcolor{orange}{2}_1 & & \textcolor{orange}{3}_1& & \textcolor{blue}{4}_0 \\
+& & & \textcolor{orange}{\emptyset}_0 &  & & \\
+&&&&&& \\};
+
+\foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
+\draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
+
+\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}, $\text{Set}_{\rank(\text{Set})}$ };
+
+\end{tikzpicture}
+\end{center}
+
+Now, let us prove that the rank function of a matroid satirfy these properties:
+
+\begin{proof}
+    \,
+    \begin{enumerate}
+        \item Since the co-domain is $\mathbb{Z}_{\geq0}$, $0\leq\rank(X)$. Since the maximal independent set contained in $X$ is... contained in $X$, the cardinality of that set must be smaller or equal to $|X|$. Thus, $0\leq\rank(X)\leq|X|$.
+        \item Let $I_X$ be a minimal independent set contained in $X$, so $\rank(X)=|I_X|$. $I_X\subseteq X\subseteq Y$ implies that $I_X$ is an independent set contained in $Y$. Since $I_X$ may or may not be a maximal independent set contained in $Y$, $\rank(X)=|I_X|\leq\rank(Y)$. 
+        \item We assume that $A\subseteq B\subseteq E$. Let $I_{A\cap B}$ be a maximal independent set contained in $A\cap B$. Since $A\cap B\subseteq A\cup B$, $I_{A\cap B}$ must be an independent set contained in $A\cup B$. Let $I_{A\cup B}$ be $I_{A\cap B}$ extended to be a \textbf{maximal} independent set contained in $A\cup B$. 
+        
+        Now let us take a look at $I_{A\cup B}\cap A$. Since the set is contained in $A$, (I2) tells us that $I_{A\cup B}\cap A$ is in independent set contained in $A$. Since the set may or may not be maximal in that regard, $|I_{A\cup B}\cap A|\leq \rank(A)$. Similarly, $|I_{A\cup B}\cap B|\leq \rank(B) $.
+        
+        $$ \rank(X)+\rank(Y) \geq |I_{A\cup B}\cap A|+|I_{A\cup B}\cap B| $$
+        $$ = |(I_{A\cup B}\cap A)\cup(I_{A\cup B}\cap B)|+|(I_{A\cup B}\cap A)\cap(I_{A\cup B}\cap B)| $$
+        $$ = |I_{A\cup B}\cap (A\cup B)|+|I_{A\cup B}\cap (A\cap B)| $$
+
+        Since $I_{A\cup B}\subseteq A\cup B$, $I_{A\cup B}\cap(A\cup B) = I_{A\cup B}$.
+
+        Since $I_{A\cap B}\subseteq I_{A\cup B}$, $I_{A\cup B}\cap (A\cap B) \supset I_{A\cap B}\cap (A\cap B) = I_{A\cap B} $. Let $e\in I_{A\cup B}\cap (A\cap B)$. Aiming for contradiction, suppose $e\notin I_{A\cap B}$. Since $I_{A\cap B}\cup e \subseteq I_{A\cup B} $, $I_{A\cap B}\cup e$ must be an independent set conained in $A\cap B$. This contradicts the fact that $I_{A\cap B}$ is a maximal in that regard. Thus, $e\in I_{A\cap B}$. This proves that $I_{A\cup B}\cap(A\cap B)\subseteq I_{A\cap B} $, which implies equality between the two sets.
+
+        Thus,
+
+        $$ \rank(X)+\rank(Y) \geq |I_{A\cup B}|+|I_{A\cap B}| = \rank(A\cup B)+\rank(A\cap B) $$
+    \end{enumerate}
+\end{proof}
+One might observe that the rank of an independent set is the cardinality of the set itself. This is because the largest independent set that is contained in this independent set is ofcourse the independent set itself. With this property, we can define the set of independent sets with the three properties of the rank function.
+\begin{theorem}
+    Let $E$ be a finite set, and let $\rank : 2^E \rightarrow \mathbb{Z}_{\geq0}$ be a function satisfying (R1)-(R3). Let $\mathcal{I} = \{ I\subseteq E : \rank(I)=|I| \} $. Then $(E,\mathcal{I})$ is a matroid with $\rank$ as its rank function.
+\end{theorem}
+Before we prove this, let's prove this small theorem first:
+\begin{theorem}
+\label{rankextension}
+    Let $E$ be a finite set and $\rank:2^E\rightarrow \mathbb{Z}_{\geq0}$ be a function satisfying (R2) and (R3). Let $X,Y\subseteq E$. Then if for all $y\in Y-X$, $\rank(X\cup y)=\rank(X)$, then $\rank(X\cup Y)=\rank(Y)$.
+\end{theorem}
+\begin{proof}
+    We will prove that the statement holds with $Y-X = \{a_1,a_2,\dots,a_k\}$ holds for all itegers $k$.
+    \begin{enumerate}
+        \item Base case: $k=1$
+
+        If $\rank(X\cup a_1)=\rank(X)$, then $\rank(X\cup Y)=\rank(X\cup(Y-X))=\rank(X\cup a_1)=\rank(X)$.
+        \item Induction Step: Assume the statement holds for $k=n$.
+        \item Let $k=n+1$: Assume that $Y-X=\{a_1,\dots,a_{n+1}\}$ for all $i\in\{1,\dots,n+1\}$ $\rank(X\cup a_i)=\rank(X)$. Then, using the assumption and our induction assumption, 
+        $$ \rank(X)+\rank(X) = \rank(X\cup \{a_1,\dots,a_n\})+\rank(X\cup a_{n+1}) $$
+        Using (R3), we get
+        $$ \geq \rank([X\cup\{a_1,\dots,a_n\}]\cup [X\cup a_{n+1}]) + \rank([X\cup\{a_1,\dots,a_n\}]\cap [X\cup a_{n+1}]) $$
+        $$ = \rank(X\cup\{a_1,\dots,a_{n+1}\}) + \rank(X) $$
+        Using (R2), we get
+        $$ \geq \rank(X)+\rank(X) $$
+        Since $\rank(X)+\rank(X)$ is on both sides, equality holds throughout. Thus, $\rank(X\cup\{a_1,\dots,a_{n+1}\})=\rank(X\cup Y)=\rank(X)$. And thus, the statement holds for $k=n+1$.
+    \end{enumerate}
+    Thus, by mathematical induction, the statement holds for all integers $k$.
+\end{proof}
+Finally, we can prove Theorem 5:
+\begin{proof}
+    To prove that $(E,\mathcal{I})$ is a matroid, we will check if $\mathcal{I}$ satisfies (I1)-(I3).
+    \begin{enumerate}
+        \item (R1) tells us that $0\leq\rank(\emptyset)\leq|\emptyset|=0$, which implies that $\rank(\emptyset)=0=|\emptyset|$, which means that $\emptyset\in\mathcal{I}$, so (I1) is satisfied.
+        \item Assume we have $J\subseteq I\in\mathcal{I}$. Then, using (R3),
+        $$ \rank(J)+\rank(I-J) \geq \rank(J\cup[I-J])+\rank(J\cap[I-J]) = \rank(I)+\rank(\emptyset)=|I| $$
+        Using (R2), we also get that
+        $$ \rank(J)+\rank(I-J) \leq |J|+\rank(I-J) \leq |J|+|I-J| = |I| $$
+        This implies that equality must hold throughout. At last, we show that
+        $$ \rank(J)+\rank(I-J) = |J|+\rank(I-J) \Rightarrow \rank(J)=|J| $$
+        Thus, $J\in\mathcal{I}$, so {I2} is satisfied.
+        
+        \item Suppose (I3) does not hold for some $I,J\in\mathcal{I}$ with $|I|>|J|$. Then for all $e\in I-J$, $J\cup e\notin \mathcal{I}$. Also, remember that $I,J\in\mathcal{I}$ means that $\rank(I)=|I|$ and $\rank(J)=|J|$.
+
+        Since $J\subseteq J\cup e$, we can use (R1) and (R2) to see that
+        $$ |J|=\rank(J)\leq\rank(J\cup e)|\leq|J\cup e|=|J|+1 $$
+        $J\cup e\notin \mathcal{I}$ tells us that $\rank(J\cup e)\neq|J\cup e|$, so that must mean that $\rank(J\cup e)$ is equal to what's on the left hand side, so $\rank(J)$.
+
+        This gives us that for all $e\in I-J$, $\rank(J\cup e)=\rank(J)$, which, according to Theorem 6, implies that $\rank(J\cup I)=\rank(J)=|J|$. However, since $I\subseteq J\cup I$, (R2) tells us that $\rank(J\cup I) \geq \rank(I) = |I|$, which means that $|J|\geq|I|$. This contradicts our assumption that $|J|<|I|$. Thus, (I3) is satisfied.
+    \end{enumerate}
+    Thus, $(E,\mathcal{I})$ is a matroid.
+\end{proof}
+
