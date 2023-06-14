@@ -99,16 +99,19 @@
 \input{conclusion}
 
 \newpage
-\section{Appendices}
-\begin{appendices}
-    \renewcommand{\thesubsection}{\Alph{subsection}}
-        \input{appendix-fields.tex}
-    \newpage\input{appendix-poset.tex}
-\end{appendices}
-
 \nocite{*}
 \bibliographystyle{abbrv}
 \bibliography{sources}
+
+\renewcommand{\thesubsection}{\Alph{subsection}}
+\newpage
+\section{Appendices}
+\begin{appendices}
+    \input{appendix-fields.tex}
+    \newpage\input{appendix-poset.tex}
+\end{appendices}
+
+
 
 
 \end{document}

@@ -319,7 +319,7 @@ For example, $r(M):=r(E(M))=|B|$ for some $B\in\mathcal{B}(M)$. Like all the pre
     \end{enumerate}
 \end{defn}
 
-Below, we again find our example matroid drawing. This time, instead of using a new color, we will denote the rank of each set by writing it in subscript below the set. We can see that the rank of any set is at most its cardinality, and each subset of some set has at most the rank of that set. As always, it takes a bit more effort to show that the last property holds for a given matroid.
+In figure \ref{fig:1234-matroid-rank}, we again find our example matroid drawing. This time, instead of using a new color, we will denote the rank of each set by writing it in subscript below the set. We can see that the rank of any set is at most its cardinality, and each subset of some set has at most the rank of that set. As always, it takes a bit more effort to show that the last property holds for a given matroid.
 
 \begin{center}
 \begin{tikzpicture}
@@ -344,11 +344,12 @@ Below, we again find our example matroid drawing. This time, instead of using a 
 
 \node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}, $\text{Set}_{\rank(\text{Set})}$ };
 
-\caption{Description of a 4-element matroid, with the rank of each set as subscript.}
-\label{fig:1234-matroid}
+
+\label{fig:1234-matroid-rank}
 
 \end{tikzpicture}
 \end{center}
+$$\text{Figure 4: Description of a 4-element matroid, with the rank of each set as subscript.}$$
 
 Now, let us prove that the rank function of a matroid satisfy these properties:
 

@@ -46,9 +46,9 @@
       Consider some arbitrary $s \in S$. By the induction hypothesis, $(S - s, \leq)$ (see remark (\ref{rem:subsets-of-poset-are-posets})) has a maximal element $M$. We will proceed by cases:
       \begin{enumerate}
         \item If $M$ is also a maximal element for $(S, \leq)$, we are done.
-        \item Otherwise, there must exist some $c \in S - M$ such that $M \leq  c$. If $c \in S - s$ we have a contraiction (because $M$ wouldn't be a valid maximal element for $(S - s, \leq )$). It then follows that $c = s$. 
+        \item Otherwise, there must exist some $c \in S - M$ such that $M \leq  c$. If $c \in S - s$ we have a contradiction (because $M$ wouldn't be a valid maximal element for $(S - s, \leq )$). It then follows that $c = s$. 
 
-          We claim that $c$ is a maximal element. Consider $d \in S$ satisfying $c \leq d$. If $d = c$ we are done. Otherwise $d \in S - s$, so $d \leq M$ ($M$ is maximal for $(S - s, \leq )$), and by transitivity with $M \leq c$ we have $d \leq c$, which by anti-symmetri implies $d = c$.
+          We claim that $c$ is a maximal element. Consider $d \in S$ satisfying $c \leq d$. If $d = c$ we are done. Otherwise, $d \in S - s$, so $d \leq M$ ($M$ is maximal for $(S - s, \leq )$), and by transitivity with $M \leq c$ we have $d \leq c$, which by anti-symmetry implies $d = c$.
       \end{enumerate}
   \end{itemize}
  \end{proof}
