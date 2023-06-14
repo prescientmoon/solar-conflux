@@ -1,11 +1,11 @@
 \section{Dual Matroids}
-The concept of \textit{duality} is an interesting feature of matroid theory. It helps to extend some of the constructions in our prototypical examples in representable and graphic matroids, such as the notion of orthogonality in vector spaces and the concept of a planar dual of a plane graph, to general matroids. In this section we will introduce the definitions and  properties of dual matroids.
+The concept of \textit{duality} is an interesting feature of matroid theory. It helps to extend some of the constructions in our prototypical examples in representable and graphic matroids, such as the notion of orthogonality in vector spaces and the concept of a planar dual of a plane graph, to general matroids. In this section, we will introduce the definitions and  properties of dual matroids.
 
 %Before starting with the formal definitions, porperties and theorems is important that we state the most important concept of this chapter, that is, similar to the chapter name, the concept of a \textit{dual}, or more precisely, the \textit{dual of a matroid}.\\
 
 % I DONT THING THE ABOVE PARAGRAPH ADDS ANY CONTENT
 
-If we have a matroid $M$, with sets $(E,B)$, or in other words $M$ is a matroid on $E$ with $B$ as its collection of bases. Then its dual will refer to a different and new matroid, which we denote by $M^*$. This new matroid has the property that it is "related" to the original matroid, so it has the same ground set $E$ of the original matroid $M$, but a different basis set, this new basis collection will be called $B^*$, so this gives us that $M^*$ will be defined by the following pair of sets $(E,B^*)$. Where $B^*$ will a set such that is is the complement of the bases set $B$ in $M$, which implies that, the bases set of $M$ and $M^*$ will be always disjoint.
+If we have a matroid $M$, with sets $(E,B)$, or in other words $M$ is a matroid on $E$ with $B$ as its collection of bases. Then its dual will refer to a different and new matroid, which we denote by $M^*$. This new matroid has the property that it is "related" to the original matroid, so it has the same ground set $E$ of the original matroid $M$, but a different basis set, this new basis collection will be called $B^*$, so this gives us that $M^*$ will be defined by the following pair of sets $(E,B^*)$. Where $B^*$ will a set such that it is the complement of the bases set $B$ in $M$, which implies that, the bases set of $M$ and $M^*$ will be always disjoint.
 
 This can be seen more clearly in the following digram:
 \begin{figure}[H]
@@ -75,12 +75,13 @@ Notice that the ground set will be composed of 4 components $E=\{1,2,3,4\}$, and
 \end{tikzpicture}
 \end{center}
 
-
-
-
 We know that the basis set of a matroid is obtained from its set of independet sets $I$.
 Using this diagrams we highligth an idea that will be useful later in this chapter.
 This is, that the basis set of a matroid is given by a subset of $E$, the remaing elements in $E$ that are not in de basis if added to the basis will be linearly dependent, but also we can take any remaining element of $E$ and exchange it with an element in the basis and we will have another basis for $E$. With this intuition in mind, we can continue with a theorem.
+
+We know that the basis set of a matroid is obtained from its set of independent sets $I$.
+Using this diagrams, we highlight an idea that will be useful later in this chapter.
+This is, that the basis set of a matroid is given by a subset of $E$, the remaining elements in $E$ that are not in the basis if added to it will be linearly dependent, but also we can take any remaining element of $E$ and exchange it with an element in the basis, and we will have another basis for $E$. With this intuition in mind, we can continue with a theorem.
 
 
 To formalize the definition of $B^*$ we have the following:
@@ -113,7 +114,7 @@ As we have that $(B_1 - y)\cup x$ is and independent set and has the same cardin
 Now, using the equivalent property $(B2)^*$ that we just proved, we prove Theorem \ref{dualbasis}.
 \begin{proof}
     As $B(M)$ is non-empty, $B^*(M)$ is non-empty, hence, the property $(B_1)$ holds for $B^*(M)$. 
-    Now, consider two members of $B^*(M)$, $B^*_1$ and $B^*_2$, not equal such that there exists an element $x \in (B^*_1 - B^*_2)$. Let, $B_1 = E - B^*_1$ and $B_2 = E - B^*_2$. We can see that $B^*_1 - B^*_2 = B_2 - B_1$, thus $x \in B_2 - B_1$. By $(B2)^*$, there exists and element $y \in  B_1 - B_2$ such that $(B_1 - y)\cup x$ is a base of $M$, but observe that $B_1 - B_2 = B^*_2 - B^*_1$, so this is the same as saying that there exists and element $y \in  B^*_2 - B^*_1$ such that $(B_1 - y)\cup x$ is a base of $M$. As a result, by definition of dual, $E-((B_1 - y)\cup x) \in B^*(M)$. But, $E-((B_1 - y)\cup x) = ((E-B_1)-x)\cup y) = (B_1^* - x)\cup y$, which is in the family $B^*$. Therefore, we can conclude that $B^*(M)$ satisfes $(B2)$. As $B^*(M)$ satisfies properties $(B1)$ and $(B2)$, this is indeed the set of bases of a matroid on $E$.
+    Consider two members of $B^*(M)$, $B^*_1$ and $B^*_2$, not equal such that there exists an element $x \in (B^*_1 - B^*_2)$. Let, $B_1 = E - B^*_1$ and $B_2 = E - B^*_2$. We can see that $B^*_1 - B^*_2 = B_2 - B_1$, thus $x \in B_2 - B_1$. By $(B2)^*$, there exists and element $y \in  B_1 - B_2$ such that $(B_1 - y)\cup x$ is a base of $M$, but observe that $B_1 - B_2 = B^*_2 - B^*_1$, so this is the same as saying that there exists and element $y \in  B^*_2 - B^*_1$ such that $(B_1 - y)\cup x$ is a base of $M$. As a result, by definition of dual, $E-((B_1 - y)\cup x) \in B^*(M)$. But, $E-((B_1 - y)\cup x) = ((E-B_1)-x)\cup y) = (B_1^* - x)\cup y$, which is in the family $B^*$. Therefore, we can conclude that $B^*(M)$ satisfes $(B2)$. As $B^*(M)$ satisfies properties $(B1)$ and $(B2)$, this is indeed the set of bases of a matroid on $E$.
 \end{proof}
 
 The matroid $M^*$ is the dual of $M$. Note that by the way is defined, and thanks to the proof above we see that $B(M^*)=B^*(M)$, moreover, due the nature that the definition of dual has, this is, that is the complement of the basis set, we have that
@@ -142,7 +143,7 @@ Now that we have introduced duals is useful to give some additional notation. Th
 \end{theorem} 
 
 \begin{proof}
-    Now, we prove Theorem \ref{propositionsofdualrelations}. All of the proofs follow directly from the definitions.
+    Let us prove Theorem \ref{propositionsofdualrelations}. All of the proofs follow directly from the definitions.
 
     1) $\Rightarrow$ Suppose $X$ is independent. This means there exists a basis $B \in \mathcal{B}(M)$ so that $X \subseteq B$. Because $X \subseteq B \subseteq E$ and the operation of taking complements is "inclusion reversing" we have $E-B \subseteq E - X$. Verifying directly, if $x \in E - B$ this means $x \in E$ and $x \notin B$. Because $X \subseteq B$ this implies that $x \in E$ and $x \notin X$ so by definition $x \in E - X$ and the conclusion follows. Because $E - B$ is a cobasis and $E - X$ is a set containing a cobasis, then it is a cospanning by definion.
 
@@ -173,7 +174,7 @@ And in fact, we can generalize this to obtain an explicit formula for the for th
 \end{theorem}
 
 \begin{proof}
-    We now prove Theorem \ref{rankdualequation}. Let $I^*$ be a independet subset of $X$ in $M^*$, such that it is not a subset of some other set in $X$, this is $r^*(X)=|I^*|$. Similarly, let $I$ be a independent subset of $E-X$ in $M$, such that it is not a subset of some other set in $E-X$, this is $r(E-X)=|I|$. And let $B$ be an independent subset of $E-I^*$, such that it is not a subset of some other set in $E-I^*$ and contains $I$. Since, this are independent subsets that are not subsets of any other element in their respective sets, then we have $r(B)=r(E-I^*)$ and $r(E-I^*)=r(M)$, and hence $B$ is a base of M.
+    We prove Theorem \ref{rankdualequation}. Let $I^*$ be a independet subset of $X$ in $M^*$, such that it is not a subset of some other set in $X$, this is $r^*(X)=|I^*|$. Similarly, let $I$ be a independent subset of $E-X$ in $M$, such that it is not a subset of some other set in $E-X$, this is $r(E-X)=|I|$. And let $B$ be an independent subset of $E-I^*$, such that it is not a subset of some other set in $E-I^*$ and contains $I$. Since, this are independent subsets that are not subsets of any other element in their respective sets, then we have $r(B)=r(E-I^*)$ and $r(E-I^*)=r(M)$, and hence $B$ is a base of M.
     Now, let $B^*=E-B$, since $B$ is a base of $M$, by definition $B$ is a base of $M^*$. We can onserve that $I^*\subseteq B^*$ and  $B^*\cap X=I^*$. Similarly, $I\subseteq B$ and  $B\cap (E-X)=I$. In particular we see that, $|B\cap X|=|B|-|I|$, thus
     $|X|=|X\cap B|+|X\cap B^*|=|B|-|I|+|I^*|=r(M)-r(E-X)+r^*(X)$
 \end{proof}
@@ -267,7 +268,7 @@ From the previous theorem a remarkable result follows almost directly.
 \end{corollary}
 
 \begin{proof}
-    We prove the Corollary above. Suppose we have a matroid $M$ with rank $m$, this is, the bases of $M$ have size $m$. Then, by assumption, without loss of generality we can say that $M$ can be represented by an $m \times n$ matrix $H$ (with $1\leq n < m$), such that $H=[I_{m}|D_{m \times (n-m)}]$ over $\mathbb{F}$. Then by Theorem \ref{DualRepMat} its dual is represented by $H^*=[-D^T|I_{(n-m) \times (n-m)}]=[-D_{(n-m) \times m}|I_{(n-m)}]$, which clearly is still over the same field $\mathbb{F}$.
+    Let us prove the Corollary above. Suppose we have a matroid $M$ with rank $m$, this is, the bases of $M$ have size $m$. Then, by assumption, without loss of generality we can say that $M$ can be represented by an $m \times n$ matrix $H$ (with $1\leq n < m$), such that $H=[I_{m}|D_{m \times (n-m)}]$ over $\mathbb{F}$. Then by Theorem \ref{DualRepMat} its dual is represented by $H^*=[-D^T|I_{(n-m) \times (n-m)}]=[-D_{(n-m) \times m}|I_{(n-m)}]$, which clearly is still over the same field $\mathbb{F}$.
 \end{proof}
 
 \begin{exmp}
