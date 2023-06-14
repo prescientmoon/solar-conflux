@@ -1,13 +1,27 @@
 \subsection{(In)dependence}
 
-In english language, two peolpe, objects or concepts are dependent on each other if both in some way influence one another. Two things being independent from each other then means that they in no way can affect eachother. 
+In English language, two peolpe, objects or concepts are dependent on each other if both in some way influence one another. Two things being independent from each other in turn means that they in no way can affect each other. 
 
-In mathematics there are many concepts where we can use these two words to describe certain phenomena, most notably, linear algebra. In linear algebra, a set of vectors is linearly dependent if you can write one of its vectors as a linear combination of the others. Using the word dependent here makes sense, because if you can use all others to build that one vector, then that vertor does not really stand on its own. An equivalent and more general definition is:
-$$ \{v_1,v_2,\dots,v_n\} \text{ is linearly dependent if} $$ $$ \text{there exists } a_1,a_2,\dots,a_n \in \mathbb{R} \text{ not all zero, such that } a_1v_1+a_2v_2+\dots +a_nv_n = 0$$
+    In mathematics there are many concepts where we can use these two words to describe certain phenomena, most notably in linear algebra. In linear algebra, a set of vectors is linearly dependent if you can write one of its vectors as a linear combination of the others. Using the word dependent here makes sense, because if you can use all others to build that one vector, then that vector does not \textit{really} stand on its own. An equivalent and more general definition is:
+
+
+    \begin{defn}
+
+    A set of vectors $\{v_1,v_2,\dots,v_n\}$ is linearly dependent if there exists $a_1,a_2,\dots,a_n \in \mathbb{R} $ not all zero, such that $a_1v_1+a_2v_2+\dots +a_nv_n = 0.$
+    
+    \end{defn}
+
+
+
+
 For linear independence we have the negation, which is:
-$$ \{v_1,v_2,\dots,v_n\} \text{ is linearly independent if } $$ $$ a_1v_1+a_2v_2+\dots+a_nv_n=0 \text{ implies that } a_1=a_2=\dots=a_n=0 $$
+\begin{defn}
+    A set of vectors $ \{v_1,v_2,\dots,v_n\}$ is linearly independent if $a_1v_1+a_2v_2+\dots+a_nv_n=0$ implies that $a_1=a_2=\dots=a_n=0.$
 
-There are many more fields that have this concept of (in)dependence present in some way. To relate these with another we will abstract the concept of (in)dependence into mere sets that follow certain rules. It turns out that by doing this we can find independence in places that do not even use the terms (in)dependence, most notably, graph theory.
+\end{defn}
+There are many more fields that have this concept of (in)dependence present in some way. To relate these with another we will abstract the concept of (in)dependence into mere sets that follow certain rules. It turns out that by doing so, we can visualize the concept of independence in other fields of mathematics.
+
+% It turns out that by doing this we can find independence in places that do not even use the terms (in)dependence, most notably, graph theory.
 
 %TODO: give an intuitive explaination on why cycles in graphs are somehow 'dependent'
 
