@@ -266,6 +266,9 @@ From the previous theorem a remarkable result follows almost directly.
     If a matroid \textit{M} is \textit{representable} over a field $\mathbb{F}$, then \textit{M*} is also representable over the same field $\mathbb{F}$.
 \end{corollary}
 
+\begin{proof}
+    We prove the Corollary above. Suppose we have a matroid $M$ with rank $m$, this is, the bases of $M$ have size $m$ (as well as its ground set). Then, by assumption, without loss of generality we can say that M can be represented by an $m \times n$ matrix $H$, such that $H=[I_{m \times m}|D_{m \times (n-m)}]$ over $\mathbb{F}$. Then by Theorem \ref{}
+\end{proof}
 
 \begin{exmp}
     Consider the vector matroid $M$ with the following representation over $R$
@@ -324,7 +327,8 @@ To answer that we have the following theorem
     The dual of a graphic matroid is itself graphic if and only if the underlying graph is planar.
 \end{theorem}
 
-$Example:$ Let us consider the bipartite graph $K_{3,3}$.
+\begin{exmp}
+    Let us consider the bipartite graph $K_{3,3}$.
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[node distance={20mm}, thick, main/.style = {draw, circle}] 
@@ -401,3 +405,4 @@ As a sanity check we can see this: $r(J) = 5$;  $r^*(J)=4$, and $|E(M)|=9$. Henc
 According to the \textbf{Corollary} \ref{corollaryrepdual}, \textit{If a matroid \textit{M} is \textit{representable} over a field $\mathbb{F}$, then \textit{M*} is also representable over $\mathbb{F}$}. Here we see that both matroids are vector matroids over the field $\mathbb{F}_2$. 
 Finally, in this example we can observe that $K_{3,3}$ is not a planar graph. This implies that, although $M(K_{3,3})$ is a graphic matroid, its dual $M^*(K_{3,3})$ is not graphic.
 
+\end{exmp}

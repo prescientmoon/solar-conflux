@@ -159,7 +159,7 @@ It is easy to check that $U_{m,n}$ is indeed a matroid.
 
 \subsection{Bases}
 
-Let $M = (E, \mathcal{I})$ be a matroid. We call a subset $B \subseteq E$ a \textit{basis} if it is a \textit{maximal independent set}. That means that $B$ is an independent set and $B$ is not properly contained inside any other independent set. It turns out that bases for matroids and bases in vector subspaces have some similarities in their properties. In particular the third property of independent sets immedietly guarantees us that all matroid bases have the same size, just like vector bases for finite-dimensional vector spaces.
+Let $M = (E, \mathcal{I})$ be a matroid. We call a subset $B \subseteq E$ a \textit{basis} if it is a \textit{maximal independent set}. That means that $B$ is an independent set and $B$ is not properly contained inside any other independent set. It turns out that bases for matroids and bases for vector subspaces have some similarities in their properties. In particular the third property of independent sets immedietly guarantees us that all matroid bases have the same size, just like vector bases for finite-dimensional vector spaces.
 
 \begin{theorem}
     Let $M = (E, \mathcal{I})$ be a matroid. Then all bases of $M$ have the same size.
@@ -171,7 +171,7 @@ Let $M = (E, \mathcal{I})$ be a matroid. We call a subset $B \subseteq E$ a \tex
 
 The concept of a basis is important because it allows us to define a \textit{rank function} of a matroid which is the size of the maximal independent subset inside a given subset of a matroid.  Because the sizes of all of such sets - bases - are equal, this will be a well-defined notion.
 
-In figure \ref{1234bases} you find a depiction of the matroid we have seen in section 2.1. This time, we have added the bases of the matroid, colored red. Two properties can be observed. First of all, the bases are the maximal independent, which means that all of the sets they are strictly contained in are dependent. Secondly, both bases have two elements - the same size.
+In figure \ref{1234bases} you find a depiction of the matroid we have seen in section 2.1. This time, we have added the bases of the matroid, colored red. Two properties can be observed. First of all, the bases are the maximal independent, which means that all of the sets they are strictly contained in are dependent. Second, both bases have two elements - the same size.
 
 \begin{figure}[h]
 
@@ -224,23 +224,19 @@ Let us prove that the set of bases of a matroid satisfy the properties (B1) and 
 
 
 
-\begin{lemma}
+\begin{lemma}\label{samesize}
     Let $E$ be a finite set, and let $\mathcal{B}$ be a colection of subsets of $E$ satisfying (B1) and (B2). Then $\mathcal{B}$ is equicardinal, so all elements in $\mathcal{B}$ have the same cardinality.
 \end{lemma}
 
-Even though we have already proven that the set of bases of a matroid is equicardinal, we still need to prove that it holds for a set that just satisfy (B1) and (B2). We do this because we will need it in a future proof.
+Even though we have already proven that the set of bases of a matroid is equicardinal, we will also show that this property holds for an \textit{arbitrary collection of subsets} satisfying (B1) and (B2). We do this because we will need it in a future proof.
 
 %Now that we have a new way to describe $\mathcal{B}$ with (B1) and (B2), we again need to prove that it is equicardinal (all elements of $\mathcal{B}$ having the same cardinality). 
-
-\begin{theorem}\label{samesize}
-    
-\end{theorem}
 
 \begin{proof}
     Suppose that $\mathcal{B}$ is not equicardinal, that is, we have $|B_1|<|B_2|$ for some $B_1,B_2\in\mathcal{B}$. From all $B_1,B_2$ where that holds, choose the pair that minimizes $|B_1-B_2|$. Since $B_1$ is bigger, choose an element $b\in B_1-B_2$ and apply (B2) to see that there exists a $d\in B_2-B_1$ such that $(B_1-b)\cup d \in\mathcal{B}$. With our choices of $b$ and $d$, we can see that $|((B_1-b)\cup d)-B_2|=|(B_1-b)-B_2|<|B_1-B_2|$. This, combined with that $|(B_1-b)\cup d|=|B_1|<|B_2|$, tells us that $B_1$ and $B_2$ are actually not the minimal choice. This contradiction proves that $\mathcal{B}$ is equicardinal.
 \end{proof}
 
-We are going to show the first cryptomorphism, referring to the idea that matroids can be defined not by the collection of independent sets but by its collection of bases. To prove that the two properties are sufficient to describe the bases of $M$, we will that if $\mathcal{B}$ is any collection of subsets satisfying the bases axioms, then the independent sets should be all of the possible subsets of the the elements of $\mathcal{B}$.
+We are going to show the first cryptomorphism, referring to the idea that matroids can be defined not by the collection of independent sets but by its collection of bases. To prove that the two properties are sufficient to describe the bases of $M$, we will see that if $\mathcal{B}$ is any collection of subsets satisfying the bases axioms, then the independent sets should be all of the possible subsets of the the elements of $\mathcal{B}$.
 
 \begin{theorem}
     Let $\mathcal{B}$ be a collection of subsets of a non-empty finite set $E$, satisfying (B1) and (B2). Let $\mathcal{I}=\{ I\subseteq B \; | \; B\in\mathcal{B} \}$. Then $(E,\mathcal{I})$ is a matroid with $\mathcal{B}$ as its set of bases.
@@ -254,26 +250,34 @@ We are going to show the first cryptomorphism, referring to the idea that matroi
         
         \item If $I\in\mathcal{I}$ and $J\subseteq I$, then by definition of $\mathcal{I}$, we have that $J\subseteq I\subseteq B$ for some $B\in\mathcal{B}$. Then we see that $J\subseteq B$ and by definition  $J\in\mathcal{I}$. So $\mathcal{I}$ satisfies (I2).
         
-        \item For contradiction, suppose (I3) fails for some $I,J\in\mathcal{I}$ with $|I|<|J|$. This means that for all elements $x\in J-I$, $I\cup x \notin \mathcal{I}$. The idea of the proof will be to get $|I|\geq|J|$ for a contradiction. For this, we will have to make a bunch of equalities between sets.
+        \item For contradiction, suppose (I3) fails for some $I,J\in\mathcal{I}$ with $|I|<|J|$. This means that for all elements $x\in J-I$, $I\cup x \notin \mathcal{I}$. The idea of the proof will be to get $|I|\geq|J|$ for a contradiction. For this, we will have to derive a lot of ineqalities between cardinalities of the sets involved.
         
         Let $B_I$ and $B_J$ be the elements of $\mathcal{B}$ that contain $I$ and $J$, respectively, by definition of $\mathcal{I}$, we know such sets exist. Choose a $B_J$ so that $|B_J - (J\cup B_I)|$ is minimal. 
     
         With our choice of $I$ and $J$, it turns out that $J-B_I = J-I$. 
         The inclusion $J- B_I \subseteq J - I$ is clear because $I \subseteq B_I$. Therefore if $J-B_I \neq J-I$, there would have to be an element $e$ in $(J-I)-(J-B_I)$. We verify directly that this implies $e \in B_I$. Since $e$ is in $J-I$, our assumption that we made at the start tells us that $I\cup e\notin \mathcal{I}$, which contradicts $I\cup e\subseteq B_I$, since all subsets of a base are independent.
 
-        Suppose now that $B_J-(J\cup B_I)$ is non-empty. Let $j$ be an element from this set, then (B2) tells us that there is an element $i\in B_I-B_J$ such that $(B_J-j)\cup i \in\mathcal{B}$. However, then $|((B_J-j)\cup i)-(J\cup B_I)|=|(B_J-j)-(J\cup B_I)|<|(B_J-(J\cup B_I)|$. We now found a new element $B=(B_J-j)\cup i$ in $\mathcal{B}$ that has $|B-(J\cup B_I)|$ smaller than $|B-(J\cup B_I|$, which contradicts that $B_J$ is the choice that minimalizes $|B_J-(J\cup B_I)|$. Thus, $B_J-(J\cup B_I)=\emptyset$. This now implies that $B_J\subseteq J\cup B_I$, which implies that $B_J-B_I\subseteq (J\cup B_I)-B_I=J-B_I$. Since $J-B_I\subseteq B_J-B_I$, this proves equality between $B_J-B_I$ and $J-B_I$.
+        Suppose now that $B_J-(J\cup B_I)$ is non-empty. Let $j$ be an element from this set, then (B2) tells us that there is an element $i\in B_I-B_J$ such that $(B_J-j)\cup i \in\mathcal{B}$. However, then $|((B_J-j)\cup i)-(J\cup B_I)|=|(B_J-j)-(J\cup B_I)|<|(B_J-(J\cup B_I)|$. We now found a new element $B=(B_J-j)\cup i$ in $\mathcal{B}$ that has $|B-(J\cup B_I)|$ smaller than $|B_J-(J\cup B_I|$, which contradicts that $B_J$ is the choice that minimalizes $|B_J-(J\cup B_I)|$. Thus, $B_J-(J\cup B_I)=\emptyset$. This now implies that $B_J\subseteq J\cup B_I$, which implies that $B_J-B_I\subseteq (J\cup B_I)-B_I=J-B_I$. Since $J-B_I\subseteq B_J-B_I$, this proves equality between $B_J-B_I$ and $J-B_I$.
 
         Next up we do the same thing, but this time proving that $B_I-(I\cup B_J)$ is empty. Assuming the opposite by letting $i$ be a part the set, (B2) tells us that there exists a $j\in B_J-B_I=J-B_I=J-I$ such that $(B_I-i)\cup j\in\mathcal{B}$. Since our choice of $i$ tell us that $i \notin I$ we have that $I\cup j\subseteq (B_I-i)\cup j$, it means $I\cup j\in\mathcal{I}$. This gives us precicely (I3), which contradicts our originil assumption. Thus, $B_I-(I\cup B_J)=\emptyset$. By the same logic we used in the previous paragraph, $B_I-B_J=I-B_J\subseteq I-J$.
 
         We can use the fact that $\mathcal{B}$ is equicardical, that is \ref{samesize}, to see that $|B_I-B_J|=|B_J-B_I|$. At last, we use everything obtain to get the following
         $$ |I-J|\geq |B_I-B_J|=|B_J-B_I|=|J-B_I|=|J-I|. $$
 
-        Because the sets $I-J, I\cap J, J - I$ partition $I\cup J$ we have that. 
+        Therefore we obtain the inequality $|I - J|\geq |J - I|.$
 
-        This inequality tells us that $|I|\geq |J|$, which is a contradiction with another one of our assumptions. Thus, $\mathcal{I}$ satisfies (I3). And thus, $(E,\mathcal{I})$ is a matroid.
+        Because we know that $ I = (I - J) \cup (I\cap J)$ and clearly $I - J$ and $I \cup J$ are disjoint we see that
+
+        $$ |I| = |(I - J)\cup (I \cap J)| = |I - J| + |I \cap J| - |\underbrace{(I - J) \cap (I \cap J)}_{ = \emptyset}|.$$
+
+        Therefore $|I| = |I-J| + |I \cap J|$ and by the same reasoning $|J| = |J - I| + |I\cup J|$. Now we are almost done, combining the above ineqalities with $|I - J|\geq |J - I|$ we observe that $|I|\geq |J|$. This contradicts our assumption that $|I|< |J|$. 
+        
+        Thus we have derived a contradiction when assuming that there exits, a pair $I, J$ of subsets violating (I3). Hence$\mathcal{I}$ satisfies (I3) and all in all $(E,\mathcal{I})$ is a matroid.
 
         
     \end{enumerate}  
+
+    
     The fact that $\mathcal{B}$ is now the set of bases of the matroid $(E,\mathcal{I})$ follows from the fact that all elements in $\mathcal{B}$ are maximal in $\mathcal{I}$.
 \end{proof}
 
