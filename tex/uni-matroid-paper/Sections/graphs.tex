@@ -156,14 +156,14 @@ To show that the set $E$ is a matroid with the collection $\mathcal{C}$ of cycle
 
 \begin{enumerate}
 
-\item The empty set is by our defintion not a cycle. For reminder, by our definition a cycle always includes a nonempty set of vertices it is build upon. If it is in a simple graph then it has to have at least three vertices. Our extended notion also includes loops and parallel edges, which are still build upon at least one vertex. 
+\item[(C1)] The empty set is by our defintion not a cycle. For reminder, by our definition a cycle always includes a nonempty set of vertices it is build upon. If it is in a simple graph then it has to have at least three vertices. Our extended notion also includes loops and parallel edges, which are still build upon at least one vertex. 
 
-\item The show the second property suppose we have two sets of edges of cycles such that $C_1 \subseteq C_2$ and assume for contradiction there is some $e \in C_2 - C_1$. Then (we are assuming neither of the cycles are loops, that case is clear, because the only possibility is they are equal) the set of edges $C_2 - e$ corresponds to a path from the vertices which $e$ connects. However there is a cycle $C_1 \subseteq C_2 -e$ which is a subset of a path - a contradiction. So if $C_1 \subseteq C_2$ then $C_2 - C_1$ is empty, in particular then $C_2 = C_1$ and all three circuit axioms are satisfied.
+\item[(C2)] The show the second property suppose we have two sets of edges of cycles such that $C_1 \subseteq C_2$ and assume for contradiction there is some $e \in C_2 - C_1$. Then (we are assuming neither of the cycles are loops, that case is clear, because the only possibility is they are equal) the set of edges $C_2 - e$ corresponds to a path from the vertices which $e$ connects. However there is a cycle $C_1 \subseteq C_2 -e$ which is a subset of a path - a contradiction. So if $C_1 \subseteq C_2$ then $C_2 - C_1$ is empty, in particular then $C_2 = C_1$ and all three circuit axioms are satisfied.
 
 
 
     
-   \item Finally we prove the third property. Let $C_1$ and $C_2$ be two cyles. We would like to show that there is a set of edges of cycle $C_3 \subset C_1 \cap C_2 - e$ for any $e \in C_1 \cap C_2$.
+   \item[(C3)] Finally we prove the third property. Let $C_1$ and $C_2$ be two cyles. We would like to show that there is a set of edges of cycle $C_3 \subset C_1 \cap C_2 - e$ for any $e \in C_1 \cap C_2$.
 
  
 
@@ -194,6 +194,7 @@ node[midway, right] {e} (4) ;
   \draw (9) to [bend left] (11);
   \draw (10) to [bend right] (11);
   \draw (5) to (1);
+  \draw (1) to (11)
 \end{tikzpicture} 
 \end{subfigure}
 \begin{subfigure}[h]{0.245\textwidth}
@@ -284,8 +285,11 @@ node[midway, right] {e} (4) ;
 
 \end{enumerate}
 
+To conclude, the collection of edges of cycles $\mathcal{C}$ satisfies the circuit axioms (C1), (C2) and (C3), therefore we know the the cryptomorphic describtion of matroids in terms of circuits that $E$ is in fact a matroid with having $\mathcal{C}$ as its collecition of circuits.
 
 \end{proof}
+
+
 
 \begin{defn}
     We call a matroid $M$ graphic if it is isomporphic to $(E, \mathcal{I})$ where $E$ is the set of edges of some graph and the set of circuits is given by the set of all edge cycles.
