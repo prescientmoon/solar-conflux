@@ -272,7 +272,7 @@ We are going to show the first cryptomorphism, referring to the idea that matroi
 
         We then have $J\subseteq B$, which means that $B$ should have been our choice for $B_J$ that minimalizes $|B_J-(J\cup B_I)|$. Thus, minimality of our choice of $B_J$ is contradicted, and thus, $B_J-(J\cup B_I)=\emptyset$. This now implies that $B_J\subseteq J\cup B_I$, which implies that $B_J-B_I\subseteq (J\cup B_I)-B_I=J-B_I$. Since $J-B_I\subseteq B_J-B_I$ already holds (because $J\subseteq B_J$), this proves equality between $B_J-B_I$ and $J-B_I$.
 
-        Next up, we apply a similar procedure to prove that $B_I-(I\cup B_J)$ is empty. Assume by contradiction that $i$ is a member of the set. We can then apply (B2) to get some $j\in B_J-B_I=J-B_I=J-I$ such that $(B_I-i)\cup j\in\mathcal{B}$. Since our choice of $i$ tells us that $i \notin I$, we have that $I\cup j = (I-i)\cup j \subseteq (B_I-i)\cup j$, which means $I\cup j\in\mathcal{I}$. This precicely gives us (I3), which contradicts our original assumption. Thus, $B_I-(I\cup B_J)=\emptyset$. By the same logic we used in the previous paragraph, $B_I-B_J=I-B_J\subseteq I-J$. This means that $|B_I-B_J|\leq|I-J|$.
+        Next up, we apply a similar procedure to prove that $B_I-(I\cup B_J)$ is empty. Assume by contradiction that $i$ is a member of the set. We can then apply $(B2)$ to get some $j\in B_J-B_I=J-B_I=J-I$ such that $(B_I-i)\cup j\in\mathcal{B}$. Since our choice of $i$ tells us that $i \notin I$, we have that $I\cup j = (I-i)\cup j \subseteq (B_I-i)\cup j$, which means $I\cup j\in\mathcal{I}$. This precisely gives us $(I3)$, which contradicts our original assumption. Thus, $B_I-(I\cup B_J)=\emptyset$. By the same logic we used in the previous paragraph, $B_I-B_J=I-B_J\subseteq I-J$. This means that $|B_I-B_J|\leq|I-J|$.
 
         We can use the fact that $\mathcal{B}$ is equicardical (lemma (\ref{lem:basis-axioms-imply-equal-size})), to see that $|B_I-B_J|=|B_J-B_I|$. At last, we use everything we've obtained so far to get the following
         \begin{align*}
@@ -285,9 +285,9 @@ We are going to show the first cryptomorphism, referring to the idea that matroi
         |I| = |(I - J)\cup (I \cap J)| = |I - J| + |I \cap J| - |\underbrace{(I - J) \cap (I \cap J)}_{ = \emptyset}|.
         \end{align*}
 
-        Therefore $|I| = |I-J| + |I \cap J|$ and by the same reasoning $|J| = |J - I| + |I\cup J|$. We are now almost done. Combining the above ineqalities with $|I - J|\geq |J - I|$, we observe that $|I-J| +|I \cap J|\geq |J - I| + |I \cap J|$, which finally implies $|I|\geq |J|$. This contradicts our assumption that $|I|< |J|$. 
+        Therefore, $|I| = |I-J| + |I \cap J|$ and by the same reasoning $|J| = |J - I| + |I\cup J|$. We are now almost done. Combining the above ineqalities with $|I - J|\geq |J - I|$, we observe that $|I-J| +|I \cap J|\geq |J - I| + |I \cap J|$, which finally implies $|I|\geq |J|$. This contradicts our assumption that $|I|< |J|$. 
         
-        Thus we have derived a contradiction when assuming that a pair $(I, J)$ of subsets violating (I3) exists. Hence $\mathcal{I}$ satisfies (I3), and all in all $(E,\mathcal{I})$ is a matroid.
+        Thus, we have derived a contradiction when assuming that a pair $(I, J)$ of subsets violating (I3) exists. Hence, $\mathcal{I}$ satisfies (I3), and all in all $(E,\mathcal{I})$ is a matroid.
     \end{enumerate}  
 
     
@@ -338,6 +338,9 @@ Below, we again find our example matroid drawing. This time, instead of using a 
 \draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
 
 \node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}, $\text{Set}_{\rank(\text{Set})}$ };
+
+\caption{Description of a 4-element matroid, with the rank of each set as subscript.}
+\label{fig:1234-matroid}
 
 \end{tikzpicture}
 \end{center}
