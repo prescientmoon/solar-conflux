@@ -204,14 +204,14 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
     \begin{enumerate} 
         \item[(I1)] The only subset of $\emptyset $ is $ \emptyset $, but $ \emptyset \not\in \mathcal C $, so $ \emptyset $ satisfies (\ref{independent-sets-from-circuits}), hence $\emptyset \in \mathcal I$.
         \item[(I2)] Assume we have $X \subseteq Y \in \mathcal I$. Assume that $X \not\in I$, i.e.\ there exists some $C \in \mathcal C $ such that $C \subseteq X$. We recall that $\subseteq $ is transitive, thus $C \subseteq Y$ and $Y \not\in I$, hence a contradiction.
-        \item[(I3)] Given $X, Y \in \mathcal I $ with $|X| < |Y|$ we must show there exists some $e \in Y \setminus X$ such that $X \cup \{e\} \in \mathcal I$. Assume that a counterexample exists. Pick such a counterexample which maximizes $|X \cap Y|$. Pick some $x \in X - Y$. We will proceed by cases:
+        \item[(I3)] Given $X, Y \in \mathcal I $ with $|X| < |Y|$ we must show there exists some $e \in Y \setminus X$ such that $X \cup \{e\} \in \mathcal I$. Assume that a counterexample exists. That is, some pair $X, Y \in \mathcal I$ must exist such that $\forall e \in Y - X, X \cup e \not\in \mathcal I$. Pick such a counterexample which maximizes $|X \cap Y|$. Pick some $x \in X - Y$. We will proceed by cases:
           \begin{enumerate}
-            \item If $Y + x$ is independent, we claim that $(X, Y + x)$ is a counterexample as well. This is trivially shown by noticing how $(Y + x) - X = Y - X$, so any choice of $e \in (Y + x) - X$ such that $X + e$ is independent would invalidate $(X, Y)$ being a counterexample. We note that 
+            \item If $Y \cup x$ is independent, we claim that $(X, Y \cup x)$ is a counterexample as well. This is trivially shown by noticing how $(Y \cup x) - X = Y - X$, so any choice of $e \in (Y \cup x) - X$ such that $X \cup e$ is independent would invalidate $(X, Y)$ being a counterexample. We note that 
               \begin{align*}
-              |X \cap (Y + y)| = |(X \cap Y) \cup (X \cap \{x\})| = |(X \cap Y) + x|,
+              |X \cap (Y \cup y)| = |(X \cap Y) \cup (X \cap \{x\})| = |(X \cap Y) \cup x|,
               \end{align*}
-              but $x \not\in X \cap YX$ so $|X \cap Y + x| = |X \cap Y| + |\{x\}| = |X \cap Y| + 1$. As $|X \cap Y| + 1 > |X \cap Y|$, we can conclude $(X, Y)$ did not maximize $|X \cap Y|$, hence a contradiction.
-            \item Otherwise, $Y + x$ is not independent. That is to say, some $C \in \mathcal C$ must exist such that $C \subseteq Y + x$. We make the five intermediate claims:
+              but $x \not\in X \cap Y$ so $|X \cap Y \cup x| = |X \cap Y| + |\{x\}| = |X \cap Y| + 1$. As $|X \cap Y| + 1 > |X \cap Y|$, we can conclude $(X, Y)$ did not maximize $|X \cap Y|$, hence a contradiction.
+            \item Otherwise, $Y \cup x$ is not independent. That is to say, some $C \in \mathcal C$ must exist such that $C \subseteq Y \cup x$. We make the five intermediate claims:
             \begin{enumerate}
               \item There exists some $y \in Y - X$ such that $y \in C$.
                 \begin{proof}
@@ -219,7 +219,7 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
                 \end{proof}
               \item This circuit is unique
                 \begin{proof}
-                  Assume another distinct $D \in \mathcal C$ exists such that $D \subseteq Y + x$. As $x \in D$ and $x \in C$, we can conclude that $x \in C \cap D$. We can now apply (C3) to generate some $C' \subseteq  C \cup D - y$. We recall that $C, D \subseteq Y + y$, therefore $C \cup D \subseteq Y + y$. Furthermore, $C \cup D - y \subseteq Y$. By transitivity with $C' \subseteq C \cup D - y$ we now have $C' \subseteq Y$, which implies $C' \not\in \mathcal I$, hence a contradiction.
+                  Assume another distinct $D \in \mathcal C$ exists such that $D \subseteq Y \cup x$. As $x \in D$ and $x \in C$, we can conclude that $x \in C \cap D$. We can now apply (C3) to generate some $C' \subseteq  C \cup D - y$. We recall that $C, D \subseteq Y \cup y$, therefore $C \cup D \subseteq Y \cup y$. Furthermore, $C \cup D - y \subseteq Y$. By transitivity with $C' \subseteq C \cup D - y$ we now have $C' \subseteq Y$, which implies $C' \not\in \mathcal I$, hence a contradiction.
                 \end{proof}
 
               \item $x \in C$
@@ -228,27 +228,32 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
                   If this is not the case, we have $C \subseteq Y$, which would imply that $Y \not\in \mathcal I$.
                 \end{proof}
 
-              \item $Y + x - y$ is independent. If this is not the case, there must exist some $D \subseteq \mathcal C$ with $D \subseteq Y + x - y$. As $D$ does not contain $x$, it must be distinct from $C$. We note that $Y + y - x \subseteq Y + x$, so $D \in Y + x$ as well. This contradicts the uniqueness of $C$, hence a contradiction.
+              \item $Y \cup x - y$ is independent. 
 
-              \item $(X, Y + x - y)$ is a counterexample for (I3).
+                \begin{proof}
+                If this is not the case, there must exist some $D \subseteq \mathcal C$ with $D \subseteq Y \cup x - y$. As $D$ does not contain $x$, it must be distinct from $C$. We note that $Y \cup y - x \subseteq Y \cup x$, so $D \in Y \cup x$ as well. This contradicts the uniqueness of $C$, hence a contradiction.
+                \end{proof}
+
+              \item $(X, Y \cup x - y)$ is a counterexample for (I3).
 
                 \begin{proof}
                   This trivially follows after noticing that 
                   \begin{align*}
-                  (Y + x - y) - X \subseteq (Y + x) - X = Y - X.
+                  (Y \cup x - y) - X \subseteq (Y \cup x) - X = Y - X.
                   \end{align*}
 
-                  Any choice of $e \in (Y + x - y) - X$ such that $X + e$ is independent would then invalidate $(X, Y)$ being a counterexample, hence a contradiction.
+                  Any choice of $e \in (Y \cup x - y) - X$ such that $X \cup e$ is independent would then invalidate $(X, Y)$ being a counterexample, hence a contradiction.
                 \end{proof}
             \end{enumerate}
 
             We now notice that
             \begin{align*}
-              |X \cap (Y + x - y)| = |(X \cap (Y + x)) - y| = |((X \cap Y) \cup (X \cap \{x\})) - y|
-              = |X \cap Y + x - y|.
+              |X \cap (Y \cup x - y)| &= |(X \cap (Y \cup x)) - y| 
+              \\&=  |((X \cap Y) \cup (X \cap \{x\})) - y|
+              \\&=  |X \cap Y \cup x - y|.
             \end{align*}
 
-              We note that $y \in Y - X$, thus $y \neq x$ and therefore $X \cap Y + x - y = X \cap Y + x$. Furthermore, $x \not\in X \cap Y$, therefore $|X \cap Y + x| = |X \cap Y| + 1|$. We can now conclude that $|C \cap (Y + x - y)| = |X \cap Y| + 1|$. As $|X \cap Y| + 1 > |X \cap Y|$ and $(X, Y + x - y)$, we can conclude that $(X, Y)$ did not maximize $|X \cap Y|$, hence a contradiction.
+              We note that $y \in Y - X$, thus $y \neq x$ and therefore $X \cap Y \cup x - y = X \cap Y \cup x$. Furthermore, $x \not\in X \cap Y$, therefore $|X \cap Y \cup x| = |X \cap Y| + 1$. We can now conclude that $|C \cap (Y \cup x - y)| = |X \cap Y| + 1$. As $|X \cap Y| + 1 > |X \cap Y|$ and $(X, Y \cup x - y)$, we can conclude that $(X, Y)$ did not maximize $|X \cap Y|$, hence a contradiction.
           \end{enumerate}
 
     \end{enumerate}
