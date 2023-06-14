@@ -352,13 +352,12 @@ Again, we will use the same matroid example as before, this time adding circuits
 \draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
 
 \node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}};
-\caption{Diagram of a 4-element matroid, with circuits in blue}
+\caption{Diagram of a 4-element matroid, with circuits in blue.}
 \end{tikzpicture}
 \end{center}
 
 To get an intuition behind (C3), let us consider the matroid induced by the graph in figure 3. We will discuss graphic matroid later, but just know that a circuit is a cycle in the graph. Here, we have two circuits, $C_1$ and $C_2$, that share an edge, $e$. If you take the union of both circuits and remove the edge $e$ from it, then that subgraph contains another cycle, circuit $C_3$.
 
-% Someone please fix this!
 
 
 \begin{figure}
