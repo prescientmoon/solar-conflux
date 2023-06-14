@@ -9,9 +9,7 @@ An interesting concept of independence arises in the study of field theory. We w
 	%\text{for all } f \in \mathbb{F}[X _1 \ldots X _n], \left( f \neq  0 \land  f(s _1 \ldots s _n) = 0\right).
 	%\end{align*}
 \end{defn}
-Intuitively, the definition says that if we just multiply and add the elements of $S$ and multiplying them with elements of $\mathbb{K}$ we will never get 0.
-
-
+Intuitively, the definition say that no linear combination with coefficients in $\mathbb F$ of products of elements in $S$ is equal to $0$.
 
 We know that an element $x\in \mathbb{R}$ is called transcendental with respect to $\mathbb{Q}$ if for nonzero polynomials with rational coefficients $\ev_{x}(p) \neq 0$. That means that any nontrivial polynomial evaluated at $x$ will never give 0.
 Comparing with the definition of algebraically independent sets above, we see that a singleton ${x}$ is algebraically independent by our defintion, if for any nonzero  single variable ($n = 1$) polynomial $p$ with coefficients in $\mathbb{Q}$ we will have that $\ev_{x}(p) \neq 0$. This is precisely the definition of transcendental numbers.
@@ -31,9 +29,9 @@ Before continuing onto the next lemma, we remind the reader that a field $\mathb
 \end{lemma}
 
 \begin{proof}
-	The vector spaces induced by $\mathbb{F} (b)$ and $\mathbb{F} (b)(a)$ must both be finite dimenssional over $\mathbb{F} $ and $\mathbb{F} (b)$ respectively (because $b$ is algebraic over $\mathbb{F} $ and $a$ is algebraic over $\mathbb{F} (b)$ respectively). It follows that $\mathbb{F} (b)(a)$ is finitely dimenssional over $\mathbb{F}$ (this can be seen by noticing that given a basis $a _i $ for $\mathbb{F} (b)(a)$ over $\mathbb{F} (b)$ and a basis $b _i $ for $\mathbb{F} (b)$ over $\mathbb{F} $, we can form a basis $a _i b _j $ for $\mathbb{F} (b)(a)$ over $\mathbb{F} $).
+	The vector spaces induced by $\mathbb{F} (b)$ and $\mathbb{F} (b)(a)$ must both be finite dimenssional over $\mathbb{F} $ and $\mathbb{F} (b)$ respectively (because $b$ is algebraic over $\mathbb{F} $ and $a$ is algebraic over $\mathbb{F} (b)$). It follows that $\mathbb{F} (b)(a)$ is finitely dimenssional over $\mathbb{F}$ (this can be seen by noticing that given a basis $\{a _i \}$ for $\mathbb{F} (b)(a)$ over $\mathbb{F} (b)$ and a basis $\{b _i\}$ for $\mathbb{F} (b)$ over $\mathbb{F} $, we can form a basis $\{a _i b _j\}$ for $\mathbb{F} (b)(a)$ over $\mathbb{F} $).
 
-	Let $n$ be the dimenssion of $\mathbb{F} (b)(a)$ over $\mathbb{F} $. Let $S = \{a ^0 \ldots a ^n \}$. Because $|S| = n + 1$, $S$ cannot be linearly independent (in the vector space induced by $\mathbb{F} (b)(a)$ over $\mathbb{F} $), which means a polynomial $f \in \mathbb{F} [x]$ exists such that $f(a) = 0$.
+	Let $n$ be the dimenssion of $\mathbb{F} (b)(a)$ over $\mathbb{F} $. Let $S = \{a ^0 \ldots a ^n \}$. Because $|S| = n + 1$, $S$ cannot be linearly independent (in the vector space induced by $\mathbb{F} (b)(a)$ over $\mathbb{F} $), which means a polynomial $f \in \mathbb{F} [x]$ exists such that $ev_a(f) = 0$.
 \end{proof}
 
 \begin{lemma}\label{lem:algebraic-dependence-transitivity}
@@ -54,10 +52,10 @@ Before continuing onto the next lemma, we remind the reader that a field $\mathb
 	Given a finite subset $E \subseteq \mathbb K / \mathbb F$, the pair $(E, \mathcal I)$  where $\mathcal I$ is the set of algebraically independent subsets of $E$ forms a matroid.
 \end{theorem}
 
-Although~\cite{oxley1} offers a proof based on independent sets and the concept of algebraic dependence, we will instead present a proof based on the basis of our supposed matroid. The part focused on proving the exchange lemma is inspired by~\cite{milne2022}, although the rest will be a lot more simple (no need to involve Zorn's lemma) because we are working in a finite subset.
+Although~\cite{oxley1} offers a proof based on independent sets and the concept of algebraic dependence, we will instead present a proof based on the bases of our supposed matroid. The part focused on proving lemma (\ref{lem:algebraic-indep-smaller-than-dep}) is inspired by~\cite{milne2022}, although the rest will be a lot simpler (no need to involve Zorn's lemma) because we are working in a finite subset.
 
 
-We start by proving the following lemma:
+We start by introducing some useful lemmas:
 \begin{lemma}\label{lem:algebraic-indep-smaller-than-dep}
 	Consider finite $A, B \subseteq \mathbb K / \mathbb F$, such that $A$ is independent over $\mathbb F$ and dependent on $B$ (over $\mathbb F$). Then $|B| \geq |A|$.
 \end{lemma}
@@ -65,8 +63,8 @@ We start by proving the following lemma:
 \begin{proof}
 	We will prove the statement by induction on the number of elements in $A \setminus B$:
 	\begin{enumerate}
-		\item If $A \setminus B = \varnothing $ then $A \subseteq B$ and $|A| \leq |B|$ follows trivially.
-		\item Assume the statemenet is true for some $|A \setminus B| = |A| - (k + 1)$ (where $k = |A \cap B$). We will attempt to prove it for $|A \setminus B| = |A| - k$. Let $a _1 \ldots a _n$ be the elements of $A$ such that $a _1 \ldots a_k$ are all the members of $A \cap B$ for some $k$. Let $ a _1 \ldots a_k, b _{k + 1} \ldots b _m$ be the elements of $B$. It remains to prove that $m \geq n$.
+		\item If $A \setminus B = \emptyset $ then $A \subseteq B$ and $|A| \leq |B|$ follows trivially.
+		\item Assume the statemenet is true for some $|A \setminus B| = p$. We will attempt to prove it for $|A \setminus B| = p + 1$. Let $k = |A \cap B| = |A| - p$. Let $a _1 \ldots a _n$ be the elements of $A$ such that $a _1 \ldots a_k$ are all the members of $A \cap B$ for some $k$. Let $ a _1 \ldots a_k, b _{k + 1} \ldots b _m$ be the elements of $B$. It remains to prove that $m \geq n$.
 
 		      As $a _{k + 1}$ is not dependent on $\{a _1 \ldots a_k\}$ but is dependent on $B = \{a _1 \ldots a _k, b _{k + 1} \ldots b_m\}$, there must exist some $k + 1 \leq j \leq m$ such that $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$ but  not on $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$. Because $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$, we know there exists some polynomial $f \in \mathbb F[x _1 \ldots x _{j + 1}]$ such that
 		      \begin{align*}
@@ -87,28 +85,28 @@ We start by proving the following lemma:
 
 		      This implies that $f(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, X, a _{k + 1}) \neq 0$. Since $ f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0$, we can conclude that $b_j$ is algebraic over $\{a _1 \ldots a _{k + 1}, b _{k + 2} \ldots b _j\}$.
 
-		      Construct $B' = B + a _{k + 1} - b_j$. Having proven that $b_j$ is dependent on a subset of $B'$, it is also dependent on $B'$. All other elements of $B$ are also dependent on $B'$ (because any variable is algebraic over a field extension it generates, i.e. $t$ is algebraic over $\mathbb F(t)$). We recall that $A$ is dependent on $B$, so by the transitivity of algebraic dependence (lemma (\ref{lem:algebraic-dependence-transitivity})), we know that $A$ is algebraic over $B'$. We also notice that $A$ and $B'$ have $k + 1$ elements in common, therefore the statement is proven by the induction hypothesis.
+		      Construct $B' = B + a _{k + 1} - b_j$. Having proven that $b_j$ is dependent on a subset of $B'$, it is also dependent on $B'$. All other elements of $B$ are also dependent on $B'$ (because any variable is algebraic over a field extension it generates, i.e. $t$ is algebraic over $\mathbb F(t)$). We recall that $A$ is dependent on $B$, so by the transitivity of algebraic dependence (lemma (\ref{lem:algebraic-dependence-transitivity})), we know that $A$ is algebraically dependent on $B'$. We also notice that $A$ and $B'$ have $k + 1$ elements in common, therefore the statement is proven by the induction hypothesis.
 	\end{enumerate}
 \end{proof}
 
-We will now show that all basis in our supposed matroid have equal cardinality.
+We will now show that all bases in our supposed matroid have equal cardinality.
 
-\begin{lemma}
+\begin{lemma}\label{lem:algebraic-matroid-equal-size-bases}
 	Given some finite subset $E \subseteq \mathbb K / \mathbb F$, maximal independent subsets of $E$ (in the partially ordered set induced by inclusion) have equal cardinality.
 \end{lemma}
 
 \begin{proof}
-	Let $A$ and $B$ be maximal independent subsets of $E$. If both sets are $\varnothing$, then our proof is done. If one set is $\varnothing$ and one isn't, we clearly have a contradiction, as $\varnothing$ is a strict subset of the other set, hence not maximal. We therefore assume the existence of some $a \in A$ and $b \in B$.
+	Let $A$ and $B$ be maximal independent subsets of $E$. If both sets are $\emptyset$, then our proof is done. If one set is $\emptyset$ and one isn't, we clearly have a contradiction, as $\emptyset$ is a strict subset of the other set, hence not maximal. We therefore assume the existence of some $a \in A$ and $b \in B$.
 
-	We know that $A$ is maximal, therefore any $b \in B$ is algebraically dependent on $A$. We can therefore conclude that $B$ is algebraically dependent over $B$. We recall that $B$ is also independent, which means we can use lemma (\ref{lem:algebraic-indep-smaller-than-dep}) to prove that $|A| \geq |B|$. We can apply a similar argument to show that $|B| \geq |A|$, which together with our previous statement shows that $|A| = |B|$, proving the lemma.
+	We know that $A$ is maximal, therefore any $b \in B$ is algebraically dependent on $A$. We can therefore conclude that $B$ is algebraically dependent on $B$. We recall that $B$ is also independent, which means we can use lemma (\ref{lem:algebraic-indep-smaller-than-dep}) to prove that $|A| \geq |B|$. We can apply a similar argument to show that $|B| \geq |A|$, which together with our previous statement shows that $|A| = |B|$, proving the lemma.
 \end{proof}
 
 \begin{proof}[Proof of theorem (\ref{thm:algebraic-matroids-are-matroids})]
 	We will construct the matroid using the basis definition. We need to first show that at least one exists, and then show that the exchange property holds.
 
-	We consider the partially ordered set of independent subsets of $E$ ordered by inclusion. We notice that $ \varnothing $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\varnothing $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element, so a basis exists.
+	We consider the partially ordered set of independent subsets of $E$ ordered by inclusion. We notice that $ \emptyset $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\emptyset $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element, so a basis exists.
 
-	It now remains to prove the exchange property. That is, given two basis $A, B \subseteq \mathcal B$ and some $a \in A \setminus B$, we can find some $b \in B \setminus A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two basis have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-basis})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \leq n - 1$, hence a contradiction.
+	It now remains to prove the exchange property. That is, given two bases $A, B \subseteq \mathcal B$ and some $a \in A \setminus B$, we can find some $b \in B \setminus A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two bases have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-bases})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \leq n - 1$, hence a contradiction.
 \end{proof}
 
 
