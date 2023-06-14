@@ -8,4 +8,7 @@
 *.pdf
 *.out
 *.toc
+# I think * doesn't work with underscores?
+*_*.out
+*_*.toc
 !Material/*.pdf
