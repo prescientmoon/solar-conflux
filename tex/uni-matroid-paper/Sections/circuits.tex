@@ -204,17 +204,53 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
     \begin{enumerate} 
         \item[(I1)] The only subset of $\emptyset $ is $ \emptyset $, but $ \emptyset \not\in \mathcal C $, so $ \emptyset $ satisfies (\ref{independent-sets-from-circuits}), hence $\emptyset \in \mathcal I$.
         \item[(I2)] Assume we have $X \subseteq Y \in \mathcal I$. Assume that $X \not\in I$, i.e.\ there exists some $C \in \mathcal C $ such that $C \subseteq X$. We recall that $\subseteq $ is transitive, thus $C \subseteq Y$ and $Y \not\in I$, hence a contradiction.
-        \item[(I3)] Given $X, Y \in \mathcal I $ with $|X| < |Y|$ we must show there exists some $e \in Y \setminus X$ such that $X \cup \{e\} \in \mathcal I$. Assume that such an $e$ does not exist, i.e.\ for all $e \in Y \setminus X$ we have some circuit $C _e \in \mathcal C $ such that $C _e \subseteq X \cup \{e\}$. We obviously have $e \in C_e$, because otherwise $C_e \subseteq X$ and $X \not\in \mathcal I$.
+        \item[(I3)] Given $X, Y \in \mathcal I $ with $|X| < |Y|$ we must show there exists some $e \in Y \setminus X$ such that $X \cup \{e\} \in \mathcal I$. Assume that a counterexample exists. Pick such a counterexample which maximizes $|X \cap Y|$. Pick some $x \in X - Y$. We will proceed by cases:
+          \begin{enumerate}
+            \item If $Y + x$ is independent, we claim that $(X, Y + x)$ is a counterexample as well. This is trivially shown by noticing how $(Y + x) - X = Y - X$, so any choice of $e \in (Y + x) - X$ such that $X + e$ is independent would invalidate $(X, Y)$ being a counterexample. We note that 
+              \begin{align*}
+              |X \cap (Y + y)| = |(X \cap Y) \cup (X \cap \{x\})| = |(X \cap Y) + x|,
+              \end{align*}
+              but $x \not\in X \cap YX$ so $|X \cap Y + x| = |X \cap Y| + |\{x\}| = |X \cap Y| + 1$. As $|X \cap Y| + 1 > |X \cap Y|$, we can conclude $(X, Y)$ did not maximize $|X \cap Y|$, hence a contradiction.
+            \item Otherwise, $Y + x$ is not independent. That is to say, some $C \in \mathcal C$ must exist such that $C \subseteq Y + x$. We make the five intermediate claims:
+            \begin{enumerate}
+              \item There exists some $y \in Y - X$ such that $y \in C$.
+                \begin{proof}
+                  If this is not the case, then $C \subseteq \{x\}$. As $\emptyset \not\in \mathcal C$, we can conclude that $C = \{x\}$. We now have $C \subseteq X$, which implies $x \not\in \mathcal I$, hence a contradiction.
+                \end{proof}
+              \item This circuit is unique
+                \begin{proof}
+                  Assume another distinct $D \in \mathcal C$ exists such that $D \subseteq Y + x$. As $x \in D$ and $x \in C$, we can conclude that $x \in C \cap D$. We can now apply (C3) to generate some $C' \subseteq  C \cup D - y$. We recall that $C, D \subseteq Y + y$, therefore $C \cup D \subseteq Y + y$. Furthermore, $C \cup D - y \subseteq Y$. By transitivity with $C' \subseteq C \cup D - y$ we now have $C' \subseteq Y$, which implies $C' \not\in \mathcal I$, hence a contradiction.
+                \end{proof}
 
+              \item $x \in C$
 
-     Let $X' = X \setminus Y$ and $Y' = Y \setminus X$. We will prove the statement by induction: given some set $S \subseteq X'$, a set of circuits $D \subseteq \mathcal C$ with $\forall C \in D, C \subseteq  S \cup Y$ and a surjective but not injective function $f : D \to S$ such that $f(D)$ is maximal in size and $\forall C \in D, f(C) \in C$, our statement is proven. We will use induction on the size of $S$:
-    \begin{enumerate}
-      \item If $S = \{e\}$ only has one element, we know that $f$ is not injective, so we must have distinct $C _1, C _2 \in D$ such that $e = f(C _1 ) = f(C _2)$. We can use the $3$-rd circuit axiom to generate some circuit $C _3 \subseteq C _1 \cup C _2 - e$. We recall that $C _1 , C _2 \subseteq S \cup Y $, so $C _3 \subseteq S \cup Y - e$ which implies $C _3 \subseteq Y$, which is a contradiction.
-        \item Inductive step. Assuming the statement is true for all choices of $S$ with $k$ elements, we will attempt to prove it is also true when $S$ has $k + 1$ elements. Recalling that $f$ is not injective, we must have distinct $C _1, C _2 \in D$ such that $f(C _1 ) = f(C _2)$. Let $g = f(C _1)$. We have $g \in C _1, C _2$, so by the $3$-rd circuit axiom we must have some circuit $C  _3 \subseteq C _1 \cup C _2 - g$. Let $S' = C _3 \cap X'$. 
+                \begin{proof}
+                  If this is not the case, we have $C \subseteq Y$, which would imply that $Y \not\in \mathcal I$.
+                \end{proof}
 
-            For all $e \in S'$, we claim there must exist some $C_e \in D$ such that $e = f(C_e)$. Assume this is not the case, i.e.\ there is some $e \in S'$ such that no valid choice of $C_e$ exists. Given that $e \in S'$, we know that either $e \in C_1$ or $e \in C_2$. After a potential swap, we assume that $e \in C_1$. We can now define $f'(C) = e$ when $C = C_1$ and $f'(C) = f(C)$. Because no choice of $C_e$ exists, we know that $e \not\in f(D)$. Because $f(C _1 ) = f(C _2 )$ we have $f(D) = f(D - C _1 )$ which lets us compute $f'(D) = f(D) \cup \{e\}$, which means $f(D)$ was not maximal, hence a contradiction. Our claim is then true.
+              \item $Y + x - y$ is independent. If this is not the case, there must exist some $D \subseteq \mathcal C$ with $D \subseteq Y + x - y$. As $D$ does not contain $x$, it must be distinct from $C$. We note that $Y + y - x \subseteq Y + x$, so $D \in Y + x$ as well. This contradicts the uniqueness of $C$, hence a contradiction.
 
-            Define $D' = \{C_e | e \in S'\} \cup \{C _3 \}$. We've essentially proven in the last paragraph that $f : \{C_e | e \in S'\} \to S'$ is still a  surjective function. It then follows that $h = f : D' \to S'$ is surjective as well. By the Pigeonhole principle, we know $h$ cannot be injective, because $|D'| = |S'| + 1$. We are now almost ready to apply the induction hypothesis to $(S', D', h)$. We've shown a choice for $h$ exist. If this choice is not maximal, swap it with a maximal choice (we had to show that at least one choice exists for a maximal choice to exist). We can now apply the induction hypothesis, proving the statement.
+              \item $(X, Y + x - y)$ is a counterexample for (I3).
+
+                \begin{proof}
+                  This trivially follows after noticing that 
+                  \begin{align*}
+                  (Y + x - y) - X \subseteq (Y + x) - X = Y - X.
+                  \end{align*}
+
+                  Any choice of $e \in (Y + x - y) - X$ such that $X + e$ is independent would then invalidate $(X, Y)$ being a counterexample, hence a contradiction.
+                \end{proof}
+            \end{enumerate}
+
+            We now notice that
+            \begin{align*}
+              |X \cap (Y + x - y)| = |(X \cap (Y + x)) - y| = |((X \cap Y) \cup (X \cap \{x\})) - y|
+              = |X \cap Y + x - y|.
+            \end{align*}
+
+              We note that $y \in Y - X$, thus $y \neq x$ and therefore $X \cap Y + x - y = X \cap Y + x$. Furthermore, $x \not\in X \cap Y$, therefore $|X \cap Y + x| = |X \cap Y| + 1|$. We can now conclude that $|C \cap (Y + x - y)| = |X \cap Y| + 1|$. As $|X \cap Y| + 1 > |X \cap Y|$ and $(X, Y + x - y)$, we can conclude that $(X, Y)$ did not maximize $|X \cap Y|$, hence a contradiction.
+          \end{enumerate}
+
     \end{enumerate}
 
     We notice that $X$ can be partitioned into $X'$ and $X \cap Y$, hence $|X| = |X'| + |X \cap Y|$. We can follow a similar process for $Y$. Combining the two together with the fact that $|X| < |Y|$ yields that $|X'| < |Y'|$. We know that $Y \in \mathcal I$ so $\forall e \in Y', C_e \not \subseteq  Y$, but $C_e \subseteq  X \cup \{e\}$ therefore there must exist some $c_e \in C_e \cap X'$. 
