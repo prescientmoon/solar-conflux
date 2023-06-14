@@ -63,10 +63,10 @@ We start by introducing some useful lemmas:
 \end{lemma}
 
 \begin{proof}
-	We will prove the statement by induction on the number of elements in $A \setminus B$:
+	We will prove the statement by induction on the number of elements in $A - B$:
 	\begin{enumerate}
-		\item If $A \setminus B = \emptyset $ then $A \subseteq B$ and $|A| \leq |B|$ follows trivially.
-		\item Assume the statemenet is true for some $|A \setminus B| = p$. We will attempt to prove it for $|A \setminus B| = p + 1$. Let $k = |A \cap B| = |A| - p$. Let $a _1 \ldots a _n$ be the elements of $A$ such that $a _1 \ldots a_k$ are all the members of $A \cap B$ for some $k$. Let $ a _1 \ldots a_k, b _{k + 1} \ldots b _m$ be the elements of $B$. It remains to prove that $m \geq n$.
+		\item If $A - B = \emptyset $ then $A \subseteq B$ and $|A| \leq |B|$ follows trivially.
+		\item Assume the statemenet is true for some $|A - B| = p$. We will attempt to prove it for $|A - B| = p + 1$. Let $k = |A \cap B| = |A| - p$. Let $a _1 \ldots a _n$ be the elements of $A$ such that $a _1 \ldots a_k$ are all the members of $A \cap B$ for some $k$. Let $ a _1 \ldots a_k, b _{k + 1} \ldots b _m$ be the elements of $B$. It remains to prove that $m \geq n$.
 
 		      As $a _{k + 1}$ is not dependent on $\{a _1 \ldots a_k\}$ but is dependent on $B = \{a _1 \ldots a _k, b _{k + 1} \ldots b_m\}$, there must exist some $k + 1 \leq j \leq m$ such that $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$ but  not on $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$. Because $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$, we know there exists some polynomial $f \in \mathbb F[x _1 \ldots x _{j + 1}]$ such that
 		      \begin{align*}
@@ -107,7 +107,7 @@ We will now show that all bases in our supposed matroid have equal cardinality.
 	We will construct the matroid using the basis definition (theorem (\ref{thm:basis-axioms-form-matroid})). We need to first show that at least one exists, and then show that the exchange property holds.
 	\begin{enumerate}
 		\item[(B1)] We consider the partially $(\mathcal I, \subseteq )$. We notice that $ \emptyset $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\emptyset $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element (see lemma (\ref{lem:nonempty-finite-posets-have-maximal-elements})), so a basis exists.
-		\item[(B2)] It now remains to prove the exchange property. That is, given two bases $A, B \subseteq \mathcal B$ and some $a \in A \setminus B$, we can find some $b \in B \setminus A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two bases have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-bases})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \leq n - 1$, hence a contradiction.
+		\item[(B2)] It now remains to prove the exchange property. That is, given two bases $A, B \subseteq \mathcal B$ and some $a \in A - B$, we can find some $b \in B - A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two bases have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-bases})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \leq n - 1$, hence a contradiction.
 	\end{enumerate}
 \end{proof}
 

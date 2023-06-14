@@ -175,9 +175,9 @@ node[midway, right] {e} (4) ;
     \item[(C2)] A counterexample to this clause would violate $C _2$ being minimal.
     \item[(C3)] Assume a counterexample exists. Because $C _1 \cup C _2 - e$ does not contain a circuit, it must be an element of $\mathcal I$. 
 
-        We claim that $C _2 \setminus C _1$ is nonempty. Assume this is not the case. That would imply $C _2 \subseteq C _1$, but $C _1 \neq C _2 $ by (C3), which means that $C _1 $ is a proper subset of $C _2$. As both $C _1 $ and $C _2 $ are members of $\mathcal C$, this violates (C2), and is a contradiction. We can then assume some $f \in C _2 \setminus C _1 $ exists.
+        We claim that $C _2 - C _1$ is nonempty. Assume this is not the case. That would imply $C _2 \subseteq C _1$, but $C _1 \neq C _2 $ by (C3), which means that $C _1 $ is a proper subset of $C _2$. As both $C _1 $ and $C _2 $ are members of $\mathcal C$, this violates (C2), and is a contradiction. We can then assume some $f \in C _2 - C _1 $ exists.
 
-        As $C _2$ is minimally dependent, we know that $C _2 - f$ is independent. Let $I$ be a maximal independent subset of $C _2 \cup C _1$ which is a superset of $C _2 - f$. Clearly, $f \not\in I$ (otherwise $C _2 \subseteq I \in \mathcal I$). Furthermore, as $C _1 $ is a circuit, we know that $C _1 \not \subseteq I \in \mathcal I$ (otherwise $C _1$ would be independent). This means some $g \in C _1$ exists such that $g \not\in I$. As $f \in C _2  \setminus  C _2$, we know that $f \neq g$.
+        As $C _2$ is minimally dependent, we know that $C _2 - f$ is independent. Let $I$ be a maximal independent subset of $C _2 \cup C _1$ which is a superset of $C _2 - f$. Clearly, $f \not\in I$ (otherwise $C _2 \subseteq I \in \mathcal I$). Furthermore, as $C _1 $ is a circuit, we know that $C _1 \not \subseteq I \in \mathcal I$ (otherwise $C _1$ would be independent). This means some $g \in C _1$ exists such that $g \not\in I$. As $f \in C _2  -  C _2$, we know that $f \neq g$.
 
         As $I \subseteq C _1 \cup C _2$ and $f, g \in C _1 \cup C _2$ but $f, g \not\in I$, we can infer that 
         \begin{align*}
@@ -204,7 +204,7 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
     \begin{enumerate} 
         \item[(I1)] The only subset of $\emptyset $ is $ \emptyset $, but $ \emptyset \not\in \mathcal C $, so $ \emptyset $ satisfies (\ref{independent-sets-from-circuits}), hence $\emptyset \in \mathcal I$.
         \item[(I2)] Assume we have $X \subseteq Y \in \mathcal I$. Assume that $X \not\in I$, i.e.\ there exists some $C \in \mathcal C $ such that $C \subseteq X$. We recall that $\subseteq $ is transitive, thus $C \subseteq Y$ and $Y \not\in I$, hence a contradiction.
-        \item[(I3)] Given $X, Y \in \mathcal I $ with $|X| < |Y|$ we must show there exists some $e \in Y \setminus X$ such that $X \cup \{e\} \in \mathcal I$. Assume that a counterexample exists. That is, some pair $X, Y \in \mathcal I$ must exist such that $\forall e \in Y - X, X \cup e \not\in \mathcal I$. Pick such a counterexample which maximizes $|X \cap Y|$. Pick some $x \in X - Y$. We will proceed by cases:
+        \item[(I3)] Given $X, Y \in \mathcal I $ with $|X| < |Y|$ we must show there exists some $e \in Y - X$ such that $X \cup \{e\} \in \mathcal I$. Assume that a counterexample exists. That is, some pair $X, Y \in \mathcal I$ must exist such that $\forall e \in Y - X, X \cup e \not\in \mathcal I$. Pick such a counterexample which maximizes $|X \cap Y|$. Pick some $x \in X - Y$. We will proceed by cases:
           \begin{enumerate}
             \item If $Y \cup x$ is independent, we claim that $(X, Y \cup x)$ is a counterexample as well. This is trivially shown by noticing how $(Y \cup x) - X = Y - X$, so any choice of $e \in (Y \cup x) - X$ such that $X \cup e$ is independent would invalidate $(X, Y)$ being a counterexample. We note that 
               \begin{align*}
