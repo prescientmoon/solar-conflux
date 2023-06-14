@@ -165,7 +165,7 @@ Let $M = (E, \mathcal{I})$ be a matroid. We call a subset $B \subseteq E$ a \tex
     Aiming for contradiction, suppose that the theorem does not hold. Let $B$ and $S$ be two bases with $|B| < |S|$ - different size. By the third property of independent sets we know there exists $e \in S - B$ such that $ B \cup e \in \mathcal{I}$. However, then $B$ is properly contained inside $B \cup e$, another independent set, which contradicts its maximality. So the initial assumption that there exist two bases with different size is false.
 \end{proof}
 
-The concept of a bases is important because it allows us to define a \textit{rank function} of a matroid, which computes the size of the maximal independent subset inside a given subset of a matroid.  Because the sizes of all of such sets --- bases --- are equal, this will be a well-defined notion.
+The concept of a basis is important because it allows us to define a \textit{rank function} of a matroid, which computes the size of the maximal independent subset inside a given subset of a matroid.  Because the sizes of all of such sets --- bases --- are equal, this will be a well-defined notion.
 
 \begin{exmp}
     In figure~\ref{fig:1234-matroid-bases}, we find a depiction of the same matroid from figure (\ref{fig:1234-matroid-independent-sets}). In addition, we also highlight the bases of the matroid in red. Two properties can be observed:
@@ -229,10 +229,10 @@ Let us prove that the set of bases of a matroid satisfies the properties (B1) an
 
 
 \begin{lemma}\label{lem:basis-axioms-imply-equal-size}
-    Let $E$ be a finite set, and let $\mathcal{B}$ be a colection of subsets of $E$ satisfying (B1) and (B2). Then $\mathcal{B}$ is equicardinal, so all elements in $\mathcal{B}$ have the same cardinality.
+    Let $E$ be a finite set, and let $\mathcal{B}$ be a collection of subsets of $E$ satisfying (B1) and (B2). Then $\mathcal{B}$ is equicardinal, so all elements in $\mathcal{B}$ have the same cardinality.
 \end{lemma}
 
-Even though we have already proven that the set of bases of a matroid is equicardinal, we will also show that this property holds for an \textit{arbitrary collection of subsets} satisfying (B1) and (B2). This property will be useful in a future proof
+Even though we have already proven that the set of bases of a matroid is equicardinal, we will also show that this property holds for an \textit{arbitrary collection of subsets} satisfying (B1) and (B2). This property will be useful in a future proof.
 
 %Now that we have a new way to describe $\mathcal{B}$ with (B1) and (B2), we again need to prove that it is equicardinal (all elements of $\mathcal{B}$ having the same cardinality). 
 
@@ -240,7 +240,7 @@ Even though we have already proven that the set of bases of a matroid is equicar
     Suppose that $\mathcal{B}$ is not equicardinal, that is, we have $|B_1|>|B_2|$ for some $B_1,B_2\in\mathcal{B}$. For all $B_1,B_2$ where that holds, choose the pair that minimizes $|B_1-B_2|$. Since $B_1$ is larger than $B _2$, we know that $B _1 - B _2 \neq \emptyset$. Choose an element $b\in B_1-B_2$ and apply (B2) to show that there exists some $d\in B_2-B_1$ such that $(B_1-b)\cup d \in\mathcal{B}$. With our choices of $b$ and $d$, we can see that $|((B_1-b)\cup d)-B_2|=|(B_1-b)-B_2|<|B_1-B_2|$. This, combined with the fact that $|(B_1-b)\cup d|=|B_1|<|B_2|$, tells us that $B_1$ and $B_2$ are actually not the minimal choice. This contradiction proves that $\mathcal{B}$ is indeed equicardinal.
 \end{proof}
 
-We are going to show the first cryptomorphism, referring to the idea that matroids can be defined not by the collection of independent sets but by its collection of bases. To show that the two properties (B1) and (B2) are sufficient to describe the bases of $M$, we will prove that if $\mathcal{B}$ is any collection of subsets satisfying the bases axioms, then the independent sets are all of the possible subsets of the the elements of $\mathcal{B}$.
+We are going to show the first cryptomorphism, referring to the idea that matroids can be defined not by the collection of independent sets but by its collection of bases. To show that the two properties (B1) and (B2) are sufficient to describe the bases of $M$, we will prove that if $\mathcal{B}$ is any collection of subsets satisfying the bases axioms, then the independent sets are all the possible subsets of the elements of $\mathcal{B}$.
 
 \begin{theorem}\label{thm:basis-axioms-form-matroid}
     Let $\mathcal{B}$ be a collection of subsets of a non-empty finite set $E$, satisfying (B1) and (B2). Let $\mathcal{I}=\{ I\subseteq B \; | \; B\in\mathcal{B} \}$. Then $(E,\mathcal{I})$ is a matroid with $\mathcal{B}$ as its set of bases.
@@ -254,7 +254,7 @@ We are going to show the first cryptomorphism, referring to the idea that matroi
         
       \item[(I2)] If $I\in\mathcal{I}$ and $J\subseteq I$, then by definition of $\mathcal{I}$ we have that $J\subseteq I\subseteq B$ for some $B\in\mathcal{B}$. We then see that $J\subseteq B$, and by definition  $J\in\mathcal{I}$. So $\mathcal{I}$ satisfies (I2).
         
-      \item[(I3)] By contradiction, suppose (I3) fails for some $I,J\in\mathcal{I}$ with $|I|<|J|$. This means that for all elements $x\in J-I$ we have $I\cup x \notin \mathcal{I}$. Our goal is to show that $|I|\geq|J|$, yielding a contradiction. For this to be the case, we will derive some ineqalities between cardinalities of the sets involved.
+      \item[(I3)] By contradiction, suppose (I3) fails for some $I,J\in\mathcal{I}$ with $|I|<|J|$. This means that for all elements $x\in J-I$ we have $I\cup x \notin \mathcal{I}$. Our goal is to show that $|I|\geq|J|$, yielding a contradiction. For this to be the case, we will derive some inequalities between cardinalities of the sets involved.
         
         Let $B_I$ and $B_J$ be the elements of $\mathcal{B}$ that contain $I$ and $J$ respectively, by definition of $\mathcal{I}$, we know such sets exist. Choose some $B_J$ such that $|B_J - (J\cup B_I)|$ is minimal. 
 
