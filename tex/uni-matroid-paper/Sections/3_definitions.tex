@@ -21,11 +21,16 @@ We will begin with the first possible way of defining what a \textit{matroid} is
 
 There are some alternatives to the third property that are equivalent, for example we could alternatively write
 
-\textit{3.* If $I, J \in \mathcal{I} $ and $|J| = |I| + 1$, then there exists $e \in J - I$ such that $I \cup e \in \mathcal{I}$.}
+\begin{enumerate}
+    % The `\ ` is the hackiest thing ever, please ignore it :/
+    \item [(3.*)$\ $] \textit{ If $I, J \in \mathcal{I} $ and $|J| = |I| + 1$, then there exists $e \in J - I$ such that $I \cup e \in \mathcal{I}$.}
+\end{enumerate}
 
 or
 
-\textit{3.** If $X \subseteq E$ and $I_1, I_2$ are maximal members of $\{ I \in \mathcal{I} | I \subseteq X \}$, then $|I_1| = |I_2|$.}
+\begin{enumerate}
+\item[(3.**)] \textit{If $X \subseteq E$ and $I_1, I_2$ are maximal members of $\{ I \in \mathcal{I} | I \subseteq X \}$, then $|I_1| = |I_2|$.}
+\end{enumerate}
 
 \begin{exmp}
 In  figure~\ref{fig:1234-matroid-independent-sets} we find a representation of a matroid by writing all subsets of the ground set $\{1,2,3,4\}$ and coloring them accordingly. The independent sets are colored in orange. It is clear that the empty set is independent and that all subsets of independent sets are independent. The dependent sets, colored in cyan, are the sets that are not independent.
@@ -105,11 +110,11 @@ which indeed satisfies the properties of collection of independent sets of a mat
 
 \begin{enumerate}
 
-    \item First, $\emptyset$ is trivially in $\mathcal{I}$.
+    \item[(I1)] First, $\emptyset$ is trivially in $\mathcal{I}$.
     
-    \item The second property is also satisfied because if $J \subseteq I$ and $I \in \mathcal{I}$ this means that the vectors corresponding to $I$ form a linearly independent set. In particular, let $v_1, v_2, \cdots v_j, v_{j+1}, \cdots v_{i}$ be the column vectors corresponding to $I$, and that first $j$ are also in $J$, that means $|I| = i$, $|J| = j$ and $j \leq i$. If for some linear combination we have $a_1v_1 + \cdots + a_jv_j = 0$, where $a_i \in \mathbb{F}$ then it is also true that $a_1v_1 + \cdots + a_jv_j + 0 \cdot a_{j+1} + \cdots + 0 \cdot a_i = 0$. Since the vectors of $I$ are linearly independent it now follows that $a_1 = a_2 = \cdots a_j = 0$ as well. So the vectors corresponding to the elements of $J$ are also linearly independent, which means by definition $J \in \mathcal{I}$.
+    \item[(I2)] The second property is also satisfied because if $J \subseteq I$ and $I \in \mathcal{I}$ this means that the vectors corresponding to $I$ form a linearly independent set. In particular, let $v_1, v_2, \cdots v_j, v_{j+1}, \cdots v_{i}$ be the column vectors corresponding to $I$, and that first $j$ are also in $J$, that means $|I| = i$, $|J| = j$ and $j \leq i$. If for some linear combination we have $a_1v_1 + \cdots + a_jv_j = 0$, where $a_i \in \mathbb{F}$ then it is also true that $a_1v_1 + \cdots + a_jv_j + 0 \cdot a_{j+1} + \cdots + 0 \cdot a_i = 0$. Since the vectors of $I$ are linearly independent it now follows that $a_1 = a_2 = \cdots a_j = 0$ as well. So the vectors corresponding to the elements of $J$ are also linearly independent, which means by definition $J \in \mathcal{I}$.
 
-    \item Finally, we have to check third property. We assume that $J, I \in \mathcal{I}$ and $|J| < |I|$. We denote by $V_J$ and $V_I$ the linear subspaces of $\mathbb{F}^n$ spanned by vectors corresponding to $J$ and $I$ respectively. Because the vectors corresponding to $J$ and $I$ are linearly independent, they also form a basis for $V_J$ and $V_I$ respectively. For any $e \in I - J$ we denote by $v(e) \in \mathbb{F}^n$ the column vector of $A$ corresponding to $e$. Suppose some $e \in I - J$ has the property that adding it to $J$ does not change the dimension of the subspace spanned by J, i.e. $\dim (V_J \cup v(e)) = \dim (V_J) = |J|$. Then $v(e)$ is already in $V(J)$ because the vectors corresponding to $J$ are linearly independent and if the dimension does not increase, then $v(e)$ can be expressed as a linear combination of vectors corresponding to $J$. However, this cannot hold true for \textit{every} $e \in I - J$. Suppose for contradiction, that for every $e \in I - J$ it holds that the vector $v(e) $ is already in $ V_J$. Because for all elements in the intersection,  $i \in I \cap J$, we have $v(i) \in V_J$ by definition, we could then infer $V_I \subseteq V_J$. But this implies that 
+    \item[(I3)] Finally, we have to check third property. We assume that $J, I \in \mathcal{I}$ and $|J| < |I|$. We denote by $V_J$ and $V_I$ the linear subspaces of $\mathbb{F}^n$ spanned by vectors corresponding to $J$ and $I$ respectively. Because the vectors corresponding to $J$ and $I$ are linearly independent, they also form a basis for $V_J$ and $V_I$ respectively. For any $e \in I - J$ we denote by $v(e) \in \mathbb{F}^n$ the column vector of $A$ corresponding to $e$. Suppose some $e \in I - J$ has the property that adding it to $J$ does not change the dimension of the subspace spanned by J, i.e. $\dim (V_J \cup v(e)) = \dim (V_J) = |J|$. Then $v(e)$ is already in $V(J)$ because the vectors corresponding to $J$ are linearly independent and if the dimension does not increase, then $v(e)$ can be expressed as a linear combination of vectors corresponding to $J$. However, this cannot hold true for \textit{every} $e \in I - J$. Suppose for contradiction, that for every $e \in I - J$ it holds that the vector $v(e) $ is already in $ V_J$. Because for all elements in the intersection,  $i \in I \cap J$, we have $v(i) \in V_J$ by definition, we could then infer $V_I \subseteq V_J$. But this implies that 
 
     $$|I| = \dim(V_I) = \dim(V_J) = |J| < |I|$$
      which is a contradiction. So there is at least one $e \in I - J$ so that $\dim(V_J \cup v(e)) = \dim(V_J) + 1$, which means the vectors corresponding to $J \cup e$ form a linearly independent subset. Finally, this means that $J \cup e \in \mathcal{I}$ which proves the third property.

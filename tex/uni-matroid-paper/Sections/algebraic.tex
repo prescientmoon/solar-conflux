@@ -2,7 +2,7 @@
 
 \section{Algebraic matroids}\label{sec:algebraic-matroids}
 
-An interesting concept of independence arises in the study of field theory. We will present a class of matroids derived from the concept of algebraic independence. For the rest of this section, we will use the notation $\mathbb K / \mathbb F$ to refer to some field $\mathbb K$ and a subfield $\mathbb F$. See \hyperref[sec:appendix-fields]{the appendix} for an introduction to fields and subfields.
+An interesting concept of independence arises in the study of field theory. We will present a class of matroids derived from the concept of algebraic independence. For the rest of this section, we will use the notation $\mathbb K / \mathbb F$ to refer to some field $\mathbb K$ and a subfield $\mathbb F$. See \hyperref[sec:appendix-fields]{the appendix} for an introduction to fields and subfields. This section will also make use of the concept of partialloy ordered sets. See \hyperref[sec:appendix-poset]{the appendix} for an introduction to partially ordered sets.
 
 \begin{defn}
 	A subset $S = \{ s_1 \ldots s _n \} \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent (over $\mathbb F$) if there does not exist any
@@ -106,7 +106,7 @@ We will now show that all bases in our supposed matroid have equal cardinality.
 \begin{proof}[Proof of theorem (\ref{thm:algebraic-matroids-are-matroids})]
 	We will construct the matroid using the basis definition (theorem (\ref{thm:basis-axioms-form-matroid})). We need to first show that at least one exists, and then show that the exchange property holds.
 	\begin{enumerate}
-		\item[(B1)] We consider the partially ordered set of independent subsets of $E$ ordered by inclusion. We notice that $ \emptyset $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\emptyset $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element, so a basis exists.
+		\item[(B1)] We consider the partially $(\mathcal I, \subseteq )$. We notice that $ \emptyset $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\emptyset $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element (see lemma (\ref{lem:nonempty-finite-posets-have-maximal-elements})), so a basis exists.
 		\item[(B2)] It now remains to prove the exchange property. That is, given two bases $A, B \subseteq \mathcal B$ and some $a \in A \setminus B$, we can find some $b \in B \setminus A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two bases have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-bases})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \leq n - 1$, hence a contradiction.
 	\end{enumerate}
 \end{proof}

@@ -1,5 +1,4 @@
-\newpage
-\section{Partially ordered sets}\label{sec:appendix-poset}
+\subsection{Partially ordered sets}\label{sec:appendix-poset}
 
 \begin{defn}[Partially ordered set]
  A partially ordered set is a pair containing a set $S$ and a partial order $\leq$. A partial order is a binary relation on $S$ with the following properties:
@@ -21,12 +20,17 @@
    \end{align*}
  \end{defn}
 
+ \begin{exmp}\label{exp:poset-maximal-element}
+   Consider the partially ordered set induced by $\subseteq$ on the subsets of $U = \{1, 2, 3\}$. It can be checked by cases that $\{1, 2, 3\}$ is the only maximal element on $(2 ^U, \subseteq )$.
+ \end{exmp}
+
+
  \begin{remark}\label{rem:subsets-of-poset-are-posets}
    Given a partially ordered set $(U, \leq )$ and a subset $S \subseteq U$, we can define a new partially ordered set $(S, \leq )$ by restricting $\leq$ to $S$.
  \end{remark}
 
  \begin{exmp}
-   Consider the partially ordered set induced by $\subseteq$ on the subsets of $U = \{1, 2, 3\}$. It can be checked by cases that $\{1, 2, 3\}$ is the only maximal element on $(2 ^U, \subseteq )$.
+   Consider the partially ordered set introduced in example (\ref{exp:poset-maximal-element}). We can remove $\{1, 2, 3\}$ to form a new partially ordered set $(S, \subseteq )$ where $S = 2 ^U - \{1, 2, 3\}$. We now have muultiple maximal elements (in particular, all elements of $\{\{1, 2\}, \{1, 3\},\{2, 3\} \}$ are maximal).
  \end{exmp}
 
  \begin{lemma}\label{lem:nonempty-finite-posets-have-maximal-elements}
