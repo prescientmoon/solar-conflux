@@ -230,16 +230,16 @@ Let us prove that the set of bases of a matroid satisfies the properties (B1) an
 
 
 
-\begin{lemma}\label{samesize}
+\begin{lemma}\label{lem:basis-axioms-imply-equal-size}
     Let $E$ be a finite set, and let $\mathcal{B}$ be a colection of subsets of $E$ satisfying (B1) and (B2). Then $\mathcal{B}$ is equicardinal, so all elements in $\mathcal{B}$ have the same cardinality.
 \end{lemma}
 
-Even though we have already proven that the set of bases of a matroid is equicardinal, we will also show that this property holds for an \textit{arbitrary collection of subsets} satisfying (B1) and (B2). We do this because we will need it in a future proof.
+Even though we have already proven that the set of bases of a matroid is equicardinal, we will also show that this property holds for an \textit{arbitrary collection of subsets} satisfying (B1) and (B2). This property will be useful in a future proof
 
 %Now that we have a new way to describe $\mathcal{B}$ with (B1) and (B2), we again need to prove that it is equicardinal (all elements of $\mathcal{B}$ having the same cardinality). 
 
-\begin{proof}
-    Suppose that $\mathcal{B}$ is not equicardinal, that is, we have $|B_1|<|B_2|$ for some $B_1,B_2\in\mathcal{B}$. From all $B_1,B_2$ where that holds, choose the pair that minimizes $|B_1-B_2|$. Since $B_1$ is bigger, choose an element $b\in B_1-B_2$ and apply (B2) to see that there exists a $d\in B_2-B_1$ such that $(B_1-b)\cup d \in\mathcal{B}$. With our choices of $b$ and $d$, we can see that $|((B_1-b)\cup d)-B_2|=|(B_1-b)-B_2|<|B_1-B_2|$. This, combined with that $|(B_1-b)\cup d|=|B_1|<|B_2|$, tells us that $B_1$ and $B_2$ are actually not the minimal choice. This contradiction proves that $\mathcal{B}$ is equicardinal.
+\begin{proof}[Proof of (\ref{lem:basis-axioms-imply-equal-size})]
+    Suppose that $\mathcal{B}$ is not equicardinal, that is, we have $|B_1|>|B_2|$ for some $B_1,B_2\in\mathcal{B}$. For all $B_1,B_2$ where that holds, choose the pair that minimizes $|B_1-B_2|$. Since $B_1$ is larger than $B _2$, we know that $B _1 - B _2 \neq \emptyset$. Choose an element $b\in B_1-B_2$ and apply (B2) to show that there exists some $d\in B_2-B_1$ such that $(B_1-b)\cup d \in\mathcal{B}$. With our choices of $b$ and $d$, we can see that $|((B_1-b)\cup d)-B_2|=|(B_1-b)-B_2|<|B_1-B_2|$. This, combined with the fact that $|(B_1-b)\cup d|=|B_1|<|B_2|$, tells us that $B_1$ and $B_2$ are actually not the minimal choice. This contradiction proves that $\mathcal{B}$ is indeed equicardinal.
 \end{proof}
 
 We are going to show the first cryptomorphism, referring to the idea that matroids can be defined not by the collection of independent sets but by its collection of bases. To show that the two properties (B1) and (B2) are sufficient to describe the bases of $M$, we will prove that if $\mathcal{B}$ is any collection of subsets satisfying the bases axioms, then the independent sets are all of the possible subsets of the the elements of $\mathcal{B}$.
@@ -252,39 +252,48 @@ We are going to show the first cryptomorphism, referring to the idea that matroi
 \begin{proof}
     Our goal is of course to show that $\mathcal{I}$ satisfies the conditions of independent sets. If we manage to do that we will have that $(E, \mathcal{I})$ is a matroid having $\mathcal{B}$ as its collection of bases.
     \begin{enumerate}
-        \item Since (B1) tells us that $\mathcal{B}$ is nonempty and because $\emptyset$ is a subset of any set, in particular $\emptyset \subseteq B$ where $B$ is some member of $\mathcal{B}$, we by definition have $\emptyset \in \mathcal{I}$.
+      \item[(I1)] Since (B1) tells us that $\mathcal{B}$ is nonempty, and because $\emptyset$ is a subset of any set (in particular, $\emptyset \subseteq B$, where $B$ is some member of $\mathcal{B}$), we by definition have $\emptyset \in \mathcal{I}$.
         
-        \item If $I\in\mathcal{I}$ and $J\subseteq I$, then by definition of $\mathcal{I}$, we have that $J\subseteq I\subseteq B$ for some $B\in\mathcal{B}$. Then we see that $J\subseteq B$ and by definition  $J\in\mathcal{I}$. So $\mathcal{I}$ satisfies (I2).
+      \item[(I2)] If $I\in\mathcal{I}$ and $J\subseteq I$, then by definition of $\mathcal{I}$ we have that $J\subseteq I\subseteq B$ for some $B\in\mathcal{B}$. We then see that $J\subseteq B$, and by definition  $J\in\mathcal{I}$. So $\mathcal{I}$ satisfies (I2).
         
-        \item For contradiction, suppose (I3) fails for some $I,J\in\mathcal{I}$ with $|I|<|J|$. This means that for all elements $x\in J-I$ we have $I\cup x \notin \mathcal{I}$. The idea of the proof will be to get $|I|\geq|J|$ for a contradiction. For this, we will have to derive a lot of ineqalities between cardinalities of the sets involved.
+      \item[(I3)] By contradiction, suppose (I3) fails for some $I,J\in\mathcal{I}$ with $|I|<|J|$. This means that for all elements $x\in J-I$ we have $I\cup x \notin \mathcal{I}$. Our goal is to show that $|I|\geq|J|$, yielding a contradiction. For this to be the case, we will derive some ineqalities between cardinalities of the sets involved.
         
-        Let $B_I$ and $B_J$ be the elements of $\mathcal{B}$ that contain $I$ and $J$ respectively, by definition of $\mathcal{I}$ we know such sets exist. Choose a $B_J$ so that $|B_J - (J\cup B_I)|$ is minimal. 
-    
-        With our choice of $I$ and $J$, it turns out that $J-B_I = J-I$. 
-        The inclusion $J- B_I \subseteq J - I$ is clear because $I \subseteq B_I$. Therefore if $J-B_I \neq J-I$, there would have to be an element $e$ in $(J-I)-(J-B_I)$. We verify directly that this implies $e \in B_I$. Since $e$ is in $J-I$, our initial assumption that for all $k \in J - I$ we have $I \cup k \notin \mathcal{I}$ tells us that $I\cup e\notin \mathcal{I}$. This contradicts $I\cup e\subseteq B_I$, since all subsets of a base are independent.
+        Let $B_I$ and $B_J$ be the elements of $\mathcal{B}$ that contain $I$ and $J$ respectively, by definition of $\mathcal{I}$, we know such sets exist. Choose some $B_J$ such that $|B_J - (J\cup B_I)|$ is minimal. 
 
-        Suppose now that $B_J-(J\cup B_I)$ is non-empty. Let $j$ be an element from this set. Then (B2) tells us that there is an element $i\in B_I-B_J$ such that $(B_J-j)\cup i \in\mathcal{B}$. However, because $i \in B_I$ then $|((B_J-j)\cup i)-(J\cup B_I)|=|(B_J-j)-(J\cup B_I)|<|(B_J-(J\cup B_I)|$. We now found a new element $B=(B_J-j)\cup i$ in $\mathcal{B}$ that has $|B-(J\cup B_I)|$ smaller than $|B_J-(J\cup B_I)|$. Note how $j\notin J$, it means that $J=J-j\subseteq B_J-j\subseteq (B_J-j)\cup i = B$. So $J\subseteq B$, which means that $B$ should have been our choice for $B_J$ that minimalizes $|B_J-(J\cup B_I)|$. Thus, minimality of our choice of $B_J$ is contradicted, and thus, $B_J-(J\cup B_I)=\emptyset$. This now implies that $B_J\subseteq J\cup B_I$, which implies that $B_J-B_I\subseteq (J\cup B_I)-B_I=J-B_I$. Since $J-B_I\subseteq B_J-B_I$ already holds because $J\subseteq B_J$, this proves equality between $B_J-B_I$ and $J-B_I$.
+        It turns out that for our choice of $I$ and $J$, we have $J-B_I = J-I$. The inclusion $J- B_I \subseteq J - I$ is clear because $I \subseteq B_I$. It then follows that if $J-B_I \neq J-I$, some element $e \in (J-I)-(J-B_I)$ would exist. We verify directly that this implies $e \in B_I$. Since $e$ is a member of $J-I$, our initial assumption that for all $k \in J - I$ we have $I \cup k \notin \mathcal{I}$ tells us that $I\cup e\notin \mathcal{I}$. This contradicts $I\cup e\subseteq B_I$, since all subsets of a base are independent.
 
-        Next up we do the same thing, but this time proving that $B_I-(I\cup B_J)$ is empty. Assuming the opposite by letting $i$ be a part the set, (B2) tells us that there exists a $j\in B_J-B_I=J-B_I=J-I$ such that $(B_I-i)\cup j\in\mathcal{B}$. Since our choice of $i$ tell us that $i \notin I$ we have that $I\cup j = (I-i)\cup j \subseteq (B_I-i)\cup j$, it means $I\cup j\in\mathcal{I}$. This gives us precicely (I3), which contradicts our original assumption. Thus, $B_I-(I\cup B_J)=\emptyset$. By the same logic we used in the previous paragraph, $B_I-B_J=I-B_J\subseteq I-J$. Note how this means this means that $|B_I-B_J|\leq|I-J|$.
+        Suppose now that $B_J-(J\cup B_I)$ is non-empty. Let $j$ be an element of this set. We then know by (B2) that there exists some element $i\in B_I-B_J$ such that $(B_J-j)\cup i \in\mathcal{B}$. However, $i \in B_I$ implies 
+        \begin{align*}
+        |((B_J-j)\cup i)-(J\cup B_I)|=|(B_J-j)-(J\cup B_I)|<|(B_J-(J\cup B_I)|. 
+        \end{align*}
 
-        We can use the fact that $\mathcal{B}$ is equicardical, that is \ref{samesize}, to see that $|B_I-B_J|=|B_J-B_I|$. At last, we use everything obtain to get the following
-        $$ |I-J|\geq |B_I-B_J|=|B_J-B_I|=|J-B_I|=|J-I|. $$
+        We've now found a new element $B=(B_J-j)\cup i$ in $\mathcal{B}$ that has $|B-(J\cup B_I)|$ smaller than $|B_J-(J\cup B_I)|$. Note how $j\notin J$ means that 
+        \begin{align*}
+        J=J-j\subseteq B_J-j\subseteq (B_J-j)\cup i = B. 
+        \end{align*}
 
-        Therefore we obtain the inequality $|I - J|\geq |J - I|.$
+        We then have $J\subseteq B$, which means that $B$ should have been our choice for $B_J$ that minimalizes $|B_J-(J\cup B_I)|$. Thus, minimality of our choice of $B_J$ is contradicted, and thus, $B_J-(J\cup B_I)=\emptyset$. This now implies that $B_J\subseteq J\cup B_I$, which implies that $B_J-B_I\subseteq (J\cup B_I)-B_I=J-B_I$. Since $J-B_I\subseteq B_J-B_I$ already holds (because $J\subseteq B_J$), this proves equality between $B_J-B_I$ and $J-B_I$.
 
-        Because we know that $ I = (I - J) \cup (I\cap J)$ and clearly $I - J$ and $I \cap J$ are disjoint we see that
+        Next up, we apply a similar procedure to prove that $B_I-(I\cup B_J)$ is empty. Assume by contradiction that $i$ is a member of the set. We can then apply (B2) to get some $j\in B_J-B_I=J-B_I=J-I$ such that $(B_I-i)\cup j\in\mathcal{B}$. Since our choice of $i$ tells us that $i \notin I$, we have that $I\cup j = (I-i)\cup j \subseteq (B_I-i)\cup j$, which means $I\cup j\in\mathcal{I}$. This precicely gives us (I3), which contradicts our original assumption. Thus, $B_I-(I\cup B_J)=\emptyset$. By the same logic we used in the previous paragraph, $B_I-B_J=I-B_J\subseteq I-J$. This means that $|B_I-B_J|\leq|I-J|$.
 
-        $$ |I| = |(I - J)\cup (I \cap J)| = |I - J| + |I \cap J| - |\underbrace{(I - J) \cap (I \cap J)}_{ = \emptyset}|.$$
+        We can use the fact that $\mathcal{B}$ is equicardical (lemma (\ref{lem:basis-axioms-imply-equal-size})), to see that $|B_I-B_J|=|B_J-B_I|$. At last, we use everything we've obtained so far to get the following
+        \begin{align*}
+        |I-J|\geq |B_I-B_J|=|B_J-B_I|=|J-B_I|=|J-I|.
+        \end{align*}
 
-        Therefore $|I| = |I-J| + |I \cap J|$ and by the same reasoning $|J| = |J - I| + |I\cup J|$. Now we are almost done, combining the above ineqalities with $|I - J|\geq |J - I|$ we observe that $|I-J| +|I \cap J|\geq |J - I| + |I \cap J|$ which finally implies $|I|\geq |J|$. This contradicts our assumption that $|I|< |J|$. 
+        We therefore obtain the inequality $|I - J|\geq |J - I|$. We know that $ I = (I - J) \cup (I\cap J)$, and $I - J$ is clearly disjoint with $I \cap J$. We notice that
+
+        \begin{align*}
+        |I| = |(I - J)\cup (I \cap J)| = |I - J| + |I \cap J| - |\underbrace{(I - J) \cap (I \cap J)}_{ = \emptyset}|.
+        \end{align*}
+
+        Therefore $|I| = |I-J| + |I \cap J|$ and by the same reasoning $|J| = |J - I| + |I\cup J|$. We are now almost done. Combining the above ineqalities with $|I - J|\geq |J - I|$, we observe that $|I-J| +|I \cap J|\geq |J - I| + |I \cap J|$, which finally implies $|I|\geq |J|$. This contradicts our assumption that $|I|< |J|$. 
         
-        Thus we have derived a contradiction when assuming that there exits, a pair $I, J$ of subsets violating (I3). Hence $\mathcal{I}$ satisfies (I3) and all in all $(E,\mathcal{I})$ is a matroid.
-
-        
+        Thus we have derived a contradiction when assuming that a pair $(I, J)$ of subsets violating (I3) exists. Hence $\mathcal{I}$ satisfies (I3), and all in all $(E,\mathcal{I})$ is a matroid.
     \end{enumerate}  
 
     
-    The fact that $\mathcal{B}$ is now the set of bases of the matroid $(E,\mathcal{I})$ follows from the fact that all elements in $\mathcal{B}$ are by definition maximal of $\mathcal{I}$.
+    The fact that $\mathcal{B}$ is now the set of bases of the matroid $(E,\mathcal{I})$ follows from the fact that all elements in $\mathcal{B}$ are by definition maximal members of $\mathcal{I}$.
 \end{proof}
 
 
