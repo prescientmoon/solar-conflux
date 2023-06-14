@@ -2,15 +2,15 @@
 
 In \cite[35]{oxley1} we have as an excercise an alternative characterization of matroids in terms of their flats. Because we think it is a prototypical model of a statement of the form (a collection of subsets satisfies properties X) if an only if ( it is some well known family of matroid subsets) we will show our proof here.
 
-    Given a matroid $M$ with a ground set $E$ and its collection of flats, that is all the subsets $X \subset E$ satisfying $\cl(X) = X$, the statement 'abstracts out' which properties of flats \textit{make them flats}. Such statements are a common theme of our article.
+    Given a matroid $M$ with a ground set $E$ and its collection of flats, that is all the subsets $X \subseteq E$ satisfying $\cl(X) = X$, the statement 'abstracts out' which properties of flats \textit{make them flats}. Such statements are a common theme of our article.
 
 \begin{theorem}
     Let $M = (E, \mathcal{I})$ be a matroid. A collection $\caf$ is a collection of flats if and only if the following three conditions hold
 
     \begin{enumerate}
-        \item We have $E \in \caf$.
-        \item If $F_1, F_2 \in \caf$ then $F_1 \cap F_2 \in \caf$.
-        \item If $F \in \caf$ and $\{F_1, F_2, \cdots, F_k\}$ is a collection of all minimal members of $\caf$ properly containing $F$ then $\{F_1-F, F_2-F, \cdots, F_k - F\}$ partition $E-F$.
+        \item[(F1)] We have $E \in \caf$.
+        \item[(F2)] If $F_1, F_2 \in \caf$ then $F_1 \cap F_2 \in \caf$.
+        \item[(F3)] If $F \in \caf$ and $\{F_1, F_2, \cdots, F_k\}$ is a collection of all minimal members of $\caf$ properly containing $F$ then $\{F_1-F, F_2-F, \cdots, F_k - F\}$ partition $E-F$.
         
     \end{enumerate}
         
@@ -48,13 +48,13 @@ Second, as with the previous proofs, we will see that it is not hard to prove th
 So first suppose $\caf$ is a collection of flats and our goal is to prove that the three properties hold. 
 
 \begin{enumerate}
-    \item We see that $E \subset \cl(E)$ by the definition of the closure operator and $\cl(E)\subset E$ because $\cl$ maps from $2^E$ into $E.$ Thus $\cl(E)= E$ implying $E$ is a flat as desired.
+    \item We see that $E \subseteq \cl(E)$ by the definition of the closure operator and $\cl(E)\subseteq E$ because $\cl$ maps from $2^E$ into $E.$ Thus $\cl(E)= E$ implying $E$ is a flat as desired.
     
-    \item Again, inclusion $F_1 \cap F_2 \subset \cl(F_1 \cap F_2)$ is a fundemental property of closure operator (CL1). Because $F_1 \cap F_2 \subset F_1$ we have by (CL2) that $\cl(F_1 \cap F_2) \subset \cl(F_1) = F_1$ where the last equality follows by assumption that $F_2$ is a flat. Similarly $\cl(F_1\cap F_2) \subset F_2$, which implies $\cl(F_1\cap F_2)$ is contained in $F_1$ and $F_2$, in other words $\cl(F_1 \cap F_2) \subset F_1 \cap F_2$. To conclude $F_1 \cap F_2 \subset \cl(F_1 \subset F_2) \subset F_1 \cap F_2$ which implies $\cl(F_1 \cap F_2) = F_1 \cap F_2$, and then by definition $F_1 \cap F_2 \in \caf$ thus the second property is satisfied.
+    \item Again, inclusion $F_1 \cap F_2 \subseteq \cl(F_1 \cap F_2)$ is a fundemental property of closure operator (CL1). Because $F_1 \cap F_2 \subseteq F_1$ we have by (CL2) that $\cl(F_1 \cap F_2) \subseteq \cl(F_1) = F_1$ where the last equality follows by assumption that $F_2$ is a flat. Similarly $\cl(F_1\cap F_2) \subseteq F_2$, which implies $\cl(F_1\cap F_2)$ is contained in $F_1$ and $F_2$, in other words $\cl(F_1 \cap F_2) \subseteq F_1 \cap F_2$. To conclude $F_1 \cap F_2 \subseteq \cl(F_1 \subseteq F_2) \subseteq F_1 \cap F_2$ which implies $\cl(F_1 \cap F_2) = F_1 \cap F_2$, and then by definition $F_1 \cap F_2 \in \caf$ thus the second property is satisfied.
 
     \item We pick a flat $F$ and let $P = \{F_1, F_2, \cdots, F_k\}$ be the collection of all flats properly containing $F$. To show that $P$ partitions $E - F$ we have to show two things; for any $i \neq j$ we must have $(F_i - F)\cap( F_j - F) = \emptyset$ and $\cup_{k}( F_k - F) = E - F.$ 
     
-    The second property is evident, namely if we pick any $x \in E - F$ then there exists a flat containing $F \cup x, $ in particular $E$ will do. So there exists a minimal (not properply containing other with such properties) flat containing $F \cup x$, let us call it $G$ and obviously, $G = \cl(F \cup x)$. We would like $G$ to also be a minimal flat properly containing $F$. If it is not there is some flat $H$ such that $F \subset H \subset G$ where both inclusions are proper. By assumption $H$ does not include $x$ otherwise it would contradict the minimality of $G.$ But there also has to be some $y \in H - F$. In particular, since all things involved are flats, we have that $y \in \cl(F \cup x) - \cl(F)$ so by (CL4) we have $x \in \cl(F \cup y)$ which is a contradiction since $\cl(F \cup y)$ is a flat which contains $F$ and $y$ so it is $H.$  Therefore $G$ is a minimal flat and we are done.
+    The second property is evident, namely if we pick any $x \in E - F$ then there exists a flat containing $F \cup x, $ in particular $E$ will do. So there exists a minimal (not properply containing other with such properties) flat containing $F \cup x$, let us call it $G$ and obviously, $G = \cl(F \cup x)$. We would like $G$ to also be a minimal flat properly containing $F$. If it is not there is some flat $H$ such that $F \subseteq H \subseteq G$ where both inclusions are proper. By assumption $H$ does not include $x$ otherwise it would contradict the minimality of $G.$ But there also has to be some $y \in H - F$. In particular, since all things involved are flats, we have that $y \in \cl(F \cup x) - \cl(F)$ so by (CL4) we have $x \in \cl(F \cup y)$ which is a contradiction since $\cl(F \cup y)$ is a flat which contains $F$ and $y$ so it is $H.$  Therefore $G$ is a minimal flat and we are done.
 
     The first property can be derived by contradiction. Namely, if for some $i\neq j$ we have that there exists $e \in (F_i - F)\cup(F_j - F)$ then we have that the intersection $F_i \cup F_j$ is a flat which contains $F\cup e$, but is also properly contained inside $F_j$ and $F_i$ - a contradiction.
 
@@ -68,23 +68,23 @@ So first suppose $\caf$ is a collection of flats and our goal is to prove that t
 
     Suppose we are given a finite set $E$ and collection $\caf$ of its subsets satisfying properies 1., 2. and 3. Then let us define a \textit{function} $f: 2^E \to \caf$ by the rule that for any $X$, we have $f(X)$ is the minimal member of $\caf$ containing $X$. Its clear what is our aim, namely to show that this is in fact a closure operator, then we will do two things at once - $E$ will be a matroid with a closure operator $f$ and the elements of $\caf$ will be precisely the flats.
 
-    First we have to check $f$ is well-defined. By the first property of $\caf$ we have that $E \in \caf$ and because for any subset $X \subset E$ we have $X \subset E$ we have that for every subset $X$ there \textit{exists} some element of $\caf$ such that $X$ is a subset of it (in the worst case it is $E$). Now, the minimal such subset has to be unique, since if $F_1, F_2$ have the same property that they are minimal members of $\caf$ including $X$ then by the second property of $\caf$ we have that $F_1 \cap F_2 \in \caf$ and so $X \subset F_1\cap F_2$, so if they are not the same we are contradicting minimality of them. $ F_1 \subset F_2$ and $F_2 \subset F_1$ hold so $F_1 = F_2.$
+    First we have to check $f$ is well-defined. By the first property of $\caf$ we have that $E \in \caf$ and because for any subset $X \subseteq E$ we have $X \subseteq E$ we have that for every subset $X$ there \textit{exists} some element of $\caf$ such that $X$ is a subset of it (in the worst case it is $E$). Now, the minimal such subset has to be unique, since if $F_1, F_2$ have the same property that they are minimal members of $\caf$ including $X$ then by the second property of $\caf$ we have that $F_1 \cap F_2 \in \caf$ and so $X \subseteq F_1\cap F_2$, so if they are not the same we are contradicting minimality of them. $ F_1 \subseteq F_2$ and $F_2 \subseteq F_1$ hold so $F_1 = F_2.$
 
     Now we check the closure axioms.
 
 \begin{enumerate}
-    \item If $X \subset E$ then by definition, $f(X)$ is an element of $\caf$ \textit{containing} $X$ so we have $X \subset f(X)$ and the first property follows.
+    \item If $X \subseteq E$ then by definition, $f(X)$ is an element of $\caf$ \textit{containing} $X$ so we have $X \subseteq f(X)$ and the first property follows.
     
-    \item If $X \subset Y \subset E$ then $f(X)$ is the minimal member of $\caf$ containing $X$. Because $f(Y)$ is a minimal member of $\caf$ which contains $Y$ it thus also contains $X$ so by minimality of $f(X)$ we have $f(X)\subset f(Y)$ as desired.
+    \item If $X \subseteq Y \subseteq E$ then $f(X)$ is the minimal member of $\caf$ containing $X$. Because $f(Y)$ is a minimal member of $\caf$ which contains $Y$ it thus also contains $X$ so by minimality of $f(X)$ we have $f(X)\subseteq f(Y)$ as desired.
 
-    \item If $X \subset E$ is arbitrary then we have that $f(f(X))$ is the minimal member of $\caf$ containing $f(X)$, but $f(X)$ is by defintion itself in $\caf$ and it contains $f(X)$. So we have that $f(X) \subset f(f(X)) \subset f(X)$ implying $f(f(X)) = f(X).$
+    \item If $X \subseteq E$ is arbitrary then we have that $f(f(X))$ is the minimal member of $\caf$ containing $f(X)$, but $f(X)$ is by defintion itself in $\caf$ and it contains $f(X)$. So we have that $f(X) \subseteq f(f(X)) \subseteq f(X)$ implying $f(f(X)) = f(X).$
 
     \item Up to this point we have not yet used the second and the third property of $\caf$ so we better require them now.
 
-     Suppose $X \subset E$, $x \in E$ and $y \in f(X \cup x) - f(X)$. In particular, this means that $y \notin X$.
-   Our goal is to show $x \in f(X \cup y)$. Let us call $f(X) = F_1$, $f(X \cup x) = F_2$ and $f(X \cup y) = F_3$ to remind us that output of $f$ is always a member of $\caf$. By the second property of "closure operator" we have already proved, we have $F_1 \subset F_2$ and $F_1 \subset F_3$. Not just that, $F_2$ and $F_3$ are in fact one of the minimal elements of $\caf$ properly containing $F_1$.
+     Suppose $X \subseteq E$, $x \in E$ and $y \in f(X \cup x) - f(X)$. In particular, this means that $y \notin X$.
+   Our goal is to show $x \in f(X \cup y)$. Let us call $f(X) = F_1$, $f(X \cup x) = F_2$ and $f(X \cup y) = F_3$ to remind us that output of $f$ is always a member of $\caf$. By the second property of "closure operator" we have already proved, we have $F_1 \subseteq F_2$ and $F_1 \subseteq F_3$. Not just that, $F_2$ and $F_3$ are in fact one of the minimal elements of $\caf$ properly containing $F_1$.
 
-     We know this, because by the third property of $\caf$, all of the minimal elements of $\caf$ containing $F_1$ \textit{partition} $E-F_1$, so in particular, there is some $F_2' \in \caf$ which contains $X\cup x$ and contains $X$ minimaly and some $F_3' \in \caf$ which contains $X \cup y$ and contains $X$ minimally. So from $X \cup x \subset F_2' \in \caf$ we directly infer $F_2 \subset F_2'$ because $f(X \cup x)$ is an element of $\caf$ which contains $X \cup x$ minimally. It is now clear that $F_2= F_2'$ and $F_3 = F_3'$.
+     We know this, because by the third property of $\caf$, all of the minimal elements of $\caf$ containing $F_1$ \textit{partition} $E-F_1$, so in particular, there is some $F_2' \in \caf$ which contains $X\cup x$ and contains $X$ minimaly and some $F_3' \in \caf$ which contains $X \cup y$ and contains $X$ minimally. So from $X \cup x \subseteq F_2' \in \caf$ we directly infer $F_2 \subseteq F_2'$ because $f(X \cup x)$ is an element of $\caf$ which contains $X \cup x$ minimally. It is now clear that $F_2= F_2'$ and $F_3 = F_3'$.
 
 
      We are almost done. By the third property of $\caf$, because $F_2$ and $F_3$ are minimal members of $\caf$ properly containing $X$ we have that $(F_2-F_1)\cap (F_3 - F_1)$ is either empty or $F_2 = F_3$. It cannot be empty because, $y \in F_3 - F_1$ by definition and $y \in f(X\cup x)-f(X) = F_2 - F_1$ by assumption. So $F_2 = F_3$ which implies that $x \in F_3 = f(X \cup y).$ This shows the last closure axiom, and in particular, we know that we have a matroid with ground set $E$ and closure operator $f.$
