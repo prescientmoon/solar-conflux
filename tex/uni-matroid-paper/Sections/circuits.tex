@@ -27,7 +27,6 @@ Similarly, as with the independent set definition, we can use circuits to formul
 \end{exmp}
 
 \begin{figure}
-  \label{fig:1234-matroid-circuits}
 \begin{center}
 \begin{tikzpicture}
 \matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
@@ -52,17 +51,18 @@ Similarly, as with the independent set definition, we can use circuits to formul
 % \caption{Figure 3: Diagram of a 4-element matroid}
 \end{tikzpicture}
 \caption{Diagram of a 4-element matroid, with circuits in blue}
+\label{fig:1234-matroid-circuits}
 \end{center}
 \end{figure}
 
-To get an intuition behind (C3), let us consider the matroid induced by the graph in figure (\ref{fig:amogus}). We will discuss graphic matroids later, but for now consider cycles of the graph as circuits. The diagram highlights two two circuits --- $C_1$ and $C_2$ --- that share an edge ($e$). Taking the union of both circuits and removing $e$ yields a subgraph contains another cycle --- circuit $C_3$.
-
-% Someone please fix this!
+\begin{exmp}
+To get an intuition behind (C3), let us consider the matroid induced by the graph in figure (\ref{fig:amogus}). We will discuss graphic matroids later, but for now consider cycles of the graph as circuits. The diagram highlights two circuits --- $C_1$ and $C_2$ --- that share an edge ($e$). Taking the union of both circuits and removing $e$ yields a subgraph contains another cycle --- circuit $C_3$.
+\end{exmp}
 
 
 \begin{figure}
-\label{fig:amogus}
 \caption{A graph of suspicious shape, having three cycles.}
+\label{fig:amogus}
 \begin{subfigure}[h]{0.245\textwidth}
   \caption{Graph}
 \begin{tikzpicture}[node distance={10mm}, thick, main/.style = {draw,circle,fill,inner sep=1pt}] 
@@ -161,9 +161,8 @@ node[midway, right] {e} (4) ;
 \end{subfigure}
                   \end{figure}
 
-We can say that a set $X \subseteq E$ is independent if and only if, it does not contain any circuit.
-
-The concept of circuits points towards the direction of something similar to a complement of the independent sets, but not completely, since it is only the minimal dependent, and not all dependet subsets. We now have the following theorem.
+% We can say that a set $X \subseteq E$ is independent if and only if, it does not contain any circuit.
+% The concept of circuits points towards something similar to a complement of the independent sets, but not completely. It is only the minimal dependent, and not all dependet subsets. We now have the following theorem.
 
 \begin{lemma}\label{lem:circuits-have-properties}
   All circuits in a matroid satisfy (C1), (C2) and (C3).
