@@ -25,6 +25,7 @@ Similarly, as with the independent set definition, we can use circuits to formul
 Again, we will use the same matroid example as before, this time adding circuits to the drawing (in blue). The circuits are minimal dependent sets where everything above them is a dependent set. Also note how all independent sets do not contain any circuit.
 
 \begin{center}
+\begin{figure}
 \begin{tikzpicture}
 
 \matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
@@ -48,6 +49,8 @@ Again, we will use the same matroid example as before, this time adding circuits
 \node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}};
 % \caption{Figure 3: Diagram of a 4-element matroid}
 \end{tikzpicture}
+\caption{Diagram of a 4-element matroid, with circuits in blue}
+\end{figure}
 \end{center}
 
 To get an intuition behind (C3), let us consider the matroid induced by the graph in figure (\ref{fig:amogus}). We will discuss graphic matroids later, but for now consider cycles of the graph as circuits. The diagram highlights two two circuits --- $C_1$ and $C_2$ --- that share an edge ($e$). Taking the union of both circuits and removing $e$ yields a subgraph contains another cycle --- circuit $C_3$.
