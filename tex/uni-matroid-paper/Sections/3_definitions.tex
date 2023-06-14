@@ -134,8 +134,7 @@ We will now define another important class of matroids. Due to its simplicity it
     Let $E = \{1, 2, \cdots, n\}$ and $\mathcal{I} = \{ L \subseteq E \; \text{ such that } \; |L| \leq m\}$. Then $(E, \mathcal{I})$ is a matroid which we denote by $U_{m,n}$ and call it a uniform matroid of rank $m$ on a $n$ element set.
 \end{defn}
 \begin{theorem}
-    The ordered pair $U_{m,n} = (E, \mathcal{I})$ is a matroid
-    
+    The ordered pair $U_{m,n} = (E, \mathcal{I})$ is a matroid.
 \end{theorem}
 
 \begin{proof}
@@ -146,11 +145,9 @@ It is easy to check that $U_{m,n}$ is indeed a matroid.
 \begin{enumerate}
    
 
-\item For any $m \geq 0$ we have $\emptyset \in \mathcal{I}$ since $|\emptyset | = 0$.
-
-\item If $I \in \mathcal{I}$ and $J \subseteq I$ then $|J|\leq |I|$ so $|J|\leq |I| \leq m$ implying $J \in \mathcal{I}$ by definition.
-
-\item  Finally, if $I, J \in \mathcal{I}$ and $|J|<|I|$ then for any $e \in I - J$ we will have $|J \cup e| = |J| + 1 \leq |I| \leq m$ so $J \cup e \in \mathcal{I}$ by definition for any $e \in I - J.$
+    \item[(I1)] For any $m \geq 0$ we have $\emptyset \in \mathcal{I}$ since $|\emptyset | = 0$.
+    \item[(I2)] If $I \in \mathcal{I}$ and $J \subseteq I$ then $|J|\leq |I|$ so $|J|\leq |I| \leq m$ implying $J \in \mathcal{I}$ by definition.
+    \item[(I3)] Finally, if $I, J \in \mathcal{I}$ and $|J|<|I|$ then for any $e \in I - J$ we will have $|J \cup e| = |J| + 1 \leq |I| \leq m$ so $J \cup e \in \mathcal{I}$ by definition for any $e \in I - J.$
 
 
 \end{enumerate}
