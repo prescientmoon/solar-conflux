@@ -1,3 +1,5 @@
+\newpage
+
 \section{Flats}
 
 In \cite[35]{oxley1} we have as an exercise an alternative characterization of matroids in terms of their flats. Because we think it is a prototypical model of a statement of the form (a collection of subsets satisfies properties X) if and only if (it is some well known family of matroid subsets) we will show our proof here.
@@ -48,11 +50,11 @@ Second, as with the previous proofs, we will see that it is not hard to prove th
 So first suppose $\caf$ is a collection of flats and our goal is to prove that the three properties hold. 
 
 \begin{enumerate}
-    \item We see that $E \subseteq \cl(E)$ by the definition of the closure operator and $\cl(E)\subseteq E$ because $\cl$ maps from $2^E$ into $E.$ Thus $\cl(E)= E$ implying $E$ is a flat as desired.
+    \item[(F1)] We see that $E \subseteq \cl(E)$ by the definition of the closure operator and $\cl(E)\subseteq E$ because $\cl$ maps from $2^E$ into $E.$ Thus $\cl(E)= E$ implying $E$ is a flat as desired.
     
-    \item Again, inclusion $F_1 \cap F_2 \subseteq \cl(F_1 \cap F_2)$ is a fundamental property of closure operator (CL1). Because $F_1 \cap F_2 \subseteq F_1$ we have by (CL2) that $\cl(F_1 \cap F_2) \subseteq \cl(F_1) = F_1$ where the last equality follows by assumption that $F_2$ is a flat. Similarly, $\cl(F_1\cap F_2) \subseteq F_2$, which implies $\cl(F_1\cap F_2)$ is contained in $F_1$ and $F_2$, in other words $\cl(F_1 \cap F_2) \subseteq F_1 \cap F_2$. To conclude $F_1 \cap F_2 \subseteq \cl(F_1 \subseteq F_2) \subseteq F_1 \cap F_2$ which implies $\cl(F_1 \cap F_2) = F_1 \cap F_2$, and then by definition $F_1 \cap F_2 \in \caf$ thus the second property is satisfied.
+    \item[(F2)] Again, inclusion $F_1 \cap F_2 \subseteq \cl(F_1 \cap F_2)$ is a fundamental property of closure operator (CL1). Because $F_1 \cap F_2 \subseteq F_1$ we have by (CL2) that $\cl(F_1 \cap F_2) \subseteq \cl(F_1) = F_1$ where the last equality follows by assumption that $F_2$ is a flat. Similarly, $\cl(F_1\cap F_2) \subseteq F_2$, which implies $\cl(F_1\cap F_2)$ is contained in $F_1$ and $F_2$, in other words $\cl(F_1 \cap F_2) \subseteq F_1 \cap F_2$. To conclude $F_1 \cap F_2 \subseteq \cl(F_1 \subseteq F_2) \subseteq F_1 \cap F_2$ which implies $\cl(F_1 \cap F_2) = F_1 \cap F_2$, and then by definition $F_1 \cap F_2 \in \caf$ thus the second property is satisfied.
 
-    \item We pick a flat $F$ and let $P = \{F_1, F_2, \cdots, F_k\}$ be the collection of all flats properly containing $F$. To show that $P$ partitions $E - F$ we have to show two things; for any $i \neq j$ we must have $(F_i - F)\cap( F_j - F) = \emptyset$ and $\cup_{k}( F_k - F) = E - F.$ 
+    \item[(F3)] We pick a flat $F$ and let $P = \{F_1, F_2, \cdots, F_k\}$ be the collection of all flats properly containing $F$. To show that $P$ partitions $E - F$ we have to show two things; for any $i \neq j$ we must have $(F_i - F)\cap( F_j - F) = \emptyset$ and $\cup_{k}( F_k - F) = E - F.$ 
     
     The second property is evident, namely if we pick any $x \in E - F$ then there exists a flat containing $F \cup x, $ in particular $E$ will do. So there exists a minimal (not properly containing others with such properties) flat containing $F \cup x$, let us call it $G$ and obviously, $G = \cl(F \cup x)$. We would like $G$ to also be a minimal flat properly containing $F$. If it is not, there is some flat $H$ such that $F \subseteq H \subseteq G$ where both inclusions are proper. By assumption $H$ does not include $x$ otherwise it would contradict the minimality of $G.$ But there also has to be some $y \in H - F$. In particular, since all things involved are flats, we have that $y \in \cl(F \cup x) - \cl(F)$ so by (CL4) we have $x \in \cl(F \cup y)$ which is a contradiction since $\cl(F \cup y)$ is a flat which contains $F$ and $y$, so it is $H.$  Therefore $G$ is a minimal flat and we are done.
 
@@ -71,13 +73,13 @@ So first suppose $\caf$ is a collection of flats and our goal is to prove that t
 
 
 \begin{enumerate}
-    \item If $X \subseteq E$ then by definition, $f(X)$ is an element of $\caf$ \textit{containing} $X$, so we have $X \subseteq f(X)$ and the first property follows.
+    \item[(CL1)] If $X \subseteq E$ then by definition, $f(X)$ is an element of $\caf$ \textit{containing} $X$, so we have $X \subseteq f(X)$ and the first property follows.
     
-    \item If $X \subseteq Y \subseteq E$ then $f(X)$ is the minimal member of $\caf$ containing $X$. Because $f(Y)$ is a minimal member of $\caf$ which contains $Y$ it thus also contains $X$ so by minimality of $f(X)$ we have $f(X)\subseteq f(Y)$ as desired.
+    \item[(CL2)] If $X \subseteq Y \subseteq E$ then $f(X)$ is the minimal member of $\caf$ containing $X$. Because $f(Y)$ is a minimal member of $\caf$ which contains $Y$ it thus also contains $X$ so by minimality of $f(X)$ we have $f(X)\subseteq f(Y)$ as desired.
 
-    \item If $X \subseteq E$ is arbitrary then we have that $f(f(X))$ is the minimal member of $\caf$ containing $f(X)$, but $f(X)$ is by definition itself in $\caf$, and it contains $f(X)$. So we have that $f(X) \subseteq f(f(X)) \subseteq f(X)$ implying $f(f(X)) = f(X).$
+    \item[(CL3)] If $X \subseteq E$ is arbitrary then we have that $f(f(X))$ is the minimal member of $\caf$ containing $f(X)$, but $f(X)$ is by definition itself in $\caf$, and it contains $f(X)$. So we have that $f(X) \subseteq f(f(X)) \subseteq f(X)$ implying $f(f(X)) = f(X).$
 
-    \item Up to this point we have not yet used the second and the third property of $\caf$ so we better require them now.
+    \item[(CL4)] Up to this point we have not yet used the second and the third property of $\caf$ so we better require them now.
 
      Suppose $X \subseteq E$, $x \in E$ and $y \in f(X \cup x) - f(X)$. In particular, this means that $y \notin X$.
    Our goal is to show $x \in f(X \cup y)$. Let us call $f(X) = F_1$, $f(X \cup x) = F_2$ and $f(X \cup y) = F_3$ to remind us that output of $f$ is always a member of $\caf$. By the second property of "closure operator" we have already proved, we have $F_1 \subseteq F_2$ and $F_1 \subseteq F_3$. Not just that, $F_2$ and $F_3$ are in fact one of the minimal elements of $\caf$ properly containing $F_1$.

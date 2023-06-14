@@ -1,3 +1,4 @@
+\newpage
 \section{Graphic Matroids}\label{sec:graphic-matroids}
 
 
@@ -156,15 +157,14 @@ To show that the set $E$ is a matroid with the collection $\mathcal{C}$ of cycle
 
 \begin{enumerate}
 
-\item[(C1)] The empty set is by our defintion not a cycle. For reminder, by our definition a cycle always includes a nonempty set of vertices it is build upon. If it is in a simple graph then it has to have at least three vertices. Our extended notion also includes loops and parallel edges, which are still build upon at least one vertex. 
+\item[(C1)] The empty set is by our definition not a cycle. For reminder, by our definition a cycle always includes a nonempty set of vertices it is build upon. If it is in a simple graph, then it has to have at least three vertices. Our extended notion also includes loops and parallel edges, which are still built upon at least one vertex. 
 
-\item[(C2)] The show the second property suppose we have two sets of edges of cycles such that $C_1 \subseteq C_2$ and assume for contradiction there is some $e \in C_2 - C_1$. Then (we are assuming neither of the cycles are loops, that case is clear, because the only possibility is they are equal) the set of edges $C_2 - e$ corresponds to a path from the vertices which $e$ connects. However there is a cycle $C_1 \subseteq C_2 -e$ which is a subset of a path - a contradiction. So if $C_1 \subseteq C_2$ then $C_2 - C_1$ is empty, in particular then $C_2 = C_1$ and all three circuit axioms are satisfied.
+\item[(C2)] To show the second property, suppose we have two sets of edges of cycles such that $C_1 \subseteq C_2$ and assume for contradiction there is some $e \in C_2 - C_1$. Then (we are assuming neither of the cycles are loops, that case is clear, because the only possibility is they are equal) the set of edges $C_2 - e$ corresponds to a path from the vertices which $e$ connects. However, there is a cycle $C_1 \subseteq C_2 -e$ which is a subset of a path - a contradiction. So if $C_1 \subseteq C_2$ then $C_2 - C_1$ is empty, in particular then $C_2 = C_1$ and all three circuit axioms are satisfied.
 
 
 
     
-   \item[(C3)] Finally we prove the third property. Let $C_1$ and $C_2$ be two cyles. We would like to show that there is a set of edges of cycle $C_3 \subset C_1 \cap C_2 - e$ for any $e \in C_1 \cap C_2$.
-
+   \item[(C3)] Finally, we prove the third property. Let $C_1$ and $C_2$ be two cycles. We would like to show that there is a set of edges of cycle $C_3 \subset C_1 \cap C_2 - e$ for any $e \in C_1 \cap C_2$.
  
 
    \begin{figure}[h]
@@ -236,7 +236,7 @@ To show that the set $E$ is a matroid with the collection $\mathcal{C}$ of cycle
   \draw (1) to node[midway,left] {e} node[above,pos=0] {$v_0$} node[below,pos=1] {$v_1$} (5);
   \draw (1) to (11);
   \draw (5) to (9);
-  \draw (9) to [bend right] (11);
+  \draw (9) to [bend left] (11);
 \end{tikzpicture} 
 \end{subfigure}
 \begin{subfigure}[h]{0.245\textwidth}
@@ -266,42 +266,40 @@ To show that the set $E$ is a matroid with the collection $\mathcal{C}$ of cycle
 \end{subfigure}
     \end{figure}
 
-    First, if $C_1 \cap C_2 = \emptyset$ there is nothing to prove, because the conditional part of the if statement in (C3) is not satified.
+    First, if $C_1 \cap C_2 = \emptyset$ there is nothing to prove, because the conditional part of the if statement in (C3) is not satisfied.
    
-   Second, assume there exists $e \in C_1 \cap C_2$. Let the cycle $C_1$ correspond to the sequence of incident vertices  $v_0, \cdots, v_n = v_0$ and let (without loss of generality) the special edge in the interesection be the edge $e = \{v_0, v_1\}$. The idea of the proof is very simple. Our goal is to find a cycle in the set of edges $C_1 \cup C_2 -e$, which is not difficult. We go around $C_1$ until we can `jump' to $C_2$ for the first time, then we go back to $e$ via $C_2$ from the `backward direction'.
+   Second, assume there exists $e \in C_1 \cap C_2$. Let the cycle $C_1$ correspond to the sequence of incident vertices  $v_0, \cdots, v_n = v_0$ and let (without loss of generality) the special edge in the intersection be the edge $e = \{v_0, v_1\}$. The idea of the proof is very simple. Our goal is to find a cycle in the set of edges $C_1 \cup C_2 -e$, which is not difficult. We go around $C_1$ until we can `jump' to $C_2$ for the first time, then we go back to $e$ via $C_2$ from the `backward direction'.
 
-   
-    
+
     Let $k$ be the smallest integer $1<k\leq n$ such that the vertex $v_k$ is in the cycle $C_2$. We know that such an integer exists because $v_n$ is in the cycle $C_2$. 
     
     Let $v_k, w_{k+1}, w_{k+2}, \cdots, v_1$ be the path of vertices in the cycle $C_2$ which does not include the edge $e$. We know that such a path exists, because $C_2$ is a cycle, so from any two distinct vertices, in particular $v_k$ and $v_1$ there are two paths going from $v_k$ to $v_1$ including only the vertices of $C_2$ - we pick the one that does not include the edge $e$.
     
-    We claim that the cycle consisting of vertices $v_1, v_2, \cdots v_k, w_{k+1}, \cdots , v_1$ is the desired one and denote its set of edges by $C_3$. By construction the sequence of vertices $v_1, v_2, \cdots v_k, w_{k+1}, \cdots , v_1$ is a cycle, namely the neighboring vertices are incident and except $v_1$ there is no vertex repeating, because we have chosen $v_2, v_3, \cdots v_{k-1}$ to be disjoint from $C_2$. Crucially, $e \notin C_3$ because we have chosen path $v_k, w_{k+1}, \cdots v_1$ to not include the edge $e$ and $v_1, v_2, \cdots v_k$ does not include it because $e = \{v_n = v_0, v_1\}$ and there is no $v_0$ in our cycle. Finally, all of the vertices of $C_3$ are inside the vertices of $C_1$ and $C_2$ by construction so, to conclude the set $C_3$ has the desired property $C_3 \subseteq (C_1 \cup C_2) - e$.
+    We claim that the cycle consisting of vertices $v_1, v_2, \cdots v_k, w_{k+1}, \cdots , v_1$ is the desired one and denote its set of edges by $C_3$. By construction the sequence of vertices $v_1, v_2, \cdots v_k, w_{k+1}, \cdots , v_1$ is a cycle, namely the neighboring vertices are incident and except $v_1$ there is no vertex repeating, because we have chosen $v_2, v_3, \cdots v_{k-1}$ to be disjoint from $C_2$. Crucially, $e \notin C_3$ because we have chosen path $v_k, w_{k+1}, \cdots v_1$ to not include the edge $e$ and $v_1, v_2, \cdots v_k$ does not include it because $e = \{v_n = v_0, v_1\}$ and there is no $v_0$ in our cycle. Finally, all the vertices of $C_3$ are inside the vertices of $C_1$ and $C_2$ by construction so, to conclude, the set $C_3$ has the desired property $C_3 \subseteq (C_1 \cup C_2) - e$.
     
-    We have to check to check the possibility that $e$ might be a loop or a parallel edge as well, the above argument works assuming $G$ is a simple graph. If $e$ is a parallel edge than the above argument does still hold since we only now that there is more than one edge between $v_0$
+    We have to check the possibility that $e$ might be a loop or a parallel edge as well, the above argument works assuming $G$ is a simple graph. If $e$ is a parallel edge than the above argument does still hold since we only know that there is more than one edge between $v_0$
     and $v_1$ which does not change anything. However, if $e$ is a loop then by our convention, a cycle consisting of a loop can just be that loop and nothing else, heuristically, because it begins and ends at a single vertex. So $C_1 = C_2 = \{e\}$ which is a contradiction, since we have assumed $C_1$ and $C_2$ are distinct.
 
 \end{enumerate}
 
-To conclude, the collection of edges of cycles $\mathcal{C}$ satisfies the circuit axioms (C1), (C2) and (C3), therefore we know the the cryptomorphic describtion of matroids in terms of circuits that $E$ is in fact a matroid with having $\mathcal{C}$ as its collecition of circuits.
+To conclude, the collection of edges of cycles $\mathcal{C}$ satisfies the circuit axioms (C1), (C2) and (C3), therefore we know the cryptomorphic description of matroids in terms of circuits that $E$ is in fact a matroid with having $\mathcal{C}$ as its collection of circuits.
 
 \end{proof}
 
 
 \begin{defn}
-    We call a matroid $M$ graphic if it is isomporphic to $(E, \mathcal{I})$ where $E$ is the set of edges of some graph and the set of circuits is given by the set of all edge cycles.
+    We call a matroid $M$ graphic if it is isomorphic to $(E, \mathcal{I})$ where $E$ is the set of edges of some graph and the set of circuits is given by the set of all edge cycles.
 \end{defn}
 
 
 
 We thus know that given any graph $G$ we have natural matroid structure on its set of edges, by declaring graph cycles to be circuits. Because we know other equivalent descriptions of matroids it is natural to ask what are the independent sets or bases in the case of graphic matroids. 
 
-Suppose that the set of edges $B$ is a base of a graphic matroid. We know that this means that $B$ is independent (we do not yet know how to spot the independent sets in graphs) however, adding any element of $E-B$ to $B$, i.e. any edge not in $B$ to $B$, we get a \textit{dependent set}, which means it contains a circuit. By our defintion this means that it has to contain an edge cycle. Combining all we see that the set of edges $B$ has the property that it does not contain any cycles, however adding any edge makes a cycle - this is the precisely one of the equivalent characterizations of \textit{spanning forrests}. Note that we cannot say spanning trees because the graph might not be connencted. 
+Suppose that the set of edges $B$ is a base of a graphic matroid. We know that this means that $B$ is independent (we do not yet know how to spot the independent sets in graphs) however, adding any element of $E-B$ to $B$, i.e. any edge not in $B$ to $B$, we get a \textit{dependent set}, which means it contains a circuit. By our definition, this means that it has to contain an edge cycle. Combining all we see that the set of edges $B$ has the property that it does not contain any cycles, however adding any edge makes a cycle - this is the precisely one of the equivalent characterizations of \textit{spanning forests}. Note that we cannot say spanning trees because the graph might not be connected. 
 
-Any independent set is a subset of some basis, so in graphic matroids the set of edges that is independent has to be a subset of some spanning forrest, which means it is just a forrest.
+Any independent set is a subset of some basis, so in graphic matroids the set of edges that is independent has to be a subset of some spanning forest, which means it is just a forest.
 
-As an example we will show that many matroids shown until now are, in fact, graphic. 
-
+As an example, we will show that many matroids shown until now are, in fact, graphic. 
 
  
 \begin{figure}[H]
@@ -348,10 +346,9 @@ As an example we will show that many matroids shown until now are, in fact, grap
   
 \end{tikzpicture}
     }%
-    \caption{Matroid $M[A]$ is graphic; it is isomprphic to the graphic matroid $G$}%
+    \caption{Matroid $M[A]$ is graphic; it is isomorphic to the graphic matroid $G$}%
     \label{graphicmatrix}%
 \end{figure}
 
-In figure (\ref{graphicmatrix}) we see that the graph $H$ exactly to corresponds to the vector matroid formed on matrix $A$. Edge 4 is a loop, so a dependent set, corresponding to the fact that the fourth column is a zero vector. Similarly, any two element sets of nonzero vector are independent, corresponding to the fact that any two non-loop edges do not form a cycle in the graph. Finally, any set of three or more edges in dependent, which is easily seen in the graph because we have 3 vertices so the size of a spanning forrest is at most 3 - 1 = 2.
-
+In figure (\ref{graphicmatrix}) we see that the graph $H$ exactly to corresponds to the vector matroid formed on matrix $A$. Edge 4 is a loop, so a dependent set, corresponding to the fact that the fourth column is a zero vector. Similarly, any two element sets of nonzero vector are independent, corresponding to the fact that any two non-loop edges do not form a cycle in the graph. Finally, any set of three or more edges in dependent, which is easily seen in the graph because we have 3 vertices so the size of a spanning forest is at most 3 - 1 = 2.
 
