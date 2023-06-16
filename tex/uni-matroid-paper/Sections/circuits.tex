@@ -203,8 +203,8 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
 \begin{proof} We start by showing that $\mathcal I $ satisfies the necessary conditions for $(E, \mathcal I )$ to be a matroid:
     \begin{enumerate} 
         \item[(I1)] The only subset of $\emptyset $ is $ \emptyset $, but $ \emptyset \not\in \mathcal C $, so $ \emptyset $ satisfies (\ref{independent-sets-from-circuits}), hence $\emptyset \in \mathcal I$.
-        \item[(I2)] Assume we have $X \subseteq Y \in \mathcal I$. Assume that $X \not\in I$, i.e.\ there exists some $C \in \mathcal C $ such that $C \subseteq X$. We recall that $\subseteq $ is transitive, thus $C \subseteq Y$ and $Y \not\in I$, hence a contradiction.
-        \item[(I3)] Given $X, Y \in \mathcal I $ with $|X| < |Y|$ we must show there exists some $e \in Y - X$ such that $X \cup \{e\} \in \mathcal I$. Assume that a counterexample exists. That is, some pair $X, Y \in \mathcal I$ must exist such that $\forall e \in Y - X, X \cup e \not\in \mathcal I$. Pick such a counterexample which maximizes $|X \cap Y|$. Assume $X - Y$ is nonempty (otherwise $X \subseteq Y$ and by (I2) we can pick any $Y - X$ such that $X \cup y \in \mathcal I$)  . Pick some $x \in X - Y$. We will proceed by cases:
+        \item[(I2)] Assume we have $X \subseteq Y \in \mathcal I$. Aiming for contradiction, assume that $X \not\in I$, i.e.\ there exists some $C \in \mathcal C $ such that $C \subseteq X$. We recall that $\subseteq $ is transitive, thus $C \subseteq Y$ and $Y \not\in I$, hence a contradiction.
+        \item[(I3)] Given $X, Y \in \mathcal I $ with $|X| < |Y|$ we must show there exists some $e \in Y - X$ such that $X \cup e \in \mathcal I$. Assume that a counterexample exists. That is, some pair $X, Y \in \mathcal I$ must exist such that for all $e \in Y - X$ we have $X \cup e \not\in \mathcal I$. Assume such a counterexample exists. Pick such a counterexample which maximizes $|X \cap Y|$. Assume $X - Y$ is nonempty (otherwise $X \subseteq Y$ and by (I2) we can pick any $Y - X$ such that $X \cup y \in \mathcal I$). Pick some $x \in X - Y$. We will proceed by cases:
           \begin{enumerate}
             \item If $Y \cup x$ is independent, we claim that $(X, Y \cup x)$ is a counterexample as well. This is trivially shown by noticing how $(Y \cup x) - X = Y - X$, so any choice of $e \in (Y \cup x) - X$ such that $X \cup e$ is independent would invalidate $(X, Y)$ being a counterexample. We note that 
               \begin{align*}
@@ -215,14 +215,14 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
             \begin{enumerate}
               \item There exists some $y \in Y - X$ such that $y \in C$.
                 \begin{proof}
-                  If this is not the case, then $C \subseteq \{x\}$. As $\emptyset \not\in \mathcal C$, we can conclude that $C = \{x\}$. We now have $C \subseteq X$, which implies $x \not\in \mathcal I$, hence a contradiction.
+                  If there is no such $y$, then $C \subseteq X$. This means that there is a circuit inside $X$, which contradicts the fact that $X \in \mathcal{I}$.
                 \end{proof}
-              \item This circuit is unique
+              \item The circuit $C$ is the unique circuit with the property $C \subseteq Y \cup x.$
                 \begin{proof}
-                  Assume another distinct $D \in \mathcal C$ exists such that $D \subseteq Y \cup x$. As $x \in D$ and $x \in C$, we can conclude that $x \in C \cap D$. We can now apply (C3) to generate some $C' \subseteq  C \cup D - y$. We recall that $C, D \subseteq Y \cup y$, therefore $C \cup D \subseteq Y \cup y$. Furthermore, $C \cup D - y \subseteq Y$. By transitivity with $C' \subseteq C \cup D - y$ we now have $C' \subseteq Y$, which implies $C' \not\in \mathcal I$, hence a contradiction.
+                  Assume another distinct $D \in \mathcal C$ exists such that $D \subseteq Y \cup x$. As $x \in D$ and $x \in C$, we can conclude that $x \in C \cap D$. We can now apply (C3) to generate some circuit $C' \subseteq  C \cup D - y$. We recall that $C, D \subseteq Y \cup y$, therefore $C \cup D \subseteq Y \cup y$. Furthermore, $C \cup D - y \subseteq Y$. By transitivity with $C' \subseteq C \cup D - y$ we now have $C' \subseteq Y$, which implies by definition $Y \not\in \mathcal I$, hence a contradiction.
                 \end{proof}
 
-              \item $x \in C$
+              \item We have that $x \in C$.
 
                 \begin{proof}
                   If this is not the case, we have $C \subseteq Y$, which would imply that $Y \not\in \mathcal I$.
@@ -231,7 +231,7 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
               \item $Y \cup x - y$ is independent. 
 
                 \begin{proof}
-                If this is not the case, there must exist some $D \subseteq \mathcal C$ with $D \subseteq Y \cup x - y$. As $D$ does not contain $x$, it must be distinct from $C$. We note that $Y \cup y - x \subseteq Y \cup x$, so $D \in Y \cup x$ as well. This contradicts the uniqueness of $C$, hence a contradiction.
+                If this is not the case, there must exist some $D \subseteq \mathcal C$ with $D \subseteq Y \cup x - y$. This also implies that $D$ is a circuit with $D \subset Y \cup x$. By the uniqueness $C$ proved before we now have $D = C$. But this would imply that $y\in C = D$ so $y \in Y cup x - y$ which is a contradiction.
                 \end{proof}
 
               \item $(X, Y \cup x - y)$ is a counterexample for (I3).
@@ -277,3 +277,8 @@ We now show that $C$ is a circuit for the newly defined matroid if and only if i
 
   We can now conclude that $(E, \mathcal I)$ is indeed a matroid with $\mathcal C$ as it's set of circuits.
 \end{proof}
+
+\begin{exmp}
+    \input{U24}
+\end{exmp}
+

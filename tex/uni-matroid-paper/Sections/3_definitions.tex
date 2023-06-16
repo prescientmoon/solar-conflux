@@ -319,37 +319,51 @@ For example, $\rank(E(M))=|B|$ for some $B\in\mathcal{B}(M)$, and we define $\ra
     \end{enumerate}
 \end{theorem}
 
-In figure \ref{fig:1234-matroid-rank}, we again find our example matroid drawing. We denote the rank of each set by writing it in subscript below the set. We can see that the rank of any set is at most its cardinality, and each subset of some set has at most the rank of that set. As always, it takes a bit more effort to show that the last property holds for a given matroid.
+In figure \ref{fig:1234-matroid-rankeee}, we again find our example matroid drawing. We denote the rank of each set by writing it in subscript below the set. We can see that the rank of any set is at most its cardinality, and each subset of some set has at most the rank of that set. As always, it takes a bit more effort to show that the last property holds for a given matroid.
 
-\begin{center}
-\begin{tikzpicture}
-
-\matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
- & & &\textcolor{cyan}{
-1234}_2 & & & &\\
- \textcolor{cyan}{
-123}_2& &\textcolor{cyan}{
-124}_2 & &\textcolor{cyan}{
-134}_1 &  & \textcolor{cyan}{
-234}_2  \\
-\textcolor{red}{12}_2 & \textcolor{blue}{13}_1 & \textcolor{cyan}{14}_1 & & \textcolor{red}{23}_2 & \textcolor{cyan}{
-24}_1 & \textcolor{cyan}{
-34}_1 \\
-\textcolor{orange}{1}_1& &\textcolor{orange}{2}_1 & & \textcolor{orange}{3}_1& & \textcolor{blue}{4}_0 \\
-& & & \textcolor{orange}{\emptyset}_0 &  & & \\
-&&&&&& \\};
-
-\foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
-\draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
-
-\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}, $\text{Set}_{\rank(\text{Set})}$ };
+\begin{figure}[H]
 
 
-\label{fig:1234-matroid-rank}
+    \begin{center}
+    \begin{tikzpicture}
+    
+    \matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
+     & & &\textcolor{cyan}{
+    1234}_2 & & & &\\
+     \textcolor{cyan}{
+    123}_2& &\textcolor{cyan}{
+    124}_2 & &\textcolor{cyan}{
+    134}_1 &  & \textcolor{cyan}{
+    234}_2  \\
+    \textcolor{red}{12}_2 & \textcolor{blue}{13}_1 & \textcolor{cyan}{14}_1 & & \textcolor{red}{23}_2 & \textcolor{cyan}{
+    24}_1 & \textcolor{cyan}{
+    34}_1 \\
+    \textcolor{orange}{1}_1& &\textcolor{orange}{2}_1 & & \textcolor{orange}{3}_1& & \textcolor{blue}{4}_0 \\
+    & & & \textcolor{orange}{\emptyset}_0 &  & & \\
+    &&&&&& \\};
+    
+    \foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
+    \draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
+    
+    \node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}, $\text{Set}_{\rank(\text{Set})}$ };
+    
+    
+     
+    
+    \end{tikzpicture}
 
-\end{tikzpicture}
+
+    \label{fig:1234-matroid-rankeee}
+    \caption{Description of a 4-element matroid, with the rank of each set as subscript.}
+
 \end{center}
-$$\text{Figure 4: Description of a 4-element matroid, with the rank of each set as subscript.}$$
+
+
+\end{figure}
+
+
+
+
 
 Now, let us prove that the rank function of a matroid satisfies these properties.
 
@@ -371,65 +385,67 @@ Now, let us prove that the rank function of a matroid satisfies these properties
 
         Since $I_{A\cup B}\subseteq A\cup B$, we see that $I_{A\cup B}\cap(A\cup B) = I_{A\cup B}$.
 
-        Because $I_{A\cap B}\subseteq I_{A\cup B}$ and $I_{A\cap B}\subseteq A\cup B$, it tells us that $I_{A\cup B}\cap (A\cap B) \supseteq I_{A\cap B}\cap (A\cap B) = I_{A\cap B} $. Let $e\in I_{A\cup B}\cap (A\cap B)$. Aiming for contradiction, suppose $e\notin I_{A\cap B}$. Since $e\in I_{A\cup B}$, we can see that $I_{A\cap B}\cup e \subseteq I_{A\cup B} $, which implies that $I_{A\cap B}\cup e$ must be an independent set contained in $A\cap B$. This contradicts the fact that $I_{A\cap B}$ is a maximal in that regard. Thus, $e\in I_{A\cap B}$. This proves that $I_{A\cup B}\cap(A\cap B)\subseteq I_{A\cap B} $, which implies equality between the two sets.
+        Because $I_{A\cap B}\subseteq I_{A\cup B}$ and $I_{A\cap B}\subseteq A\cap B$, it tells us that $I_{A\cup B}\cap (A\cap B) \supseteq I_{A\cap B}\cap (A\cap B) = I_{A\cap B} $. Let $e\in I_{A\cup B}\cap (A\cap B)$. Aiming for contradiction, suppose $e\notin I_{A\cap B}$. Since $e\in I_{A\cup B}$, we can see that $I_{A\cap B}\cup e \subseteq I_{A\cup B} $. Then (I2) implies that $I_{A\cap B}\cup e$ is independent. Combining that fact with that $e\in A\cap B$, we see that $I_{A\cap B}\cap e$ is an independent set contained in $A\cap B$. This contradicts the maximality of $I_{A\cap B}$ in being independent and contained in $A\cap B$. Thus, the contradiction gives us that $e\in I_{A\cap B}$. This proves that $I_{A\cup B}\cap(A\cap B)\subseteq I_{A\cap B} $, which implies equality between the two sets.
 
         Thus,
 
-        $$ \rank(X)+\rank(Y) \geq |I_{A\cup B}|+|I_{A\cap B}| = \rank(A\cup B)+\rank(A\cap B) $$
+        $$ \rank(X)+\rank(Y) \geq  |I_{A\cup B}|+|I_{A\cap B}| = \rank(A\cup B)+\rank(A\cap B) $$
     \end{enumerate}
 \end{proof}
 One might observe that the rank of an independent set is the cardinality of the set itself. This is because the largest independent set that is contained in this independent set is of course the independent set itself. With this property, we can define the set of independent sets with the three properties of the rank function.
 \begin{theorem}
+    \label{thm:indep-from-bases}
     Let $E$ be a finite set, and let $\rank : 2^E \rightarrow \mathbb{Z}_{\geq0}$ be a function satisfying (R1)-(R3). Let $\mathcal{I} = \{ I\subseteq E : \rank(I)=|I| \} $. Then $(E,\mathcal{I})$ is a matroid with $\rank$ as its rank function.
 \end{theorem}
-Before we prove this, let's prove this small theorem first:
+Before we prove this, let us prove the following small theorem first.
 \begin{theorem}
 \label{rankextension}
-    Let $E$ be a finite set and $\rank:2^E\rightarrow \mathbb{Z}_{\geq0}$ be a function satisfying (R2) and (R3). Let $X,Y\subseteq E$. Then if for all $y\in Y-X$, $\rank(X\cup y)=\rank(X)$, then $\rank(X\cup Y)=\rank(Y)$.
+    Let $E$ be a finite set and $\rank:2^E\rightarrow \mathbb{Z}_{\geq0}$ be a function satisfying (R2) and (R3). Let $X,Y\subseteq E$. If for all $y\in Y-X$, it holds that $\rank(X\cup y)=\rank(X)$, then we have that $\rank(X\cup Y)=\rank(Y)$.
 \end{theorem}
 \begin{proof}
-    We will prove that the statement holds with $Y-X = \{a_1,a_2,\dots,a_k\}$ holds for all integers $k$.
+    We will prove that the statement holds with $Y-X = \{a_1,a_2,\dots,a_k\}$ for all integers $k$.
     \begin{enumerate}
         \item Base case: $k=1$
 
         If $\rank(X\cup a_1)=\rank(X)$, then $\rank(X\cup Y)=\rank(X\cup(Y-X))=\rank(X\cup a_1)=\rank(X)$.
-        \item Induction Step: Assume the statement holds for $k=n$.
-        \item Let $k=n+1$: Assume that $Y-X=\{a_1,\dots,a_{n+1}\}$ for all $i\in\{1,\dots,n+1\}$ $\rank(X\cup a_i)=\rank(X)$. Then, using the assumption and our induction assumption, 
+        \item Induction Step: Assume the statement holds for $k=n$. 
+        
+        Let us see if the statement holds for $k=n+1$: Let $Y-X=\{a_1,\dots,a_{n+1}\}$ and assume that for all $i\in\{1,\dots,n+1\}$, it holds that $\rank(X\cup a_i)=\rank(X)$. Then, using the assumption and our induction hypothesis, 
         $$ \rank(X)+\rank(X) = \rank(X\cup \{a_1,\dots,a_n\})+\rank(X\cup a_{n+1}) $$
         Using (R3), we get
         $$ \geq \rank([X\cup\{a_1,\dots,a_n\}]\cup [X\cup a_{n+1}]) + \rank([X\cup\{a_1,\dots,a_n\}]\cap [X\cup a_{n+1}]) $$
         $$ = \rank(X\cup\{a_1,\dots,a_{n+1}\}) + \rank(X) $$
         Using (R2), we get
         $$ \geq \rank(X)+\rank(X) $$
-        Since $\rank(X)+\rank(X)$ is on both sides, equality holds throughout. Thus, $\rank(X\cup\{a_1,\dots,a_{n+1}\})=\rank(X\cup Y)=\rank(X)$. And thus, the statement holds for $k=n+1$.
+        Since $\rank(X)+\rank(X)$ is on both sides, equality holds throughout. 
+        
+        Thus, $\rank(X\cup Y) = \rank(X\cup\{a_1,\dots,a_{n+1}\})=\rank(X)$. And thus, the statement holds for $k=n+1$.
     \end{enumerate}
     Thus, by mathematical induction, the statement holds for all integers $k$.
 \end{proof}
-Finally, we can prove Theorem 5:
-\begin{proof}
-    To prove that $(E,\mathcal{I})$ is a matroid, we will check if $\mathcal{I}$ satisfies (I1)-(I3).
+Finally, we can prove Theorem 9:
+\begin{proof}[Proof of theorem (\ref{thm:indep-from-bases})]
+To prove that $(E,\mathcal{I})$ is a matroid, we will prove that $\mathcal{I}$ satisfies (I1)-(I3).
     \begin{enumerate}
-        \item (R1) tells us that $0\leq\rank(\emptyset)\leq|\emptyset|=0$, which implies that $\rank(\emptyset)=0=|\emptyset|$, which means that $\emptyset\in\mathcal{I}$, so (I1) is satisfied.
+        \item (R1) tells us that $0\leq\rank(\emptyset)\leq|\emptyset|=0$, which implies that $\rank(\emptyset)=0=|\emptyset|$. By how we defined $\mathcal{I}$, this implies that $\emptyset\in\mathcal{I}$, so (I1) is satisfied.
         \item Assume we have $J\subseteq I\in\mathcal{I}$. Then, using (R3),
         $$ \rank(J)+\rank(I-J) \geq \rank(J\cup[I-J])+\rank(J\cap[I-J]) = \rank(I)+\rank(\emptyset)=|I| $$
         Using (R2), we also get that
         $$ \rank(J)+\rank(I-J) \leq |J|+\rank(I-J) \leq |J|+|I-J| = |I| $$
         This implies that equality must hold throughout. At last, we show that
         $$ \rank(J)+\rank(I-J) = |J|+\rank(I-J) \Rightarrow \rank(J)=|J| $$
-        Thus, $J\in\mathcal{I}$, so {I2} is satisfied.
+        Since $\rank(J)=|J|$ means that $J\in\mathcal{I}$, we conclude that (I2) is satisfied.
         
-        \item Suppose (I3) does not hold for some $I,J\in\mathcal{I}$ with $|I|>|J|$. Then for all $e\in I-J$, $J\cup e\notin \mathcal{I}$. Also, remember that $I,J\in\mathcal{I}$ means that $\rank(I)=|I|$ and $\rank(J)=|J|$.
+        \item Suppose (I3) does not hold for some $I,J\in\mathcal{I}$ with $|I|>|J|$. Then for all $e\in I-J$, it holds that $J\cup e\notin \mathcal{I}$. Also, remember that $I,J\in\mathcal{I}$ means that $\rank(I)=|I|$ and $\rank(J)=|J|$.
 
-        Since $J\subseteq J\cup e$, we can use (R1) and (R2) to see that
-        $$ |J|=\rank(J)\leq\rank(J\cup e)|\leq|J\cup e|=|J|+1 $$
-        $J\cup e\notin \mathcal{I}$ tells us that $\rank(J\cup e)\neq|J\cup e|$, so that must mean that $\rank(J\cup e)$ is equal to what's on the left-hand side, so $\rank(J)$.
+        For this next part, let $e$ be anarbitrary member of $I-J$. Since $J\subseteq J\cup e$, we can use (R1) and (R2) to see that
+        $$ |J|=\rank(J)\leq\rank(J\cup e)\leq|J\cup e|=|J|+1 $$
+        
+        $J\cup e\notin \mathcal{I}$ tells us that $\rank(J\cup e)\neq|J\cup e|=|J|+1$. Since we just proven that $|J|\leq\rank(J\cup e)\leq|J|+1$, it must mean that $\rank(J\cup e)$ is equal to what's on the left-hand side, so $|J|=\rank(J)$.
 
-        This gives us that for all $e\in I-J$, $\rank(J\cup e)=\rank(J)$, which, according to Theorem 6, implies that $\rank(J\cup I)=\rank(J)=|J|$. However, since $I\subseteq J\cup I$, (R2) tells us that $\rank(J\cup I) \geq \rank(I) = |I|$, which means that $|J|\geq|I|$. This contradicts our assumption that $|J|<|I|$. Thus, (I3) is satisfied.
+        This gives us that for all $e\in I-J$, it holds that $\rank(J\cup e)=\rank(J)$. With this, Theorem (\ref{rankextension}) tells us that $\rank(J\cup I)=\rank(J)=|J|$. However, since $I\subseteq J\cup I$, we can use (R2) to see that $\rank(J\cup I) \geq \rank(I) = |I|$. Combining those two, we get that $|J|\geq|I|$. This contradicts our assumption that $|J|<|I|$. Thus, (I3) is satisfied.
     \end{enumerate}
     Thus, $(E,\mathcal{I})$ is a matroid.
 \end{proof}
 
 
-\begin{exmp}
-    \input{U24}
-\end{exmp}
