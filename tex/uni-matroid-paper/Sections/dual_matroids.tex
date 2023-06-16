@@ -92,7 +92,7 @@ We can formalize the definition of $\mathcal{B}^*$ and use it to construct the d
      The matroid that satisfies theroem (\ref{dualbasis}), i.e., whose ground set is $E(M)$ and whose set of basis is $\mathcal{B}^*(M)$, is called the dual of M, and is denoted by $M^*$
 \end{defn}
 
-In Theorem (\ref{dualbasis}) we say that $\mathcal{B}^*(M)$ is the set of bases of a matroid on $E(M)$, but this may not be trivially clear, so we need to prove it. However, to prove it we make use of an equivalent property, which we will refer to as (B2)$^*$ (The idea to take this approach was motivated by \cite[p. 8]{oxley1}.). This property comes from our property (B2) in Section 2.2 (theorem (\ref{thm:basis-properties})).
+In Theorem (\ref{dualbasis}) we say that $\mathcal{B}^*(M)$ is the set of bases of a matroid on $E(M)$, but this may not be trivially clear, so we need to prove it. However, to prove it we make use of an equivalent property, which we will refer to as (B2)$^*$ (The idea to take this approach was motivated by \cite[p. 64]{oxley1}). This property comes from our property (B2) in Section 2.2 (theorem (\ref{thm:basis-properties})).
 
 \begin{lemma}[(B2)$^*$]\label{B2Dual}
     Let $\mathcal{B}$ be the set of bases of some matroid $M$. If $B_1, B_2 \in \mathcal{B}$ and $x \in B_2 - B_1$,then there exists an element $y$ of $B_1 - B_2$ such that $(B_1 - y) \cup x \in \mathcal{B}$
@@ -193,6 +193,9 @@ And in fact, we can generalize this to obtain an explicit formula for the \texti
     \begin{align*}
     |X|=|X\cap B|+|X\cap B^*|=|B|-|I|+|I^*|=r(M)-r(E-X)+r^*(X).
     \end{align*}
+    \begin{align*}
+    r^*(X)=r(E-X)+|X|-r(M)
+    \end{align*}
 \end{proof}
 
 \newpage
@@ -202,7 +205,7 @@ Let $A\in \mat_{m\times n}(\mathbb{F})$, and let $M$ be a vector matroid $M[A]$ 
 \begin{enumerate}
     \item Interchange two rows.
     \item Multiply a row by a non-zero member of $\mathbb{F}$.
-    \item Replace a row by the sumof that row with another row.
+    \item Replace a row by the sum of that row with another row.
     \item Adjoin or remove a zero row.
     \item Interchanging two columns (the labels moving with the columns).
     \item Multiply a column by a non-zero member of $\mathbb{F}$.
@@ -210,7 +213,7 @@ Let $A\in \mat_{m\times n}(\mathbb{F})$, and let $M$ be a vector matroid $M[A]$ 
 
 The reason for this is that when constructing the matroid $M$ from a matrix $A$, we only care about the independence (or dependence) between column vectors in the matrix. As long as the independence and dependence between them is kept the same, the exact values inside the columns are not relevant.
 
-Assume that $A$ is non-zero. It is known that by using the previously mentioned operations, $A$ can be reduced to be of the form $[I_r|D]$, where $I_r$ is the $r \times r$ identity matrix ($1\leq r< n$) and $D$ is some $r \times (n-r)$ matrix over $\mathbb{F}$. We can clearly see that $r(M)=r$ (the dimension for the identity matrix). 
+Assume that $A$ is non-zero. It is easy to prove that by using the previously mentioned operations, $A$ can be reduced to be of the form $[I_r|D]$, where $I_r$ is the $r \times r$ identity matrix ($1\leq r< n$) and $D$ is some $r \times (n-r)$ matrix over $\mathbb{F}$. This is because using the \textit{elementary row operations} we can reduce the matrix $A$ to its \textit{reduced row echelon form} and then using the remaining operations we can remove any zero row. We also can clearly see that $r(M)=r$ (the dimension for the identity matrix). 
 
 Suppose the columns of $[I_r|D]$ are labelled as $e_1, e_2,\cdots,e_n$. We then have the ground set $E=\{e_1, e_2,\cdots,e_n\}$. Let, $\{e_1, e_2,\cdots,e_r\}$ be a basis $B$ of $M$. We also label the rows and columns of the submatrix $D$ in the following form:
 \begin{itemize}
@@ -223,7 +226,7 @@ Suppose the columns of $[I_r|D]$ are labelled as $e_1, e_2,\cdots,e_n$. We then 
 \begin{figure}[H]
     \centering
     \includegraphics{SRF.png}
-    \caption{Standard representative matrices for $M$ (see \cite{oxley1})}
+    \caption{Standard representative matrices for $M$ (Taken from \cite[p. 78]{oxley1}).}
     \label{StandertRepMat}
 \end{figure}
 
@@ -235,24 +238,24 @@ We can now use this construction to determine the dual of a vector matroid using
     Let M be the vector matroid of the matrix $[I_r|D]$ where the columns are labelled, in order $e_1, e_2,\cdots,e_n$ and $1\leq r< n$. Then $M^*$ is the vector matroid of $[-D^T|I_{n-r}]$, where its columns are also labelled $e_1, e_2,\cdots,e_n$ in that order.
 \end{theorem}
 
-The following proof was inspired by that in \cite{oxley1}.
+The following proof was inspired by that in \cite[p. 78]{oxley1}.
 
 \begin{proof}
     We assume that $[I_r|D]$ is as in the contruction of the theorem above. Then $[-D^T|I_{n-r}]$ is as shown in figure (\ref{MatRepresentationDual}).
     \begin{figure}[h]
         \centering
         \includegraphics{VMRDual.png}
-        \caption{Standart representative form of the dual of a matroid as established in theorem (\ref{DualRepMat}) (see \cite{oxley1}).}
+        \caption{Standart representative form of the dual of a matroid as established in theorem (\ref{DualRepMat}) ((Taken from \cite[p. 78]{oxley1}).}
         \label{MatRepresentationDual}
     \end{figure}
 
-    Let $B$ be a basis of $M$. We need to show that $E-B$ is a basis of the vector matroid of $[-D^T|I_{n-r}]$. We can rearrange the columns of $[-D^T|I_{n-r}]$, such that $B=\{e_1,\dots,e_s, e_{r+1}, \dots, e_{r+(r-s)}$\}, for some $s \leq r$. This is possible because we know that it does not affect the corresponding matroid, so the only change it bring to rearrange rows and columns of $[I_r|D]$ is the rearrange of columns and rows of $[-D^T|I_{n-r}]$. 
+    Let $B$ be a basis of $M$. We need to show that $E-B$ is a basis of the vector matroid of $[-D^T|I_{n-r}]$. We can rearrange the columns of $[-D^T|I_{n-r}]$, such that $B=\{e_1,\dots,e_s, e_{r+1}, \dots, e_{r+(r-s)}$\}, for some $s \leq r$. This is possible because we know that it does not affect the corresponding matroid since we are only doing the elementary row operations. Therefore the only change it bring to rearrange rows and columns of $[I_r|D]$ is the rearrange of columns and rows of $[-D^T|I_{n-r}]$. 
     
     Using this, we can partition $[I_r|D]$ and $[-D^T|I_{n-r}]$ in the following form
     \begin{align*}
     \begin{bmatrix}
     I_s & 0 & D_{11} & D_{12}\\
-    0 & I_{r-s} & D_{21} & D_{22}\\
+    0 & I_{r-s} & D_{21} & D_{22}\\.
     \end{bmatrix}
     % 
          \rightarrow 
@@ -261,14 +264,14 @@ The following proof was inspired by that in \cite{oxley1}.
     -D_{12}^T & -D_{22}^T & 0 & I_{n-(2r-s)}\\
     \end{bmatrix}
     \end{align*}
-    We will analyze the way $[I_r|D]$ is partitioned. Here, we make the partitioning such that the first component $I_s$ has columns $(e_1 \dots e_s)$, $I_{r-s}$ has columns $(e_{s+1} \dots e_r)$, $D_11$ and $D_21$ have columns $(e_{r+1} \dots e_{2r-s})$, and finally, $D_{12}$ and $D_{22}$ have columns $(e_{(2r-s)+1} \dots e_n)$.
+    We will analyze the way $[I_r|D]$ is partitioned. Here, we make the partitioning such that the first component $I_s$ has columns $(e_1 \dots e_s)$, $I_{r-s}$ has columns $(e_{s+1} \dots e_r)$, $D_{11}$ and $D_{21}$ have columns $(e_{r+1} \dots e_{2r-s})$, and finally, $D_{12}$ and $D_{22}$ have columns $(e_{(2r-s)+1} \dots e_n)$.
     
     We have that $B$ is a base. This means that it must have the same size as $I_r$. Due to the way the matrix $[I_r|D]$ is partitioned, if we take the components in the partition that contain the column components in the basis, we get the following matrix
         \begin{align*}
         \begin{bmatrix}
         I_s & D_{11}\\
         0 & D_{21}\\
-        \end{bmatrix}
+        \end{bmatrix}.
         \end{align*}
 
     As this matrix has the partition components that contain all the elements in the basis, it must have a $rank$ of $r$ (the $rank$ of $[I_r|D]$). Here $r(I_s) = s$, as it is the identity matrix, hence $r(D_{21})=r-s$, which also corresponds to the rank of $-D_21^T$.
@@ -280,7 +283,7 @@ The following proof was inspired by that in \cite{oxley1}.
         \begin{bmatrix}
         -D_{21}^T & 0\\
         -D_{22}^T & I_{n-(2r-s)}\\
-        \end{bmatrix}
+        \end{bmatrix}.
     \end{align*}
 
    The rank of this submatrix is the sum of the ranks of $I_{n-(2r-s)}$ and $-D_{21}^T$. We have previously stated that the rank of $-D_{21}^T$ is the same as the one of $D_{21}$. That is, $r(-D_{21}^T)= r-s$, and the $rank$ of $I_{n-(2r-s)}$ is $n-(2r-s)$, which means the total rank is 
@@ -314,7 +317,7 @@ A remarkable result follows almost directly from theorem (\ref{DualRepMat}):
             1 & 0 & 0 & 1 & 0 & 1 \\
             0 & 1 & 0 & 1 & -1 & 0 \\
             0 & 0 & 1 & 0 & 1 & 1 \\
-        \end{bmatrix}
+        \end{bmatrix}.
     \end{align*}
 
 Then, by theorem (\ref{DualRepMat}), the corresponding dual matroid $M^*$ is the vector matroid represented by 
@@ -323,7 +326,7 @@ Then, by theorem (\ref{DualRepMat}), the corresponding dual matroid $M^*$ is the
             -1 & -1 & 0 & 1 & 0 & 0 \\
             0 & 1 & -1 & 0 & 1 & 0 \\
             -1 & 0 & -1 & 0 & 0 & 1 \\
-        \end{bmatrix}
+        \end{bmatrix}.
 \end{align*}
 
 As an interesting note, the vector matroid $M$ with matrix representation $A$ is associated to the graph $K_4$. In other words, this means that the matrix $A$ and the graph $K_4$ (figure (\ref{K4Graph})) produce the same matroid.
@@ -354,7 +357,7 @@ As an interesting note, the vector matroid $M$ with matrix representation $A$ is
 
     Additionally, we can also verify the \textit{rank} and \textit{corank} propositions established before (theorem (\ref{RankAndCorankEquation})). That is, we can clearly observe that $A$ has a ground set $E=\{e_1, e_2, \dots, e_6\}$ with $6$ elements, where each $e_i; i =1,2, \cdots,6$ represents a column, hence $|E|=6$. We also see that $A$ has rank $r(A)=3$, which can be easily verified by observing the first $3$ columns that correspond to the identity matrix in the construction of the form $[I_r|D]$. Similarly, if we observe the dual, we notice that $r(A^*)=3$ as well. We conclude that 
     \begin{align*}
-    r(A)+r(A^*)= 3 + 3 = 6 = |E|
+    r(A)+r(A^*)= 3 + 3 = 6 = |E|.
     \end{align*}
 \end{exmp}
 
@@ -404,10 +407,10 @@ J = \begin{bmatrix}
     0 & 0 & 1 & 0 & 0 & 1 & 1 & 1 & 1\\
     0 & 0 & 0 & 1 & 0 & 0 & 1 & 1 & 1\\
     0 & 0 & 0 & 0 & 1 & 0 & 0 & 1 & 1\\
-\end{bmatrix}
+\end{bmatrix}.
 \end{align*}
 
-    This is the case because labelling the columns of $J$ as $E = \{e_1,\dots, e_9\}$ and defining a matroid $M(J)$ on $E$, lets us associate each column of $J$ to the correspondingly labeled edge in $K_{3,3}$ so they generate the same matroid. Moreover, this means that we can take a basis for the column space of $J$, such as $B = \{e_1, e_2, e_3, e_4, e_5\}$, that corresponds to a spanning tree $T$ of $K_{3,3}$ (see figure (\ref{K33STE})). In other words, this means that adding any other column to $J$ yields a linear dependency (more precisely, a circuit in $M(J)$), and adding any edge to $T$ generates a cycle.
+    This is the case because labelling the columns of $J$ as $E = \{e_1,\dots, e_9\}$ and defining a matroid $M(J)$ on $E$, lets us associate each column of $J$ to the correspondingly labeled edge in $K_{3,3}$ and we can directly verify that they represent the same matroid (the matroids are isomorphic). Moreover, this means that we can take a basis for the column space of $J$, such as $B = \{e_1, e_2, e_3, e_4, e_5\}$, that corresponds to a spanning tree $T$ of $K_{3,3}$ (see figure (\ref{K33STE})). In other words, this means that adding any other column to $J$ yields a linear dependency (more precisely, a circuit in $M(J)$), and adding any edge to $T$ generates a cycle.
 
 \begin{figure}[H]
     \centering
