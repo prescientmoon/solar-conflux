@@ -82,16 +82,17 @@ We notice the ground set is composed of 4 components $E=\{1,2,3,4\}$, and the or
 % That is, that the basis set of a matroid is given by a subset of $E$, the remaining elements in $E$ that are not in the basis if added to it will be linearly dependent. Aditionally we can take any remaining element of $E$ and exchange it with an element in the basis, and end up with another basis for $E$. With this intuition in mind, we can continue with a theorem.
 
 
-We begin by formalizing the definition of $B^*$.
+We can formalize the definition of $B^*$ and use it to construct the definition of the dual matroid.
+
 \begin{theorem}\label{dualbasis}
-    Let $M$ be a matroid given by $(E,B)$, and $B^*(M)$ be $\{E(M) - B|B\in B(M)\}$. Then $B^*(M)$ is the set of bases of a matroid on $E(M)$. We will refer to the new matroid as the \textit{dual} of $M$.
+    Let $M$ be a matroid given by $(E,B)$, and $B^*(M)$ be $\{E(M) - B|B\in B(M)\}$. Then $B^*(M)$ is the set of bases of a matroid on $E(M)$.
 \end{theorem}
 
-% \begin{defn}
-%     Let M be a matroid with the pair (E,B), given B* as defined above, the new matroid M*=(E,B*) is the dual of M.
-% \end{defn}
+\begin{defn}
+     The matroid that satisfies theroem (\ref{dualbasis}), i.e., whose ground set is $E(M)$ and whose set of basis is $B^*(M)$, is called the dual of M, and is denoted by $M^*$
+\end{defn}
 
-In Theorem (\ref{dualbasis}) we say that $B^*(M)$ is the set of bases of a matroid on $E(M)$, but this may not be trivially clear, so we need to prove it. However, to prove it we will make use of an equivalent property, which we will refer to as (B2)$^*$. This property comes from our property (B2) in Section 2.2 (theorem (\ref{thm:basis-properties})).
+In Theorem (\ref{dualbasis}) we say that $B^*(M)$ is the set of bases of a matroid on $E(M)$, but this may not be trivially clear, so we need to prove it. However, to prove it we make use of an equivalent property, which we will refer to as (B2)$^*$. This property comes from our property (B2) in Section 2.2 (theorem (\ref{thm:basis-properties})).
 
 \begin{lemma}[(B2)$^*$]\label{B2Dual}
     Let $B$ be the set of bases of some matroid $M$. If $B_1, B_2 \in \mathcal{B}$ and $x \in B_2 - B_1$,then there exists an element $y$ of $B_1 - B_2$ such that $(B_1 - y) \cup x \in \mathcal{B}$
@@ -103,10 +104,13 @@ For comparison, the original statement of (B2) is the following:
 \end{enumerate}
 
 \begin{proof}[Proof of lemma (\ref{B2Dual})]
+Assume $B_1$ and $B_2 \in \mathcal{B}$ and $x \in B_2 - B_1$.
+
     We note that $B_1$ is by definition a basis. This means that adding any element $x \not\in B _1 $ to $B _1 $ introduces an unique circuit $C_1 \in C$ (if this circuit is not unique, and some other circuit $C _2 $ exists, we can apply (C3) to create a circuit $C _3 \subseteq C _1 \cup C _2 - x \subseteq B _1$, which would be a contradiction). Since $C_1$ is dependent and $B_2$ is independent, then $C_1 - B_2$ will be non-empty (otherwise we would have $C _1 - B _2 = \emptyset$ which implies that $C _1 \subseteq B _2$, which is a contradiction, as independent sets cannot contain dependent sets). This implies that there exists an element $y$ such that $y \in C_1 - B_2$, but as $C_1$ is the circuit created from $B_1 \cup x$, then $y \in (B_1 \cup x) - B_2$. Similarly, as $x \neq y$ (because $x \in B _2 $ and $y \not\in B _2$), then $y \in B_1 - B_2$. 
 
     Consider the set $B_1 - y$. This will not be a basis (because all bases have equal cardinality), but it will be an independent set (implied by (I2)). We notice that $(B_1 - y)\cup x$ will clearly not contain the circuit $C_1$, since $y \in C _1 $ and $y \not\in (B _1 - y) \cup x$. Furthermore, this set cannot contain any other distinct circuit $C _2 \in C$, because that would imply $C _2 \subseteq B _1 \cup x$, which would contradict the uniqueness of $C _1 $. We can now conclude that the set $(B_1 - y)\cup x$ must be independent. We observe that $(B_1 - y)\cup x$ implies that we add an element to the set, and we take out one element of the set, so the cardinality will remain equal, that is: $|(B_1 - y)\cup x|=|B_1|$.
-As we have that $(B_1 - y)\cup x$ is an independent set and has the same cardinality as the basis $B_1$, then by definition $(B_1 - y)\cup x$ is also a basis. 
+
+As $(B_1 - y)\cup x$ is independent and has the same cardinality as the basis $B_1$, then by definition $(B_1 - y)\cup x$ is also a basis. 
 \end{proof}
 
 Now, using the equivalent property $(B2)^*$ that we have just proven, we prove theorem (\ref{dualbasis}).
@@ -223,6 +227,8 @@ We can now use this construction to determine the dual of a vector matroid using
 \begin{theorem}\label{DualRepMat}
     Let M be the vector matroid of the matrix $[I_r|D]$ where the columns of this matrix are labelled, in order, $e_1, e_2,...,e_n$ and $1\leq r< n$. Then $M^*$ is the vector matroid of $[-D^T|I_{n-r}]$ where its columns are also labelled $e_1, e_2,...,e_n$ in that order.
 \end{theorem}
+
+The following proof was inspired by that in \cite{oxley1}.
 
 \begin{proof}
     We assume that $[I_r|D]$ is as in the contruction of the theorem above. Then $[-D^T|I_{n-r}]$ is as shown in figure (\ref{MatRepresentationDual}).

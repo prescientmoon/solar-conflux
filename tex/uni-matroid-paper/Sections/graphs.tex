@@ -147,7 +147,7 @@ Not surprisingly, the set $E$ with the collection $\mathcal{C}$ being as its set
 %``stuff"
 
 \begin{theorem}\label{graphicproof}
-Let $G = (V, E)$ be a graph and let $\mathcal{C}$ be the collection of all sets of edges of cycles in $G$. Then $M$ with the ground set $E$ (the set of edges) is matroid with $\mathcal{C}$ as collection of circuits. In particular, if $C_1$, $C_2$ are distinct sets of edges of cycles  and $e \in C_1 \cap C_2 $ then there exists a set of edges of cycle $C_3$ such that $C_3 \subset C_1 \cap C_2 -e$.
+Let $G = (V, E)$ be a graph and let $\mathcal{C}$ be the collection of all sets of edges of cycles in $G$. Then $M$ with the ground set $E$ (the set of edges) is matroid with $\mathcal{C}$ as collection of circuits. In particular, if $C_1$, $C_2$ are distinct sets of edges of cycles  and $e \in C_1 \cap C_2 $ then there exists a set of edges of cycle $C_3$ such that $C_3 \subseteq C_1 \cap C_2 -e$.
 \end{theorem}
 
 
@@ -164,7 +164,7 @@ To show that the set $E$ is a matroid with the collection $\mathcal{C}$ of cycle
 
 
     
-   \item[(C3)] Finally, we prove the third property. Let $C_1$ and $C_2$ be two cycles. We would like to show that there is a set of edges of cycle $C_3 \subset C_1 \cap C_2 - e$ for any $e \in C_1 \cap C_2$.
+   \item[(C3)] Finally, we prove the third property. Let $C_1$ and $C_2$ be two cycles and $e$ be an element of $C_1 \cap C_2$. We would like to show that there is a set of edges of cycle $C_3 \subseteq C_1 \cap C_2 - e$.
  
 
    \begin{figure}[h] 
