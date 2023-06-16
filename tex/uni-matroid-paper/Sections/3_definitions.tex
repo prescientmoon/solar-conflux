@@ -33,7 +33,7 @@ or
 \end{enumerate}
 
 \begin{exmp}
-In  figure~\ref{fig:1234-matroid-independent-sets} we find a representation of a matroid by writing all subsets of the ground set $\{1,2,3,4\}$ and coloring them accordingly. The independent sets are colored in orange. It is clear that the empty set is independent and that all subsets of independent sets are independent. The dependent sets, colored in cyan, are the sets that are not independent.
+In  figure (\ref{fig:1234-matroid-independent-sets}) we find a representation of a matroid by writing all subsets of the ground set $\{1,2,3,4\}$ and coloring them accordingly. The independent sets are colored in orange. It is clear that the empty set is independent and that all subsets of independent sets are independent. The dependent sets, colored in cyan, are the sets that are not independent.
 \end{exmp}
 
 
@@ -172,7 +172,7 @@ Let $M = (E, \mathcal{I})$ be a matroid. We call a subset $B \subseteq E$ a \tex
 The concept of a basis is important because it allows us to define a \textit{rank function} of a matroid, which computes the size of the maximal independent subset inside a given subset of a matroid.  Because the sizes of all of such sets --- bases --- are equal, this will be a well-defined notion.
 
 \begin{exmp}
-    In figure~\ref{fig:1234-matroid-bases}, we find a depiction of the same matroid from figure (\ref{fig:1234-matroid-independent-sets}). In addition, we also highlight the bases of the matroid in red. Two properties can be observed:
+    In figure (\ref{fig:1234-matroid-bases}), we find a depiction of the same matroid from figure (\ref{fig:1234-matroid-independent-sets}). In addition, we also highlight the bases of the matroid in red. Two properties can be observed:
 \begin{enumerate}
     \item The bases are the maximally independent subsets, which means that all of their proper supersets are dependent. 
     \item Both bases contain two elements (they have the same size).
@@ -240,7 +240,7 @@ Even though we have already proven that the set of bases of a matroid is equicar
 
 %Now that we have a new way to describe $\mathcal{B}$ with (B1) and (B2), we again need to prove that it is equicardinal (all elements of $\mathcal{B}$ having the same cardinality). 
 
-\begin{proof}[Proof of (\ref{lem:basis-axioms-imply-equal-size})]
+\begin{proof}[Proof of lemma (\ref{lem:basis-axioms-imply-equal-size})]
     Suppose that $\mathcal{B}$ is not equicardinal, that is, we have $|B_1|>|B_2|$ for some $B_1,B_2\in\mathcal{B}$. For all $B_1,B_2$ where that holds, choose the pair that minimizes $|B_1-B_2|$. Since $B_1$ is larger than $B _2$, we know that $B _1 - B _2 \neq \emptyset$. Choose an element $b\in B_1-B_2$ and apply (B2) to show that there exists some $d\in B_2-B_1$ such that $(B_1-b)\cup d \in\mathcal{B}$. With our choices of $b$ and $d$, we can see that $|((B_1-b)\cup d)-B_2|=|(B_1-b)-B_2|<|B_1-B_2|$. This, combined with the fact that $|(B_1-b)\cup d|=|B_1|<|B_2|$, tells us that $B_1$ and $B_2$ are actually not the minimal choice. This contradiction proves that $\mathcal{B}$ is indeed equicardinal.
 \end{proof}
 
@@ -319,7 +319,7 @@ For example, $\rank(E(M))=|B|$ for some $B\in\mathcal{B}(M)$, and we define $\ra
     \end{enumerate}
 \end{theorem}
 
-In Figure \ref{fig:1234-matroid-rank}, we again find our example matroid drawing. We denote the rank of each set by writing it in subscript below the set. We can see that the rank of any set is at most its cardinality, and each subset of some set has at most the rank of that set. As always, it takes a bit more effort to show that the last property holds for a given matroid.
+In figure (\ref{fig:1234-matroid-rank}), we again find our example matroid drawing. We denote the rank of each set by writing it in subscript below the set. We can see that the rank of any set is at most its cardinality, and each subset of some set has at most the rank of that set. As always, it takes a bit more effort to show that the last property holds for a given matroid.
 
 \begin{figure}[H]
     \begin{center}
@@ -436,7 +436,7 @@ To prove that $(E,\mathcal{I})$ is a matroid, we will prove that $\mathcal{I}$ s
         
         $J\cup e\notin \mathcal{I}$ tells us that $\rank(J\cup e)\neq|J\cup e|=|J|+1$. Since we just proven that $|J|\leq\rank(J\cup e)\leq|J|+1$, it must mean that $\rank(J\cup e)$ is equal to what's on the left-hand side, so $|J|=\rank(J)$.
 
-        This gives us that for all $e\in I-J$, it holds that $\rank(J\cup e)=\rank(J)$. With this, Theorem (\ref{rankextension}) tells us that $\rank(J\cup I)=\rank(J)=|J|$. However, since $I\subseteq J\cup I$, we can use (R2) to see that $\rank(J\cup I) \geq \rank(I) = |I|$. Combining those two, we get that $|J|\geq|I|$. This contradicts our assumption that $|J|<|I|$. Thus, (I3) is satisfied.
+        This gives us that for all $e\in I-J$, it holds that $\rank(J\cup e)=\rank(J)$. With this, theorem (\ref{rankextension}) tells us that $\rank(J\cup I)=\rank(J)=|J|$. However, since $I\subseteq J\cup I$, we can use (R2) to see that $\rank(J\cup I) \geq \rank(I) = |I|$. Combining those two, we get that $|J|\geq|I|$. This contradicts our assumption that $|J|<|I|$. Thus, (I3) is satisfied.
     \end{enumerate}
     Thus, $(E,\mathcal{I})$ is a matroid.
 \end{proof}
