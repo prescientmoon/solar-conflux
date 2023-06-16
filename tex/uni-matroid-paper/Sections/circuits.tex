@@ -61,8 +61,7 @@ To get an intuition behind (C3), let us consider the matroid induced by the grap
 
 
 \begin{figure}[h]
-\caption{A graph having three cycles.}
-\label{fig:amogus}
+
 \begin{subfigure}[h]{0.245\textwidth}
   \caption{Graph}
 \begin{tikzpicture}[node distance={10mm}, thick, main/.style = {draw,circle,fill,inner sep=1pt}] 
@@ -159,6 +158,9 @@ node[midway, right] {e} (4) ;
   \draw (5) to (1);
 \end{tikzpicture} 
 \end{subfigure}
+
+\caption{A graph having three cycles.}
+\label{fig:amogus}
                   \end{figure}
 
 % We can say that a set $X \subseteq E$ is independent if and only if, it does not contain any circuit.
@@ -193,9 +195,9 @@ node[midway, right] {e} (4) ;
 Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisfies the conditions (C1), (C2) and (C3) outlined above. Let  $\mathcal I$  be the collection of subsets of $E$ that contain no member of $\mathcal C$, that is
 
 \begin{center}
-    $ \mathcal{I} = \{I \in 2^E |\; \text{for all } \; C \in \mathcal{C}\; \text{we have} \; C \not\subseteq I\}$
+    $ \mathcal{I} = \{I \in 2^E |\; \text{for all } \; C \in \mathcal{C}\; \text{we have} \; C \not\subseteq I\}.$
 \end{center}
-    The pair $(E,\mathcal I)$ is a matroid having $\mathcal C$ as its collection of circuits.
+    Then the pair $(E,\mathcal I)$ is a matroid having $\mathcal C$ as its collection of circuits.
 \end{theorem}
 
 \begin{proof} We start by showing that $\mathcal I $ satisfies the necessary conditions for $(E, \mathcal I )$ to be a matroid:
