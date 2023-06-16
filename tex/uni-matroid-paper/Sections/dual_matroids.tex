@@ -92,7 +92,7 @@ We can formalize the definition of $\mathcal{B}^*$ and use it to construct the d
      The matroid that satisfies theroem (\ref{dualbasis}), i.e., whose ground set is $E(M)$ and whose set of basis is $\mathcal{B}^*(M)$, is called the dual of M, and is denoted by $M^*$
 \end{defn}
 
-In Theorem (\ref{dualbasis}) we say that $\mathcal{B}^*(M)$ is the set of bases of a matroid on $E(M)$, but this may not be trivially clear, so we need to prove it. However, to prove it we make use of an equivalent property, which we will refer to as (B2)$^*$. This property comes from our property (B2) in Section 2.2 (theorem (\ref{thm:basis-properties})).
+In Theorem (\ref{dualbasis}) we say that $\mathcal{B}^*(M)$ is the set of bases of a matroid on $E(M)$, but this may not be trivially clear, so we need to prove it. However, to prove it we make use of an equivalent property, which we will refer to as (B2)$^*$ (The idea to take this approach was motivated by \cite[p. 8]{oxley1}.). This property comes from our property (B2) in Section 2.2 (theorem (\ref{thm:basis-properties})).
 
 \begin{lemma}[(B2)$^*$]\label{B2Dual}
     Let $\mathcal{B}$ be the set of bases of some matroid $M$. If $B_1, B_2 \in \mathcal{B}$ and $x \in B_2 - B_1$,then there exists an element $y$ of $B_1 - B_2$ such that $(B_1 - y) \cup x \in \mathcal{B}$
@@ -198,7 +198,7 @@ And in fact, we can generalize this to obtain an explicit formula for the \texti
 \newpage
 \subsection{Duals of representable matroids}
 
-Let $A$ be some $m \times n$ matrix over the field $\mathbb{F}$, and let $M$ be a vector matroid $M[A]$ of $A$. The ground set of $M$ is then the set $E$ of column labels of $A$. Note that, in general, $M[A]$ does not uniquely determine $A$. Furthermore, $M$ remains unchanged if we perform any of the following operations on $A$, which includes the \textit{elementary row operations}.
+Let $A\in \mat_{m\times n}(\mathbb{F})$, and let $M$ be a vector matroid $M[A]$ of $A$. The ground set of $M$ is then the set $E$ of column labels of $A$. Note that, in general, $M[A]$ does not uniquely determine $A$. Furthermore, $M$ remains unchanged if we perform any of the following operations on $A$, which includes the \textit{elementary row operations}.
 \begin{enumerate}
     \item Interchange two rows.
     \item Multiply a row by a non-zero member of $\mathbb{F}$.
@@ -208,7 +208,7 @@ Let $A$ be some $m \times n$ matrix over the field $\mathbb{F}$, and let $M$ be 
     \item Multiply a column by a non-zero member of $\mathbb{F}$.
 \end{enumerate}
 
-The reason for this is that when constructing the matroid $M$ from a matrix $A$, we only care about the independence (or dependence) between column vectors in the matrix. As long as the independence and dependence between them is kept the same, the values exact inside the columns are not relevant.
+The reason for this is that when constructing the matroid $M$ from a matrix $A$, we only care about the independence (or dependence) between column vectors in the matrix. As long as the independence and dependence between them is kept the same, the exact values inside the columns are not relevant.
 
 Assume that $A$ is non-zero. It is known that by using the previously mentioned operations, $A$ can be reduced to be of the form $[I_r|D]$, where $I_r$ is the $r \times r$ identity matrix ($1\leq r< n$) and $D$ is some $r \times (n-r)$ matrix over $\mathbb{F}$. We can clearly see that $r(M)=r$ (the dimension for the identity matrix). 
 
@@ -227,12 +227,12 @@ Suppose the columns of $[I_r|D]$ are labelled as $e_1, e_2,\cdots,e_n$. We then 
     \label{StandertRepMat}
 \end{figure}
 
-Note that in the matrix $[I_r|D]$ from figure (\ref{StandertRepMat}),  only the columns are labelled, but in $D$, both the rows and columns ae labelled. Also note that, for the basis $B=\{e_1, e_2,\cdots,e_r\}$ of $M$ defined above (in figure (\ref{StandertRepMat}), the columns correspond to the columns of the identity matrix.
+Note that in the matrix $[I_r|D]$ from figure (\ref{StandertRepMat}),  only the columns are labelled, but in $D$, both the rows and columns ae labelled. Also note that, for the basis $B=\{e_1, e_2,\cdots,e_r\}$ of $M$ defined in figure (\ref{StandertRepMat}), the columns correspond to the columns of the identity matrix.
 
 We can now use this construction to determine the dual of a vector matroid using the following theorem
 
 \begin{theorem}\label{DualRepMat}
-    Let M be the vector matroid of the matrix $[I_r|D]$ where the columns are labelled, in order, $e_1, e_2,\cdots,e_n$ and $1\leq r< n$. Then $M^*$ is the vector matroid of $[-D^T|I_{n-r}]$, where its columns are also labelled $e_1, e_2,\cdots,e_n$ in that order.
+    Let M be the vector matroid of the matrix $[I_r|D]$ where the columns are labelled, in order $e_1, e_2,\cdots,e_n$ and $1\leq r< n$. Then $M^*$ is the vector matroid of $[-D^T|I_{n-r}]$, where its columns are also labelled $e_1, e_2,\cdots,e_n$ in that order.
 \end{theorem}
 
 The following proof was inspired by that in \cite{oxley1}.

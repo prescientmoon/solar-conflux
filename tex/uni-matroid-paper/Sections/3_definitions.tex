@@ -360,7 +360,7 @@ In figure (\ref{fig:1234-matroid-rank}) we again find our example matroid drawin
 Now, let us prove that the rank function of a matroid satisfies these properties. 
 
 \begin{proof}
-    \begin{enumerate}
+    \begin{enumerate} This proof was inspired by \cite[p. 23]{oxley1}.
         \item[(R1)] Since the co-domain of $\rank$ is $\mathbb{Z}_{\geq0}$ then  $\rank(X) \geq 0$. Let $I_X$ be a maximal independent set contained in $X$. By definition, we see that $|I_X|=\rank(X)$. Since $X\supseteq I_X$, it follows that $|X| \geq |I_X| = \rank(X)$.       Thus, $0\leq\rank(X)\leq|X|$ what we wanted to show.
         
         \item[(R2)] Let $I_X$ be a minimal independent set contained in $X$, so $\rank(X)=|I_X|$. $I_X\subseteq X\subseteq Y$ implies that $I_X$ is an independent set contained in $Y$. Since $I_X$ is an independent set contained in $Y$ then by definition $|I_X|\leq \rank(Y)$ since $\rank(Y)$ is the size of the \textit{largest} independent set contained in $Y$. Finally, we get that $\rank(X)=|I_X|\leq \rank(Y)$ what we wanted to show.
@@ -397,8 +397,8 @@ Before we prove this, let us prove the following minor theorem first.
 \label{rankextension}
     Let $E$ be a finite set and $\rank:2^E\rightarrow \mathbb{Z}_{\geq0}$ be a function satisfying (R2) and (R3). Let $X,Y\subseteq E$. If for all $y\in Y-X$, it holds that $\rank(X\cup y)=\rank(X)$, then we have that $\rank(X\cup Y)=\rank(Y)$.
 \end{theorem}
-\begin{proof}
-    We will prove that the statement holds with $Y-X = \{a_1,a_2,\dots,a_k\}$ for all integers $k$.
+\begin{proof} 
+    This proof was inspired by \cite[p. 24]{oxley1}. We will prove that the statement holds with $Y-X = \{a_1,a_2,\dots,a_k\}$ for all integers $k$.
     \begin{enumerate}
         \item Consider the case when $k=1$. If $\rank(X\cup a_1)=\rank(X)$, then $\rank(X\cup Y)=\rank(X\cup(Y-X))=\rank(X\cup a_1)=\rank(X)$.
         \item Assume the statement holds for $k=n$. We will attempt to prove it also holds for $k = n + 1$.
@@ -419,7 +419,7 @@ Before we prove this, let us prove the following minor theorem first.
 \end{proof}
 Finally, we can prove Theorem 9:
 \begin{proof}[Proof of theorem (\ref{thm:indep-from-bases})]
-To prove that $(E,\mathcal{I})$ is a matroid, we will prove that $\mathcal{I}$ satisfies (I1)-(I3).
+This proof was ins To prove that $(E,\mathcal{I})$ is a matroid, we will prove that $\mathcal{I}$ satisfies (I1)-(I3).
     \begin{enumerate}
         \item (R1) tells us that $0\leq\rank(\emptyset)\leq|\emptyset|=0$, which implies that $\rank(\emptyset)=0=|\emptyset|$. By how we defined $\mathcal{I}$, this implies that $\emptyset\in\mathcal{I}$, so (I1) is satisfied.
         \item Assume we have $J\subseteq I\in\mathcal{I}$. Then, using (R3),
