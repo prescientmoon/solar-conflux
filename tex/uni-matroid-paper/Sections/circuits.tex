@@ -204,11 +204,11 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
     \begin{enumerate} 
         \item[(I1)] The only subset of $\emptyset $ is $ \emptyset $, but $ \emptyset \not\in \mathcal C $, so $ \emptyset $ satisfies (\ref{independent-sets-from-circuits}), hence $\emptyset \in \mathcal I$.
         \item[(I2)] Assume we have $X \subseteq Y \in \mathcal I$. Aiming for contradiction, assume that $X \not\in I$, i.e.\ there exists some $C \in \mathcal C $ such that $C \subseteq X$. We recall that $\subseteq $ is transitive, thus $C \subseteq Y$ and $Y \not\in I$, hence a contradiction.
-        \item[(I3)] Given $X, Y \in \mathcal I $ with $|X| < |Y|$ we must show there exists some $e \in Y - X$ such that $X \cup e \in \mathcal I$. Assume that a counterexample exists. That is, some pair $X, Y \in \mathcal I$ must exist such that for all $e \in Y - X$ we have $X \cup e \not\in \mathcal I$. Assume such a counterexample exists. Pick such a counterexample which maximizes $|X \cap Y|$. Assume $X - Y$ is nonempty (otherwise $X \subseteq Y$ and by (I2) we can pick any $Y - X$ such that $X \cup y \in \mathcal I$). Pick some $x \in X - Y$. We will proceed by cases:
+        \item[(I3)] Given $X, Y \in \mathcal I $ with $|X| < |Y|$ we must show there exists some $e \in Y - X$ such that $X \cup e \in \mathcal I$. Assume that a counterexample exists. That is, some pair $X, Y \in \mathcal I$ must exist such that for all $e \in Y - X$ we have $X \cup e \not\in \mathcal I$. Assume such a counterexample exists. Pick such a counterexample which maximizes $|X \cap Y|$. Assume $X - Y$ is nonempty (otherwise $X \subseteq Y$ and by (I2) we can pick any $ y\in Y - X$ such that $X \cup y \in \mathcal I$). Pick some $x \in X - Y$. We will proceed by cases:
           \begin{enumerate}
             \item If $Y \cup x$ is independent, we claim that $(X, Y \cup x)$ is a counterexample as well. This is trivially shown by noticing how $(Y \cup x) - X = Y - X$, so any choice of $e \in (Y \cup x) - X$ such that $X \cup e$ is independent would invalidate $(X, Y)$ being a counterexample. We note that 
               \begin{align*}
-              |X \cap (Y \cup y)| = |(X \cap Y) \cup (X \cap x)| = |(X \cap Y) \cup x|,
+              |X \cap (Y \cup x)| = |(X \cap Y) \cup (X \cap x)| = |(X \cap Y) \cup x|,
               \end{align*}
               but $x \not\in X \cap Y$ so $|X \cap Y \cup x| = |X \cap Y| + |\{x\}| = |X \cap Y| + 1$. As $|X \cap Y| + 1 > |X \cap Y|$, we can conclude $(X, Y)$ did not maximize $|X \cap Y|$, hence a contradiction.
             \item Otherwise, $Y \cup x$ is not independent. That is to say, some $C \in \mathcal C$ must exist such that $C \subseteq Y \cup x$. We make the five intermediate claims:
