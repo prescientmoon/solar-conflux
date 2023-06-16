@@ -397,10 +397,8 @@ Before we prove this, let us prove the following small theorem first.
 \begin{proof}
     We will prove that the statement holds with $Y-X = \{a_1,a_2,\dots,a_k\}$ for all integers $k$.
     \begin{enumerate}
-        \item Base case: $k=1$
-
-        If $\rank(X\cup a_1)=\rank(X)$, then $\rank(X\cup Y)=\rank(X\cup(Y-X))=\rank(X\cup a_1)=\rank(X)$.
-        \item Induction Step: Assume the statement holds for $k=n$. 
+        \item Consider the case when $k=1$. If $\rank(X\cup a_1)=\rank(X)$, then $\rank(X\cup Y)=\rank(X\cup(Y-X))=\rank(X\cup a_1)=\rank(X)$.
+        \item Assume the statement holds for $k=n$. We will attempt to prove it also holds for $k = n + 1$.
         
         Let us see if the statement holds for $k=n+1$: Let $Y-X=\{a_1,\dots,a_{n+1}\}$ and assume that for all $i\in\{1,\dots,n+1\}$, it holds that $\rank(X\cup a_i)=\rank(X)$. Then, using the assumption and our induction hypothesis, 
         \begin{align*}

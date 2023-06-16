@@ -91,50 +91,56 @@ We begin by formalizing the definition of $B^*$.
 %     Let M be a matroid with the pair (E,B), given B* as defined above, the new matroid M*=(E,B*) is the dual of M.
 % \end{defn}
 
-In Theorem (\ref{dualbasis}) we say that $B^*(M)$ is the set of bases of a matroid on $E(M)$, but this may not be trivially clear, so we need to prove it. However, to prove it we will make use of an equivalent property, which we will refer to as $(B2)^*$. This property comes from our property $(B2)$ in Section 2.2 (theorem (\ref{thm:basis-properties})).
+In Theorem (\ref{dualbasis}) we say that $B^*(M)$ is the set of bases of a matroid on $E(M)$, but this may not be trivially clear, so we need to prove it. However, to prove it we will make use of an equivalent property, which we will refer to as (B2)$^*$. This property comes from our property (B2) in Section 2.2 (theorem (\ref{thm:basis-properties})).
 
-\begin{lemma}\label{B2Dual}
-    The set $B$ of bases of a matroid $M$ has the following property:\\
-    $(B2)^*$ If $B_1$ and $B_2 \in \mathcal{B}$ and $x \in B_2 - B_1$,then there is exist and element $y$ of $B_1 - B_2$ such that $(B_1 - y) \cup x \in \mathcal{B}$
+\begin{lemma}[(B2)$^*$]\label{B2Dual}
+    Let $B$ be the set of bases of some matroid $M$. If $B_1, B_2 \in \mathcal{B}$ and $x \in B_2 - B_1$,then there exists an element $y$ of $B_1 - B_2$ such that $(B_1 - y) \cup x \in \mathcal{B}$
 \end{lemma}
 
-\textit{For comparison the original (B2) is the following: \\
-$(B2)$ If $B_1,B_2\in \mathcal{B}$ and $x\in B_1 - B_2$, then there exists a $y\in B_2 - B_1$ such that $(B_1 - x)\cup y \in \mathcal{B}$.}\\
+For comparison, the original statement of (B2) is the following:
+\begin{enumerate}
+    \item[(B2)] \textit{If $B_1,B_2\in \mathcal{B}$ and $x\in B_1 - B_2$, then there exists some $y\in B_2 - B_1$ such that $(B_1 - x)\cup y \in \mathcal{B}$}.
+\end{enumerate}
 
-First we will prove the property $(B2)^*$ from lemma (\ref{B2Dual}):
 \begin{proof}[Proof of lemma (\ref{B2Dual})]
-  We note that $B_1$ is by definition a base. This means that if we add a new element in the ground set to it, it will become a minimal dependent set. In other words, $B_1 \cup x$ contains a unique circuit $C_1 \in C$. Since we have $C_1$ a dependent set and $B_2$ another base, and thus independent, then $C_1 - B_2$ will be non-empty. This implies that there exists an element $y$ such that $y \in C_1 - B_2$, but as $C_1$ is the circuit created from $B_1 \cup x$, then $y \in (B_1 \cup x) - B_2$. Similarly, as $x \neq y$, then $y \in B_1 - B_2$. Let us take $B_1 - y$, this will not be a basis, but it will be an independent set. If we take $(B_1 - y)\cup x$. This will clearly not contain the circuit $C_1$, since this was the unique circuit generated from $B_1 \cup x$. Therefore, the set $(B_1 - y)\cup x$ must be independent. We observe that $(B_1 - y)\cup x$ implies that we add an element to the set, and we take out one element of the set, so the cardinality will remain equal, that is: $|(B_1 - y)\cup x|=|B_1|$.
-As we have that $(B_1 - y)\cup x$ is an independent set and has the same cardinality as the base $B_1$, then by definition $(B_1 - y)\cup x$ is also a base. 
+    We note that $B_1$ is by definition a basis. This means that adding any element $x \not\in B _1 $ to $B _1 $ introduces an unique circuit $C_1 \in C$ (if this circuit is not unique, and some other circuit $C _2 $ exists, we can apply (C3) to create a circuit $C _3 \subseteq C _1 \cup C _2 - x \subseteq B _1$, which would be a contradiction). Since $C_1$ is dependent and $B_2$ is independent, then $C_1 - B_2$ will be non-empty (otherwise we would have $C _1 - B _2 = \emptyset$ which implies that $C _1 \subseteq B _2$, which is a contradiction, as independent sets cannot contain dependent sets). This implies that there exists an element $y$ such that $y \in C_1 - B_2$, but as $C_1$ is the circuit created from $B_1 \cup x$, then $y \in (B_1 \cup x) - B_2$. Similarly, as $x \neq y$ (because $x \in B _2 $ and $y \not\in B _2$), then $y \in B_1 - B_2$. 
+
+    Consider the set $B_1 - y$. This will not be a basis (because all bases have equal cardinality), but it will be an independent set (implied by (I2)). We notice that $(B_1 - y)\cup x$ will clearly not contain the circuit $C_1$, since $y \in C _1 $ and $y \not\in (B _1 - y) \cup x$. Furthermore, this set cannot contain any other distinct circuit $C _2 \in C$, because that would imply $C _2 \subseteq B _1 \cup x$, which would contradict the uniqueness of $C _1 $. We can now conclude that the set $(B_1 - y)\cup x$ must be independent. We observe that $(B_1 - y)\cup x$ implies that we add an element to the set, and we take out one element of the set, so the cardinality will remain equal, that is: $|(B_1 - y)\cup x|=|B_1|$.
+As we have that $(B_1 - y)\cup x$ is an independent set and has the same cardinality as the basis $B_1$, then by definition $(B_1 - y)\cup x$ is also a basis. 
 \end{proof}
 
-Now, using the equivalent property $(B2)^*$ that we just proved, we prove Theorem \ref{dualbasis}.
+Now, using the equivalent property $(B2)^*$ that we have just proven, we prove theorem (\ref{dualbasis}).
 \begin{proof}[Proof of theorem (\ref{dualbasis})]
     As $B(M)$ is non-empty, $B^*(M)$ is non-empty, hence, the property $(B_1)$ holds for $B^*(M)$. 
-    Consider two members of $B^*(M)$, $B^*_1$ and $B^*_2$, not equal such that there exists an element $x \in (B^*_1 - B^*_2)$. Let, $B_1 = E - B^*_1$ and $B_2 = E - B^*_2$. We can see that $B^*_1 - B^*_2 = B_2 - B_1$, thus $x \in B_2 - B_1$. By $(B2)^*$, there exists and element $y \in  B_1 - B_2$ such that $(B_1 - y)\cup x$ is a base of $M$, but observe that $B_1 - B_2 = B^*_2 - B^*_1$, so this is the same as saying that there exists an element $y \in  B^*_2 - B^*_1$ such that $(B_1 - y)\cup x$ is a base of $M$. As a result, by definition of dual, $E-((B_1 - y)\cup x) \in B^*(M)$. But, $E-((B_1 - y)\cup x) = ((E-B_1)-x)\cup y) = (B_1^* - x)\cup y$, which is in the family $B^*$. Therefore, we can conclude that $B^*(M)$ satisfes $(B2)$. As $B^*(M)$ satisfies  properties $(B1)$ and $(B2)$, this is indeed the set of bases of a matroid on $E$.
+    Consider two distinct members $B ^* _1 , B ^* _2 \in B^*(M)$, such that there exists an element $x \in (B^*_1 - B^*_2)$. Let, $B_1 = E - B^*_1$ and $B_2 = E - B^*_2$. We can see that $B^*_1 - B^*_2 = B_2 - B_1$, thus $x \in B_2 - B_1$. By ${(B2)}^*$, there exists and element $y \in  B_1 - B_2$ such that $(B_1 - y)\cup x$ is a base of $M$, but observe that $B_1 - B_2 = B^*_2 - B^*_1$, so this is the same as saying that there exists an element $y \in  B^*_2 - B^*_1$ such that $(B_1 - y)\cup x$ is a base of $M$. As a result, by definition of the dual, $E-((B_1 - y)\cup x) \in B^*(M)$. But, $E-((B_1 - y)\cup x) = ((E-B_1)-x)\cup y) = (B_1^* - x)\cup y$, which is in the family $B^*$. Therefore, we can conclude that $B^*(M)$ satisfes $(B2)$. As $B^*(M)$ satisfies  properties $(B1)$ and $(B2)$, this is indeed the set of bases of a matroid on $E$.
 \end{proof}
 
-The matroid $M^*$ is the dual of $M$. Note that by the way is defined, and thanks to the proof above we see that $B(M^*)=B^*(M)$, moreover, due to the nature that the definition of dual has, this is, that is the complement of the basis set, we have that
+The matroid $M^*$ is the dual of $M$. Note that by the way is defined, and thanks to the proof above we see that $B(M^*)=B^*(M)$. Furthermore, we have the following lemma:
+
 \begin{lemma}
     The dual of the dual of a matroid M is the matroid M itself, $i.e., (M^*)^* = M$.
 \end{lemma}
 
-This is because if we take the complement $B^*$ of the basis set $B$, and then we take this complement $B^*$ and take its complement once again, we will return to the original set $B$, or in other words: If $E-(E - B) = B$.
+This is because if we take the complement $B^*$ of the basis set $B$, and then we take this complement $B^*$ and take its complement once again, we will return to the original set $B$. In other words:
+\begin{align*}
+E-(E - B) = B.
+\end{align*}
 
 \begin{exmp}
-    Let $U_{k,n}$, be a k-uniform matroid. We know that its bases will be all the k-element subsets of $E(U_{k,n})$. We also know, by the definition (\ref{uniformM}), that this matroid is defined over a set of $n$ elements, and its basis has exactly $k$ elements. Therefore, the bases of $U_{k,n}$* are all $(n-k)-element$ subsets of the ground set, as this will be the complement of the basis set of $U_{k,n}$. This is equal to saying that the dual of the matroid $U_{k,n}$ is given by $U_{k,n}$* $= U_{n-k,n}$.
+    Let $U_{k,n}$, be a k-uniform matroid. We know that its bases will be all the k-element subsets of $E(U_{k,n})$. We also know, by definition (\ref{uniformM}), that this matroid is defined over a set of $n$ elements, and its basis has exactly $k$ elements. Therefore, the bases of $U_{k,n}$* are all $(n-k)-element$ subsets of the ground set, as this will be the complement of the basis set of $U_{k,n}$. This is equal to saying that the dual of the matroid $U_{k,n}$ is given by 
+    \begin{align*}
+    U_{k,n} ^*  = U_{n-k,n}.
+    \end{align*}
 \end{exmp}
 
-Now that we have introduced duals is useful to give some additional notation. That is, given a matroid $M$ with a dual $M^*$, the \textit{bases} of the matroid $M^*$ are called \textit{cobases} of $M$. Similarly, the \textit{independent sets} of $M^*$ are called \textit{coindependent sets} of $M$, the $circuits$ of $M^*$ are called \textit{cocircuits} of $M$, \textit{hyperplanes} (see definition (\ref{HP&SS})) are called \textit{cohyperplanes}, and the \textit{spanning sets} (see definition (\ref{HP&SS})) are called \textit{cospanning sets} of $M$ and so on. This leads us to some elementary relationships between these sets. 
+Now that we have introduced the notion of duals, it is useful to provide some additional notation. That is, given a matroid $M$ with a dual $M^*$, the \textit{bases} of the matroid $M^*$ are called \textit{cobases} of $M$. Similarly, the \textit{independent sets} of $M^*$ are called \textit{coindependent sets} of $M$, the $circuits$ of $M^*$ are called \textit{cocircuits} of $M$, \textit{hyperplanes} (see definition (\ref{HP&SS})) are called \textit{cohyperplanes}, and the \textit{spanning sets} (see definition (\ref{HP&SS})) are called \textit{cospanning sets} of $M$ and so on. This leads us to some elementary relationships between these sets. 
 
 \begin{theorem}\label{propositionsofdualrelations}
     Let M be a matroid in a set E and suppose $X \subseteq E$. Then,
     \begin{enumerate}
         \item $X$ is independent if and only if $E-X$ is cospanning.
-
         \item $X$ is spanning if and only if $E-X$ is coindependent.
-
         \item $X$ is a hyperplane if and only if $E-X$ is a cocircuit
-
         \item $X$ is a circuit if and only if $E-X$ is a cohyperplane.
     \end{enumerate}
 \end{theorem} 
@@ -142,38 +148,47 @@ Now that we have introduced duals is useful to give some additional notation. Th
 \begin{proof}
     Let us prove theorem (\ref{propositionsofdualrelations}). All of the proofs follow directly from the definitions.
 
-    1) $\implies$ Suppose $X$ is independent. This means there exists a basis $B \in \mathcal{B}(M)$ so that $X \subseteq B$. Because $X \subseteq B \subseteq E$ and the operation of taking complements is ``inclusion reversing" we have $E-B \subseteq E - X$. Verifying directly, if $x \in E - B$ this means $x \in E$ and $x \notin B$. Because $X \subseteq B$ this implies that $x \in E$ and $x \notin X$ so by definition $x \in E - X$ and the conclusion follows. Because $E - B$ is a cobasis and $E - X$ is a set containing a cobasis, then it is a cospanning by definition.
+    \begin{enumerate}
+        \item  \begin{enumerate}
+            \item[$\implies$] Suppose $X$ is independent. This means there exists a basis $B \in \mathcal{B}(M)$ so that $X \subseteq B$. Because $X \subseteq B \subseteq E$ and the operation of taking complements is ``inclusion reversing" we have $E-B \subseteq E - X$. Verifying directly, if $x \in E - B$ this means $x \in E$ and $x \notin B$. Because $X \subseteq B$ this implies that $x \in E$ and $x \notin X$ so by definition $x \in E - X$ and the conclusion follows. Because $E - B$ is a cobasis and $E - X$ is a set containing a cobasis, then it is a cospanning by definition.
+            \item[$\impliedby$] Similarly if $E - X$ is cospanning then it contains a cobasis which is by definition of the form $E - B$ for some $B \in \mathcal{B}(M)$. By the analogous reasoning as for the forward direction $E - B \subseteq E - X$ implies $X \subseteq B$. That is because if $x \in X$ then $x \notin E - X$ and $x \notin X - B$. This means $x \in B$ concluding $X \in B$. Since $B$ is an independent set then $X$ is an independent set as well, we are done.
+        \end{enumerate}
 
-    $\impliedby$ Similarly if $E - X$ is cospanning then it contains a cobasis which is by definition of the form $E - B$ for some $B \in \mathcal{B}(M)$. By the analogous reasoning as for the forward direction $E - B \subseteq E - X$ implies $X \subseteq B$. That is because if $x \in X$ then $x \notin E - X$ and $x \notin X - B$. This means $x \in B$ concluding $X \in B$. Since $B$ is an independent set then $X$ is an independent set as well, we are done.
+   \item  \begin{enumerate}
+    \item[$\implies$] A set $X\subseteq E$ being spanning implies it contains a $B \in \mathcal{B}(M)$. So  $B \subseteq X$ which implies $E - X \subseteq E - B$. Because $E - B$ is cobasis by definition, any of its subsets are coindependent. 
+    \item[$\impliedby$] If $E - X$ is coindependent, it is contained in a cobasis, so by definition there exists a $B \in \mathcal{B}$ so that $E - X \subseteq E - B$. As before this implies that $B \subseteq X$ and $X$ is spanning.
+   \end{enumerate}
 
-    2) $\implies$ A set $X\subseteq E$ being spanning implies it contains a $B \in \mathcal{B}(M)$. So  $B \subseteq X$ which implies $E - X \subseteq E - B$. Because $E - B$ is cobasis by definition, any of its subsets are coindependent. 
+    \item  \begin{enumerate}
+        \item[$\implies$] If $X$ is a hyperplane, then $X$ is not spanning, but for all $y \in E - X$ we have $X \cup y$ is spanning, which means there is for every such $y$ a basis $B_y \in \mathcal{B}$ so that $B_y \subseteq X \cup y $. By b) we know that $X$ is not spanning implies $E - X$ is not coindependent. But for any $z \in E - X$ we have $(E-X)-z = E - (X \cup z)$ is coindependent because $X \cup z$ is spanning. So $E - X$ is a cocircuit by definition.
+        \item[$\impliedby$] Conversly, if $E - X$ is a cocircuit, then $E-X$ is not coindependent but for all $x \in E - X$ we have $(E - X) - x$ = $E - (X \cup x)$ is coindependent. By b) this means that $X$ is not spanning but for all $x \in E-X$, we have $X \cup x$ is spanning, so $X$ is a hyperplane.
+    \end{enumerate}
 
-    $\impliedby$ If $E - X$ is coindependent, it is contained in a cobasis, so by definition there exists a $B \in \mathcal{B}$ so that $E - X \subseteq E - B$. As before this implies that $B \subseteq X$ and $X$ is spanning.
-
-    3)  $\implies$ If $X$ is a hyperplane, then $X$ is not spanning, but for all $y \in E - X$ we have $X \cup y$ is spanning, which means there is for every such $y$ a basis $B_y \in \mathcal{B}$ so that $B_y \subseteq X \cup y $. By b) we know that $X$ is not spanning implies $E - X$ is not coindependent. But for any $z \in E - X$ we have $(E-X)-z = E - (X \cup z)$ is coindependent because $X \cup z$ is spanning. So $E - X$ is a cocircuit by definition.
-
-    $\impliedby$ Conversly, if $E - X$ is a cocircuit, then $E-X$ is not coindependent but for all $x \in E - X$ we have $(E - X) - x$ = $E - (X \cup x)$ is coindependent. By b) this means that $X$ is not spanning but for all $x \in E-X$, we have $X \cup x$ is spanning, so $X$ is a hyperplane.
-
-    4) This follows the same process as the previous proofs.
+\item This follows the same process as the previous proofs.
+    \end{enumerate}
 \end{proof}
 
-Similar to the case with the bases and cobases, the $rank$ $ function$ of the dual matroid is usually denoted by $r^*$, and is normally referred as the $corank$ $function$ of $M$. Using the definition of bases of the dual matroid, this is, that is build with the complement bases of the set of the original matroid, as well as the fact that matroid and its dual are both on the same ground set, we have the following
+Similar to bases and cobases, the $rank$ $ function$ of the dual matroid is usually denoted by $r^*$, and is normally referred as the \textit{corank function} of $M$. Using the definition of bases of the dual matroid, as well as the fact that a matroid and its dual have the same ground set, we have the following
 
 \begin{theorem}\label{RankAndCorankEquation}
     $r(M) + r^*(M) = |E(M)|=|E(M^*)|$
 \end{theorem}
 
-And in fact, we can generalize this to obtain an explicit formula for the $corank$ $function$ of the matroid. 
+And in fact, we can generalize this to obtain an explicit formula for the \textit{corank function} of the matroid. 
 
 \begin{theorem}\label{rankdualequation}
-    For all subsets X of the ground set E of a Matroid M,\\
-    $r^*(X)=r(E-X)+|X|-r(M)$
+    For all subsets $X \subseteq E(M)$ of some matroid $M$, we have:
+    \begin{align*}
+    r^*(X)=r(E-X)+|X|-r(M)
+    \end{align*}
 \end{theorem}
 
 \begin{proof}[Proof of theorem (\ref{rankdualequation})]
-    Let $I^*$ be an independent subset of $X$ in $M^*$, such that it is not a subset of some other set in $X$, this is $r^*(X)=|I^*|$. Similarly, let $I$ be an independent subset of $E-X$ in $M$, such that it is not a subset of some other set in $E-X$, this is $r(E-X)=|I|$. And let $B$ be an independent subset of $E-I^*$, such that it is not a subset of some other set in $E-I^*$ and contains $I$. Since, these are independent subsets that are not subsets of any other element in their respective sets, then we have $r(B)=r(E-I^*)$ and $r(E-I^*)=r(M)$, and hence $B$ is a base of M.
-    Let $B^*=E-B$, since $B$ is a base of $M$, by definition $B$ is a base of $M^*$. We can observe that $I^*\subseteq B^*$ and  $B^*\cap X=I^*$. Similarly, $I\subseteq B$ and  $B\cap (E-X)=I$. In particular, we see that, $|B\cap X|=|B|-|I|$, thus
-    $|X|=|X\cap B|+|X\cap B^*|=|B|-|I|+|I^*|=r(M)-r(E-X)+r^*(X)$
+    Let $I^* \subseteq X$ be an independent subset of $X$ in $M^*$, such that it is not a subset of some other set in $X$. That is, $r^*(X)=|I^*|$. Similarly, let $I$ be an independent subset of $E-X$ in $M$, such that it is not a subset of some other set in $E-X$. That is, $r(E-X)=|I|$. Let $B$ be an independent subset of $E-I^*$, such that it is not a subset of some other set in $E-I^*$ and contains $I$. Since, these are independent subsets that are not subsets of any other element in their respective sets, then we have $r(B)=r(E-I^*)$ and $r(E-I^*)=r(M)$, and hence $B$ is a basis of $M$.
+    Let $B^*=E-B$. Since $B$ is a basis of $M$, then $B ^* $ is also a basis of $M^*$. We observe that $I^*\subseteq B^*$ and  $B^*\cap X=I^*$. Similarly, $I\subseteq B$ and  $B\cap (E-X)=I$. In particular, we see that, $|B\cap X|=|B|-|I|$, thus
+    \begin{align*}
+    |X|=|X\cap B|+|X\cap B^*|=|B|-|I|+|I^*|=r(M)-r(E-X)+r^*(X).
+    \end{align*}
 \end{proof}
 
 
@@ -314,7 +329,7 @@ As an interesting note, this vector matroid $M$ with matrix representation $A$ i
             \label{K4Graph}
         \end{figure}
 
-Additionally, from this, we can also verify the $rank$ and $corank$ propositions established before (theorem (\ref{RankAndCorankEquation})). This is, we can clearly observe that $A$ has a ground set $E=\{e_1, e_2, \dots, e_6\}$ with 6 elements, where each $e_i; i =1,2, \dots,6$ represents a column, hence $|E|=6$. We also see that $A$ has rank $r(A)=3$, which can be easily verified by observing the first 3 columns that correspond to the identity matrix in the construction of the form $[I_r|D]$. Similarly, if we observe the dual, we notice that also $r(A^*)=3$. \\So, $r(A)+r(A^*)= 3 + 3 = 6 = |E|$
+    Additionally, from this, we can also verify the \textit{rank} and \textit{corank} propositions established before (theorem (\ref{RankAndCorankEquation})). This is, we can clearly observe that $A$ has a ground set $E=\{e_1, e_2, \dots, e_6\}$ with 6 elements, where each $e_i; i =1,2, \dots,6$ represents a column, hence $|E|=6$. We also see that $A$ has rank $r(A)=3$, which can be easily verified by observing the first 3 columns that correspond to the identity matrix in the construction of the form $[I_r|D]$. Similarly, if we observe the dual, we notice that also $r(A^*)=3$. \\So, $r(A)+r(A^*)= 3 + 3 = 6 = |E|$
 \end{exmp}
 
 %
