@@ -2,7 +2,7 @@
 As mentioned above, we can define matroids in many different ways. One such way is defining matroids in terms of minimally dependent sets --- which we refer to as circuits.
 
 \begin{defn}
-Let $M = (E, \mathcal{I})$ be a matroid. Any subset $D \in \mathcal{I}$ which is not independent is called dependent. Circuits are minimal dependent sets of $M$. We will denote the collection by $\mathcal{C}(M)$. Additionally, we will refer to circuits of $M$ that have $n$ elements as $n$-circuits.
+Let $M = (E, \mathcal{I})$ be a matroid. Any subset $D \in E$ which is not independent is called dependent. Circuits are minimal dependent sets of $M$. We will denote the collection by $\mathcal{C}(M)$.
 \end{defn}
 
 The name is a reference to matroid circuits corresponding to circuits of the underlying graph when talking about graphic matroids (which we will discuss in section (\ref{sec:graphic-matroids})).
@@ -172,10 +172,11 @@ node[midway, right] {e} (4) ;
   
 \begin{enumerate}
     \item[(C1)] $\emptyset \in \mathcal I$, therefore $\emptyset$ is not dependent (which means it cannot be a circuit)
-    \item[(C2)] A counterexample to this clause would violate $C _2$ being minimal.
+    \item[(C2)] Assume that for $C_1$ and $C_2$ minimally dependent with $C_1\subseteq C_2$, it holds that $C_1\neq C_2$. In other words, $C_1$ is propperly contained in $C_2$. This contradicts the fact that $C_2$ is minimally dependent.
+    %A counterexample to this clause would violate $C _2$ being minimal.
     \item[(C3)] Assume a counterexample exists. Because $C _1 \cup C _2 - e$ does not contain a circuit, it must be an element of $\mathcal I$. 
 
-        We claim that $C _2 - C _1$ is nonempty. Assume this is not the case. That would imply $C _2 \subseteq C _1$, but $C _1 \neq C _2 $ by (C3), which means that $C _1 $ is a proper subset of $C _2$. As both $C _1 $ and $C _2 $ are members of $\mathcal C$, this violates (C2), and is a contradiction. We can then assume some $f \in C _2 - C _1 $ exists.
+        Aiming for contradiction, suppose that $C _2 - C _1$ is empty. That would imply $C _2 \subseteq C _1$, but $C _1 \neq C _2 $ by (C3), which means that $C _1 $ is a proper subset of $C _2$. As both $C _1 $ and $C _2 $ are members of $\mathcal C$, this violates (C2), and is a contradiction. We can then assume some $f \in C _2 - C _1 $ exists.
 
         As $C _2$ is minimally dependent, we know that $C _2 - f$ is independent. Let $I$ be a maximal independent subset of $C _2 \cup C _1$ which is a superset of $C _2 - f$. Clearly, $f \not\in I$ (otherwise $C _2 \subseteq I \in \mathcal I$). Furthermore, as $C _1 $ is a circuit, we know that $C _1 \not \subseteq I \in \mathcal I$ (otherwise $C _1$ would be independent). This means some $g \in C _1$ exists such that $g \not\in I$. As $f \in C _2  -  C _2$, we know that $f \neq g$.
 
@@ -189,20 +190,17 @@ node[midway, right] {e} (4) ;
 \end{proof}
 
 \begin{theorem}\label{thm:matroid-circuit-definition}
-Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisfies the conditions (C1), (C2) and (C3) outlined above. Let  $\mathcal I$  be the collection of subsets of $E$ that contain no member of $\mathcal C$, that is 
+Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisfies the conditions (C1), (C2) and (C3) outlined above. Let  $\mathcal I$  be the collection of subsets of $E$ that contain no member of $\mathcal C$, that is
 
-\begin{align}
-   % \forall X \in \mathcal{I}, \forall C \in \mathcal C,  C \not \subseteq X. 
-   \mathcal{I} = \{I \in 2^E |\; \text{for all } \; C \in \mathcal{C}\; \text{we have} \; C \not\subseteq I\}
-    \label{independent-sets-from-circuits}
-\end{align}
-
+\begin{center}
+    $ \mathcal{I} = \{I \in 2^E |\; \text{for all } \; C \in \mathcal{C}\; \text{we have} \; C \not\subseteq I\}$
+\end{center}
     The pair $(E,\mathcal I)$ is a matroid having $\mathcal C$ as its collection of circuits.
 \end{theorem}
 
 \begin{proof} We start by showing that $\mathcal I $ satisfies the necessary conditions for $(E, \mathcal I )$ to be a matroid:
     \begin{enumerate} 
-        \item[(I1)] The only subset of $\emptyset $ is $ \emptyset $, but $ \emptyset \not\in \mathcal C $, so $ \emptyset $ satisfies (\ref{independent-sets-from-circuits}), hence $\emptyset \in \mathcal I$.
+        \item[(I1)] The only subset of $\emptyset $ is $ \emptyset $, but $ \emptyset \not\in \mathcal C $, as $ \emptyset $ satisfies $\mathcal{I}$, $\emptyset \in \mathcal I$.
         \item[(I2)] Assume we have $X \subseteq Y \in \mathcal I$. Aiming for contradiction, assume that $X \not\in I$, i.e.\ there exists some $C \in \mathcal C $ such that $C \subseteq X$. We recall that $\subseteq $ is transitive, thus $C \subseteq Y$ and $Y \not\in I$, hence a contradiction.
         \item[(I3)] Given $X, Y \in \mathcal I $ with $|X| < |Y|$ we must show there exists some $e \in Y - X$ such that $X \cup e \in \mathcal I$. Assume that a counterexample exists. That is, some pair $X, Y \in \mathcal I$ must exist such that for all $e \in Y - X$ we have $X \cup e \not\in \mathcal I$. Assume such a counterexample exists. Pick such a counterexample which maximizes $|X \cap Y|$. Assume $X - Y$ is nonempty (otherwise $X \subseteq Y$ and by (I2) we can pick any $ y\in Y - X$ such that $X \cup y \in \mathcal I$, because $X\cup y\subseteq Y$). Pick some $x \in X - Y$. We will proceed by cases:
           \begin{enumerate}
@@ -269,9 +267,10 @@ We now show that $C$ is a circuit for the newly defined matroid if and only if i
   \item[$\implies$]
     If $C$ is a circuit for $(E, \mathcal I)$, then $C \not\in \mathcal I$, which means that $C$ contains some $D \in \mathcal C$. As $C$ is minimally dependent, all its proper subsets are independent, but members of $\mathcal C$ cannot be independent (as seen in the definition of $\mathcal I$), which implies that $C = D$, hence $C \in \mathcal C$.
   \item[$\impliedby$]
-    Let $C \in \mathcal C$. Assume $C$ is not a circuit for $(E, \mathcal I)$. Clearly, $C \not\in \mathcal I$ is implied by the definition of $\mathcal I$ seen above. This implies that $C$ is dependent but not a circuit, which means $C$ is not miminal. 
+    Let $C \in \mathcal{C}$. Since $C\subseteq C$, $C\notin \mathcal{I}$ is implied by how we defined $\mathcal{I}$. The fact that $C$ is now dependent means that there is a set $D$ contained in $C$ that is a circuit of the matroid. We have already shown that a circuit of the matroid is an element of $\mathcal{C}$, which implies that $D\in\mathcal{C}$. Now we can apply (C2) on $D$ and $C$ to see that $C=D$. Thus, $C$ is a circuit of the matroid.
+    %Let $C \in \mathcal C$. Assume $C$ is not a circuit for $(E, \mathcal I)$. Clearly, $C \not\in \mathcal I$ is implied by the definition of $\mathcal I$ seen above. This implies that $C$ is dependent but not a circuit, which means $C$ is not miminal. 
 
-  A proper subset $D  \subsetneq C$ must then exist such that $D$ is a circuit. We have already shown in the $\implies$ direction how this implies $D \in \mathcal{C}$. We have now constructed a contradiction to (C2), hence our assumption that $C \in \mathcal C$ is false.
+  %A proper subset $D  \subsetneq C$ must then exist such that $D$ is a circuit. We have already shown in the $\implies$ direction how this implies $D \in \mathcal{C}$. We have now constructed a contradiction to (C2), hence our assumption that $C \in \mathcal C$ is false.
 
 \end{enumerate}
 

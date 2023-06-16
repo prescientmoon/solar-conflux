@@ -5,7 +5,7 @@
 An interesting concept of independence arises in the study of field theory.  We will present a class of matroids derived from the concept of algebraic independence. Hence the term independent set will not refer to a \textit{linearly independent set} but rather an \textit{algebraically independent set}. For the rest of this section, we will use the notation $\mathbb K / \mathbb F$ to refer to some field $\mathbb K$ and a subfield $\mathbb F$. See \hyperref[sec:appendix-fields]{the appendix} for an introduction to fields and subfields. This section will also make use of the concept of partially ordered sets and  \hyperref[sec:appendix-poset]{the appendix} provides an introduction to them.
 
 \begin{defn}
-	A subset $S = \{ s_1 \ldots s _n \} \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent (over $\mathbb F$) if there does not exist any
+	A subset $S = \{ s_1 ,\ldots, s _n \} \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent (over $\mathbb F$) if there does not exist any
 	nonzero multivariable polynomial in $n$ variables $f \in \mathbb{F}[X _1 \ldots X _n]$, with coefficients in $\mathbb{F} $, such that the evaluation homomorphism $\ev_{(s_1, s_2,\cdots,s_n)}(f) = 0$.
 	%\begin{align*}
 	%\text{for all } f \in \mathbb{F}[X _1 \ldots X _n], \left( f \neq  0 \land  f(s _1 \ldots s _n) = 0\right).
@@ -71,15 +71,15 @@ We start by introducing some useful lemmas:
 \begin{proof}
 	We will prove the statement by induction on the number of elements in $A - B$:
 	\begin{enumerate}
-		\item If $A - B = \emptyset $ then $A \subseteq B$ and $|A| \leq |B|$ follows trivially.
-		\item Assume the statemenet is true for some $p = |A - B| $. We will attempt to prove it for $|A - B| = p + 1$. Let $k = |A \cap B| = |A| - p - 1$. Let $a _1 \ldots a _n$ be the elements of $A$ such that $a _1 \ldots a_k$ are all the members of $A \cap B$. Similarly we label with $ a _1 \ldots a_k, b _{k + 1} \ldots b _m$ the elements of $B$. It remains to prove that $m \geq n$.
+		\item  If $A - B = \emptyset $ (hence $|A -B| = 0$) then it cannot happen that $x\in A$ and $x\notin B$, in other words $A \subseteq B$ and $|A| \leq |B|$ follows trivially.
+		\item  Assume the statemenet is true for some $p\geq 0 $. We will attempt to prove it for $|A - B| = p + 1$. Let $k = |A \cap B| = |A| - p - 1$. Let $a _1 \ldots a _n$ be the elements of $A$ such that $a _1 \ldots a_k$ are all the members of $A \cap B$. Similarly we label the elements of $B$ with $ a _1 \ldots a_k, b _{k + 1} \ldots b _m$. Our goal is to prove that $m \geq n$.
 
 		      As $a _{k + 1}$ is not dependent on $\{a _1 \ldots a_k\}$ (the set $A$ is algebraically independent) but is dependent on $B = \{a _1 \ldots a _k, b _{k + 1} \ldots b_m\}$ by assumption, there must exist some $j$ with $k + 1 \leq j \leq m$ such that $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$ but  not on $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$. Because $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$, we know there exists some polynomial $f \in \mathbb F[x _1 \ldots x _{j + 1}]$ such that
 		      \begin{align*}
 			      f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, X) \neq  0 &&\text{and}&&
 			      f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0,
 		      \end{align*}
-        The first equation means that the single-variable polynomial we get when evaulating the multi-variable polynomial at all variables except the last one with the specific elements, is nonzero. 
+        The first equation means that the single-variable polynomial we get when evaulating the multi-variable polynomial at all variables except the last one with the chosen elements is nonzero. 
 
 		      We can identify $\mathbb{F}[x_1,\cdots,x_{j+1}] = (\mathbb{F}[x_1,\cdots, x_{j-1}, x_{j+1}])[x_j]$, i.e. we are looking it as a polynomial with coefficients in  $\mathbb{F}[x_1,\cdots, x_{j-1}, x_{j+1}]$ and variable $x_j$ and write $f$ as
 		      \begin{align*}
@@ -87,14 +87,14 @@ We start by introducing some useful lemmas:
 			      = \sum_i f _i(x _1 \ldots x _{j - 1}, x _{j + 1}) x _j ^i.
 		      \end{align*}
 
-		      We know that $f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, X) \neq  0$, therefore at least one of coefficients $f _i $ (which are now polynomials) is nonzero. Let $g = f _i $ such that $f _i \neq 0$. Because $a _{j + 1}$ is not algebraic over $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$, we know that
+		      We know that $f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, X) \neq  0$, therefore at least one of coefficients $f _i $ (which are polynomials) is nonzero. Let $g = f _i $ such that $f _i \neq 0$. Because $a _{k + 1}$ is not algebraic over $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$, we know that
 		      \begin{align*}
 			      g(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, a _{k + 1}) \neq 0.
 		      \end{align*}
 
-		      This implies that $f(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, X, a _{k + 1}) \neq 0$, because we see that one of its coefficients, namely $g$, is nonzero. Since $ f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0$, we can conclude that $b_j$ is algebraic over $\{a _1, \ldots, a _{k + 1}, b _{k + 2} ,\ldots,b_{j-1}\}$ (because there exists a nonzero polynomial with coefficients in $\mathbb{F}(a _1, \ldots, a _{k + 1}, b _{k + 2} ,\ldots,b_{j-1})$, namely $p = f(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, X, a _{k + 1})$, such that $p(b_j) = 0$).
+		      This implies that $f(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, X, a _{k + 1}) \neq 0$, because we see that one of its coefficients, namely $g$, is non-zero. Since $ f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0$, we can conclude that $b_j$ is algebraic over $\{a _1, \ldots, a _{k + 1}, b _{k + 2} ,\ldots,b_{j-1}\}$ (because there exists a nonzero polynomial with coefficients in $\mathbb{F}(a _1, \ldots, a _{k + 1}, b _{k + 2} ,\ldots,b_{j-1})$, namely $p = f(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, X, a _{k + 1})$, such that $p(b_j) = 0$).
 
-		We define $B' = B + a _{k + 1} - b_j$. Having proven in the previous paragraph that $b_j$ is dependent on a subset of $B'$, it is also dependent on $B'$. All other elements of $B$ are also dependent on $B'$ by definition, since they are included in $B'$. Hence we have that  We recall that $A$ is dependent on $B$, so by the transitivity of algebraic dependence, that is lemma (\ref{lem:algebraic-dependence-transitivity}), we know that $A$ is algebraically dependent on $B'$. We also notice that $A$ and $B'$ have $k + 1$ elements in common, therefore the statement is proven by the induction hypothesis.
+		We define $B' = B \cup a _{k + 1} - b_j$. Having proven in the previous paragraph that $b_j$ is dependent on a subset of $B'$, it is also dependent on $B'$. All other elements of $B$ are also dependent on $B'$ by definition, since they are included in $B'$. Hence we have that $B$ is dependent on $B'$. We recall that $A$ is dependent on $B$, so we can apply the transitivity of algebraic dependence, that is lemma (\ref{lem:algebraic-dependence-transitivity}), to conclude that $A$ is dependent on $B'$. We also notice that, by construction $A$ and $B'$ have $k + 1$ elements in common and $|B'| = |B \cup a_{k+1} - b_j| = |B|$. Therefore $$|A - B'| = |A| - |A\cap B'| = |A| - (k+1) = |A| - (|A| - p - 1 + a) = p, $$ where we used the definition of $k$ in the last equality. Thus we apply the induction hypothesis ($A$ is independent, $A$ dependent on $B'$ and $|A-B'| = p$) to conclude that $|A|\leq |B'| = |B|$. So we have $|A|\leq |B|$ which is what we wanted to show and this concludes the inductive step.
 	\end{enumerate}
 \end{proof}
 
@@ -105,15 +105,19 @@ We will now show that all bases in our supposed matroid have equal cardinality.
 \end{lemma}
 
 \begin{proof}
-	Let $A$ and $B$ be maximal independent subsets of $E$. If both sets are $\emptyset$, then our proof is done. If one set is $\emptyset$ and one isn't, we clearly have a contradiction, as $\emptyset$ is a strict subset of the other set, hence not maximal. We therefore assume the existence of some $a \in A$ and $b \in B$.
+	Let $A$ and $B$ be maximal independent subsets of $E$. If both sets are $\emptyset$, then our proof is done. If one set is $\emptyset$ and one isn't, we clearly have a contradiction, as $\emptyset$ is a strict subset of the other set, hence not maximal. We therefore assume the existence of elements $a \in A$ and $b \in B$.
 
-	We know that $A$ is maximal, therefore any $b \in B$ is algebraically dependent on $A$. Therefore, we can conclude that $B$ is algebraically dependent on $B$. Furthermore, we recall that $B$ is also independent, which means we can use the lemma (\ref{lem:algebraic-indep-smaller-than-dep}) to prove that $|A| \geq |B|$. We can apply a similar argument to show that $|B| \geq |A|$, which together with our previous statement shows that $|A| = |B|$, proving the lemma.
+	Let $A = \{a_1, a_2, \cdots, a_n\}$ and we know that $A$ is maximal. We would like to prove that any $b \in B$ is algebraically dependent on $A$.
+ If $b\in A \cap B$ then this is true by definition. If $b \in B - A$ then this is true by the maximality of $A$, which guarantees us that $A \cup b $ is not algebraically independent. This means that there exists nonzero $p \in \mathbb{F}[x_1, \cdots, x_n, x_{n+1}]$ such that $p(a_1, \cdots, \a_n, b) = 0$. Then we identify $p$ as $(\mathbb{F}[x_1,\cdots, x_n])[x_{n+1}]$ to see that we can look at it as polynomial with coefficients in $\mathbb{F}(a_1, \cdots, a_n)$ which evaluates to 0 at $b$. This precisely means that $b$ is dependent over $A$ what we wanted to show.
+ 
+ 
+ Therefore, we can conclude that $B$ is algebraically dependent on $A$. Furthermore, we recall that $B$ is also independent, which means we can use the lemma (\ref{lem:algebraic-indep-smaller-than-dep}) to prove that $|A| \geq |B|$. We can apply completely the same argument with the roles of $A$ and $B$ reversed to show that $|B| \geq |A|$, which together with our previous statement shows that $|A| = |B|$, proving the lemma.
 \end{proof}
 
 \begin{proof}[Proof of theorem (\ref{thm:algebraic-matroids-are-matroids})]
 	We will construct the matroid using the basis definition (theorem (\ref{thm:basis-axioms-form-matroid})). We need to first show that at least one exists, and then show that the exchange property holds.
 	\begin{enumerate}
-		\item[(B1)] We consider the partially $(\mathcal I, \subseteq )$. We notice that $ \emptyset $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\emptyset $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element (see lemma (\ref{lem:nonempty-finite-posets-have-maximal-elements})), so a basis exists.
+		\item[(B1)] We consider the partially ordered set $\mathcal{I}$ ordered by inclusion - $(\mathcal I, \subseteq )$. We notice that $ \emptyset $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\emptyset $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element (see lemma (\ref{lem:nonempty-finite-posets-have-maximal-elements})), so a basis exists.
 		\item[(B2)] It now remains to prove the exchange property. That is, given two bases $A, B \subseteq \mathcal B$ and some $a \in A - B$, we can find some $b \in B - A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two bases have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-bases})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \leq n - 1$, hence a contradiction.
 	\end{enumerate}
 \end{proof}
