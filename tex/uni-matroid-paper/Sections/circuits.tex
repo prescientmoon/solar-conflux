@@ -212,7 +212,7 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
               \begin{align*}
               |X \cap (Y \cup x)| = |(X \cap Y) \cup (X \cap x)| = |(X \cap Y) \cup x|,
               \end{align*}
-              but $x \not\in X \cap Y$, so $|(X \cap Y) \cup x| = |X \cap Y| + |\{x\}| = |X \cap Y| + 1$. As now $|X\cap (Y\cup x)| = |X \cap Y| + 1 > |X \cap Y|$, we can conclude $(X, Y)$ did not maximize $|X \cap Y|$, hence a contradiction.
+              but $x \not\in X \cap Y$, so $|(X \cap Y) \cup x| = |X \cap Y| + |\{x\}| = |X \cap Y| + 1$. As $|X\cap (Y\cup x)| = |X \cap Y| + 1 > |X \cap Y|$, we can conclude $(X, Y)$ did not maximize $|X \cap Y|$, hence a contradiction.
             \item Otherwise, $Y \cup x$ is not independent. That is to say, some $C \in \mathcal C$ must exist such that $C \subseteq Y \cup x$. We make the five intermediate claims:
             \begin{enumerate}
               \item There exists some $y \in Y - X$ such that $y \in C$.
@@ -221,7 +221,9 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
                 \end{proof}
               \item The circuit $C$ is the unique circuit with the property $C \subseteq Y \cup x.$
                 \begin{proof}
-                  Assume another distinct $D \in \mathcal C$ exists such that $D \subseteq Y \cup x$. As $x \in D$ and $x \in C$, we can conclude that $x \in C \cap D$. We can now apply (C3) to generate some circuit $C' \subseteq  C \cup D - y$. We recall that $C, D \subseteq Y \cup y$, therefore $C \cup D \subseteq Y \cup y$. Furthermore, $C \cup D - y \subseteq Y$. By transitivity with $C' \subseteq C \cup D - y$ we now have $C' \subseteq Y$, which implies by definition $Y \not\in \mathcal I$, hence a contradiction.
+                  Assume another distinct $D \in \mathcal C$ exists such that $D \subseteq Y \cup x$. Note that $x\in C$, because if not, then $C\subseteq Y$, which contradicts the fact that $Y\in\mathcal{I}$. Similarly, $x\in D$. With this we can conclude that $x \in C \cap D$. 
+                  
+                  We can now apply (C3) to generate some circuit $C' \subseteq  C \cup D - y$. We recall that $C, D \subseteq Y \cup y$, therefore $C \cup D \subseteq Y \cup y$. Furthermore, $C \cup D - y \subseteq Y$. By transitivity with $C' \subseteq C \cup D - y$ we now have $C' \subseteq Y$, which implies by definition $Y \not\in \mathcal I$, hence a contradiction.
                 \end{proof}
 
               \item We have that $x \in C$.
