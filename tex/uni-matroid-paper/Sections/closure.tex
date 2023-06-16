@@ -85,7 +85,7 @@ Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Th
 
 \begin{enumerate}
 
-\item[(B1)] We have to prove that $\mathcal{B}$ satisfies the two basis axioms. The first one (B1) is evident since by the first property of closure operator we have the first inclusion in $E\subseteq\beta(E) \subseteq E$ and the second follows because $\beta$ maps into $2^E$. So $E \in \mathcal{B}'$ which in particular implies that $\mathcal{B}'$ and consequently $\mathcal{B}$ are nonempty.
+\item[(B1)] We have to prove that $\mathcal{B}$ satisfies the two basis axioms. The first one (B1) is evident since by the first property of closure operator we have the first inclusion in $E\subseteq\beta(E) \subseteq E$ and the second follows because $\beta$ maps into $2^E$. So $E \in \mathcal{B}'$ which in particular implies that $\mathcal{B}'$ and consequently $\mathcal{B}$ are non-empty.
 
 \item[(B2)]
     For the second property (B2) assume $B_1, B_2$ are distinct elements of $\mathcal{B}.$ Because $\mathcal{B}$ consists of \textit{minimal} sets we know that if they are distinct one cannot be a subset of another. So let us pick any $x \in B_1 - B_2$.
@@ -131,7 +131,7 @@ $E = \beta(B)\subseteq \beta(\beta(X \cup (B-L))) = \beta(X \cup (B-L))$ which w
 \in \mathcal{B}$ - which ultimately means it \textit{contains a basis} of our matroid. But we have already established this is not the case, so we have come upon a contradiction. Therefore, $\beta$ preserves rank.
 The fact that $\beta$ preserves rank and looking at the definition of the closure operator, namely that it puts in all the elements which preserve rank, we have thus obtained the inclusion $\beta(X) \subseteq \cl'(X)$ for all subsets $X.$
 
-Finally, suppose for contradiction that for some $X$ the latter inclusion $\beta(X) \subseteq \cl'(X)$ is proper and additionally assume that $X$ is a maximal set with these properties (at some point this will have to stop since for $X =E$ the equality $\beta(E) = \cl'(E) = E$ holds.) First, we pick $x \in E - \cl'(X)$ such that $\cl'(X\cup x) - \cl'(X)$ is nonempty (there exists such an $x$ because $X$ does not contain a basis, otherwise, the equality $\beta(X) = \cl'(X) = E$ would hold).
+Finally, suppose for contradiction that for some $X$ the latter inclusion $\beta(X) \subseteq \cl'(X)$ is proper and additionally assume that $X$ is a maximal set with these properties (at some point this will have to stop since for $X =E$ the equality $\beta(E) = \cl'(E) = E$ holds.) First, we pick $x \in E - \cl'(X)$ such that $\cl'(X\cup x) - \cl'(X)$ is non-empty (there exists such an $x$ because $X$ does not contain a basis, otherwise, the equality $\beta(X) = \cl'(X) = E$ would hold).
 Because of the maximality of $X$ we hence know that $\beta(X\cup x) = \cl'(X \cup x)$ holds. Also, since the inclusion $\beta(X) \subseteq \cl'(X)$ is proper, we can pick $r \in \cl'(X) - \beta(X)$. In particular, we then have that $r \in \beta(X\cup x) - \beta(X)$ so by (CL4) we have $x \in \beta(X\cup r)$.
 
 However, this means that $X \cup x \subseteq \beta(X\cup r)$ and since $X\cup r \subseteq \cl'(X)$ we have that $\rank'(X\cup r) = 

@@ -225,7 +225,7 @@ Let us prove that the set of bases of a matroid satisfies the properties (B1) an
 \begin{proof} This proof was inspired by \cite[p. 17]{oxley1}. We will prove each property individually:
     \begin{enumerate}
         \item[(B1)] 
-            To prove the first property, observe that by (I1), $\emptyset$ is always in $\mathcal{I}$ so the collection of independent sets is nonempty. All finite non-empty partially ordered sets have at least one maximal element (see lemma (\ref{lem:nonempty-finite-posets-have-maximal-elements}) in \hyperref[sec:appendix-poset]{the appendix on partially ordered sets} for more details). Applying this on the partially ordered set induced by inclusion on $\mathcal I$ proves a basis must exist.
+            To prove the first property, observe that by (I1), $\emptyset$ is always in $\mathcal{I}$ so the collection of independent sets is non-empty. All finite non-empty partially ordered sets have at least one maximal element (see lemma (\ref{lem:non-empty-finite-posets-have-maximal-elements}) in \hyperref[sec:appendix-poset]{the appendix on partially ordered sets} for more details). Applying this on the partially ordered set induced by inclusion on $\mathcal I$ proves a basis must exist.
         \item[(B2)]
           For the second property let $x\in B_2 - B_1$. We first note that (I2) implies that $B_1 - x$ is independent, since it is a subset of $B_1$. Since $|B_1-x|<|B_2|$, we can apply (I3) on independent sets $B_1-x$ and $B_2$ to get some $y\in B_2-(B_1-x)$ such that $(B_1-x)\cup y \in\mathcal{I}$. Since $|(B_1-x) + y|=|B_1|$ and all maximal independent sets have the same cardinality (see theorem (\ref{thm:bases-have-equal-size})), $(B_1-x)\cup y$ must be a maximal independent set --- thus a basis. Because $y$ is also in $B_2-B_1$, the property is fulfilled.
     \end{enumerate}
@@ -255,7 +255,7 @@ We are going to show the first cryptomorphism, referring to the idea that matroi
 \begin{proof}
     This proof was inspired by \cite[p. 17]{oxley1}. Our goal is of course to show that $\mathcal{I}$ satisfies the conditions of independent sets. If we manage to do that we will have that $(E, \mathcal{I})$ is a matroid having $\mathcal{B}$ as its collection of bases.
     \begin{enumerate}
-      \item[(I1)] Since (B1) tells us that $\mathcal{B}$ is nonempty, and because $\emptyset$ is a subset of any set (in particular, $\emptyset \subseteq B$, where $B$ is some member of $\mathcal{B}$), we by definition have $\emptyset \in \mathcal{I}$.
+      \item[(I1)] Since (B1) tells us that $\mathcal{B}$ is non-empty, and because $\emptyset$ is a subset of any set (in particular, $\emptyset \subseteq B$, where $B$ is some member of $\mathcal{B}$), we by definition have $\emptyset \in \mathcal{I}$.
         
       \item[(I2)] If $I\in\mathcal{I}$ and $J\subseteq I$, then by definition of $\mathcal{I}$ we have that $J\subseteq I\subseteq B$ for some $B\in\mathcal{B}$. We then see that $J\subseteq B$, and by definition  $J\in\mathcal{I}$. So $\mathcal{I}$ satisfies (I2).
         

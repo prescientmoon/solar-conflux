@@ -3,7 +3,7 @@
 This section provides a basic introduction to working with fields. For a more formal in depth treatment of the topic, check~\cite{milne2022}.
 
 \begin{defn}[Fields]
-  Intuitively, a field is a triplet consisting of a set and two binary operations, which are usually referred to as addition and multiplication. Both these operations are associative, commutative, and have identity elements (usually referred to as $0$ and $1$ respectively). All elements have inverse elements for addition. Similarly, all nonzero elements have inverses for multiplication. Furthermore, the two operations obey distributivity laws.
+  Intuitively, a field is a triplet consisting of a set and two binary operations, which are usually referred to as addition and multiplication. Both these operations are associative, commutative, and have identity elements (usually referred to as $0$ and $1$ respectively). All elements have inverse elements for addition. Similarly, all non-zero elements have inverses for multiplication. Furthermore, the two operations obey distributivity laws.
 \end{defn}
 
 \begin{defn}[Subfields]
@@ -16,7 +16,7 @@ This section provides a basic introduction to working with fields. For a more fo
 \end{defn}
 
 \begin{defn}[Algebraic elements]
-  Given a field $\mathbb{K}$ and a subfield $\mathbb{F}$, an element $a \in \mathbb{K}$ is said to be algebraic over $\mathbb{F}$ if there exists a nonzero polynomial $f$ with coefficients in $\mathbb{F}$ such that $f(a) = 0$. Elements which are not algebraic are said to be transcendental.
+  Given a field $\mathbb{K}$ and a subfield $\mathbb{F}$, an element $a \in \mathbb{K}$ is said to be algebraic over $\mathbb{F}$ if there exists a non-zero polynomial $f$ with coefficients in $\mathbb{F}$ such that $f(a) = 0$. Elements which are not algebraic are said to be transcendental.
 \end{defn}
 
 
@@ -85,7 +85,7 @@ where $a _i, b _i \in \mathbb{F}$.
     \\&= 1.
   \end{align*}
 
-  We can now conclude that all elements have additive inverses, and that all nonzero elements have multiplicative inverses. This, together with the previously proven properties, let us conclude that $\mathbb{Q} (\sqrt{3})$ is indeed a field.
+  We can now conclude that all elements have additive inverses, and that all non-zero elements have multiplicative inverses. This, together with the previously proven properties, let us conclude that $\mathbb{Q} (\sqrt{3})$ is indeed a field.
 \end{exmp}
 
 \begin{defn}[Field extensions]
@@ -110,5 +110,5 @@ Proving the above lemma is outside the scope of this article, but a proof can be
 \begin{exmp}
   We will study the vector space induced by $\mathbb{Q} (\sqrt 3)$ over $\mathbb{Q}$. We recall from example (\ref{exp:q-adjoint-sqrt-3}) that elements of $\mathbb{Q} (\sqrt 3)$ are of the form $p + q \sqrt 3$ where $p, q \in \mathbb{Q}$. We notice that $B = \{1, \sqrt 3\}$ forms a basis for the vector space induced by $\mathbb{Q} (\sqrt 3)$ over $\mathbb{Q} $. It's clear that $\spann B = \mathbb{Q} (\sqrt 3)$ (because for any $v = p + q \sqrt 3 \in \mathbb{Q} (\sqrt 3)$ we can pick scalars $p, q \in \mathbb{Q} $ such that $p \cdot 1 + q \cdot \sqrt 3 = v$). 
 
-  It remains to show that $1$ and $\sqrt 3$ are linearly independent. Assume this is not the case. We now have nonzero $p, q \in \mathbb{Q} $ such that $p + q \sqrt 3 = 0$. If $q = 0$ then $p = 0$, hence a contradiction. Some simple algebraic manipulations then imply that $\sqrt 3  = \frac p {-q}$, but $\frac p {-q} \in \mathbb{Q} $ and $\sqrt 3 \not\in \mathbb{Q} $, hence another contradiction.
+  It remains to show that $1$ and $\sqrt 3$ are linearly independent. Assume this is not the case. We now have non-zero $p, q \in \mathbb{Q} $ such that $p + q \sqrt 3 = 0$. If $q = 0$ then $p = 0$, hence a contradiction. Some simple algebraic manipulations then imply that $\sqrt 3  = \frac p {-q}$, but $\frac p {-q} \in \mathbb{Q} $ and $\sqrt 3 \not\in \mathbb{Q} $, hence another contradiction.
 \end{exmp}

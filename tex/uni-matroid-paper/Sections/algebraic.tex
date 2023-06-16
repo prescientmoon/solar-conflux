@@ -6,15 +6,15 @@ An interesting concept of independence arises in the study of field theory.  We 
 
 \begin{defn}
 	A subset $S = \{ s_1 ,\cdots, s _n \} \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent (over $\mathbb F$) if there does not exist any
-	nonzero multivariable polynomial in $n$ variables $f \in \mathbb{F}[X _1 \cdots X _n]$, with coefficients in $\mathbb{F} $, such that the evaluation homomorphism $\ev_{(s_1, s_2,\cdots,s_n)}(f) = 0$.
+	non-zero multivariable polynomial in $n$ variables $f \in \mathbb{F}[X _1 \cdots X _n]$, with coefficients in $\mathbb{F} $, such that the evaluation homomorphism $\ev_{(s_1, s_2,\cdots,s_n)}(f) = 0$.
 	%\begin{align*}
 	%\text{for all } f \in \mathbb{F}[X _1 \cdots X _n], \left( f \neq  0 \land  f(s _1 \cdots s _n) = 0\right).
 	%\end{align*}
 \end{defn}
 Intuitively, the definition says that no linear combination with coefficients in $\mathbb F$ of products of elements in $S$ is equal to $0$.
 
-We know that an element $x\in \mathbb{R}$ is called transcendental with respect to $\mathbb{Q}$ if for nonzero polynomials with rational coefficients $\ev_{x}(p) \neq 0$. That means that any nontrivial polynomial evaluated at $x$ will never give 0.
-Comparing with the definition of algebraically independent sets above, we see that a singleton ${x}$ is algebraically independent by our defintion, if for any nonzero  single variable ($n = 1$) polynomial $p$ with coefficients in $\mathbb{Q}$ we will have that $\ev_{x}(p) \neq 0$. This is precisely the definition of transcendental numbers.
+We know that an element $x\in \mathbb{R}$ is called transcendental with respect to $\mathbb{Q}$ if for non-zero polynomials with rational coefficients $\ev_{x}(p) \neq 0$. That means that any non-trivial polynomial evaluated at $x$ will never give 0.
+Comparing with the definition of algebraically independent sets above, we see that a singleton ${x}$ is algebraically independent by our defintion, if for any non-zero  single variable ($n = 1$) polynomial $p$ with coefficients in $\mathbb{Q}$ we will have that $\ev_{x}(p) \neq 0$. This is precisely the definition of transcendental numbers.
 
 \begin{exmp}
 According to~\cite[113]{milne2022}, although $e$ and $\pi$ are transcendental over $\mathbb{Q}$, it hasn't yet been proven that $\{e, \pi \}$ is algebraically independent.
@@ -79,7 +79,7 @@ We start by introducing some useful lemmas:
 			      f(a _1 \cdots a _{k}, b _{k + 1} \cdots b _{j}, X) \neq  0 &&\text{and}&&
 			      f(a _1 \cdots a _{k}, b _{k + 1} \cdots b _{j}, a _{k + 1})  = 0,
 		      \end{align*}
-        The first equation means that the single-variable polynomial we get when evaulating the multi-variable polynomial at all variables except the last one with the chosen elements is nonzero. 
+        The first equation means that the single-variable polynomial we get when evaulating the multi-variable polynomial at all variables except the last one with the chosen elements is non-zero. 
 
 		      We can identify $\mathbb{F}[x_1,\cdots,x_{j+1}] = (\mathbb{F}[x_1,\cdots, x_{j-1}, x_{j+1}])[x_j]$, i.e. we are looking it as a polynomial with coefficients in  $\mathbb{F}[x_1,\cdots, x_{j-1}, x_{j+1}]$ and variable $x_j$ and write $f$ as
 		      \begin{align*}
@@ -87,12 +87,12 @@ We start by introducing some useful lemmas:
 			      = \sum_i f _i(x _1 \cdots x _{j - 1}, x _{j + 1}) x _j ^i.
 		      \end{align*}
 
-		      We know that $f(a _1 \cdots a _{k}, b _{k + 1} \cdots b _{j}, X) \neq  0$, therefore at least one of coefficients $f _i $ (which are polynomials) is nonzero. Let $g = f _i $ such that $f _i \neq 0$. Because $a _{k + 1}$ is not algebraic over $\{a _1 \cdots a _k, b _{k + 1} \cdots b _{j - 1}\}$, we know that
+		      We know that $f(a _1 \cdots a _{k}, b _{k + 1} \cdots b _{j}, X) \neq  0$, therefore at least one of coefficients $f _i $ (which are polynomials) is non-zero. Let $g = f _i $ such that $f _i \neq 0$. Because $a _{k + 1}$ is not algebraic over $\{a _1 \cdots a _k, b _{k + 1} \cdots b _{j - 1}\}$, we know that
 		      \begin{align*}
 			      g(a _1 \cdots a _k, b _{k + 1} \cdots b _{j - 1}, a _{k + 1}) \neq 0.
 		      \end{align*}
 
-		      This implies that $f(a _1 \cdots a _k, b _{k + 1} \cdots b _{j - 1}, X, a _{k + 1}) \neq 0$, because we see that one of its coefficients, namely $g$, is non-zero. Since $ f(a _1 \cdots a _{k}, b _{k + 1} \cdots b _{j}, a _{k + 1})  = 0$, we can conclude that $b_j$ is algebraic over $\{a _1, \cdots, a _{k + 1}, b _{k + 2} ,\cdots,b_{j-1}\}$ (because there exists a nonzero polynomial with coefficients in $\mathbb{F}(a _1, \cdots, a _{k + 1}, b _{k + 2} ,\cdots,b_{j-1})$, namely $p = f(a _1 \cdots a _k, b _{k + 1} \cdots b _{j - 1}, X, a _{k + 1})$, such that $p(b_j) = 0$).
+		      This implies that $f(a _1 \cdots a _k, b _{k + 1} \cdots b _{j - 1}, X, a _{k + 1}) \neq 0$, because we see that one of its coefficients, namely $g$, is non-zero. Since $ f(a _1 \cdots a _{k}, b _{k + 1} \cdots b _{j}, a _{k + 1})  = 0$, we can conclude that $b_j$ is algebraic over $\{a _1, \cdots, a _{k + 1}, b _{k + 2} ,\cdots,b_{j-1}\}$ (because there exists a non-zero polynomial with coefficients in $\mathbb{F}(a _1, \cdots, a _{k + 1}, b _{k + 2} ,\cdots,b_{j-1})$, namely $p = f(a _1 \cdots a _k, b _{k + 1} \cdots b _{j - 1}, X, a _{k + 1})$, such that $p(b_j) = 0$).
 
 		We define $B' = B \cup a _{k + 1} - b_j$. Having proven in the previous paragraph that $b_j$ is dependent on a subset of $B'$, it is also dependent on $B'$. All other elements of $B$ are also dependent on $B'$ by definition, since they are included in $B'$. Hence we have that $B$ is dependent on $B'$. We recall that $A$ is dependent on $B$, so we can apply the transitivity of algebraic dependence, that is lemma (\ref{lem:algebraic-dependence-transitivity}), to conclude that $A$ is dependent on $B'$. We also notice that, by construction $A$ and $B'$ have $k + 1$ elements in common and $|B'| = |B \cup a_{k+1} - b_j| = |B|$. Therefore $$|A - B'| = |A| - |A\cap B'| = |A| - (k+1) = |A| - (|A| - p - 1 + a) = p, $$ where we used the definition of $k$ in the last equality. Thus we apply the induction hypothesis ($A$ is independent, $A$ dependent on $B'$ and $|A-B'| = p$) to conclude that $|A|\leq |B'| = |B|$. So we have $|A|\leq |B|$ which is what we wanted to show and this concludes the inductive step.
 	\end{enumerate}
@@ -108,7 +108,7 @@ We will now show that all bases in our supposed matroid have equal cardinality.
 	Let $A$ and $B$ be maximal independent subsets of $E$. If both sets are $\emptyset$, then our proof is done. If one set is $\emptyset$ and one isn't, we clearly have a contradiction, as $\emptyset$ is a strict subset of the other set, hence not maximal. We therefore assume the existence of elements $a \in A$ and $b \in B$.
 
 	Let $A = \{a_1, a_2, \cdots, a_n\}$ and we know that $A$ is maximal. We would like to prove that any $b \in B$ is algebraically dependent on $A$.
- If $b\in A \cap B$ then this is true by definition. If $b \in B - A$ then this is true by the maximality of $A$, which guarantees us that $A \cup b $ is not algebraically independent. This means that there exists nonzero $p \in \mathbb{F}[x_1, \cdots, x_n, x_{n+1}]$ such that $p(a_1, \cdots, \a_n, b) = 0$. Then we identify $p$ as $(\mathbb{F}[x_1,\cdots, x_n])[x_{n+1}]$ to see that we can look at it as polynomial with coefficients in $\mathbb{F}(a_1, \cdots, a_n)$ which evaluates to 0 at $b$. This precisely means that $b$ is dependent over $A$ what we wanted to show.
+ If $b\in A \cap B$ then this is true by definition. If $b \in B - A$ then this is true by the maximality of $A$, which guarantees us that $A \cup b $ is not algebraically independent. This means that there exists non-zero $p \in \mathbb{F}[x_1, \cdots, x_n, x_{n+1}]$ such that $p(a_1, \cdots, \a_n, b) = 0$. Then we identify $p$ as $(\mathbb{F}[x_1,\cdots, x_n])[x_{n+1}]$ to see that we can look at it as polynomial with coefficients in $\mathbb{F}(a_1, \cdots, a_n)$ which evaluates to 0 at $b$. This precisely means that $b$ is dependent over $A$ what we wanted to show.
  
  
  Therefore, we can conclude that $B$ is algebraically dependent on $A$. Furthermore, we recall that $B$ is also independent, which means we can use the lemma (\ref{lem:algebraic-indep-smaller-than-dep}) to prove that $|A| \geq |B|$. We can apply completely the same argument with the roles of $A$ and $B$ reversed to show that $|B| \geq |A|$, which together with our previous statement shows that $|A| = |B|$, proving the lemma.
@@ -117,7 +117,7 @@ We will now show that all bases in our supposed matroid have equal cardinality.
 \begin{proof}[Proof of theorem (\ref{thm:algebraic-matroids-are-matroids})]
 	We will construct the matroid using the basis definition (theorem (\ref{thm:basis-axioms-form-matroid})). We need to first show that at least one exists, and then show that the exchange property holds.
 	\begin{enumerate}
-		\item[(B1)] We consider the partially ordered set $\mathcal{I}$ ordered by inclusion - $(\mathcal I, \subseteq )$. We notice that $ \emptyset $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\emptyset $ is the trivial polynomial). Any finite nonempty partially ordered set has at least one maximal element (see lemma (\ref{lem:nonempty-finite-posets-have-maximal-elements})), so a basis exists.
+		\item[(B1)] We consider the partially ordered set $\mathcal{I}$ ordered by inclusion - $(\mathcal I, \subseteq )$. We notice that $ \emptyset $ is independent (as the only polynomial of $0$ variables which can be satisfied by $\emptyset $ is the trivial polynomial). Any finite non-empty partially ordered set has at least one maximal element (see lemma (\ref{lem:non-empty-finite-posets-have-maximal-elements})), so a basis exists.
 		\item[(B2)] It now remains to prove the exchange property. That is, given two bases $A, B \subseteq \mathcal B$ and some $a \in A - B$, we can find some $b \in B - A$ such that $B - b + a \in \mathcal B$. Let $n = |A| = |B|$ (we know the two bases have equal cardinality from lemma (\ref{lem:algebraic-matroid-equal-size-bases})). Assume the statement is not true. That is, all $b _i \in B$ are dependent on $A - a$, which means $B$ is dependent on $A - a$. It follows from lemma (\ref{lem:algebraic-indep-smaller-than-dep}) that $|B| \leq |A - a|$, which is equivalent to $n \leq n - 1$, hence a contradiction.
 	\end{enumerate}
 \end{proof}

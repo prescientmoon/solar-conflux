@@ -157,7 +157,7 @@ To show that the set $E$ is a matroid with the collection $\mathcal{C}$ of cycle
 
 \begin{enumerate}
 
-\item[(C1)] The empty set is by our definition not a cycle. For reminder, by our definition a cycle always includes a nonempty set of vertices it is build upon. If it is in a simple graph, then it has to have at least three vertices. Our extended notion also includes loops and parallel edges, which are still built upon at least one vertex. 
+\item[(C1)] The empty set is by our definition not a cycle. For reminder, by our definition a cycle always includes a non-empty set of vertices it is build upon. If it is in a simple graph, then it has to have at least three vertices. Our extended notion also includes loops and parallel edges, which are still built upon at least one vertex. 
 
 \item[(C2)] To show the second property, suppose we have two sets of edges of cycles such that $C_1 \subseteq C_2$ and assume for contradiction there is some $e \in C_2 - C_1$. Then (we are assuming neither of the cycles are loops, that case is clear, because the only possibility is they are equal) the set of edges $C_2 - e$ corresponds to a path from the vertices which $e$ connects. However, there is a cycle $C_1 \subseteq C_2 -e$ which is a subset of a path - a contradiction. So if $C_1 \subseteq C_2$ then $C_2 - C_1$ is empty, in particular then $C_2 = C_1$ and all the second circuit axiom is satisfied.
 
@@ -271,7 +271,7 @@ To show that the set $E$ is a matroid with the collection $\mathcal{C}$ of cycle
    As an illustration of the procedure we see a graph in figure (\ref{impostor2}). The vertex $v_4$ is the first one not in $C_2$ and $v_9$ is the first one in $C_1$ which is after $v_4$ but is back in $C_2$. The cycle obtained in this procedure is $C_3$ which evidently does not include $e.$
 
 
-    Let $k$ be the smallest integer $1<k< n$ such that the vertex $v_k$ is not in the cycle $C_2$. We know that such an integer exists because we have already proved (C2), so if $C_1$ and $C_2$ are distinct, then necessarily one is not contained in the other, which means both $C_2 - C_1$ and $C_1 -C_2$ are nonempty.
+    Let $k$ be the smallest integer $1<k< n$ such that the vertex $v_k$ is not in the cycle $C_2$. We know that such an integer exists because we have already proved (C2), so if $C_1$ and $C_2$ are distinct, then necessarily one is not contained in the other, which means both $C_2 - C_1$ and $C_1 -C_2$ are non-empty.
     Next, let $l$ be the smallest integer $k <l \leq n$ such that $v_l$ is in $C_2$. We know such an integer exist because $v_n \in C_2$.
     
     Let $v_l, w_{l+1}, w_{l+2},  \cdots, v_{k-1}$ be the path of vertices in the cycle $C_2$ which does not include the edge $e$. We know that such a path exists, because $C_2$ is a cycle, so from any two distinct vertices, in particular $v_{l}$ and $v_{k-1}$ (they are distinct, since $k<l$ and it cannot hold that $k-1 = 0$ and $l = n$, since this would imply $k = 1$, which cannot hold) there are two paths going from $v_{l}$ to $v_{k-1}$ including only the vertices of $C_2$ - we pick the one that does not include the edge $e$.
@@ -354,5 +354,5 @@ As an example, we will show that many matroids shown until now are, in fact, gra
     \label{graphicmatrix}%
 \end{figure}
 
-In figure (\ref{graphicmatrix}) we see that the graph $H$ exactly to corresponds to the vector matroid formed on matrix $A$. Edge 4 is a loop, so a dependent set, corresponding to the fact that the fourth column is a zero vector. Similarly, any two element sets of nonzero vector are independent, corresponding to the fact that any two non-loop edges do not form a cycle in the graph. Finally, any set of three or more edges in dependent, which is easily seen in the graph because we have three vertices so the size of a spanning forest is at most 3 - 1 = 2.
+In figure (\ref{graphicmatrix}) we see that the graph $H$ exactly to corresponds to the vector matroid formed on matrix $A$. Edge 4 is a loop, so a dependent set, corresponding to the fact that the fourth column is a zero vector. Similarly, any two element sets of non-zero vector are independent, corresponding to the fact that any two non-loop edges do not form a cycle in the graph. Finally, any set of three or more edges in dependent, which is easily seen in the graph because we have three vertices so the size of a spanning forest is at most 3 - 1 = 2.
 
