@@ -360,7 +360,8 @@ In figure (\ref{fig:1234-matroid-rank}) we again find our example matroid drawin
 Now, let us prove that the rank function of a matroid satisfies these properties. 
 
 \begin{proof}
-    \begin{enumerate} This proof was inspired by \cite[p. 23]{oxley1}.
+This proof was inspired by \cite[p. 23]{oxley1}.
+    \begin{enumerate} 
         \item[(R1)] Since the co-domain of $\rank$ is $\mathbb{Z}_{\geq0}$ then  $\rank(X) \geq 0$. Let $I_X$ be a maximal independent set contained in $X$. By definition, we see that $|I_X|=\rank(X)$. Since $X\supseteq I_X$, it follows that $|X| \geq |I_X| = \rank(X)$.       Thus, $0\leq\rank(X)\leq|X|$ what we wanted to show.
         
         \item[(R2)] Let $I_X$ be a minimal independent set contained in $X$, so $\rank(X)=|I_X|$. $I_X\subseteq X\subseteq Y$ implies that $I_X$ is an independent set contained in $Y$. Since $I_X$ is an independent set contained in $Y$ then by definition $|I_X|\leq \rank(Y)$ since $\rank(Y)$ is the size of the \textit{largest} independent set contained in $Y$. Finally, we get that $\rank(X)=|I_X|\leq \rank(Y)$ what we wanted to show.
