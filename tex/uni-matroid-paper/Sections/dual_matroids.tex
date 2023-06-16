@@ -195,10 +195,10 @@ And in fact, we can generalize this to obtain an explicit formula for the \texti
     \end{align*}
 \end{proof}
 
+\newpage
+\subsection{Duals of representable matroids}
 
-%Subsection
-Now we will talk about duals of representable matroids.
-Let A be an $m \times n$ matrix over the field $F$, and let M be a vector matroid $M[A]$ of $A$. Then we have that the ground set of $M$ is the set $E$ of column labels of $A$. Note that, in general, $M[A]$ does not uniquely determine $A$. Furthermore, M remains unchanged if we perform any of the following operations on $A$, which include the \textit{elementary row operations}.
+Let $A$ be some $m \times n$ matrix over the field $F$, and let $M$ be a vector matroid $M[A]$ of $A$. The ground set of $M$ is then the set $E$ of column labels of $A$. Note that, in general, $M[A]$ does not uniquely determine $A$. Furthermore, $M$ remains unchanged if we perform any of the following operations on $A$, which includes the \textit{elementary row operations}.
 \begin{enumerate}
     \item Interchange two rows.
     \item Multiply a row by a non-zero member of $\mathbb{F}$.
@@ -208,11 +208,17 @@ Let A be an $m \times n$ matrix over the field $F$, and let M be a vector matroi
     \item Multiply a column by a non-zero member of $\mathbb{F}$.
 \end{enumerate}
 
-The reason for this is that when constructing the matroid $M$ from a matrix $A$, we only care about the independence (or dependence) that each column vector in the matrix has with one another. So, as long as the independence and dependence between this is keep the same, the values inside the columns are not relevant.
+The reason for this is that when constructing the matroid $M$ from a matrix $A$, we only care about the independence (or dependence) between column vectors in the matrix. As long as the independence and dependence between them is kept the same, the values exact inside the columns are not relevant.
 
-Assume that the matrix A is non-zero. It is known that by using the operations previously mentioned A can be reduced to be of the form $[I_r|D]$, where $I_r$ is the $r \times r$ identity matrix and $D$ is some $r \times (n-r)$ matrix over $F$. We can clearly see that $r(M)=r$ (the dimension for the identity matrix). 
+Assume that $A$ is non-zero. It is known that by using the previously mentioned operations, $A$ can be reduced to be of the form $[I_r|D]$, where $I_r$ is the $r \times r$ identity matrix and $D$ is some $r \times (n-r)$ matrix over $\mathbb{F}$. We can clearly see that $r(M)=r$ (the dimension for the identity matrix). 
 
-Suppose that the columns of $[I_r|D]$ are labelled, in order, in the following form, $e_1, e_2,...,e_n$. This will be the ground set $E=\{e_1, e_2,...,e_n\}$. Then, we see that $\{e_1, e_2,...,e_r\}$ is a basis $B$ of $M$, once again due to the dimension of the identity matrix. We also label both, the rows and columns of $D$, in the following form, for the rows from top to bottom, $e_1, e_2,...,e_r$ and for the columns,  $e_{r+1}, e_{r+2},...,e_n$. This way to represent $M[A]$ can be seen more clearly in the following figure. We will refer to both $[I_r|D]$ and $D$ as the \textit{standard representative matrices} for $M$, \textit{with respect to $\{e_1, e_2,...,e_r\}$}. Similarly, we use \textit{reduced standard representative matrix} if we want to refer only to $D$.
+Suppose the columns of $[I_r|D]$ are labelled as $e_1, e_2,\cdots,e_n$. We then have the ground set $E=\{e_1, e_2,\cdots,e_n\}$. We notice that $\{e_1, e_2,\cdots,e_r\}$ is a basis $B$ of $M$ (due to the dimension of the identity matrix). We also label the rows and columns of $D$:
+\begin{itemize}
+  \item We label the rows from top to bottom as $e_1, e_2,\cdots,e_r$.
+  \item We label the columns as  $e_{r+1}, e_{r+2},\cdots,e_n$.
+\end{itemize}
+
+  This way to represent $M[A]$ can be seen more clearly in the following figure. We will refer to both $[I_r|D]$ and $D$ as the \textit{standard representative matrices} for $M$, \textit{with respect to $\{e_1, e_2,\cdots,e_r\}$}. Similarly, we use \textit{reduced standard representative matrix} if we want to refer only to $D$.
 
 \begin{figure}[H]
     \centering
