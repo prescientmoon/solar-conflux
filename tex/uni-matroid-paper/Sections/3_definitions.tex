@@ -310,7 +310,7 @@ We will introduce our first description of matroids that does not rely on a coll
 
 The rank function is a function $\rank :2^E \rightarrow \mathbb{Z}_{\geq0}$ that, given a $X\subseteq E(M)$, gives you the cardinality of a maximal independent set contained in $X$. In other words:
 
-$$ \rank(X) = \max\{\, |I| \; | \,\, I\in\mathcal{I} \text{ and } I\subseteq X \} $$
+$$ \rank(X) = \max\{\, |I| \; | \,\, I\in\mathcal{I} \text{ and } I\subseteq X \}. $$
 For example, $\rank(E(M))=|B|$ for some $B\in\mathcal{B}(M)$, and we define $\rank(M) = \rank(E(M))$. We can characterize the rank function with the following properties:
 
 \begin{theorem}
@@ -375,7 +375,7 @@ Now, let us prove that the rank function of a matroid satisfies these properties
             \rank(A)+\rank(B) &\geq |I_{A\cup B}\cap A|+|I_{A\cup B}\cap B| 
             \\&=  |(I_{A\cup B}\cap A)\cup(I_{A\cup B}\cap B)|
              +|(I_{A\cup B}\cap A)\cap(I_{A\cup B}\cap B)| 
-            \\&=  |I_{A\cup B}\cap (A\cup B)|+|I_{A\cup B}\cap (A\cap B)| 
+            \\&=  |I_{A\cup B}\cap (A\cup B)|+|I_{A\cup B}\cap (A\cap B)|. 
         \end{align*}
 
         Since $I_{A\cup B}\subseteq A\cup B$, we see that $I_{A\cup B}\cap(A\cup B) = I_{A\cup B}$.
@@ -384,7 +384,7 @@ Now, let us prove that the rank function of a matroid satisfies these properties
 
         Thus,
 
-        $$ \rank(X)+\rank(Y) \geq  |I_{A\cup B}|+|I_{A\cap B}| = \rank(A\cup B)+\rank(A\cap B) $$
+        $$ \rank(X)+\rank(Y) \geq  |I_{A\cup B}|+|I_{A\cap B}| = \rank(A\cup B)+\rank(A\cap B). $$
     \end{enumerate}
 \end{proof}
 One might observe that the rank of an independent set is the cardinality of the set itself. This is because the largest independent set that is contained in this independent set is of course the independent set itself. With this property, we can define the set of independent sets with the three properties of the rank function.
@@ -409,7 +409,7 @@ Before we prove this, let us prove the following minor theorem first.
             \\&\geq \rank\left(\left[X\cup\{a_1,\cdots,a_n\}\right]\cup \left[X\cup a_{n+1}\right]\right) +
              \\ &\quad\:  \rank\left([X\cup\{a_1,\cdots,a_n\}]\cap [X\cup a_{n+1}]\right)  && \text{(using (R3))}
             \\&= \rank\left(X\cup\{a_1,\cdots,a_{n+1}\}\right) + \rank\left(X\right) 
-            \\&\geq \rank(X)+\rank(X)  && \text{(using (R2)) }
+            \\&\geq \rank(X)+\rank(X).  && \text{(using (R2)) }
         \end{align*}
         Since $\rank(X)+\rank(X)$ is on both sides, equality holds throughout. 
         
@@ -423,19 +423,19 @@ This proof was inspired by \cite[p. 24]{oxley1}. To prove that $(E,\mathcal{I})$
     \begin{enumerate}
         \item (R1) tells us that $0\leq\rank(\emptyset)\leq|\emptyset|=0$, which implies that $\rank(\emptyset)=0=|\emptyset|$. By how we defined $\mathcal{I}$, this implies that $\emptyset\in\mathcal{I}$, so (I1) is satisfied.
         \item Assume we have $J\subseteq I\in\mathcal{I}$. Then, using (R3),
-        $$ \rank(J)+\rank(I-J) \geq \rank(J\cup[I-J])+\rank(J\cap[I-J]) = \rank(I)+\rank(\emptyset)=|I| $$
+        $$ \rank(J)+\rank(I-J) \geq \rank(J\cup[I-J])+\rank(J\cap[I-J]) = \rank(I)+\rank(\emptyset)=|I|. $$
         Using (R2), we also get that
-        $$ \rank(J)+\rank(I-J) \leq |J|+\rank(I-J) \leq |J|+|I-J| = |I| $$
+        $$ \rank(J)+\rank(I-J) \leq |J|+\rank(I-J) \leq |J|+|I-J| = |I|. $$
         This implies that equality must hold throughout. At last, we show that
-        $$ \rank(J)+\rank(I-J) = |J|+\rank(I-J) \Rightarrow \rank(J)=|J| $$
+        $$ \rank(J)+\rank(I-J) = |J|+\rank(I-J) \Rightarrow \rank(J)=|J|. $$
         Since $\rank(J)=|J|$ means that $J\in\mathcal{I}$, we conclude that (I2) is satisfied.
         
         \item Suppose (I3) does not hold for some $I,J\in\mathcal{I}$ with $|I|>|J|$. Then for all $e\in I-J$, it holds that $J\cup e\notin \mathcal{I}$. Also, remember that $I,J\in\mathcal{I}$ means that $\rank(I)=|I|$ and $\rank(J)=|J|$.
 
         For this next part, let $e$ be anarbitrary member of $I-J$. Since $J\subseteq J\cup e$, we can use (R1) and (R2) to see that
-        $$ |J|=\rank(J)\leq\rank(J\cup e)\leq|J\cup e|=|J|+1 $$
+        $$ |J|=\rank(J)\leq\rank(J\cup e)\leq|J\cup e|=|J|+1 .$$
         
-        $J\cup e\notin \mathcal{I}$ tells us that $\rank(J\cup e)\neq|J\cup e|=|J|+1$. Since we just proven that $|J|\leq\rank(J\cup e)\leq|J|+1$, it must mean that $\rank(J\cup e)$ is equal to what's on the left-hand side, so $|J|=\rank(J)$.
+       We see that $J\cup e\notin \mathcal{I}$ tells us that $\rank(J\cup e)\neq|J\cup e|=|J|+1$. Since we just proven that $|J|\leq\rank(J\cup e)\leq|J|+1$, it must mean that $\rank(J\cup e)$ is equal to what's on the left-hand side, so $|J|=\rank(J)$.
 
         This gives us that for all $e\in I-J$, it holds that $\rank(J\cup e)=\rank(J)$. With this, theorem (\ref{rankextension}) tells us that $\rank(J\cup I)=\rank(J)=|J|$. However, since $I\subseteq J\cup I$, we can use (R2) to see that $\rank(J\cup I) \geq \rank(I) = |I|$. Combining those two, we get that $|J|\geq|I|$. This contradicts our assumption that $|J|<|I|$. Thus, (I3) is satisfied.
     \end{enumerate}
