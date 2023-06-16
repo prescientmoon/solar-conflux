@@ -421,8 +421,8 @@ Finally, we can prove Theorem 9:
 \begin{proof}[Proof of theorem (\ref{thm:indep-from-bases})]
 This proof was inspired by \cite[p. 24]{oxley1}. To prove that $(E,\mathcal{I})$ is a matroid, we will prove that $\mathcal{I}$ satisfies (I1)-(I3).
     \begin{enumerate}
-        \item (R1) tells us that $0\leq\rank(\emptyset)\leq|\emptyset|=0$, which implies that $\rank(\emptyset)=0=|\emptyset|$. By how we defined $\mathcal{I}$, this implies that $\emptyset\in\mathcal{I}$, so (I1) is satisfied.
-        \item Assume we have $J\subseteq I\in\mathcal{I}$. Then, using (R3),
+        \item[(I1)] (R1) tells us that $0\leq\rank(\emptyset)\leq|\emptyset|=0$, which implies that $\rank(\emptyset)=0=|\emptyset|$. By how we defined $\mathcal{I}$, this implies that $\emptyset\in\mathcal{I}$, so (I1) is satisfied.
+        \item[(I2)] Assume we have $J\subseteq I\in\mathcal{I}$. Then, using (R3),
         $$ \rank(J)+\rank(I-J) \geq \rank(J\cup[I-J])+\rank(J\cap[I-J]) = \rank(I)+\rank(\emptyset)=|I|. $$
         Using (R2), we also get that
         $$ \rank(J)+\rank(I-J) \leq |J|+\rank(I-J) \leq |J|+|I-J| = |I|. $$
@@ -430,7 +430,7 @@ This proof was inspired by \cite[p. 24]{oxley1}. To prove that $(E,\mathcal{I})$
         $$ \rank(J)+\rank(I-J) = |J|+\rank(I-J) \Rightarrow \rank(J)=|J|. $$
         Since $\rank(J)=|J|$ means that $J\in\mathcal{I}$, we conclude that (I2) is satisfied.
         
-        \item Suppose (I3) does not hold for some $I,J\in\mathcal{I}$ with $|I|>|J|$. Then for all $e\in I-J$, it holds that $J\cup e\notin \mathcal{I}$. Also, remember that $I,J\in\mathcal{I}$ means that $\rank(I)=|I|$ and $\rank(J)=|J|$.
+        \item[(I3)] Suppose (I3) does not hold for some $I,J\in\mathcal{I}$ with $|I|>|J|$. Then for all $e\in I-J$, it holds that $J\cup e\notin \mathcal{I}$. Also, remember that $I,J\in\mathcal{I}$ means that $\rank(I)=|I|$ and $\rank(J)=|J|$.
 
         For this next part, let $e$ be anarbitrary member of $I-J$. Since $J\subseteq J\cup e$, we can use (R1) and (R2) to see that
         $$ |J|=\rank(J)\leq\rank(J\cup e)\leq|J\cup e|=|J|+1 .$$
