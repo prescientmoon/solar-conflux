@@ -48,11 +48,13 @@ The next two lemmas' proofs are inspired by those in~\cite[213]{oxley1}.
 	We will proceed by induction on the size of $B$:
 	\begin{enumerate}
 		\item If $|B| = 1$ then the result trivially follows from lemma (\ref{lem:algebraic-transitivity}).
-		\item Assume the result is true for $|B| = n$. We will attempt to prove it for $|B| = n + 1$. Let $a \in A$ and $C = \{c_1, \cdots, c_k\}$. We have to show that $a$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$. Given $1 \leq i \leq n$, each $b _i$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$ because $B$ is algebraically dependent on $C$. It then follows that each such $b _i $ is also algebraic over $\mathbb{F}(c _1 \ldots c _k, b _{n + 1}) = \mathbb{F} (b _{n + 1} )(c _1 \ldots c _k )$. Moreover, we know that $a$ is algebraic over $\mathbb{F} (b _1 \ldots b _{n + 1})$, which means it is also algebraic over $\mathbb{F} (b _{n + 1})(b _1 \ldots b _n )$. It then follows from the induction hypothesis (applied with $\mathbb{F} (b _{n + 1})$ as the base field, $A = \{a\}$, $B = \{b _1 \ldots b _n \}$ and the same $C$) that $a$ is algebraic over $\mathbb{F} (b _{n + 1})(c _1 \ldots c _k ) = \mathbb{F} (c _1 \ldots c _k )(b _{n + 1})$.
+		\item Assume the result is true for $|B| = n$. We will attempt to prove it for $|B| = n + 1$. Let $a \in A$ and $C = \{c_1, \cdots, c_k\}$. We have to show that $a$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$. Given $1 \leq i \leq n$, each $b _i$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$ because $B$ is algebraically dependent on $C$. It then follows that each such $b _i $ is also algebraic over $\mathbb{F}(c _1 \ldots c _k, b _{n + 1}) = \mathbb{F} (b _{n + 1} )(c _1 \ldots c _k )$. Moreover, we know that $a$ is algebraic over $\mathbb{F} (b _1 \ldots b _{n + 1})$, which means it is also algebraic over $\mathbb{F} (b _{n + 1})(b _1 \ldots b _n )$. It then follows from the induction hypothesis (applied with $\mathbb{F} (b _{n + 1})$ as the base field, $A = \{a\}$, $B = \{b _1 \ldots b _n \}$ and the same set $C$), that $a$ is algebraic over $\mathbb{F} (b _{n + 1})(c _1 \ldots c _k ) = \mathbb{F} (c _1 \ldots c _k )(b _{n + 1})$.
 
-		      We recall that $b _{n + 1}$ is algebraic on $\mathbb{F} (c _1 \ldots c _k )$ (because $B$ is algebraically dependent on $C$ (over $\mathbb{F} $)). We can now apply lemma (\ref{lem:algebraic-transitivity}) to prove that $a$ is algebraic over $\mathbb{F} (c _1 \ldots c _n)$.
+		      We recall that $b _{n + 1}$ is algebraic on $\mathbb{F} (c _1 \ldots c _k )$ (because $B$ is algebraically dependent on $C$. We can now apply lemma (\ref{lem:algebraic-transitivity}) to obtain that $a$ is algebraic over $\mathbb{F} (c _1 \ldots c _n)$ which is what we wanted to show.
 	\end{enumerate}
 \end{proof}
+
+We can now state the main theorem of our section, namely that a finite set $E$ inside a field extension $\mathbb{K}/\mathbb{F}$ has a natural matroid structure if we declare the independent sets to be algebraically independet ones.
 
 \begin{theorem}\label{thm:algebraic-matroids-are-matroids}
 	Given a finite subset $E \subseteq \mathbb K / \mathbb F$, the pair $(E, \mathcal I)$  where $\mathcal I$ is the set of algebraically independent subsets of $E$ forms a matroid.
@@ -70,28 +72,29 @@ We start by introducing some useful lemmas:
 	We will prove the statement by induction on the number of elements in $A - B$:
 	\begin{enumerate}
 		\item If $A - B = \emptyset $ then $A \subseteq B$ and $|A| \leq |B|$ follows trivially.
-		\item Assume the statemenet is true for some $|A - B| = p$. We will attempt to prove it for $|A - B| = p + 1$. Let $k = |A \cap B| = |A| - p$. Let $a _1 \ldots a _n$ be the elements of $A$ such that $a _1 \ldots a_k$ are all the members of $A \cap B$ for some $k$. Let $ a _1 \ldots a_k, b _{k + 1} \ldots b _m$ be the elements of $B$. It remains to prove that $m \geq n$.
+		\item Assume the statemenet is true for some $p = |A - B| $. We will attempt to prove it for $|A - B| = p + 1$. Let $k = |A \cap B| = |A| - p - 1$. Let $a _1 \ldots a _n$ be the elements of $A$ such that $a _1 \ldots a_k$ are all the members of $A \cap B$. Similarly we label with $ a _1 \ldots a_k, b _{k + 1} \ldots b _m$ the elements of $B$. It remains to prove that $m \geq n$.
 
-		      As $a _{k + 1}$ is not dependent on $\{a _1 \ldots a_k\}$ but is dependent on $B = \{a _1 \ldots a _k, b _{k + 1} \ldots b_m\}$, there must exist some $k + 1 \leq j \leq m$ such that $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$ but  not on $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$. Because $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$, we know there exists some polynomial $f \in \mathbb F[x _1 \ldots x _{j + 1}]$ such that
+		      As $a _{k + 1}$ is not dependent on $\{a _1 \ldots a_k\}$ (the set $A$ is algebraically independent) but is dependent on $B = \{a _1 \ldots a _k, b _{k + 1} \ldots b_m\}$ by assumption, there must exist some $j$ with $k + 1 \leq j \leq m$ such that $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$ but  not on $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$. Because $a _{k + 1}$ is dependent on $\{a _1 \ldots a _k, b _{k + 1} \ldots b_j\}$, we know there exists some polynomial $f \in \mathbb F[x _1 \ldots x _{j + 1}]$ such that
 		      \begin{align*}
-			      f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, X) \neq  0 \land
-			      f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0.
+			      f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, X) \neq  0 &&\text{and}&&
+			      f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0,
 		      \end{align*}
+        The first equation means that the single-variable polynomial we get when evaulating the multi-variable polynomial at all variables except the last one with the specific elements, is nonzero. 
 
-		      We can write $f$ as
+		      We can identify $\mathbb{F}[x_1,\cdots,x_{j+1}] = (\mathbb{F}[x_1,\cdots, x_{j-1}, x_{j+1}])[x_j]$, i.e. we are looking it as a polynomial with coefficients in  $\mathbb{F}[x_1,\cdots, x_{j-1}, x_{j+1}]$ and variable $x_j$ and write $f$ as
 		      \begin{align*}
 			      f(x _1 \ldots x _{j + 1})
 			      = \sum_i f _i(x _1 \ldots x _{j - 1}, x _{j + 1}) x _j ^i.
 		      \end{align*}
 
-		      We know that $f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, X) \neq  0$, therefore at least one of $f _i \neq 0$. Let $g = f _i $ such that $f _i \neq 0$. Because $a _{j + 1}$ is not algebraic over $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$, we know that
+		      We know that $f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, X) \neq  0$, therefore at least one of coefficients $f _i $ (which are now polynomials) is nonzero. Let $g = f _i $ such that $f _i \neq 0$. Because $a _{j + 1}$ is not algebraic over $\{a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}\}$, we know that
 		      \begin{align*}
 			      g(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, a _{k + 1}) \neq 0.
 		      \end{align*}
 
-		      This implies that $f(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, X, a _{k + 1}) \neq 0$. Since $ f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0$, we can conclude that $b_j$ is algebraic over $\{a _1 \ldots a _{k + 1}, b _{k + 2} \ldots b _j\}$.
+		      This implies that $f(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, X, a _{k + 1}) \neq 0$, because we see that one of its coefficients, namely $g$, is nonzero. Since $ f(a _1 \ldots a _{k}, b _{k + 1} \ldots b _{j}, a _{k + 1})  = 0$, we can conclude that $b_j$ is algebraic over $\{a _1, \ldots, a _{k + 1}, b _{k + 2} ,\ldots,b_{j-1}\}$ (because there exists a nonzero polynomial with coefficients in $\mathbb{F}(a _1, \ldots, a _{k + 1}, b _{k + 2} ,\ldots,b_{j-1})$, namely $p = f(a _1 \ldots a _k, b _{k + 1} \ldots b _{j - 1}, X, a _{k + 1})$, such that $p(b_j) = 0$).
 
-		      Construct $B' = B + a _{k + 1} - b_j$. Having proven that $b_j$ is dependent on a subset of $B'$, it is also dependent on $B'$. All other elements of $B$ are also dependent on $B'$ (because any variable is algebraic over a field extension it generates, i.e. $t$ is algebraic over $\mathbb F(t)$). We recall that $A$ is dependent on $B$, so by the transitivity of algebraic dependence (lemma (\ref{lem:algebraic-dependence-transitivity})), we know that $A$ is algebraically dependent on $B'$. We also notice that $A$ and $B'$ have $k + 1$ elements in common, therefore the statement is proven by the induction hypothesis.
+		We define $B' = B + a _{k + 1} - b_j$. Having proven that $b_j$ is dependent on a subset of $B'$, it is also dependent on $B'$. All other elements of $B$ are also dependent on $B'$ by definition, since they are included in $B'$. We recall that $A$ is dependent on $B$, so by the transitivity of algebraic dependence, that is lemma (\ref{lem:algebraic-dependence-transitivity}), we know that $A$ is algebraically dependent on $B'$. We also notice that $A$ and $B'$ have $k + 1$ elements in common, therefore the statement is proven by the induction hypothesis.
 	\end{enumerate}
 \end{proof}
 
