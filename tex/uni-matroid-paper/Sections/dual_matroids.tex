@@ -17,12 +17,12 @@ If we have a matroid $M$, with sets $(E,B)$, or in other words $M$ is a matroid 
         \endscope
         \draw (0,0) circle (1) node [text=black,above] {$B$};
 \end{tikzpicture}
-\caption{Venn diagram showing, B the basis set of $M$, and $B^*$ the basis set of $M^*$}%
+    \caption{Venn diagram showing a basis $B \in \mathcal B(M)$ of $M$, and a basis $B^* \in \mathcal B(M^*)$ of it's dual}%
 \label{graphic}%
 \end{figure}
 
-We have the depiction from previous sections (Figure \ref{fig:1234-matroid-circuits}), but now we also add the one that correspond to the dual (See Figure \ref{DoubleDiagramDual}). To the \textbf{left} we have the depiction corresponding to the \textbf{original matroid}, and to the \textbf{right} we have the one corresponding to its \textbf{dual matroid}. 
-Notice that the ground set will be composed of 4 components $E=\{1,2,3,4\}$, and in the original matroid has bases $12$ and $23$, in red. So, its dual has bases $34$ and $14$, respectively, also in red but in the right-side diagram. This is because the complement of the elements $12$ is $34$, and the complement of $23$ is $14$.
+We will consider the matroid depicted in previous sections (Figure \ref{fig:1234-matroid-circuits}). We also consider it's dual (Figure \ref{DoubleDiagramDual}). To the \textbf{left} we have the depiction corresponding to the \textbf{original matroid}, and to the \textbf{right} we have the one corresponding to its \textbf{dual matroid}. 
+We notice the ground set is composed of 4 components $E=\{1,2,3,4\}$, and the original matroid has bases $12$ and $23$ (highlighed in red). Its dual has bases $34$ and $14$ respectively (also highlighted in red). This is because the complement of the elements $12$ is $34$, and the complement of $23$ is $14$.
 
 \begin{figure}[H]
 \begin{tikzpicture}[H]
@@ -215,7 +215,7 @@ We can now use this construction to determine the dual of a vector matroid using
     We assume that $[I_r|D]$ is as in the contruction of the theorem above. Then $[-D^T|I_{n-r}]$ is as follows (See Figure \ref{MatRepresentationDual}).
     \begin{figure}[h]
         \centering
-        \includegraphics{Sections/VMRDual.png}
+        \includegraphics{VMRDual.png}
         \caption{Standart representative form of the dual of a matroid as established in Theorem \ref{DualRepMat}. \cite{oxley1}} 
         \label{MatRepresentationDual}
     \end{figure}
