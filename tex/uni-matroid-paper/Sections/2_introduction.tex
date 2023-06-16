@@ -30,6 +30,7 @@ There are many more fields that have this concept of (in)dependence present in s
 \subsection{Matroids}
 
 A matroid is a structure that abstracts the notion of independence. To construct a matroid we start with a ground set that is finite. We do not want to work with infinite sets, because that causes lots of problems. Next, we construct some collection of subsets of the ground set, following a couple of rules. Usually, this initial collection would be the collection of \textit{independent sets}. However, it turns out that there are many surprisingly equivalent ways of defining a matroid, such as
+\begin{multicols}{2}
 \begin{itemize}
     \item Independent sets
     \item Bases
@@ -38,6 +39,7 @@ A matroid is a structure that abstracts the notion of independence. To construct
     \item Closure operator
     \item Flats
 \end{itemize}
+\end{multicols}
 
 We call any such equivalent way of defining a matroid a \textit{cryptomorphism} \cite{gordon_mcnulty_2012}.
-There are many more cryptomorphic ways to define a matroid, but the ones listed will be covered in this article. Each of these mathematical objects has two to four axioms that uniquely determine it as the object characterizing a matroid. To show the cryptomorphism, we will have to prove a certain equivalence each time, relating a new notion to a previously proved one. All of this will help us gain a deeper insight into the concept of dependence and independence.
+There are many more cryptomorphic ways to define a matroid, but the ones listed will be covered in this article. Each of these mathematical objects has two to four axioms that uniquely determine it as the object characterizing a matroid. To show the cryptomorphism, we will have to prove a certain equivalence each time, relating a new notion to a previously proved one. All of this will help us gain a deeper insight into the concept of dependence and independence and ultimately answer our guiding question - \textbf{how can we define matroids?}

@@ -108,7 +108,7 @@ For comparison, the original statement of (B2) is the following:
 \begin{proof}[Proof of lemma (\ref{B2Dual})]
 Assume $B_1$ and $B_2 \in \mathcal{B}$ and $x \in B_2 - B_1$.
 
-    We note that $B_1$ is by definition a basis. This means that adding any element $x \not\in B _1 $ to $B _1 $ introduces an unique circuit $C_1 \in \mathcal{C}$ (if this circuit is not unique, and some other circuit $C _2 $ exists, we can apply (C3) to create a circuit $C _3 \subseteq C _1 \cup C _2 - x \subseteq B_1$, which would be a contradiction). Since $C_1$ is dependent and $B_2$ is independent, then $C_1 - B_2$ will be non-empty (otherwise we would have $C _1 - B _2 = \emptyset$ which implies that $C _1 \subseteq B _2$, which is a contradiction, as independent sets cannot contain dependent sets). This implies that there exists an element $y$ such that $y \in C_1 - B_2$, but as $C_1$ is the circuit created from $B_1 \cup x$, then $y \in (B_1 \cup x) - B_2$. Similarly, as $x \neq y$ (because $x \in B _2 $ and $y \not\in B _2$), then $y \in B_1 - B_2$. 
+    We note that $B_1$ is by definition a basis. This means that adding any element $x \not\in B _1 $ to $B _1 $ introduces an unique circuit $C_1 \in \mathcal{C}$ (if this circuit is not unique, and some other circuit $C _2 $ exists, we can apply (C3) to create a circuit $C _3 \subseteq (C _1 \cup C _2) - x \subseteq B_1$, which would be a contradiction). Since $C_1$ is dependent and $B_2$ is independent, then $C_1 - B_2$ will be non-empty (otherwise we would have $C _1 - B _2 = \emptyset$ which implies that $C _1 \subseteq B _2$, which is a contradiction, as independent sets cannot contain dependent sets). This implies that there exists an element $y$ such that $y \in C_1 - B_2$, but as $C_1$ is the circuit created from $B_1 \cup x$, then $y \in (B_1 \cup x) - B_2$. Similarly, as $x \neq y$ (because $x \in B _2 $ and $y \not\in B _2$), then $y \in B_1 - B_2$. 
 
     Consider the set $B_1 - y$. This will not be a basis (because all bases have equal cardinality), but it will be an independent set (implied by (I2)). We notice that $(B_1 - y)\cup x$ will clearly not contain the circuit $C_1$, since $y \in C _1 $ and $y \not\in (B _1 - y) \cup x$. Furthermore, this set cannot contain any other distinct circuit $C _2 \in \mathcal{C}$, because that would imply $C _2 \subseteq B _1 \cup x$, which would contradict the uniqueness of $C _1 $. We can now conclude that the set $(B_1 - y)\cup x$ must be independent. We observe that $(B_1 - y)\cup x$ implies that we add an element to the set, and we take out one element of the set, so the cardinality will remain equal, that is: $|(B_1 - y)\cup x|=|B_1|$.
 
@@ -256,16 +256,16 @@ The following proof was inspired by that in \cite[p. 78]{oxley1}.
     \begin{align*}
     \begin{bmatrix}
     I_s & 0 & D_{11} & D_{12}\\
-    0 & I_{r-s} & D_{21} & D_{22}\\.
+    0 & I_{r-s} & D_{21} & D_{22}\\
     \end{bmatrix}
     % 
          \rightarrow 
     \begin{bmatrix}
     -D_{11}^T & -D_{21}^T & I_{r-s} & 0\\
     -D_{12}^T & -D_{22}^T & 0 & I_{n-(2r-s)}\\
-    \end{bmatrix}
+    \end{bmatrix}.
     \end{align*}
-    We will analyze the way $[I_r|D]$ is partitioned. Here, we make the partitioning such that the first component $I_s$ has columns $(e_1 \cdots e_s)$, $I_{r-s}$ has columns $(e_{s+1} \cdots e_r)$, $D_{11}$ and $D_{21}$ have columns $(e_{r+1} \cdots e_{2r-s})$, and finally, $D_{12}$ and $D_{22}$ have columns $(e_{(2r-s)+1} \cdots e_n)$.
+    We will analyze the way $[I_r|D]$ is partitioned. Here, we make the partitioning such that the first component $I_s$ has columns $(e_1 \cdots e_s)$, the component $I_{r-s}$ has columns $(e_{s+1} \cdots e_r)$, the components $D_{11}$ and $D_{21}$ have columns $(e_{r+1} \cdots e_{2r-s})$, and finally, $D_{12}$ and $D_{22}$ have columns $(e_{(2r-s)+1} \cdots e_n)$.
     
     We have that $B$ is a base. This means that it must have the same size as $I_r$. Due to the way the matrix $[I_r|D]$ is partitioned, if we take the components in the partition that contain the column components in the basis, we get the following matrix
         \begin{align*}
@@ -277,7 +277,7 @@ The following proof was inspired by that in \cite[p. 78]{oxley1}.
 
     As this matrix has the partition components that contain all the elements in the basis, it must have a $rank$ of $r$ (the $rank$ of $[I_r|D]$). Here $r(I_s) = s$, as it is the identity matrix, hence $r(D_{21})=r-s$, which also corresponds to the rank of $-D_21^T$.
     
-    If we now observe the partition of $[-D^T|I_{n-r}]$, this will give the same partition lengths in each component as the ones mentioned for $[I_r|D]$ above. That is, the first component $-D_{11}^T$ and $-D_{12}^T$ have columns $(e_1 \cdots e_s)$. The components $-D_{22}^T$ and $-D_{21}^T$ have columns $(e_{s+1} \cdots e_r)$, $I_{r-s}$ has columns $(e_{r+1} \cdots e_{2r-s})$, and finally $ I_{n-(2r-s)}$ has columns $(e_{(2r-s)+1} \cdots e_n)$.
+    If we now observe the partition of $[-D^T|I_{n-r}]$, this will give the same partition lengths in each component as the ones mentioned for $[I_r|D]$ above. That is, the first component $-D_{11}^T$ and $-D_{12}^T$ have columns $(e_1 \cdots e_s)$. The components $-D_{22}^T$ and $-D_{21}^T$ have columns $(e_{s+1} \cdots e_r)$, the component $I_{r-s}$ has columns $(e_{r+1} \cdots e_{2r-s})$. And finally, $ I_{n-(2r-s)}$ has columns $(e_{(2r-s)+1} \cdots e_n)$.
 
     As this time we are dealing with the dual, instead of taking the components that contain the elements in the basis like before, we take the components in the partition of $[-D^T|I_{n-r}]$ that contain the complement of the elements in the basis. Therefore, we obtain the matrix
     \begin{align*}
