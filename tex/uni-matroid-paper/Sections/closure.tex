@@ -80,7 +80,7 @@ Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Th
 
     So we will not relate the function $\beta$ directly to the independent sets, but rather some other cryptomorphic definition of matroids we have already proven. In particular, observe that if $\cl(X) = E$ holds for some subset $X \subseteq E$ this means that the rank of $X$ is $r(E)$, or in other words, the maximal independent set inside of $X$ is a \textit{basis.}
 
-    So our goal is to look at the collection of all subsets such that $\beta(X)= E$ and prove that the subcollection of its \textit{minimal sets} satisfies the axioms for the collection of bases of a matroid. The following proof is our own, in \cite[p. 27]{oxley1}, the author manages do define independent sets purely in terms of the closure, but we find our proof more intuitive, so we will present here. Therefore, we define $\mathcal{B}' = \{X \subseteq E\; |\; \beta(X) = E\;\}$ and call $\mathcal{B}$ the collection of minimal members of $\mathcal{B}$, for reminder, that are sets which are in $\mathcal{B}$ but do not contain any members of $\mathcal{B}$ as their proper subsets.
+    Therefore our goal is to look at the collection of all subsets such that $\beta(X)= E$ and prove that the subcollection of its \textit{minimal sets} satisfies the axioms for the collection of bases of a matroid. The following proof is our own, in \cite[p. 27]{oxley1}, the author manages do define independent sets purely in terms of the closure, but we find our proof more intuitive, so we will present here. Therefore, we define $\mathcal{B}' = \{X \subseteq E\; |\; \beta(X) = E\;\}$ and call $\mathcal{B}$ the collection of minimal members of $\mathcal{B}$, for reminder, that are sets which are in $\mathcal{B}$ but do not contain any members of $\mathcal{B}$ as their proper subsets.
 
 
 \begin{enumerate}
@@ -93,10 +93,10 @@ Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Th
     
     $$y \in E - \beta(B_1 - x) = \beta((B_1 -x )\cup x)-\beta(B_1 - x)$$ which directly implies that $x \in \beta((B_1 - x)\cup y)$. Now we are done, because this means that 
     
-    $$\beta((B_1-x)\cup y) = \beta(\beta((B_1-x )\cup y)) = \beta(\beta((B_1 - x)\cup y)\cup x) \supset \beta(B_1) = E.$$
+    $$\beta((B_1-x)\cup y) = \beta(\beta((B_1-x )\cup y)) = \beta(\beta((B_1 - x)\cup y)\cup x) \supset \beta(B_1) = E,$$
     
     
-    Thus, $(B_1 - x) \cup y$ is in $\mathcal{B}'$ by definition, since its $\beta$ is $E$. We still have to show that $(B_1 - x)\cup y$ is minimal.
+    where we have used (CL3) in the first equality and $x\in \beta((B_1-x)\cupy)$ in the second equality. Thus, $(B_1 - x) \cup y$ is in $\mathcal{B}'$ by definition, since its $\beta$ is $E$. We still have to show that $(B_1 - x)\cup y$ is minimal.
     
     Therefore, we will prove separately that all the members of $\mathcal{B}$ have the same size. Let $B_{min}$ be a member of $\mathcal{B}$ with the smallest size and $B_3$ a member of $\mathcal{B}$ such that among all such possible pairs ($B_{min}$ has the smallest number of elements and $B_3$ is another member of $\mathcal{B}$ not equal to $B_{min}$) we have that $|B_{min} \cap B_3|$ is maximal. Since both elements are minimal members of $\mathcal{B}'$ they are not subsets of each other. In particular, this means we can choose $x \in B_{min} - B_3$. 
     
@@ -105,7 +105,7 @@ Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Th
     So we have that $y \in \beta((B_{min}-x)\cup x) - \beta(B_{min} -x)$ and (CL4) we thus have $x \in \beta((B_{min}-x)\cup y)$ - we exchange $x$ and $y$. 
     
     However, we see two things. First
-    $$\beta((B_{min} - x) \cup y) \supset \beta(B_{min}) = E$$ so $(B_{min} - x) \cup y \in \mathcal{B}'$ and $|B_{min}|  = |(B_{min} - x)\cup y|$ so $(B_{min} - x)\cup y$ is a member of $\mathcal{B}'$ with the smallest possible number of elements. 
+    $$\beta((B_{min} - x) \cup y) \supset \beta(B_{min}) = E,$$ so $(B_{min} - x) \cup y \in \mathcal{B}'$ and $|B_{min}|  = |(B_{min} - x)\cup y|$ so $(B_{min} - x)\cup y$ is a member of $\mathcal{B}'$ with the smallest possible number of elements. 
     
     Second we see that $|((B_{min}-x)\cup y) \cup B_3| = |B_{min}\cup B_3|+1$ which contradicts the maximality of pair $(B_{min} ,B_3)$. 
     
@@ -126,7 +126,7 @@ Second thing to note is that $\beta$ preserves rank, i.e., we always have $\rank
 
 But on the other hand, we have
 
-$$L \subseteq \beta(X) \subseteq \beta(X \cup (B-L))$$ and $$B-L \subseteq \beta(X \cup (B-L))$$ which in particular means that $B \subseteq \beta(X \cup (B-L)$. Finally, this would mean that  
+$$L \subseteq \beta(X) \subseteq \beta(X \cup (B-L))$$ and $$B-L \subseteq \beta(X \cup (B-L))$$ which in particular means that $B \subseteq \beta(X \cup (B-L))$. Finally, this would mean that  
 $E = \beta(B)\subseteq \beta(\beta(X \cup (B-L))) = \beta(X \cup (B-L))$ which would imply, by definition of $\mathcal{B}$ that $X \cup (B-L)
 \in \mathcal{B}$ - which ultimately means it \textit{contains a basis} of our matroid. But we have already established this is not the case, so we have come upon a contradiction. Therefore, $\beta$ preserves rank.
 The fact that $\beta$ preserves rank and looking at the definition of the closure operator, namely that it puts in all the elements which preserve rank, we have thus obtained the inclusion $\beta(X) \subseteq \cl'(X)$ for all subsets $X.$
