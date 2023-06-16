@@ -40,7 +40,7 @@ Suppose $U_{2,4}$ were $\mathbb{F}_2$-representable. Then there is some $A = \ma
 
 $$A = \begin{pmatrix}
     v_1 & v_2 & v_3 & v_4
-\end{pmatrix}$$
+\end{pmatrix},$$
 
 so that $U_{2,4} \sim M[A]$. We have the following observation.
 
@@ -56,7 +56,7 @@ so that $U_{2,4} \sim M[A]$. We have the following observation.
     
     If for some $1\leq j \leq r$ we have $a_j = 0$ then we also have 
     
-    $$\sum\limits_{\substack{i = 1 \\ i \neq j}} ^r a_iv_i = 0$$
+    $$\sum\limits_{\substack{i = 1 \\ i \neq j}} ^r a_iv_i = 0,$$
 
     but not all out of $a_1, \cdots a_{j-1}, a_{j+1}, \cdots a_r$ are 0. This means that ${v_1, \cdots, v_{j-1}, v_{j+1}, \cdots, v_r}$ is linearly dependent, which is not true by assumption. Therefore, for all $1\leq j \leq r$ we have $a_j \neq 0$. But since the field is $\mathbb{F}_2$ this forces $a_j = 1$ for all $j$. Hence, we obtained what we want, namely
 
@@ -67,16 +67,16 @@ so that $U_{2,4} \sim M[A]$. We have the following observation.
 If the matroid $U_{2,4} \sim M[A]$ for the above $A$ then we would have all of the three element subsets of vectors to be minimally linearly dependent. This means by lemma (\ref{f2lema}) that $v_1 + v_2 + v_3 = 0$ and $v_1 + v_2 + v_3 = 0$. However, we are in $\mathbb{F}_2$ so 
 
 
-$$v_1 + v_2 + v_3 = 0 \iff v_1 + v_2 + (v_3 + v_3) = v_3 \iff v_1 + v_2 = v_3 $$
+$$v_1 + v_2 + v_3 = 0 \iff v_1 + v_2 + (v_3 + v_3) = v_3 \iff v_1 + v_2 = v_3 .$$
 
-And in the same way $v_1 + v_2 = v_4$. This implies that
-$$v_3 + v_4 = (v_1 + v_2 )+ (v_1 + v_2) = 0$$
+In the same way $v_1 + v_2 = v_4$. This implies that
+$$v_3 + v_4 = (v_1 + v_2 )+ (v_1 + v_2) = 0,$$
 so the set $\{v_3, v_4\}$ is linearly dependent, which is a contradiction. So $U_{2,4}$ is not $\mathbb{F}_2$-representable. However, $U_{2,4}$ is $\mathbb{F}_3$-representable. For instance the following matrix taken from \cite[20]{oxley1} works, namely
 
 $$A = \begin{pmatrix}
     1 & 0 & 1 & 1 \\
     0 & 1 & 1 & 2
-\end{pmatrix}$$.
+\end{pmatrix}.$$
 
  We see that no column vector of $A$ is 0, so all single-element subsets are independent. No vector is a scalar multiple of each other, so two element subsets are independent. Finally, no 3-element subsets can be independent, since the dimension of the $\mathbb{F}_3^2$ is 2, so the dimension of any subspace is at most 2.
 
