@@ -108,18 +108,18 @@ Assume $B_1$ and $B_2 \in \mathcal{B}$ and $x \in B_2 - B_1$.
 
     We note that $B_1$ is by definition a basis. This means that adding any element $x \not\in B _1 $ to $B _1 $ introduces an unique circuit $C_1 \in \mathcal{C}$ (if this circuit is not unique, and some other circuit $C _2 $ exists, we can apply (C3) to create a circuit $C _3 \subseteq C _1 \cup C _2 - x \subseteq B_1$, which would be a contradiction). Since $C_1$ is dependent and $B_2$ is independent, then $C_1 - B_2$ will be non-empty (otherwise we would have $C _1 - B _2 = \emptyset$ which implies that $C _1 \subseteq B _2$, which is a contradiction, as independent sets cannot contain dependent sets). This implies that there exists an element $y$ such that $y \in C_1 - B_2$, but as $C_1$ is the circuit created from $B_1 \cup x$, then $y \in (B_1 \cup x) - B_2$. Similarly, as $x \neq y$ (because $x \in B _2 $ and $y \not\in B _2$), then $y \in B_1 - B_2$. 
 
-    Consider the set $B_1 - y$. This will not be a basis (because all bases have equal cardinality), but it will be an independent set (implied by (I2)). We notice that $(B_1 - y)\cup x$ will clearly not contain the circuit $C_1$, since $y \in C _1 $ and $y \not\in (B _1 - y) \cup x$. Furthermore, this set cannot contain any other distinct circuit $C _2 \in C$, because that would imply $C _2 \subseteq B _1 \cup x$, which would contradict the uniqueness of $C _1 $. We can now conclude that the set $(B_1 - y)\cup x$ must be independent. We observe that $(B_1 - y)\cup x$ implies that we add an element to the set, and we take out one element of the set, so the cardinality will remain equal, that is: $|(B_1 - y)\cup x|=|B_1|$.
+    Consider the set $B_1 - y$. This will not be a basis (because all bases have equal cardinality), but it will be an independent set (implied by (I2)). We notice that $(B_1 - y)\cup x$ will clearly not contain the circuit $C_1$, since $y \in C _1 $ and $y \not\in (B _1 - y) \cup x$. Furthermore, this set cannot contain any other distinct circuit $C _2 \in \mathcal{C}$, because that would imply $C _2 \subseteq B _1 \cup x$, which would contradict the uniqueness of $C _1 $. We can now conclude that the set $(B_1 - y)\cup x$ must be independent. We observe that $(B_1 - y)\cup x$ implies that we add an element to the set, and we take out one element of the set, so the cardinality will remain equal, that is: $|(B_1 - y)\cup x|=|B_1|$.
 
 As $(B_1 - y)\cup x$ is independent and has the same cardinality as the basis $B_1$, then by definition $(B_1 - y)\cup x$ is also a basis. 
 \end{proof}
 
 Now, using the equivalent property $(B2)^*$ that we have just proven, we prove theorem (\ref{dualbasis}).
-\begin{proof}[Proof of theorem (\ref{dualbasis})]
-    As $B(M)$ is non-empty, $B^*(M)$ is non-empty, hence, the property $(B_1)$ holds for $B^*(M)$. 
-    Consider two distinct members $B ^* _1 , B ^* _2 \in B^*(M)$, such that there exists an element $x \in (B^*_1 - B^*_2)$. Let, $B_1 = E - B^*_1$ and $B_2 = E - B^*_2$. We can see that $B^*_1 - B^*_2 = B_2 - B_1$, thus $x \in B_2 - B_1$. By ${(B2)}^*$, there exists and element $y \in  B_1 - B_2$ such that $(B_1 - y)\cup x$ is a base of $M$, but observe that $B_1 - B_2 = B^*_2 - B^*_1$, so this is the same as saying that there exists an element $y \in  B^*_2 - B^*_1$ such that $(B_1 - y)\cup x$ is a base of $M$. As a result, by definition of the dual, $E-((B_1 - y)\cup x) \in B^*(M)$. But, $E-((B_1 - y)\cup x) = ((E-B_1)-x)\cup y) = (B_1^* - x)\cup y$, which is in the family $B^*$. Therefore, we can conclude that $B^*(M)$ satisfes $(B2)$. As $B^*(M)$ satisfies  properties $(B1)$ and $(B2)$, this is indeed the set of bases of a matroid on $E$.
+\begin{proof}[Proof of (\ref{dualbasis})]
+    As $\mathcal{B}(M)$ is non-empty, $\mathcal{B}^*(M)$ is non-empty, hence, the property $(B_1)$ holds for $\mathcal{B}^*(M)$. 
+    Consider two distinct members $B^* _1 , B ^* _2 \in \mathcal{B}^*(M)$, such that there exists an element $x \in (B^*_1 - B^*_2)$. Let, $B_1 = E - B^*_1$ and $B_2 = E - B^*_2$. We can see that $B^*_1 - B^*_2 = B_2 - B_1$, thus $x \in B_2 - B_1$. By ${(B2)}^*$, there exists and element $y \in  B_1 - B_2$ such that $(B_1 - y)\cup x$ is a base of $M$, but observe that $B_1 - B_2 = B^*_2 - B^*_1$, so this is the same as saying that there exists an element $y \in  B^*_2 - B^*_1$ such that $(B_1 - y)\cup x$ is a base of $M$. As a result, by definition of the dual, $E-((B_1 - y)\cup x) \in \mathcal{B}^*(M)$. But, $E-((B_1 - y)\cup x) = ((E-B_1)-x)\cup y) = (B_1^* - x)\cup y$, which is in the family $\mathcal{B}^*$. Therefore, we can conclude that $B^*(M)$ satisfes $(B2)$. As $\mathcal{B}^*(M)$ satisfies  properties $(B1)$ and $(B2)$, this is indeed the set of bases of a matroid on $E$.
 \end{proof}
 
-The matroid $M^*$ is the dual of $M$. Note that by the way is defined, and thanks to the proof above we see that $B(M^*)=B^*(M)$. Furthermore, we have the following lemma:
+Note that, by the way the dual matroid is defined, and and by the intuition provided in the proof above, we see that $\mathcal{B}(M^*)=\mathcal{B}^*(M)$. Furthermore, we have the following lemma:
 
 \begin{lemma}
     The dual of the dual of a matroid M is the matroid M itself, $i.e., (M^*)^* = M$.
@@ -198,7 +198,7 @@ And in fact, we can generalize this to obtain an explicit formula for the \texti
 \newpage
 \subsection{Duals of representable matroids}
 
-Let $A$ be some $m \times n$ matrix over the field $F$, and let $M$ be a vector matroid $M[A]$ of $A$. The ground set of $M$ is then the set $E$ of column labels of $A$. Note that, in general, $M[A]$ does not uniquely determine $A$. Furthermore, $M$ remains unchanged if we perform any of the following operations on $A$, which includes the \textit{elementary row operations}.
+Let $A$ be some $m \times n$ matrix over the field $\mathbb{F}$, and let $M$ be a vector matroid $M[A]$ of $A$. The ground set of $M$ is then the set $E$ of column labels of $A$. Note that, in general, $M[A]$ does not uniquely determine $A$. Furthermore, $M$ remains unchanged if we perform any of the following operations on $A$, which includes the \textit{elementary row operations}.
 \begin{enumerate}
     \item Interchange two rows.
     \item Multiply a row by a non-zero member of $\mathbb{F}$.
@@ -210,15 +210,15 @@ Let $A$ be some $m \times n$ matrix over the field $F$, and let $M$ be a vector 
 
 The reason for this is that when constructing the matroid $M$ from a matrix $A$, we only care about the independence (or dependence) between column vectors in the matrix. As long as the independence and dependence between them is kept the same, the values exact inside the columns are not relevant.
 
-Assume that $A$ is non-zero. It is known that by using the previously mentioned operations, $A$ can be reduced to be of the form $[I_r|D]$, where $I_r$ is the $r \times r$ identity matrix and $D$ is some $r \times (n-r)$ matrix over $\mathbb{F}$. We can clearly see that $r(M)=r$ (the dimension for the identity matrix). 
+Assume that $A$ is non-zero. It is known that by using the previously mentioned operations, $A$ can be reduced to be of the form $[I_r|D]$, where $I_r$ is the $r \times r$ identity matrix ($1\leq r< n$) and $D$ is some $r \times (n-r)$ matrix over $\mathbb{F}$. We can clearly see that $r(M)=r$ (the dimension for the identity matrix). 
 
-Suppose the columns of $[I_r|D]$ are labelled as $e_1, e_2,\cdots,e_n$. We then have the ground set $E=\{e_1, e_2,\cdots,e_n\}$. We notice that $\{e_1, e_2,\cdots,e_r\}$ is a basis $B$ of $M$ (due to the dimension of the identity matrix). We also label the rows and columns of $D$:
+Suppose the columns of $[I_r|D]$ are labelled as $e_1, e_2,\cdots,e_n$. We then have the ground set $E=\{e_1, e_2,\cdots,e_n\}$. Let, $\{e_1, e_2,\cdots,e_r\}$ be a basis $B$ of $M$. We also label the rows and columns of the submatrix $D$ in the following form:
 \begin{itemize}
   \item We label the rows from top to bottom as $e_1, e_2,\cdots,e_r$.
-  \item We label the columns as  $e_{r+1}, e_{r+2},\cdots,e_n$.
+  \item We label the columns as left to right $e_{r+1}, e_{r+2},\cdots,e_n$.
 \end{itemize}
 
-  This way to represent $M[A]$ can be seen more clearly in the following figure. We will refer to both $[I_r|D]$ and $D$ as the \textit{standard representative matrices} for $M$, \textit{with respect to $\{e_1, e_2,\cdots,e_r\}$}. Similarly, we use \textit{reduced standard representative matrix} if we want to refer only to $D$.
+  This way to represent $M[A]$ can be seen more clearly in figure (\ref{StandertRepMat}). We will refer to both $[I_r|D]$ and $D$ as the \textit{standard representative matrices} for $M$, \textit{with respect to $\{e_1, e_2,\cdots,e_r\}$}. Similarly, we use \textit{reduced standard representative matrix} if we want to refer only to $D$.
 
 \begin{figure}[H]
     \centering
@@ -226,7 +226,7 @@ Suppose the columns of $[I_r|D]$ are labelled as $e_1, e_2,\cdots,e_n$. We then 
     \caption{Standard representative matrices for M. \cite{oxley1}}
     \label{StandertRepMat}
 \end{figure}
-Note that, in figure (\ref{StandertRepMat}), in the matrix $[I_r|D]$ only the columns are labelled, but in $D$, both the rows and columns ae labelled.
+Note that, in figure (\ref{StandertRepMat}), in the matrix $[I_r|D]$ only the columns are labelled, but in $D$, both the rows and columns are labelled. Also note that, for the basis defined above $B=\{e_1, e_2,\cdots,e_r\}$ a basis $B$ of $M$ (in figure (\ref{StandertRepMat}) we see that this columns correspond the to columns of the identity matrix)
 
 We can now use this construction to determine the dual of a vector matroid using the following theorem.
 
@@ -271,7 +271,7 @@ The following proof was inspired by that in \cite{oxley1}.
         0 & D_{21}\\
         \end{bmatrix}$$
     \end{figure}
-    As this matrix has the partition components that contain all the elements in the basis it implies that it must have a $rank$ of $r$ (the $rank$ of $[I_r|D]$), but here $r(I_s) = s$, as it is the identity matrix. Hence, $r(D_{21})=r-s$, which also corresponds to the rank of $-D_21^T$.
+    As this matrix has the partition components that contain all the elements in the basis it implies that it must have a $rank$ of $r$ (the $rank$ of $[I_r|D]$), but here $r(I_s) = s$, as it is the identity matrix. Hence, $r(D_{21})=r-s$, which also corresponds to the rank of $-D_{21}^T$.
     
     If we now observe the partition of $[-D^T|I_{n-r}]$, this will give the same partition lengths in each component as the ones mentioned for $[I_r|D]$ above. That is, the first component $-D_{11}^T$ and $-D_{12}^T$ have columns from $(e_1 \dots e_s)$. The components $-D_{22}^T$ and $-D_{21}^T$ have columns from $(e_{s+1} \dots e_r)$, $I_{r-s}$ has from $(e_{r+1} \dots e_{2r-s})$, and finally $ I_{n-(2r-s)}$ has from $(e_{(2r-s)+1} \dots e_n)$.
     As this time we are dealing with the dual, instead of taking the components that contain the elements in the basis like before, we take the components in the partition of $[-D^T|I_{n-r}]$ that contain the complement of the elements in the basis. Therefore, we obtain the matrix below
@@ -298,7 +298,7 @@ From theorem (\ref{DualRepMat}) a remarkable result follows almost directly.
 \end{proof}
 
 \begin{exmp}
-    Consider the vector matroid $M$ with the following representation over $R$
+    Consider the vector matroid $M$ with the following representation over $\mathbb{R}$
     \begin{figure}[H]
         $$A = \begin{bmatrix}
             1 & 0 & 0 & 1 & 0 & 1 \\
