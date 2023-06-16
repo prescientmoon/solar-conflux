@@ -246,7 +246,7 @@ The following proof was inspired by that in \cite{oxley1}.
         \label{MatRepresentationDual}
     \end{figure}
 
-    Let $B$ be a basis of $M$. We need to show that $E-B$ is a basis of the vector matroid of $[-D^T|I_{n-r}]$. We can rearrange the columns of $[-D^T|I_{n-r}]$, such that $B=\{e_1,\dots,e_s, e_{r+1}, \dots, e_{r+(r-s)}$\}, for some $s \leq r$. This is possible because we know that it does not affect the corresponding matroid, so the only change it bring to rearrange rows and columns of $[I_r|D]$ is the rearrange of columns and rows of $[-D^T|I_{n-r}]$. 
+    Let $B$ be a basis of $M$. We need to show that $E-B$ is a basis of the vector matroid of $[-D^T|I_{n-r}]$. We can rearrange the columns of $[-D^T|I_{n-r}]$, such that $B=\{e_1,\cdots,e_s, e_{r+1}, \cdots, e_{r+(r-s)}$\}, for some $s \leq r$. This is possible because we know that it does not affect the corresponding matroid, so the only change it bring to rearrange rows and columns of $[I_r|D]$ is the rearrange of columns and rows of $[-D^T|I_{n-r}]$. 
     
     Using this, we can partition $[I_r|D]$ and $[-D^T|I_{n-r}]$ in the following form
     \begin{align*}
@@ -261,7 +261,7 @@ The following proof was inspired by that in \cite{oxley1}.
     -D_{12}^T & -D_{22}^T & 0 & I_{n-(2r-s)}\\
     \end{bmatrix}
     \end{align*}
-    We will analyze the way $[I_r|D]$ is partitioned. Here, we make the partitioning such that the first component $I_s$ has columns $(e_1 \dots e_s)$, $I_{r-s}$ has columns $(e_{s+1} \dots e_r)$, $D_11$ and $D_21$ have columns $(e_{r+1} \dots e_{2r-s})$, and finally, $D_{12}$ and $D_{22}$ have columns $(e_{(2r-s)+1} \dots e_n)$.
+    We will analyze the way $[I_r|D]$ is partitioned. Here, we make the partitioning such that the first component $I_s$ has columns $(e_1 \cdots e_s)$, $I_{r-s}$ has columns $(e_{s+1} \cdots e_r)$, $D_11$ and $D_21$ have columns $(e_{r+1} \cdots e_{2r-s})$, and finally, $D_{12}$ and $D_{22}$ have columns $(e_{(2r-s)+1} \cdots e_n)$.
     
     We have that $B$ is a base. This means that it must have the same size as $I_r$. Due to the way the matrix $[I_r|D]$ is partitioned, if we take the components in the partition that contain the column components in the basis, we get the following matrix
         \begin{align*}
@@ -273,7 +273,7 @@ The following proof was inspired by that in \cite{oxley1}.
 
     As this matrix has the partition components that contain all the elements in the basis, it must have a $rank$ of $r$ (the $rank$ of $[I_r|D]$). Here $r(I_s) = s$, as it is the identity matrix, hence $r(D_{21})=r-s$, which also corresponds to the rank of $-D_21^T$.
     
-    If we now observe the partition of $[-D^T|I_{n-r}]$, this will give the same partition lengths in each component as the ones mentioned for $[I_r|D]$ above. That is, the first component $-D_{11}^T$ and $-D_{12}^T$ have columns $(e_1 \dots e_s)$. The components $-D_{22}^T$ and $-D_{21}^T$ have columns $(e_{s+1} \dots e_r)$, $I_{r-s}$ has columns $(e_{r+1} \dots e_{2r-s})$, and finally $ I_{n-(2r-s)}$ has columns $(e_{(2r-s)+1} \dots e_n)$.
+    If we now observe the partition of $[-D^T|I_{n-r}]$, this will give the same partition lengths in each component as the ones mentioned for $[I_r|D]$ above. That is, the first component $-D_{11}^T$ and $-D_{12}^T$ have columns $(e_1 \cdots e_s)$. The components $-D_{22}^T$ and $-D_{21}^T$ have columns $(e_{s+1} \cdots e_r)$, $I_{r-s}$ has columns $(e_{r+1} \cdots e_{2r-s})$, and finally $ I_{n-(2r-s)}$ has columns $(e_{(2r-s)+1} \cdots e_n)$.
 
     As this time we are dealing with the dual, instead of taking the components that contain the elements in the basis like before, we take the components in the partition of $[-D^T|I_{n-r}]$ that contain the complement of the elements in the basis. Therefore, we obtain the matrix
     \begin{align*}
@@ -352,7 +352,7 @@ As an interesting note, the vector matroid $M$ with matrix representation $A$ is
             \label{K4Graph}
         \end{figure}
 
-    Additionally, we can also verify the \textit{rank} and \textit{corank} propositions established before (theorem (\ref{RankAndCorankEquation})). That is, we can clearly observe that $A$ has a ground set $E=\{e_1, e_2, \dots, e_6\}$ with $6$ elements, where each $e_i; i =1,2, \cdots,6$ represents a column, hence $|E|=6$. We also see that $A$ has rank $r(A)=3$, which can be easily verified by observing the first $3$ columns that correspond to the identity matrix in the construction of the form $[I_r|D]$. Similarly, if we observe the dual, we notice that $r(A^*)=3$ as well. We conclude that 
+    Additionally, we can also verify the \textit{rank} and \textit{corank} propositions established before (theorem (\ref{RankAndCorankEquation})). That is, we can clearly observe that $A$ has a ground set $E=\{e_1, e_2, \cdots, e_6\}$ with $6$ elements, where each $e_i; i =1,2, \cdots,6$ represents a column, hence $|E|=6$. We also see that $A$ has rank $r(A)=3$, which can be easily verified by observing the first $3$ columns that correspond to the identity matrix in the construction of the form $[I_r|D]$. Similarly, if we observe the dual, we notice that $r(A^*)=3$ as well. We conclude that 
     \begin{align*}
     r(A)+r(A^*)= 3 + 3 = 6 = |E|
     \end{align*}
@@ -396,7 +396,7 @@ The proof for this theorem is outside the scope of this article. A proof can be 
     \label{fig:enter-label}
 \end{figure}
 
-This graph has $9$ edges, which means it has $E=\{1,2,3, \dots, 9\} $ as its ground set. The matrix associated to the matroid $M(K_{3,3})$ is the following:
+This graph has $9$ edges, which means it has $E=\{1,2,3, \cdots, 9\} $ as its ground set. The matrix associated to the matroid $M(K_{3,3})$ is the following:
 \begin{align*}
 J = \begin{bmatrix}
     1 & 0 & 0 & 0 & 0 & 1 & 0 & 0 & 1\\
@@ -407,7 +407,7 @@ J = \begin{bmatrix}
 \end{bmatrix}
 \end{align*}
 
-    This is the case because labelling the columns of $J$ as $E = \{e_1,\dots, e_9\}$ and defining a matroid $M(J)$ on $E$, lets us associate each column of $J$ to the correspondingly labeled edge in $K_{3,3}$ so they generate the same matroid. Moreover, this means that we can take a basis for the column space of $J$, such as $B = \{e_1, e_2, e_3, e_4, e_5\}$, that corresponds to a spanning tree $T$ of $K_{3,3}$ (see figure (\ref{K33STE})). In other words, this means that adding any other column to $J$ yields a linear dependency (more precisely, a circuit in $M(J)$), and adding any edge to $T$ generates a cycle.
+    This is the case because labelling the columns of $J$ as $E = \{e_1,\cdots, e_9\}$ and defining a matroid $M(J)$ on $E$, lets us associate each column of $J$ to the correspondingly labeled edge in $K_{3,3}$ so they generate the same matroid. Moreover, this means that we can take a basis for the column space of $J$, such as $B = \{e_1, e_2, e_3, e_4, e_5\}$, that corresponds to a spanning tree $T$ of $K_{3,3}$ (see figure (\ref{K33STE})). In other words, this means that adding any other column to $J$ yields a linear dependency (more precisely, a circuit in $M(J)$), and adding any edge to $T$ generates a cycle.
 
 \begin{figure}[H]
     \centering
