@@ -2,7 +2,7 @@
 
 \section{Algebraic matroids}\label{sec:algebraic-matroids}
 
-An interesting concept of independence arises in the study of field theory. We will present a class of matroids derived from the concept of algebraic independence. For the rest of this section, we will use the notation $\mathbb K / \mathbb F$ to refer to some field $\mathbb K$ and a subfield $\mathbb F$. See \hyperref[sec:appendix-fields]{the appendix} for an introduction to fields and subfields. This section will also make use of the concept of partialloy ordered sets. See \hyperref[sec:appendix-poset]{the appendix} for an introduction to partially ordered sets.
+An interesting concept of independence arises in the study of field theory.  We will present a class of matroids derived from the concept of algebraic independence. Hence the term independent set will not refer to a \textit{linearly independent set} but rather an \textit{algebraically independent set}. For the rest of this section, we will use the notation $\mathbb K / \mathbb F$ to refer to some field $\mathbb K$ and a subfield $\mathbb F$. See \hyperref[sec:appendix-fields]{the appendix} for an introduction to fields and subfields. This section will also make use of the concept of partially ordered sets and  \hyperref[sec:appendix-poset]{the appendix} provides an introduction to them.
 
 \begin{defn}
 	A subset $S = \{ s_1 \ldots s _n \} \subseteq \mathbb K / \mathbb F$ is said to be algebraically independent (over $\mathbb F$) if there does not exist any
@@ -33,7 +33,7 @@ Before continuing onto the next lemma, we remind the reader that a field $\mathb
 \begin{proof}
 	The vector spaces induced by $\mathbb{F} (b)$ and $\mathbb{F} (b)(a)$ must both be finite dimensional over $\mathbb{F} $ and $\mathbb{F} (b)$ respectively (because $b$ is algebraic over $\mathbb{F} $ and $a$ is algebraic over $\mathbb{F} (b)$). It follows that $\mathbb{F} (b)(a)$ is finitely dimensional over $\mathbb{F}$ (this can be seen by noticing that given a basis $\{a _i \}$ for $\mathbb{F} (b)(a)$ over $\mathbb{F} (b)$ and a basis $\{b _i\}$ for $\mathbb{F} (b)$ over $\mathbb{F} $, we can form a basis $\{a _i b _j\}$ for $\mathbb{F} (b)(a)$ over $\mathbb{F} $).
 
-	Let $n$ be the dimension of $\mathbb{F} (b)(a)$ over $\mathbb{F} $. Let $S = \{a ^0 \ldots a ^n \}$. Because $|S| = n + 1$, $S$ cannot be linearly independent (in the vector space induced by $\mathbb{F} (b)(a)$ over $\mathbb{F} $), which means a polynomial $f \in \mathbb{F} [x]$ exists such that $ev_a(f) = 0$.
+	Let $n$ be the dimension of $\mathbb{F} (b)(a)$ over $\mathbb{F} $ and let $S = \{a ^0 \ldots a ^n \}$. Because $|S| = n + 1$, $S$ cannot be linearly independent (in the vector space induced by $\mathbb{F} (b)(a)$ over $\mathbb{F} $), which means a polynomial $f \in \mathbb{F} [x]$ exists such that $ev_a(f) = 0$.
 \end{proof}
 
 \begin{lemma}\label{lem:algebraic-dependence-transitivity}
@@ -44,7 +44,7 @@ Before continuing onto the next lemma, we remind the reader that a field $\mathb
 	We will proceed by induction on the size of $B$:
 	\begin{enumerate}
 		\item If $|B| = 1$ then the result trivially follows from lemma (\ref{lem:algebraic-transitivity}).
-		\item Assume the result is true for $|B| = n$. We will attempt to prove it for $|B| = n + 1$. Let $a \in A$. We have to show that $a$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$. Given $1 \leq i \leq n$, each $b _i$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$ (because $B$ is algebraically dependent on $C$ (over $\mathbb{F}$)). It then follows that each such $b _i $ is also algebraic over $\mathbb{F}(c _1 \ldots c _k, b _{n + 1}) = \mathbb{F} (b _{n + 1} )(c _1 \ldots c _k )$. Moreover, we know that $a$ is algebraic over $\mathbb{F} (b _1 \ldots b _{n + 1})$, which means it is also algebraic over $\mathbb{F} (b _{n + 1})(b _1 \ldots b _n )$. It then follows from the induction hypothesis (applied with $\mathbb{F} (b _{n + 1})$ as the base field, $A = \{a\}$, $B = \{b _1 \ldots b _n \}$ and the same $C$) that $a$ is algebraic over $\mathbb{F} (b _{n + 1})(c _1 \ldots c _k ) = \mathbb{F} (c _1 \ldots c _k )(b _{n + 1})$.
+		\item Assume the result is true for $|B| = n$. We will attempt to prove it for $|B| = n + 1$. Let $a \in A$ and $C = \{c_1, \cdots, c_k\}$. We have to show that $a$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$. Given $1 \leq i \leq n$, each $b _i$ is algebraic over $\mathbb{F}(c _1 \ldots c _k )$ because $B$ is algebraically dependent on $C$. It then follows that each such $b _i $ is also algebraic over $\mathbb{F}(c _1 \ldots c _k, b _{n + 1}) = \mathbb{F} (b _{n + 1} )(c _1 \ldots c _k )$. Moreover, we know that $a$ is algebraic over $\mathbb{F} (b _1 \ldots b _{n + 1})$, which means it is also algebraic over $\mathbb{F} (b _{n + 1})(b _1 \ldots b _n )$. It then follows from the induction hypothesis (applied with $\mathbb{F} (b _{n + 1})$ as the base field, $A = \{a\}$, $B = \{b _1 \ldots b _n \}$ and the same $C$) that $a$ is algebraic over $\mathbb{F} (b _{n + 1})(c _1 \ldots c _k ) = \mathbb{F} (c _1 \ldots c _k )(b _{n + 1})$.
 
 		      We recall that $b _{n + 1}$ is algebraic on $\mathbb{F} (c _1 \ldots c _k )$ (because $B$ is algebraically dependent on $C$ (over $\mathbb{F} $)). We can now apply lemma (\ref{lem:algebraic-transitivity}) to prove that $a$ is algebraic over $\mathbb{F} (c _1 \ldots c _n)$.
 	\end{enumerate}
