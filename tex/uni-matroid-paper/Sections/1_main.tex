@@ -104,10 +104,12 @@
 \bibliographystyle{abbrv}
 \bibliography{sources}
 
+\numberwithin{exmp}{subsection}
 \renewcommand{\thesubsection}{\Alph{subsection}}
 \newpage
 \section{Appendices}
 \begin{appendices}
+    \renewcommand{\theexmp}{\Alph{subsection}.\arabic{exmp}}
     \input{appendix-fields.tex}
     \newpage\input{appendix-poset.tex}
 \end{appendices}
