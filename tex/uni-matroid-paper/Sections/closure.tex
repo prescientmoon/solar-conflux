@@ -89,9 +89,9 @@ Let $M = (E, \mathcal{I})$ be a matroid and $\cl: 2^E \to 2^E$ be a function. Th
 
 \item[(B2)]
     For the second property (B2) assume $B_1, B_2$ are distinct elements of $\mathcal{B}.$ Because $\mathcal{B}$ consists of \textit{minimal} sets we know that if they are distinct one cannot be a subset of another. So let us pick any $x \in B_1 - B_2$.
-    We observe two things, first, $\beta(B_1) = E$ and $\beta(B_1 - x) \neq E$ since $B_1$ is minimal. It is also clear that there exists $y \in B_2 - B_1$ such that $y \in E - \beta(B_1 - x)$, this is because, otherwise all the elements of $B_2$ would be in $\beta(B_1-x)$, but then we would have that $B_2 \subseteq \beta(B_1 - x)$ by (CL2) we would have that $E = \beta(B_2)\subseteq \beta(\beta(B_1 - e)) = \beta(B_1 - e) \neq E$. So by (CL4) we have that we can exchange $x$ and $y$ in the following inclusion.
+    We observe two things, first, $\beta(B_1) = E$ and $\beta(B_1 - x) \neq E$ since $B_1$ is minimal. It is also clear that there exists $y \in B_2 - B_1$ such that $y \in E - \beta(B_1 - x)$, this is because, otherwise all the elements of $B_2$ would be in $\beta(B_1-x)$, but then we would have that $B_2 \subseteq \beta(B_1 - x)$ by (CL2) we would have that $E = \beta(B_2)\subseteq \beta(\beta(B_1 - e)) = \beta(B_1 - e) \neq E$. So by (CL4) we have that we can exchange $x$ and $y$ in the following inclusion
     
-    $$y \in E - \beta(B_1 - x) = \beta((B_1 -x )\cup x)-\beta(B_1 - x)$$ which directly implies that $x \in \beta((B_1 - x)\cup y)$. Now we are done, because this means that 
+    $$y \in E - \beta(B_1 - x) = \beta((B_1 -x )\cup x)-\beta(B_1 - x),$$ which directly implies that $x \in \beta((B_1 - x)\cup y)$. Now we are done, because this means that 
     
     $$\beta((B_1-x)\cup y) = \beta(\beta((B_1-x )\cup y)) = \beta(\beta((B_1 - x)\cup y)\cup x) \supset \beta(B_1) = E,$$
     
@@ -126,7 +126,7 @@ Second thing to note is that $\beta$ preserves rank, i.e., we always have $\rank
 
 But on the other hand, we have
 
-$$L \subseteq \beta(X) \subseteq \beta(X \cup (B-L))$$ and $$B-L \subseteq \beta(X \cup (B-L))$$ which in particular means that $B \subseteq \beta(X \cup (B-L))$. Finally, this would mean that  
+$$L \subseteq \beta(X) \subseteq \beta(X \cup (B-L)),$$ and $$B-L \subseteq \beta(X \cup (B-L)),$$ which in particular means that $B \subseteq \beta(X \cup (B-L))$. Finally, this would mean that  
 $E = \beta(B)\subseteq \beta(\beta(X \cup (B-L))) = \beta(X \cup (B-L))$ which would imply, by definition of $\mathcal{B}$ that $X \cup (B-L)
 \in \mathcal{B}$ - which ultimately means it \textit{contains a basis} of our matroid. But we have already established this is not the case, so we have come upon a contradiction. Therefore, $\beta$ preserves rank.
 The fact that $\beta$ preserves rank and looking at the definition of the closure operator, namely that it puts in all the elements which preserve rank, we have thus obtained the inclusion $\beta(X) \subseteq \cl'(X)$ for all subsets $X.$
@@ -142,7 +142,7 @@ which is a contradiction. So our initial assumption that the inclusion $\beta(X)
 \end{proof}
 
 
-With the definition of closure operator we can define three more important family of subsets of a matroid.
+With the definition of closure operator we can define three more important family of subsets of a matroid that we will use in the later sections.
 
 \begin{defn}\label{HP&SS}
     Let $M = (E, \mathcal{I})$ be a matroid with the rank function $\rank$ closure operator $\cl.$ We call a subset $X \subseteq E$ a flat if $\cl(X) = X$ holds. We call a subset $H \subseteq E$ a hyperplane if $H$ is a rank with $\rank(H) = \rank(E)-1$. Finally, we call a subset $S \subseteq E$ a spanning set if $\cl(S) = E$.

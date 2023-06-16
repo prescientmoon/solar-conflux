@@ -1,12 +1,14 @@
 \newpage
 \section{Dual Matroids}
+
+\subsection{Introduction to Duality}
 The concept of \textit{duality} is an interesting feature of matroid theory. It helps to extend some of the constructions in our prototypical examples in representable and graphic matroids, such as the notion of orthogonality in vector spaces and the concept of a planar dual of a plane graph, to general matroids. In this section, we will introduce the definitions and  properties of dual matroids.
 
 %Before starting with the formal definitions, porperties and theorems is important that we state the most important concept of this chapter, that is, similar to the chapter name, the concept of a \textit{dual}, or more precisely, the \textit{dual of a matroid}.\
 
 % I DONT THING THE ABOVE PARAGRAPH ADDS ANY CONTENT
 
-If we have a matroid $M$, with sets $(E,\mathcal{B})$, or in other words $M$ is a matroid on $E$ with $\mathcal{B}$ as its collection of bases. Then its dual will refer to a new matroid, which we denote by $M^*$. This new matroid has the property that it is ``related'' to the original matroid, so it has the same ground set $E$ of the original matroid $M$, but a different basis set. This new basis collection will be called $B^*$. We will then define $M^*$ by the pair of sets $(E,\mathcal{B}^*)$, where $\mathcal{B}^*$ contains the complements of all bases in $\mathcal{B}$. This can be seen more clearly in the following digram:
+If we have a matroid $M$, with sets $(E,\mathcal{B})$, or in other words $M$ is a matroid on $E$ with $\mathcal{B}$ as its collection of bases. Then its dual will refer to a new matroid, which we denote by $M^*$. This new matroid has the property that it is ``related'' to the original matroid, so it has the same ground set $E$ of the original matroid $M$, but a different basis set. This new basis collection will be called $\mathcal{B}^*$. We will then define $M^*$ by the pair of sets $(E,\mathcal{B}^*)$, where $\mathcal{B}^*$ contains the complements of all bases in $\mathcal{B}$. This can be seen more clearly in the following digram:
 \begin{figure}[H]
     \centering
 \begin{tikzpicture}
@@ -168,17 +170,17 @@ Now that we have introduced the notion of duals, it is useful to provide some ad
         \item[$\impliedby$] Conversly, if $E - X$ is a cocircuit, then $E-X$ is not coindependent but for all $x \in E - X$ we have $(E - X) - x$ = $E - (X \cup x)$ is coindependent. By b) this means that $X$ is not spanning but for all $x \in E-X$, we have $X \cup x$ is spanning, so $X$ is a hyperplane.
     \end{enumerate}
 
-\item This follows the same process as the previous proofs.
+\item The proof is completely analogous to the previous ones.
     \end{enumerate}
 \end{proof}
 
 Similar to bases and cobases, the $rank$ $ function$ of the dual matroid is usually denoted by $r^*$, and is normally referred as the \textit{corank function} of $M$. Using the definition of bases of the dual matroid, as well as the fact that a matroid and its dual have the same ground set, we have the following
 
 \begin{theorem}\label{RankAndCorankEquation}
-    $r(M) + r^*(M) = |E(M)|=|E(M^*)|$
+  The following equality holds  $r(M) + r^*(M) = |E(M)|=|E(M^*)|$.
 \end{theorem}
 
-And in fact, we can generalize this to obtain an explicit formula for the \textit{corank function} of the matroid. 
+In fact, we can generalize the above theorem to obtain an explicit formula for the \textit{corank function} of the matroid. 
 
 \begin{theorem}\label{rankdualequation}
     For all subsets $X \subseteq E(M)$ of some matroid $M$, we have:
@@ -193,9 +195,7 @@ And in fact, we can generalize this to obtain an explicit formula for the \texti
     \begin{align*}
     |X|=|X\cap B|+|X\cap B^*|=|B|-|I|+|I^*|=r(M)-r(E-X)+r^*(X).
     \end{align*}
-    \begin{align*}
-    r^*(X)=r(E-X)+|X|-r(M)
-    \end{align*}
+
 \end{proof}
 
 \newpage
@@ -372,7 +372,7 @@ To answer this question, we have the following theorem
     The dual of a graphic matroid is itself graphic if and only if the underlying graph is planar.
 \end{theorem}
 
-The proof for this theorem is outside the scope of this article. A proof can be found in \cite[section 2.4]{oxley1}.
+The proof for this theorem is outside the scope of this article. A proof can be found in \cite[p. 140, section 5.2]{oxley1}.
 
 \begin{exmp}
     Let us consider the bipartite graph $K_{3,3}$.

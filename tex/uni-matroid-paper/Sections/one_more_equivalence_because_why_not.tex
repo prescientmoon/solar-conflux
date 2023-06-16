@@ -12,7 +12,7 @@ An excercise in \cite[35]{oxley1} asks us to prove a cryptomorphic description o
     \begin{enumerate}
         \item[(F1)] We have $E \in \caf$.
         \item[(F2)] If $F_1, F_2 \in \caf$ then $F_1 \cap F_2 \in \caf$.
-        \item[(F3)] If $F \in \caf$ and $\{F_1, F_2, \cdots, F_k\}$ is a collection of all minimal members of $\caf$ properly containing $F$ then $\{F_1-F, F_2-F, \cdots, F_k - F\}$ partition $E-F$.
+        \item[(F3)] If $F \in \caf$ and $\{F_1, F_2, \cdots, F_k\}$ is a collection of all minimal members of $\caf$ properly containing $F$ then $\{F_1-F, F_2-F, \cdots, F_k - F\}$ partition $E-F$. By defintion of partition that means that for all $i \neq j$ we have $(F_i-F)\cup (F_j - F)= \emptyset$ and $\cup_{i = 1}^{k}(F_i - F) = E - F$.
         
     \end{enumerate}
         
@@ -53,6 +53,9 @@ As an example, we can once again return to our depiction from earlier. This time
 Before we begin the proof, we have two notable observations. First, we see that the characterization of our collection $\caf$ follows a similar pattern as characterization of other encountered collections, such as $\mathcal{I}$ or $\mathcal{C}$. Specifically, we mean that we have two initializing properties, for example, the collection is non-empty, has $\emptyset$ or $E$, is downward closed, closed under intersections, inclusions, etc. Followed by the third property, which really tells us something non-trivial about how the sets of the collection interact with each other. 
 Second, as with the previous proofs, we will see that it is not hard to prove the only if direction, i.e. knowing we have a collection of flats and proceeding further. However, we will require some clever ideas to prove the reverse direction.
 
+\begin{enumerate}
+     
+\item[$\implies$]
 So first suppose $\caf$ is a collection of flats and our goal is to prove that the three properties hold. 
 
 \begin{enumerate}
@@ -69,6 +72,8 @@ So first suppose $\caf$ is a collection of flats and our goal is to prove that t
     So we also have the last property.
     
 \end{enumerate}
+
+\item[\impliedby]
     Now for the if direction. In the previous proofs of proving the reverse direction of such statements we could directly relate the independent sets, which we consider to be our most elementary definition, to our objects. For example, if you know your collection has to be the collection of circuits, then the independent sets are precisely all the proper subsets of circuits. If you know your collection has to be a collection of bases, then the independent sets have to be all of their subsets. When proving the equivalence of the rank function, the independent sets were precisely the sets with the property $r(X) = |X|$. 
 
     However, with flats, there is no way (at least not as clear as with previous examples) to relate flats with independent sets. So we will prove the reverse direction by relating it to one definition we already know. So we have to prove that $f$ satisfies the properties (CL1) - (CL4).
@@ -100,6 +105,6 @@ So first suppose $\caf$ is a collection of flats and our goal is to prove that t
      
 \end{enumerate}
 
-
+\end{enumerate}
     
 \end{proof}
