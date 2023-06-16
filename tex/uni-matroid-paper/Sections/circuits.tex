@@ -208,7 +208,7 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
           \begin{enumerate}
             \item If $Y \cup x$ is independent, we claim that $(X, Y \cup x)$ is a counterexample as well. This is trivially shown by noticing how $(Y \cup x) - X = Y - X$, so any choice of $e \in (Y \cup x) - X$ such that $X \cup e$ is independent would invalidate $(X, Y)$ being a counterexample. We note that 
               \begin{align*}
-              |X \cap (Y \cup y)| = |(X \cap Y) \cup (X \cap \{x\})| = |(X \cap Y) \cup x|,
+              |X \cap (Y \cup y)| = |(X \cap Y) \cup (X \cap x)| = |(X \cap Y) \cup x|,
               \end{align*}
               but $x \not\in X \cap Y$ so $|X \cap Y \cup x| = |X \cap Y| + |\{x\}| = |X \cap Y| + 1$. As $|X \cap Y| + 1 > |X \cap Y|$, we can conclude $(X, Y)$ did not maximize $|X \cap Y|$, hence a contradiction.
             \item Otherwise, $Y \cup x$ is not independent. That is to say, some $C \in \mathcal C$ must exist such that $C \subseteq Y \cup x$. We make the five intermediate claims:
