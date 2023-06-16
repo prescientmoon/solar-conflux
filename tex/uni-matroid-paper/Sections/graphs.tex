@@ -147,7 +147,7 @@ Not surprisingly, the set $E$ with the collection $\mathcal{C}$ being as its set
 %``stuff"
 
 \begin{theorem}\label{graphicproof}
-Let $G = (V, E)$ be a graph and let $\mathcal{C}$ be the collection of all sets of edges of cycles in $G$. Then $M$ with the ground set $E$ (the set of edges) is matroid with $\mathcal{C}$ as collection of circuits. In particular, if $C_1$, $C_2$ are distinct sets of edges of cycles  and $e \in C_1 \cap C_2 $ then there exists a set of edges of cycle $C_3$ such that $C_3 \subseteq C_1 \cap C_2 -e$.
+Let $G = (V, E)$ be a graph and let $\mathcal{C}$ be the collection of all sets of edges of cycles in $G$. Then $M$ with the ground set $E$ (the set of edges) is matroid with $\mathcal{C}$ as collection of circuits. In particular, this means that if $C_1$, $C_2$ are distinct sets of edges of cycles  and $e \in C_1 \cap C_2 $ then there exists a set of edges of cycle $C_3$ such that $C_3 \subseteq C_1 \cap C_2 -e$.
 \end{theorem}
 
 
@@ -159,12 +159,11 @@ To show that the set $E$ is a matroid with the collection $\mathcal{C}$ of cycle
 
 \item[(C1)] The empty set is by our definition not a cycle. For reminder, by our definition a cycle always includes a nonempty set of vertices it is build upon. If it is in a simple graph, then it has to have at least three vertices. Our extended notion also includes loops and parallel edges, which are still built upon at least one vertex. 
 
-\item[(C2)] To show the second property, suppose we have two sets of edges of cycles such that $C_1 \subseteq C_2$ and assume for contradiction there is some $e \in C_2 - C_1$. Then (we are assuming neither of the cycles are loops, that case is clear, because the only possibility is they are equal) the set of edges $C_2 - e$ corresponds to a path from the vertices which $e$ connects. However, there is a cycle $C_1 \subseteq C_2 -e$ which is a subset of a path - a contradiction. So if $C_1 \subseteq C_2$ then $C_2 - C_1$ is empty, in particular then $C_2 = C_1$ and all three circuit axioms are satisfied.
-
+\item[(C2)] To show the second property, suppose we have two sets of edges of cycles such that $C_1 \subseteq C_2$ and assume for contradiction there is some $e \in C_2 - C_1$. Then (we are assuming neither of the cycles are loops, that case is clear, because the only possibility is they are equal) the set of edges $C_2 - e$ corresponds to a path from the vertices which $e$ connects. However, there is a cycle $C_1 \subseteq C_2 -e$ which is a subset of a path - a contradiction. So if $C_1 \subseteq C_2$ then $C_2 - C_1$ is empty, in particular then $C_2 = C_1$ and all the second circuit axiom is satisfied.
 
 
     
-   \item[(C3)] The idea of the the rest of the proof is taken from \cite[p. 10]{oxley1} Finally, we prove the third property. Let $C_1$ and $C_2$ be two distinct cycles and $e$ be an element of $C_1 \cap C_2$. We would like to show that there is a set of edges of cycle $C_3 \subseteq C_1 \cap C_2 - e$.
+   \item[(C3)] Finally, we prove the third property. The idea of the the rest of the proof is taken from \cite[p. 10]{oxley1}. Let $C_1$ and $C_2$ be two distinct cycles and $e$ be an element of $C_1 \cap C_2$. We would like to show that there is a set of edges of cycle $C_3 \subseteq C_1 \cap C_2 - e$.
  
 
    \begin{figure}[h] 
@@ -267,17 +266,17 @@ To show that the set $E$ is a matroid with the collection $\mathcal{C}$ of cycle
 
     First, if $C_1 \cap C_2 = \emptyset$ there is nothing to prove, because the conditional part of the if statement in (C3) is not satisfied.
    
-   Second, assume there exists $e \in C_1 \cap C_2$. Let the cycle $C_1$ correspond to the sequence of incident vertices  $v_0, \cdots, v_n = v_0$ and let (without loss of generality) the special edge in the intersection be the edge $e = \{v_0, v_1\}$. The idea of the proof is very simple. Our goal is to find a cycle in the set of edges $C_1 \cup C_2 -e$. We go around $C_1$ until we can come to a vertex that is disjoint with $C_2$, then we would like to come back that vertex as quickly as we can by using edges of $C_2$, thus avoiding $e.$
+   Second, assume there exists $e \in C_1 \cap C_2$. Let the cycle $C_1$ correspond to the sequence of incident vertices  $v_0, \cdots, v_n = v_0$ and let (without loss of generality) the special edge in the intersection be the edge $e = \{v_0, v_1\}$. The idea of the proof is very simple. Our goal is to find a cycle in the set of edges $C_1 \cup C_2 -e$. We go around $C_1$ until we can come to a vertex that is disjoint with $C_2$. Then we would like to come back that vertex as quickly as we can by using edges of $C_2$, thus avoiding $e.$
 
    As an illustration of the procedure we see a graph in figure (\ref{impostor2}). The vertex $v_4$ is the first one not in $C_2$ and $v_9$ is the first one in $C_1$ which is after $v_4$ but is back in $C_2$. The cycle obtained in this procedure is $C_3$ which evidently does not include $e.$
 
 
-    Let $k$ be the smallest integer $1<k< n$ such that the vertex $v_k$ is not in the cycle $C_2$. We know that such an integer exists because we have already proved (C2), so if $C_1$ and $C_2$ are distinct, then necessarily one is not contained in eachother, which means both $C_2 - C_1$ and $C_1 -C_2$ are nonempty.
+    Let $k$ be the smallest integer $1<k< n$ such that the vertex $v_k$ is not in the cycle $C_2$. We know that such an integer exists because we have already proved (C2), so if $C_1$ and $C_2$ are distinct, then necessarily one is not contained in the other, which means both $C_2 - C_1$ and $C_1 -C_2$ are nonempty.
     Next, let $l$ be the smallest integer $k <l \leq n$ such that $v_l$ is in $C_2$. We know such an integer exist because $v_n \in C_2$.
     
-    Let $v_l, w_{l+1}, w_{l+2},  \cdots, v_{k-1}$ be the path of vertices in the cycle $C_2$ which does not include the edge $e$. We know that such a path exists, because $C_2$ is a cycle, so from any two distinct vertices, in particular $v_{l}$ and $v_{k-1}$ (they are distinct since $k<l$ and it cannot hold that $k-1 = 0$ and $l = n$ since this would imply $k = 1$, which cannot hold) there are two paths going from $v_{l}$ to $v_{k-1}$ including only the vertices of $C_2$ - we pick the one that does not include the edge $e$.
+    Let $v_l, w_{l+1}, w_{l+2},  \cdots, v_{k-1}$ be the path of vertices in the cycle $C_2$ which does not include the edge $e$. We know that such a path exists, because $C_2$ is a cycle, so from any two distinct vertices, in particular $v_{l}$ and $v_{k-1}$ (they are distinct, since $k<l$ and it cannot hold that $k-1 = 0$ and $l = n$, since this would imply $k = 1$, which cannot hold) there are two paths going from $v_{l}$ to $v_{k-1}$ including only the vertices of $C_2$ - we pick the one that does not include the edge $e$.
     
-    We claim that the cycle consisting of vertices $$v_k, v_{k+1}, \cdots v_l, w_{l+1}, \cdots , v_{k-1}, v_k$$ is the desired one and denote its set of edges by $C_3$. By construction the sequence of vertices $v_k, v_{k+1}, \cdots v_l, w_{l+1}, \cdots , v_{k-1}, v_k$ is a cycle, namely the neighboring vertices are incident and except $v_k$ there is no vertex repeating, because we have chosen $v_{k+1}, v_{l-1}, \cdots v_{l-1}$ to be disjoint from $C_2$, while $v_l, w_{l+1}, \cdots, v_{k-1}$ is a path in $C_2$. Crucially, $e \notin C_3$ because we have chosen path $v_{l}, w_{l+1}, \cdots v_{k-1}$ in $C_2$ to not include the edge $e$ and $v_k, v_{k+1}, \cdots v_l$ does not include it because $e = \{v_n = v_0, v_1\}$ and there is no $v_0$ in our cycle. Finally, all the vertices of $C_3$ are inside the vertices of $C_1$ and $C_2$ by construction so, to conclude, the set $C_3$ has the desired property $C_3 \subseteq (C_1 \cup C_2) - e$.
+    We claim that the cycle consisting of vertices $$v_k, v_{k+1}, \cdots, v_l, w_{l+1}, \cdots , v_{k-1}, v_k$$ is the desired one and denote its set of edges by $C_3$. By construction the sequence of vertices $v_k, v_{k+1}, \cdots v_l, w_{l+1}, \cdots , v_{k-1}, v_k$ is a cycle, namely the neighboring vertices are incident and except $v_k$ there is no vertex repeating, because we have chosen $v_{k+1}, v_{l-1}, \cdots v_{l-1}$ to be disjoint from $C_2$, while $v_l, w_{l+1}, \cdots, v_{k-1}$ is a path in $C_2$. Crucially, $e \notin C_3$ because we have chosen path $v_{l}, w_{l+1}, \cdots v_{k-1}$ in $C_2$ to not include the edge $e$ and $v_k, v_{k+1}, \cdots v_l$ does not include it because $e = \{v_n = v_0, v_1\}$ and there is no $v_0$ in our cycle. Finally, all the vertices of $C_3$ are inside the vertices of $C_1$ and $C_2$ by construction so, to conclude, the set $C_3$ has the desired property $C_3 \subseteq (C_1 \cup C_2) - e$.
     
     We have to check the possibility that $e$ might be a loop or a parallel edge as well, the above argument works assuming $G$ is a simple graph. If $e$ is a parallel edge than the above argument does still hold since we only know that there is more than one edge between $v_0$
     and $v_1$ which does not change anything. However, if $e$ is a loop then by our convention, a cycle consisting of a loop can just be that loop and nothing else, heuristically, because it begins and ends at a single vertex. So $C_1 = C_2 = \{e\}$ which is a contradiction, since we have assumed $C_1$ and $C_2$ are distinct.
@@ -305,7 +304,7 @@ We thus know that given any graph $G$ we have natural matroid structure on its s
 
 Suppose that the set of edges $B$ is a base of a graphic matroid. 
 % We know that this means that $B$ is independent (we do not yet know how to spot the independent sets in graphs).      % should we remove this?
-Since $B$ is maximally indepenent, adding any element not in $B$ to $B$, i.e. any edge not in $B$ to $B$, we get a \textit{dependent set}, which means it contains a circuit. By our definition, this means that it has to contain an edge cycle. Combining all we see that the set of edges $B$ has the property that it does not contain any cycles, however adding any edge makes a cycle - this is the precisely one of the equivalent characterizations of \textit{spanning forests}. Note that we cannot say spanning trees because the graph might not be connected. 
+Since $B$ is maximally indepenent, adding any element not in $B$ to $B$, i.e. any edge not in $B$ to it, we get a \textit{dependent set}, which means it contains a circuit. By our definition, this means that it has to contain an edge cycle. Combining all we see that the set of edges $B$ has the property that it does not contain any cycles, however adding any edge makes a cycle - this is the precisely one of the equivalent characterizations of \textit{spanning forests}. Note that we cannot say spanning trees because the graph might not be connected. 
 
 Any independent set is a subset of some basis, so in graphic matroids the set of edges that is independent has to be a subset of some spanning forest, which means it is just a forest.
 
@@ -355,5 +354,5 @@ As an example, we will show that many matroids shown until now are, in fact, gra
     \label{graphicmatrix}%
 \end{figure}
 
-In figure (\ref{graphicmatrix}) we see that the graph $H$ exactly to corresponds to the vector matroid formed on matrix $A$. Edge 4 is a loop, so a dependent set, corresponding to the fact that the fourth column is a zero vector. Similarly, any two element sets of nonzero vector are independent, corresponding to the fact that any two non-loop edges do not form a cycle in the graph. Finally, any set of three or more edges in dependent, which is easily seen in the graph because we have 3 vertices so the size of a spanning forest is at most 3 - 1 = 2.
+In figure (\ref{graphicmatrix}) we see that the graph $H$ exactly to corresponds to the vector matroid formed on matrix $A$. Edge 4 is a loop, so a dependent set, corresponding to the fact that the fourth column is a zero vector. Similarly, any two element sets of nonzero vector are independent, corresponding to the fact that any two non-loop edges do not form a cycle in the graph. Finally, any set of three or more edges in dependent, which is easily seen in the graph because we have three vertices so the size of a spanning forest is at most 3 - 1 = 2.
 
