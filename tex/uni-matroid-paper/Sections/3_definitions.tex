@@ -106,7 +106,7 @@ which indeed satisfies the properties of collection of independent sets of a mat
 \end{theorem}
 
 \begin{proof}
-    The idea of the proof is taken from \cite[8]{oxley1}.
+    The idea of the proof is taken from \cite[p. 8]{oxley1}.
     We need to check that the collection $\mathcal{I}$ satisfies the three properties for the collection of independent sets given in the definition. 
 
 \begin{enumerate}
@@ -234,7 +234,7 @@ Let us prove that the set of bases of a matroid satisfies the properties (B1) an
 
 
 \begin{lemma}\label{lem:basis-axioms-imply-equal-size}
-    Let $E$ be a finite set, and let $\mathcal{B}$ be a collection of subsets of $E$ satisfying (B1) and (B2). Then $\mathcal{B}$ is equicardinal, so all elements in $\mathcal{B}$ have the same cardinality.
+    Let $E$ be a finite set, and let $\mathcal{B}$ be a collection of subsets of $E$ satisfying (B1) and (B2). Then $\mathcal{B}$ is equicardinal, that is, all elements in $\mathcal{B}$ have the same cardinality.
 \end{lemma}
 
 Even though we have already proven that the set of bases of a matroid is equicardinal, we will also show that this property holds for an \textit{arbitrary collection of subsets} satisfying (B1) and (B2). This property will be useful in a future proof.
@@ -242,7 +242,7 @@ Even though we have already proven that the set of bases of a matroid is equicar
 %Now that we have a new way to describe $\mathcal{B}$ with (B1) and (B2), we again need to prove that it is equicardinal (all elements of $\mathcal{B}$ having the same cardinality). 
 
 \begin{proof}[Proof of lemma (\ref{lem:basis-axioms-imply-equal-size})]
-    Suppose that $\mathcal{B}$ is not equicardinal, that is, we have $|B_1|>|B_2|$ for some $B_1,B_2\in\mathcal{B}$. For all $B_1,B_2$ where that holds, choose the pair that minimizes $|B_1-B_2|$. Since $B_1$ is larger than $B _2$, we know that $B _1 - B _2 \neq \emptyset$. Choose an element $b\in B_1-B_2$ and apply (B2) to show that there exists some $d\in B_2-B_1$ such that $(B_1-b)\cup d \in\mathcal{B}$. With our choices of $b$ and $d$, we can see that $|((B_1-b)\cup d)-B_2|=|(B_1-b)-B_2|<|B_1-B_2|$. This, combined with the fact that $|(B_1-b)\cup d|=|B_1|<|B_2|$, tells us that $B_1$ and $B_2$ are actually not the minimal choice. This contradiction proves that $\mathcal{B}$ is indeed equicardinal.
+    This proof was inspired by \cite[p. 8]{oxley1} Suppose that $\mathcal{B}$ is not equicardinal, that is, we have $|B_1|>|B_2|$ for some $B_1,B_2\in\mathcal{B}$. For all $B_1,B_2$ where that holds, choose the pair that minimizes $|B_1-B_2|$. Since $B_1$ is larger than $B _2$, we know that $B _1 - B _2 \neq \emptyset$. Choose an element $b\in B_1-B_2$ and apply (B2) to show that there exists some $d\in B_2-B_1$ such that $(B_1-b)\cup d \in\mathcal{B}$. With our choices of $b$ and $d$, we can see that $|((B_1-b)\cup d)-B_2|=|(B_1-b)-B_2|<|B_1-B_2|$. This, combined with the fact that $|(B_1-b)\cup d|=|B_1|<|B_2|$, tells us that $B_1$ and $B_2$ are actually not the minimal choice. This contradiction proves that $\mathcal{B}$ is indeed equicardinal.
 \end{proof}
 
 We are going to show the first cryptomorphism, referring to the idea that matroids can be defined not by the collection of independent sets but by its collection of bases. To show that the two properties (B1) and (B2) are sufficient to describe the bases of $M$, we will prove that if $\mathcal{B}$ is any collection of subsets satisfying the bases axioms, then the independent sets are all the possible subsets of the elements of $\mathcal{B}$.
