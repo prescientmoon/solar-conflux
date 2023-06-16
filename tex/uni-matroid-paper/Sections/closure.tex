@@ -135,7 +135,14 @@ Finally, suppose for contradiction that for some $X$ the latter inclusion $\beta
 Because of the maximality of $X$ we hence know that $\beta(X\cup x) = \cl'(X \cup x)$ holds. Also, since the inclusion $\beta(X) \subseteq \cl'(X)$ is proper, we can pick $r \in \cl'(X) - \beta(X)$. In particular, we then have that $r \in \beta(X\cup x) - \beta(X)$ so by (CL4) we have $x \in \beta(X\cup r)$.
 
 However, this means that $X \cup x \subseteq \beta(X\cup r)$ and since $X\cup r \subseteq \cl'(X)$ we have that $\rank'(X\cup r) = 
-\rank'(X)$. But on the other hand $$\rank'(X) + 1= \rank'(X\cup x) = \rank'(\beta(X\cup x))\leq \rank'(\beta(\beta(X\cup r))) = \rank'(\beta(X\cup r)) = \rank'(X\cup r) = \rank'(X),$$
+\rank'(X)$. But on the other hand 
+\begin{align*}
+    \rank'(X) + 1&= \rank'(X\cup x) 
+    \\&=  \rank'(\beta(X\cup x))\leq \rank'(\beta(\beta(X\cup r))) 
+    \\&=  \rank'(\beta(X\cup r)) 
+    \\&=  \rank'(X\cup r) 
+    \\&= \rank'(X),
+\end{align*}
 
 which is a contradiction. So our initial assumption that the inclusion $\beta(X) \subseteq \cl'(X)$ is proper for some $X$ was false, which implies that $\beta(X) = \cl'(X)$ for all $X$ and we are done.
 
