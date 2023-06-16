@@ -131,7 +131,7 @@ E-(E - B) = B.
 \end{align*}
 
 \begin{exmp}
-    Let $U_{k,n}$, be a k-uniform matroid. We know that its bases will be all the k-element subsets of $E(U_{k,n})$. We also know, by definition (\ref{uniformM}), that this matroid is defined over a set of $n$ elements, and its basis has exactly $k$ elements. Therefore, the bases of $U_{k,n}$* are all $(n-k)-element$ subsets of the ground set, as this will be the complement of the basis set of $U_{k,n}$. This is equal to saying that the dual of the matroid $U_{k,n}$ is given by 
+    Let $U_{k,n}$, be a uniform matroid. We know that its bases will be all the k-element subsets of $E(U_{k,n})$. We also know, by definition (\ref{uniformM}), that this matroid is defined over a set of $n$ elements, and its basis has exactly $k$ elements. Therefore, the bases of $U_{k,n}$* are all $(n-k)-element$ subsets of the ground set, as this will be the complement of the basis set of $U_{k,n}$. This is equal to saying that the dual of the matroid $U_{k,n}$ is given by 
     \begin{align*}
     U_{k,n} ^*  = U_{n-k,n}.
     \end{align*}
@@ -206,14 +206,14 @@ Let $A\in \mat_{m\times n}(\mathbb{F})$, and let $M$ be a vector matroid $M[A]$ 
     \item Interchange two rows.
     \item Multiply a row by a non-zero member of $\mathbb{F}$.
     \item Replace a row by the sum of that row with another row.
-    \item Add or remove a zero row.
+    \item Ad or remove a zero row.
     \item Interchanging two columns (the labels moving with the columns).
     \item Multiply a column by a non-zero member of $\mathbb{F}$.
 \end{enumerate}
 
 The reason for this is that when constructing the matroid $M$ from a matrix $A$, we only care about the independence (or dependence) between column vectors in the matrix. As long as the independence and dependence between them is kept the same, the exact values inside the columns are not relevant.
 
-Assume that $A$ is non-zero. It is easy to prove that by using the previously mentioned operations, $A$ can be reduced to be of the form $[I_r|D]$, where $I_r$ is the $r \times r$ identity matrix ($1\leq r< n$) and $D$ is some $r \times (n-r)$ matrix over $\mathbb{F}$. This is because using the \textit{elementary row operations} we can reduce the matrix $A$ to its \textit{reduced row echelon form} and then using the remaining operations we can remove any zero row (operation 4.) and . We also can clearly see that $r(M)=r$ (the dimension for the identity matrix). 
+Assume that $A$ is non-zero. It is easy to prove that by using the previously mentioned operations, $A$ can be reduced to be of the form $[I_r|D]$, where $I_r$ is the $r \times r$ identity matrix ($1\leq r< n$) and $D$ is some $r \times (n-r)$ matrix over $\mathbb{F}$. This is because using the \textit{elementary row operations} we can reduce the matrix $A$ to its \textit{reduced row echelon form} and then using the remaining operations we can remove any zero row (operation 4.) and interchange any columns to make sure is in the desired from (operation 5.). We also can clearly see that $r(M)=r$ (the dimension for the identity matrix). 
 
 Suppose the columns of $[I_r|D]$ are labelled as $e_1, e_2,\cdots,e_n$. We then have the ground set $E=\{e_1, e_2,\cdots,e_n\}$. Let, $\{e_1, e_2,\cdots,e_r\}$ be a basis $B$ of $M$. We also label the rows and columns of the submatrix $D$ in the following form:
 \begin{itemize}
