@@ -261,10 +261,6 @@ Let $E$ be a set and $\mathcal C$ be a collection of subsets of $E$ which satisf
 
               We note that $y \in Y - X$, thus $y \neq x$ and therefore $X \cap (Y \cup x) - y = X \cap Y \cup x$. Furthermore, $x \not\in X \cap Y$, therefore $|X \cap Y \cup x| = |X \cap Y| + 1$. We can now conclude that $|C \cap ((Y \cup x) - y)| = |X \cap Y| + 1$. As $|X \cap Y| + 1 > |X \cap Y|$ and $(X, (Y \cup x) - y)$, we can conclude that $(X, Y)$ did not maximize $|X \cap Y|$, hence a contradiction.
     \end{enumerate}
-
-    We notice that $X$ can be partitioned into $X'$ and $X \cap Y$, hence $|X| = |X'| + |X \cap Y|$. We can follow a similar process for $Y$. Combining the two together with the fact that $|X| < |Y|$ yields that $|X'| < |Y'|$. We know that $Y \in \mathcal I$ so $\forall e \in Y', C_e \not \subseteq  Y$, but $C_e \subseteq  X \cup \{e\}$ therefore there must exist some $c_e \in C_e \cap X'$. 
-
-    We define $D = \{C_e, e \in Y'\}$, $f(C_e) = c_e$ and $S = f(D)$. Furthermore, we know that $f$ is not injective by the Pigeonhole principle (we have $|D| = |Y'| > |X'| \geq |S|$). We also know, by the definition of $S$, that $f$ is surjective. We've shown a choice of $f$ exists. If it is not maximal, swap it with a maximal choice. We can now apply the statement proven by induction to finish the proof.
 \end{enumerate}
 
 

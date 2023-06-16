@@ -77,23 +77,21 @@ We notice the ground set is composed of 4 components $E=\{1,2,3,4\}$, and the or
 \label{DoubleDiagramDual}
 \end{figure}
 
-We know that the basis set of a matroid is obtained from its set of independent sets $I$.
-Using this diagrams, we highlight an idea that will be useful later in this chapter.
-This is, that the basis set of a matroid is given by a subset of $E$, the remaining elements in $E$ that are not in the basis if added to it will be linearly dependent. Aditionally we can take any remaining element of $E$ and exchange it with an element in the basis, and we will have another basis for $E$. With this intuition in mind, we can continue with a theorem.
+% We know that the basis set of a matroid is obtained from its set of independent sets $I$.
+% Using this diagrams, we highlight an idea that will be useful later in this chapter.
+% That is, that the basis set of a matroid is given by a subset of $E$, the remaining elements in $E$ that are not in the basis if added to it will be linearly dependent. Aditionally we can take any remaining element of $E$ and exchange it with an element in the basis, and end up with another basis for $E$. With this intuition in mind, we can continue with a theorem.
 
 
-To formalize the definition of $B^*$ we have the following:
+We begin by formalizing the definition of $B^*$.
 \begin{theorem}\label{dualbasis}
-    Let $M$ be a matroid given by $(E,B)$, and $B^*(M)$ be $\{E(M) - B|B\in B(M)\}$. Then $B^*(M)$ is the set of bases of a matroid on $E(M)$
+    Let $M$ be a matroid given by $(E,B)$, and $B^*(M)$ be $\{E(M) - B|B\in B(M)\}$. Then $B^*(M)$ is the set of bases of a matroid on $E(M)$. We will refer to the new matroid as the \textit{dual} of $M$.
 \end{theorem}
 
-Or in other words, B* is the set of all the complement independent bases of $B$. Then we can give the following definition.
+% \begin{defn}
+%     Let M be a matroid with the pair (E,B), given B* as defined above, the new matroid M*=(E,B*) is the dual of M.
+% \end{defn}
 
-\begin{defn}
-    Let M be a matroid with the pair (E,B), given B* as defined above, the new matroid M*=(E,B*) is the dual of M.
-\end{defn}
-
-In Theorem \ref{dualbasis} we say that $B^*(M)$ is the set of bases of a matroid on $E(M)$, but this may not be trivially clear, so we need to prove it. However, to prove it we will make use of an equivalent property, lets define it as $(B2)^*$, that comes from our property $(B2)$ in Section 2.2 (Theorem. \ref{basesproperties}).
+In Theorem \ref{dualbasis} we say that $B^*(M)$ is the set of bases of a matroid on $E(M)$, but this may not be trivially clear, so we need to prove it. However, to prove it we will make use of an equivalent property, which we will refer to as $(B2)^*$. This property comes from our property $(B2)$ in Section 2.2 (theorem (\ref{thm:basis-properties})).
 
 \begin{lemma}\label{B2Dual}
     The set $B$ of bases of a matroid $M$ has the following property:\\
