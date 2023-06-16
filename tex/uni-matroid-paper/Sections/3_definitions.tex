@@ -379,9 +379,12 @@ Now, let us prove that the rank function of a matroid satisfies these properties
 
         We will now use the well known fact that for any sets $X$ and $Y$, it holds that $|X\cup Y|=|X|+|Y|-|X\cap Y|$, in other words $|X|+|Y|=|X\cup Y|+|X\cap Y|$.
         
-        $$ \rank(A)+\rank(B) \geq |I_{A\cup B}\cap A|+|I_{A\cup B}\cap B| $$
-        $$ = |(I_{A\cup B}\cap A)\cup(I_{A\cup B}\cap B)|+|(I_{A\cup B}\cap A)\cap(I_{A\cup B}\cap B)| $$
-        $$ = |I_{A\cup B}\cap (A\cup B)|+|I_{A\cup B}\cap (A\cap B)| $$
+        \begin{align*}
+            \rank(A)+\rank(B) &\geq |I_{A\cup B}\cap A|+|I_{A\cup B}\cap B| 
+            \\&=  |(I_{A\cup B}\cap A)\cup(I_{A\cup B}\cap B)|
+             +|(I_{A\cup B}\cap A)\cap(I_{A\cup B}\cap B)| 
+            \\&=  |I_{A\cup B}\cap (A\cup B)|+|I_{A\cup B}\cap (A\cap B)| 
+        \end{align*}
 
         Since $I_{A\cup B}\subseteq A\cup B$, we see that $I_{A\cup B}\cap(A\cup B) = I_{A\cup B}$.
 
@@ -411,12 +414,13 @@ Before we prove this, let us prove the following small theorem first.
         \item Induction Step: Assume the statement holds for $k=n$. 
         
         Let us see if the statement holds for $k=n+1$: Let $Y-X=\{a_1,\dots,a_{n+1}\}$ and assume that for all $i\in\{1,\dots,n+1\}$, it holds that $\rank(X\cup a_i)=\rank(X)$. Then, using the assumption and our induction hypothesis, 
-        $$ \rank(X)+\rank(X) = \rank(X\cup \{a_1,\dots,a_n\})+\rank(X\cup a_{n+1}) $$
-        Using (R3), we get
-        $$ \geq \rank([X\cup\{a_1,\dots,a_n\}]\cup [X\cup a_{n+1}]) + \rank([X\cup\{a_1,\dots,a_n\}]\cap [X\cup a_{n+1}]) $$
-        $$ = \rank(X\cup\{a_1,\dots,a_{n+1}\}) + \rank(X) $$
-        Using (R2), we get
-        $$ \geq \rank(X)+\rank(X) $$
+        \begin{align*}
+            \rank(X)+\rank(X) &= \rank(X\cup \{a_1,\dots,a_n\})+\rank(X\cup a_{n+1}) 
+            \\&\geq \rank\left(\left[X\cup\{a_1,\dots,a_n\}\right]\cup \left[X\cup a_{n+1}\right]\right) +
+             \\ &\quad\:  \rank\left([X\cup\{a_1,\dots,a_n\}]\cap [X\cup a_{n+1}]\right)  && \text{(using (R3))}
+            \\&= \rank\left(X\cup\{a_1,\dots,a_{n+1}\}\right) + \rank\left(X\right) 
+            \\&\geq \rank(X)+\rank(X)  && \text{(using (R2)) }
+        \end{align*}
         Since $\rank(X)+\rank(X)$ is on both sides, equality holds throughout. 
         
         Thus, $\rank(X\cup Y) = \rank(X\cup\{a_1,\dots,a_{n+1}\})=\rank(X)$. And thus, the statement holds for $k=n+1$.
