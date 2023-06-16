@@ -398,7 +398,7 @@ Before we prove this, let us prove the following minor theorem first.
     Let $E$ be a finite set and $\rank:2^E\rightarrow \mathbb{Z}_{\geq0}$ be a function satisfying (R2) and (R3). Let $X,Y\subseteq E$. If for all $y\in Y-X$, it holds that $\rank(X\cup y)=\rank(X)$, then we have that $\rank(X\cup Y)=\rank(Y)$.
 \end{theorem}
 \begin{proof} 
-    This proof was inspired by \cite[p. 24]{oxley1}. We will prove that the statement holds with $Y-X = \{a_1,a_2,\cdots,a_k\}$ for all integers $k$.
+    This proof was inspired by \cite[p. 24]{oxley1}. We will prove that the statement holds with $Y-X = \{a_1,a_2,\cdots,a_k\}$ for all positive integers $k$.
     \begin{enumerate}
         \item Consider the case when $k=1$. If $\rank(X\cup a_1)=\rank(X)$, then $\rank(X\cup Y)=\rank(X\cup(Y-X))=\rank(X\cup a_1)=\rank(X)$.
         \item Assume the statement holds for $k=n$. We will attempt to prove it also holds for $k = n + 1$.
@@ -415,7 +415,7 @@ Before we prove this, let us prove the following minor theorem first.
         
         Thus, $\rank(X\cup Y) = \rank(X\cup\{a_1,\cdots,a_{n+1}\})=\rank(X)$. And thus, the statement holds for $k=n+1$.
     \end{enumerate}
-    Thus, by mathematical induction, the statement holds for all integers $k$.
+    Thus, by mathematical induction, the statement holds for all positive integers $k$.
 \end{proof}
 Finally, we can prove Theorem 9:
 \begin{proof}[Proof of theorem (\ref{thm:indep-from-bases})]
