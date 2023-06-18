@@ -1,0 +1,11 @@
+*.aux
+*.log
+*.fls
+*.nav
+*.*.gz
+*.snm
+*.out
+*.*mk
+*.toc
+*.synctex*
+*fuse*
