@@ -1,0 +1,4 @@
+**Ast related stuff**
+- [ ] Define base ast
+- [ ] Write basic parser
+- [ ] Write logic for annoatating scopes and stuff
