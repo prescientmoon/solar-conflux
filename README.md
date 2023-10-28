@@ -1,3 +1,3 @@
-# Purescript experiments
+# The _solar sandbox_
 
-Random stuff I try in purescript
+This is a repository containing random things I am messing around with which don't deserve their own repository.
