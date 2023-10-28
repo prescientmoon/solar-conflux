@@ -1,4 +1,4 @@
-import LeanSandbox.Nat
+import Learning.Nat
 
 macro "nat_ring_all"  : tactic => `(simp_all [Nat.mul_assoc, Nat.mul_comm, Nat.mul_left_comm, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.left_distrib, Nat.right_distrib])
 macro "nat_ring"  : tactic => `(simp [Nat.mul_assoc, Nat.mul_comm, Nat.mul_left_comm, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.left_distrib, Nat.right_distrib])

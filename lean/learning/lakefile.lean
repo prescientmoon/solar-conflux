@@ -1,6 +1,6 @@
 import Lake
 open Lake DSL
 
-package «lean-sandbox» {
+package «lean-learning» {
   -- add configuration options here
 }
