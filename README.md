@@ -1,3 +1,11 @@
 # The _solar sandbox_
 
-This is a repository containing random things I am messing around with which don't deserve their own repository.
+This repository contains numerous experiments of mine which do not deserve their own repositories. It exists for archival purposes.
+
+## Navigation
+
+The experiments are currently organized based on the language they use:
+
+- [Purescript](./purescript/)
+- [Lean](./lean/)
+- [Idris](./idris/)
