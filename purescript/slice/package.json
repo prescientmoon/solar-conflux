@@ -1,0 +1,6 @@
+{
+  "name": "purescript-experiments",
+  "dependencies": {
+    "benchmark": "^2.1.4"
+  }
+}

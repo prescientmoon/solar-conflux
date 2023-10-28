@@ -14,6 +14,7 @@
 | [maps](./maps)                           | Attempt at implementing maps with membership proofs                                                                  |
 | [proofs](./proofs)                       | Attempt at expressing mathematical proofs using Purescript's effect system                                           |
 | [purpleflow](./purpleflow)               | Unfinished dependently-typed programming language                                                                    |
+| [slice](./slice)                         | Basic benchmarks and a `Slice` type                                                                                  |
 | [sprint](./sprint)                       | Failled effect-system based on typelevel lists                                                                       |
 | [streams](./streams)                     | Playing with `purescript-pipes`                                                                                      |
 | [typelevel](./typelevel)                 | Typelevel naturals, vectors, sum-types, orderings and lambda-calculus evaluation and a value-level bounded-type GADT |
