@@ -1,6 +1,6 @@
 # Idris learning
 
-This directory contains my experiments when first learning idris.
+This directory contains the results of my first adventure into the world of Idris 2.
 
 ## File structure
 
