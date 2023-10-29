@@ -11,6 +11,7 @@
 | [existentials](./existentials)           | Experiment regarding the Church-encoding of existential types                                                        |
 | [free](./free/)                          | Experiments regarding free monads and interpreting algebras                                                          |
 | [gadts](./gadts)                         | Experiment regarding ways to encode GADTs in Purescript                                                              |
+| [kombinators](./kombinators)             | Attempt at generating factorio combinator networks programmatically                                                  |
 | [lambda-calculus](./lambda-calculus)     | Lambda calculus evaluator                                                                                            |
 | [lunarline](./lunarline)                 | Attempt at optimizing a functional language using compile-time partial evaluation                                    |
 | [lune](./lune)                           | Failed effect-system project                                                                                         |
