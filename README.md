@@ -7,5 +7,6 @@ This repository contains numerous experiments of mine which do not deserve their
 The experiments are currently organized based on the language they use:
 
 - [Purescript](./purescript/)
+- [Typescript](./typescript/)
 - [Lean](./lean/)
 - [Idris](./idris/)
