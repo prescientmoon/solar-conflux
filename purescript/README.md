@@ -9,6 +9,7 @@
 | [ecs](./ecs/)                            | Purescript-wrapper for [thi.ng/ecs](thi.ng/ecs)                                                                      |
 | [existentials-blog](./existentials-blog) | Perhaps supposed to turn into a blog about existentials?                                                             |
 | [existentials](./existentials)           | Experiment regarding the Church-encoding of existential types                                                        |
+| [free](./free/)                          | Experiments regarding free monads and interpreting algebras                                                          |
 | [gadts](./gadts)                         | Experiment regarding ways to encode GADTs in Purescript                                                              |
 | [lambda-calculus](./lambda-calculus)     | Lambda calculus evaluator                                                                                            |
 | [lunarline](./lunarline)                 | Attempt at optimizing a functional language using compile-time partial evaluation                                    |
