@@ -10,9 +10,11 @@
 | [existentials-blog](./existentials-blog) | Perhaps supposed to turn into a blog about existentials?                                                             |
 | [existentials](./existentials)           | Experiment regarding the Church-encoding of existential types                                                        |
 | [gadts](./gadts)                         | Experiment regarding ways to encode GADTs in Purescript                                                              |
+| [lambda-calculus](./lambda-calculus)     | Lambda calculus evaluator                                                                                            |
 | [lune](./lune)                           | Failed effect-system project                                                                                         |
 | [maps](./maps)                           | Attempt at implementing maps with membership proofs                                                                  |
 | [proofs](./proofs)                       | Attempt at expressing mathematical proofs using Purescript's effect system                                           |
+| [purebird](./purebird)                   | Flappy-bird game                                                                                                     |
 | [purpleflow](./purpleflow)               | Unfinished dependently-typed programming language                                                                    |
 | [slice](./slice)                         | Basic benchmarks and a `Slice` type                                                                                  |
 | [sprint](./sprint)                       | Failled effect-system based on typelevel lists                                                                       |
