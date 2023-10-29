@@ -162,7 +162,15 @@ prettyPrintFirstLog = do
     Just (Finished _ _) -> pure $ errorish "Impossible situation"
     Just (Started id action) -> do
       advanceLogCursor
-      midDoc <- prettyPrintLogs <#> Array.intercalate (Dodo.break)
+      midDoc <- prettyPrintLogs <#> Array.intercalate
+        ( Array.fold
+            [ Dodo.break
+            , Dodo.break
+            , Dodo.text "----------"
+            , Dodo.break
+            , Dodo.break
+            ]
+        )
       endDoc <- currentLog
         >>= case _ of
           Just (Finished finishedId endDoc) | finishedId == id -> ado
@@ -191,7 +199,7 @@ prettyPrintFirstLog = do
       , Dodo.spaceBreak
       , Dodo.indent endDoc
       ]
-    _ -> Dodo.text "Not implemented"
+    Unifying _ _ -> endDoc
   startDoc = case _ of
     Inferring v -> Array.fold
       [ info "Inferring the type of value"
@@ -212,4 +220,12 @@ prettyPrintFirstLog = do
       , Dodo.spaceBreak
       , Dodo.indent term
       ]
-    _ -> Dodo.text "Not implemented"
+    Unifying lhs rhs -> Array.fold
+      [ info "Unifying types"
+      , Dodo.spaceBreak
+      , Dodo.indent lhs
+      , Dodo.spaceBreak
+      , info "with type"
+      , Dodo.spaceBreak
+      , Dodo.indent rhs
+      ]
