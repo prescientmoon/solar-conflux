@@ -10,3 +10,4 @@ The experiments are currently organized based on the language they use:
 - [Typescript](./typescript/)
 - [Lean](./lean/)
 - [Idris](./idris/)
+- [Typst](./typst/)
