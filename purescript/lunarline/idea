@@ -1,0 +1,72 @@
+map f = case _ of
+  Nil -> Nil
+  x:xs -> f x : map f xs
+
+
+map2 f g xs = map g (map f xs)
+
+----------
+map2 f g xs = map g case xs of
+  Nil -> Nil
+  x:xs -> f x : map f xs
+
+----------
+map2 g f xs = case (case ...) ...
+
+----------
+map2 f g xs = case xs of
+  Nil -> case Nil of
+    Nil -> Nil
+    x:xs -> f x : map f xs
+  x:xs -> case f x : map f xs of
+    Nil -> Nil
+    x:xs -> g x : map g xs
+
+----------
+map2 f g xs = case xs of
+  Nil -> Nil 
+  x:xs -> let 
+    a = f x
+    b = map f xs
+  in g a : map g b
+
+----------
+map2 f g xs = case xs of
+  Nil -> Nil 
+  x:xs -> g (f x) : map g (map f xs)
+
+----------
+map2 f g = case _ of
+  x:xs -> g (f x) : map2 f g xs 
+  Nil -> Nil 
+
+----------
+map2 f g = case _ of
+  x:xs -> (compose g f) x : map2 f g xs 
+  Nil -> Nil 
+
+==========
+Unify
+  map2 f g a 
+with
+  map u1 u2
+
+u2 = a
+
+==========
+Unify 
+  (compose g f) x
+with
+  u1 x
+
+u1 = compose g f
+
+==========
+Unify
+  map2 f g xs
+with
+  map (compose g f) xs
+
+TRUE
+
+map2 = map (compose g f) xs

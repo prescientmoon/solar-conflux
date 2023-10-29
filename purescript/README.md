@@ -11,6 +11,7 @@
 | [existentials](./existentials)           | Experiment regarding the Church-encoding of existential types                                                        |
 | [gadts](./gadts)                         | Experiment regarding ways to encode GADTs in Purescript                                                              |
 | [lambda-calculus](./lambda-calculus)     | Lambda calculus evaluator                                                                                            |
+| [lunarline](./lunarline)                 | Attempt at optimizing a functional language using compile-time partial evaluation                                    |
 | [lune](./lune)                           | Failed effect-system project                                                                                         |
 | [maps](./maps)                           | Attempt at implementing maps with membership proofs                                                                  |
 | [proofs](./proofs)                       | Attempt at expressing mathematical proofs using Purescript's effect system                                           |
