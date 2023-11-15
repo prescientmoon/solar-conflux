@@ -1,0 +1,12 @@
+{
+  "name": "purescript-thumbor",
+  "version": "1.0.0",
+  "description": "Bindings for thumbor-ts",
+  "main": "todo.js",
+  "author": "Matei Adriel",
+  "license": "SEE LICENSE",
+  "private": false,
+  "dependencies": {
+    "thumbor-ts": "^1.3.7"
+  }
+}
