@@ -66,8 +66,8 @@ runExternalStateUsingRef ref = runExternalStateEffectfully
     }
 
 -- | External state is invariant over the state type parameter, so we can imap is.
-imapExternaState :: forall s a r. (s -> a) -> (a -> s) -> Run (EXTERNAL_STATE a + EXTERNAL_STATE s r) ~> Run (EXTERNAL_STATE s r)
-imapExternaState from to = runExternalState
+imapExternalState :: forall s a r. (s -> a) -> (a -> s) -> Run (EXTERNAL_STATE a + EXTERNAL_STATE s r) ~> Run (EXTERNAL_STATE s r)
+imapExternalState from to = runExternalState
     { get: gets from
     , set: to >>> put
     }
