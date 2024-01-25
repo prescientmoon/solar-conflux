@@ -12,3 +12,4 @@ The experiments are currently organized based on the language they use:
 - [Lua](./lua/)
 - [Idris](./idris/)
 - [Typst](./typst/)
+- [Python](./python/)
