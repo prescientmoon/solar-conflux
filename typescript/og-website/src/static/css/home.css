@@ -1,0 +1,17 @@
+div#home-title {
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--spacing, 1rem);
+}
+
+a.home-button {
+    background-color: rgba(128, 128, 128, 0.5);
+    padding: var(--spacing, 1rem);
+    border-radius: var(--spacing, 1rem);
+    font-size: var(--font-size, 1em);
+    font-family: var(--title-font);
+}
+
+div#home-buttons {
+    padding: var(--spacing, 0.5rem);
+}
