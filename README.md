@@ -9,6 +9,7 @@ The experiments are currently organized based on the language they use:
 - [Elm](./elm/)
 - [F#](./fsharp/)
 - [Idris](./idris/)
+- [Javascript](./javascript/)
 - [Lean](./lean/)
 - [Lua](./lua/)
 - [Purescript](./purescript/)
