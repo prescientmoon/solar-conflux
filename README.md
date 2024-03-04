@@ -6,11 +6,12 @@ This repository contains numerous experiments of mine which do not deserve their
 
 The experiments are currently organized based on the language they use:
 
-- [Purescript](./purescript/)
-- [Typescript](./typescript/)
+- [Elm](./elm/)
+- [F#](./fsharp/)
+- [Idris](./idris/)
 - [Lean](./lean/)
 - [Lua](./lua/)
-- [Idris](./idris/)
-- [Typst](./typst/)
+- [Purescript](./purescript/)
 - [Python](./python/)
-- [Elm](./elm/)
+- [Typescript](./typescript/)
+- [Typst](./typst/)
