@@ -1,0 +1,228 @@
+dependencies:
+  calculess: 1.0.2
+  esbuild: 0.11.4
+  esbuild-plugin-purescript: 1.0.0
+  events: 3.3.0
+  function-plot: 1.22.7
+lockfileVersion: 5.1
+packages:
+  /@types/assert/1.5.4:
+    dev: false
+    resolution:
+      integrity: sha512-CaFVW21Ulu0J9sUaEWJjwmhkDkeoxa4fniVSERzZC13sU9v8NNM2lMlkfZZv60j47D+qDt0Lyo8skVP3CTXUdA==
+  /built-in-math-eval/0.3.0:
+    dependencies:
+      math-codegen: 0.3.5
+    dev: false
+    resolution:
+      integrity: sha1-JA3CHLOJQ5WIxhxGDrAHZJfvxBw=
+  /calculess/1.0.2:
+    dev: false
+    resolution:
+      integrity: sha512-9VCZJhW9fp7JmMgn6aTZ0U8NhcbJRFdD3vPlaYWMKIVIH1z4F/ZgDZKqx28fABjn4HaM4VT1ZoQzsONvI2LrCA==
+  /clamp/1.0.1:
+    dev: false
+    resolution:
+      integrity: sha1-ZqDmQBGBbjcZaCj9yMjBRzEshjQ=
+  /d3-array/2.12.1:
+    dependencies:
+      internmap: 1.0.1
+    dev: false
+    resolution:
+      integrity: sha512-B0ErZK/66mHtEsR1TkPEEkwdy+WDesimkM5gpZr5Dsg54BiTA5RXtYW5qTLIAcekaS9xfZrzBLF/OAkB3Qn1YQ==
+  /d3-axis/2.1.0:
+    dev: false
+    resolution:
+      integrity: sha512-z/G2TQMyuf0X3qP+Mh+2PimoJD41VOCjViJzT0BHeL/+JQAofkiWZbWxlwFGb1N8EN+Cl/CW+MUKbVzr1689Cw==
+  /d3-color/2.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-SPXi0TSKPD4g9tw0NMZFnR95XVgUZiBH+uUTqQuDu1OsE2zomHU7ho0FISciaPvosimixwHFl3WHLGabv6dDgQ==
+  /d3-dispatch/2.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-S/m2VsXI7gAti2pBoLClFFTMOO1HTtT0j99AuXLoGFKO6deHDdnv6ZGTxSTTUTgO1zVcv82fCOtDjYK4EECmWA==
+  /d3-drag/2.0.0:
+    dependencies:
+      d3-dispatch: 2.0.0
+      d3-selection: 2.0.0
+    dev: false
+    resolution:
+      integrity: sha512-g9y9WbMnF5uqB9qKqwIIa/921RYWzlUDv9Jl1/yONQwxbOfszAWTCm8u7HOTgJgRDXiRZN56cHT9pd24dmXs8w==
+  /d3-ease/2.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-68/n9JWarxXkOWMshcT5IcjbB+agblQUaIsbnXmrzejn2O82n3p2A9R2zEB9HIEFWKFwPAEDDN8gR0VdSAyyAQ==
+  /d3-format/2.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-Ab3S6XuE/Q+flY96HXT0jOXcM4EAClYFnRGY5zsjRGNy6qCYrQsMffs7cV5Q9xejb35zxW5hf/guKw34kvIKsA==
+  /d3-interpolate/2.0.1:
+    dependencies:
+      d3-color: 2.0.0
+    dev: false
+    resolution:
+      integrity: sha512-c5UhwwTs/yybcmTpAVqwSFl6vrQ8JZJoT5F7xNFK9pymv5C0Ymcc9/LIJHtYIggg/yS9YHw8i8O8tgb9pupjeQ==
+  /d3-path/2.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-ZwZQxKhBnv9yHaiWd6ZU4x5BtCQ7pXszEV9CU6kRgwIQVQGLMv1oiL4M+MK/n79sYzsj+gcgpPQSctJUsLN7fA==
+  /d3-scale/3.2.4:
+    dependencies:
+      d3-array: 2.12.1
+      d3-format: 2.0.0
+      d3-interpolate: 2.0.1
+      d3-time: 2.0.0
+      d3-time-format: 3.0.0
+    dev: false
+    resolution:
+      integrity: sha512-PG6gtpbPCFqKbvdBEswQcJcTzHC8VEd/XzezF5e68KlkT4/ggELw/nR1tv863jY6ufKTvDlzCMZvhe06codbbA==
+  /d3-selection/2.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-XoGGqhLUN/W14NmaqcO/bb1nqjDAw5WtSYb2X8wiuQWvSZUsUVYsOSkOybUrNvcBjaywBdYPy03eXHMXjk9nZA==
+  /d3-shape/2.1.0:
+    dependencies:
+      d3-path: 2.0.0
+    dev: false
+    resolution:
+      integrity: sha512-PnjUqfM2PpskbSLTJvAzp2Wv4CZsnAgTfcVRTwW03QR3MkXF8Uo7B1y/lWkAsmbKwuecto++4NlsYcvYpXpTHA==
+  /d3-time-format/3.0.0:
+    dependencies:
+      d3-time: 2.0.0
+    dev: false
+    resolution:
+      integrity: sha512-UXJh6EKsHBTjopVqZBhFysQcoXSv/5yLONZvkQ5Kk3qbwiUYkdX17Xa1PT6U1ZWXGGfB1ey5L8dKMlFq2DO0Ag==
+  /d3-time/2.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-2mvhstTFcMvwStWd9Tj3e6CEqtOivtD8AUiHT8ido/xmzrI9ijrUUihZ6nHuf/vsScRBonagOdj0Vv+SEL5G3Q==
+  /d3-timer/2.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-TO4VLh0/420Y/9dO3+f9abDEFYeCUr2WZRlxJvbp4HPTQcSylXNiL6yZa9FIUvV1yRiFufl1bszTCLDqv9PWNA==
+  /d3-transition/2.0.0_d3-selection@2.0.0:
+    dependencies:
+      d3-color: 2.0.0
+      d3-dispatch: 2.0.0
+      d3-ease: 2.0.0
+      d3-interpolate: 2.0.1
+      d3-selection: 2.0.0
+      d3-timer: 2.0.0
+    dev: false
+    peerDependencies:
+      d3-selection: '2'
+    resolution:
+      integrity: sha512-42ltAGgJesfQE3u9LuuBHNbGrI/AJjNL2OAUdclE70UE6Vy239GCBEYD38uBPoLeNsOhFStGpPI0BAOV+HMxog==
+  /d3-zoom/2.0.0:
+    dependencies:
+      d3-dispatch: 2.0.0
+      d3-drag: 2.0.0
+      d3-interpolate: 2.0.1
+      d3-selection: 2.0.0
+      d3-transition: 2.0.0_d3-selection@2.0.0
+    dev: false
+    resolution:
+      integrity: sha512-fFg7aoaEm9/jf+qfstak0IYpnesZLiMX6GZvXtUSdv8RH2o4E2qeelgdU09eKS6wGuiGMfcnMI0nTIqWzRHGpw==
+  /double-bits/1.1.1:
+    dev: false
+    resolution:
+      integrity: sha1-WKu6RUlNpND6Nrc60RoobJGEscY=
+  /esbuild-plugin-purescript/1.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-WdSdRtpm5AoRyDj3vEnmLsMsTY9kl3znRUTQe5ilbtcK/JIJv3Nz6d8lsEA079vmWgjc3JtR7Ii1y1omoz/wLg==
+  /esbuild/0.11.4:
+    dev: false
+    hasBin: true
+    requiresBuild: true
+    resolution:
+      integrity: sha512-qWGlOOTwyTn4f846LoR47Mif4Aek4rY9ChdXN7q7G15HpDYq3pxwnPFWe2os/jOq8naFh2Z+FqWfkq8ZP6kATw==
+  /events/3.3.0:
+    dev: false
+    engines:
+      node: '>=0.8.x'
+    resolution:
+      integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==
+  /extend/3.0.2:
+    dev: false
+    resolution:
+      integrity: sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==
+  /function-plot/1.22.7:
+    dependencies:
+      built-in-math-eval: 0.3.0
+      clamp: 1.0.1
+      d3-axis: 2.1.0
+      d3-color: 2.0.0
+      d3-format: 2.0.0
+      d3-interpolate: 2.0.1
+      d3-scale: 3.2.4
+      d3-selection: 2.0.0
+      d3-shape: 2.1.0
+      d3-zoom: 2.0.0
+      interval-arithmetic-eval: 0.4.7
+    dev: false
+    resolution:
+      integrity: sha512-rB6FeVqvgNECmt5PhIvFFEOyEjM9AWLIpMkj9Nzbzq9f81Irgn3ZrXAuv5+qnuzM99jPL7ZM4kK3+ImiKXcSHA==
+  /internmap/1.0.1:
+    dev: false
+    resolution:
+      integrity: sha512-lDB5YccMydFBtasVtxnZ3MRBHuaoE8GKsppq+EchKL2U4nK/DmEpPHNH8MZe5HkMtpSiTSOZwfN0tzYjO/lJEw==
+  /interval-arithmetic-eval/0.4.7:
+    dependencies:
+      interval-arithmetic: 1.0.6
+      math-codegen: 0.3.5
+    dev: false
+    resolution:
+      integrity: sha512-ClK+N4efbsgjlZR8h0qd0LQbyzUzJ9IkrjmTnD5MVb4Ytebd0lesoVP4AxLclcsEI+nIieskQ8cepHIWUPaRhQ==
+  /interval-arithmetic/1.0.6:
+    dependencies:
+      '@types/assert': 1.5.4
+      is-safe-integer: 2.0.0
+      nextafter: 1.0.0
+      typedarray: 0.0.6
+    dev: false
+    resolution:
+      integrity: sha512-eVotDGYPNiEaJ63oa4CeEHgOczZJ3gNHqG5wfVQ2o8sN2CEczQyR82Sjey/Bp36x8e7PtBcBvitcMnw6VUpjgQ==
+  /is-safe-integer/2.0.0:
+    dependencies:
+      max-safe-integer: 1.0.1
+    deprecated: This package is no longer relevant as ES2015 support is widespread.
+    dev: false
+    engines:
+      node: '>=0.10.0'
+    resolution:
+      integrity: sha512-eDaA39/1+3SNtYTRP28lRYOHMwiB1gfqXQaXcf/+f4mLwKgm8TTDkwJldsdtbgrK1R5CoDbf6AQ0KqP7BKoGtQ==
+  /math-codegen/0.3.5:
+    dependencies:
+      extend: 3.0.2
+      mr-parser: 0.2.1
+    dev: false
+    resolution:
+      integrity: sha1-R5nuRnfe0Ud2bQA8ykt4ee3UDMo=
+  /max-safe-integer/1.0.1:
+    dev: false
+    engines:
+      node: '>=0.10.0'
+    resolution:
+      integrity: sha1-84BgvixWPYwC5tSK85Ei/YO29BA=
+  /mr-parser/0.2.1:
+    dev: false
+    resolution:
+      integrity: sha1-hhi5ukF+KOn0OaQcaVtVTq/u2Sc=
+  /nextafter/1.0.0:
+    dependencies:
+      double-bits: 1.1.1
+    dev: false
+    resolution:
+      integrity: sha1-t9d7U1MQ4+CX5gJauwqQNHfsGjo=
+  /typedarray/0.0.6:
+    dev: false
+    resolution:
+      integrity: sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
+specifiers:
+  calculess: ^1.0.2
+  esbuild: ^0.11.4
+  esbuild-plugin-purescript: ^1.0.0
+  events: ^3.3.0
+  function-plot: ^1.22.7
