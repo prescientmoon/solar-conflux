@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "module": "CommonJS",
+        "lib": ["esnext", "dom", "es2015.iterable"],
+        "moduleResolution": "node",
+        "strictNullChecks": true,
+        "sourceMap": true,
+        "downlevelIteration": true,
+        "target": "es6",
+
+        "resolveJsonModule": true
+    },
+    "include": ["src", "sandbox", "test", "package.json"],
+    "exclude": ["dist"]
+}
