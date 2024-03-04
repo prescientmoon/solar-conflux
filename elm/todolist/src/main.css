@@ -1,0 +1,111 @@
+/*
+  elm-hot creates an additional div wrapper around the app to make HMR possible.
+  This could break styling in development mode if you are using Elm UI.
+
+  More context in the issue:
+    https://github.com/halfzebra/create-elm-app/issues/320
+*/
+[data-elm-hot="true"] {
+  height: inherit;
+}
+
+:root {
+  --secondary: #009fb7;
+  --primary: #1a213b;
+  --on-secondary: #eff1f4;
+  --disabled: #555555;
+}
+
+body {
+  font-family: "Source Sans Pro", "Trebuchet MS", "Lucida Grande",
+    "Bitstream Vera Sans", "Helvetica Neue", sans-serif;
+  margin: 0;
+  background: var(--primary);
+
+  color: var(--on-secondary);
+}
+
+h1 {
+  font-size: 30px;
+}
+
+.header {
+  display: flex;
+}
+
+.btn {
+  background-color: var(--secondary);
+  color: var(--on-secondary);
+  padding: 1rem;
+  margin: 1rem;
+  border: none;
+}
+
+input {
+  outline: none;
+}
+
+.todos {
+  display: flex;
+  flex-direction: column;
+  min-height: 67vh;
+  border: 1px solid var(--secondary);
+}
+
+.todo {
+  transition: filter 0.5s;
+  background: var(--primary);
+  display: flex;
+}
+
+.todo:hover {
+  filter: brightness(1.4);
+}
+
+.todo.completed {
+  color: var(--disabled);
+
+  text-decoration: line-through;
+}
+
+.todo.completed > .btn {
+  color: var(--disabled);
+}
+
+.todo > * {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.todoText {
+  justify-content: flex-start;
+  flex-direction: row;
+  flex-grow: 1;
+}
+
+.todoCompleted {
+  margin: 1rem;
+}
+
+.todoTextInput {
+  background: var(--primary);
+  border: 1px var(--secondary) solid;
+  margin: 1rem;
+  padding: 2px;
+  box-sizing: border-box;
+  color: var(--on-secondary);
+  font-size: 1.5rem;
+  transition: filter 0.5s;
+}
+
+.todoTextInput:focus {
+  filter: brightness(1.4);
+}
+
+.todoCheckbox {
+  width: 1rem;
+  height: 1rem;
+  background: var(--secondary);
+}

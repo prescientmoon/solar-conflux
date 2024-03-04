@@ -13,3 +13,4 @@ The experiments are currently organized based on the language they use:
 - [Idris](./idris/)
 - [Typst](./typst/)
 - [Python](./python/)
+- [Elm](./elm/)

@@ -1,0 +1,29 @@
+name: Elm
+
+on: [push]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Use node 12
+        uses: actions/setup-node@v1
+
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm i -g elm create-elm-app
+      - run: elm-app build
+      - name: Deploy to github pages
+        uses: JamesIves/github-pages-deploy-action@master
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          BASE_BRANCH: master
+          BRANCH: gh-pages
+          FOLDER: build
