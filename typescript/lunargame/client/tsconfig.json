@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "jsx": "preserve",
+        "noImplicitAny": true,
+        "experimentalDecorators": true,
+        "target": "esnext"
+    },
+    "exclude": ["node_modules"],
+    "include": ["src"]
+}
