@@ -1,0 +1,38 @@
+{
+    "name": "@adrielus/loopover",
+    "version": "0.1.1",
+    "description": "Reliable loopover simulator",
+    "main": "dist/bundle.cjs.js",
+    "module": "dist/bundle.esm.js",
+    "typings": "dist/index.d.ts",
+    "scripts": {
+        "prebuild": "rimraf dist",
+        "build": "rollup -c rollup.config.ts"
+    },
+    "files": [
+        "dist"
+    ],
+    "keywords": [
+        "loopover",
+        "board",
+        "typescript",
+        "speedcubing"
+    ],
+    "author": "Matei Adriel",
+    "license": "GPL-3.0",
+    "dependencies": {
+        "@thi.ng/api": "^6.5.0",
+        "immutable": "^4.0.0-rc.12"
+    },
+    "sideEffects": false,
+    "devDependencies": {
+        "rimraf": "^3.0.0",
+        "rollup": "^1.27.5",
+        "rollup-plugin-commonjs": "^10.1.0",
+        "rollup-plugin-dts": "^1.1.12",
+        "rollup-plugin-node-resolve": "^5.2.0",
+        "rollup-plugin-terser": "^5.1.2",
+        "rollup-plugin-typescript2": "^0.25.2",
+        "typescript": "^3.7.2"
+    }
+}
