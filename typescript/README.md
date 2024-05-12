@@ -9,3 +9,4 @@
 | [option](./option/)                          | Typescript implementation of the `Maybe` monad                                                                                  |
 | [pleix-frontend](./pleix-frontend/)          | No idea what `pleix` was supposed to be, but this was essentially just a bunch of experiments with [lit-html](https://lit.dev/) |
 | [wave38](./wave38/)                          | Remake of [wave37](https://github.com/Mateiadrielrafael/wave37) I dropped super early into development.                         |
+| [loopover](./loopover/)                      | Implementation of the [loopover](https://loopover.xyz/) game logic                                                              |
