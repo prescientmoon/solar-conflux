@@ -1,0 +1,15 @@
+{
+  "aliases": {
+    "USA": "US",
+    "The Netherlands": "Netherlands"
+  },
+
+  "countries": [
+    "US",
+    "Netherlands",
+    "France",
+    "Denmark",
+    "Switzerland",
+    "Canada"
+  ]
+}
