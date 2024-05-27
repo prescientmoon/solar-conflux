@@ -1,3 +1,4 @@
+# 🚧 This repo has been moved to [prescientmoon/Mongy](https://github.com/prescientmoon/Mongy) 🚧
 # Mongy
 A high level interface for MongoDB built on top of Mongoose
 
