@@ -1,3 +1,4 @@
+# 🚧 This repo has been moved to [prescientmoon/Translucid](https://github.com/prescientmoon/Translucid) 🚧
 # Translucid
 A simple node.js library to bind files to requests
 
