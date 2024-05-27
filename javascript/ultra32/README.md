@@ -1,3 +1,4 @@
+# 🚧 This repo has been moved to [prescientmoon/ultra32](https://github.com/prescientmoon/ultra32) 🚧
 # Ultra32
 A vector package using the fast float32array
 
