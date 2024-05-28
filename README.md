@@ -16,6 +16,7 @@ The repositories are properly imported using [./import.sh](./import.sh) — a da
 
 The experiments are currently organized based on the language they use:
 
+- [Dart](./dart/)
 - [Elm](./elm/)
 - [F#](./fsharp/)
 - [Idris](./idris/)
