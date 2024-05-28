@@ -18,6 +18,11 @@ The experiments are currently organized based on the language they use:
 
 - [Purescript](./purescript/)
 - [Typescript](./typescript/)
+- [Dart](./dart/)
+- [Elm](./elm/)
+- [F#](./fsharp/)
+- [Idris](./idris/)
+- [Javascript](./javascript/)
 - [Lean](./lean/)
 - [Lua](./lua/)
 - [Idris](./idris/)
