@@ -7,7 +7,7 @@ if [ "$#" -ne 3 ]; then
 fi
 
 language=$1
-repo="https://github.com/mateiadrielrafael/$2"
+repo="https://github.com/prescientmoon/$2"
 name=$3
 
 # Ensure project with that name doesn't exist
