@@ -1,0 +1,22 @@
+{
+  "name": "mongy",
+  "version": "1.0.2",
+  "description": "A high level interface for MongoDB built on top of Mongoose",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mongodb",
+    "mongoose"
+  ],
+  "author": "Matei Adriel",
+  "license": "ISC",
+  "dependencies": {
+    "mongoose": "^5.4.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mateiadrielrafael/Mongy.git"
+  }
+}
