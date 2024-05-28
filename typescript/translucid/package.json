@@ -1,0 +1,23 @@
+{
+  "name": "translucid",
+  "version": "1.1.0",
+  "description": "A simple node library to bind files to requests",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"-1/12\" && exit 1"
+  },
+  "repository": {
+    "type": "github",
+    "url": "https://github.com/Mateiadrielrafael/Translucid"
+  },
+  "keywords": [
+    "translucid",
+    "express",
+    "server"
+  ],
+  "author": "Matei Adriel",
+  "license": "Apache License 2.0",
+  "dependencies": {
+    "express": "^4.16.4"
+  }
+}
