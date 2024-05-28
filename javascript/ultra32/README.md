@@ -1,11 +1,11 @@
-# 🚧 This repo has been moved to [prescientmoon/ultra32](https://github.com/prescientmoon/ultra32) 🚧
 # Ultra32
-A vector package using the fast float32array
 
+A vector package using the fast float32array
 
 # Get started:
 
 To get started, install ultra32:
+
 ```
 npm install ultra32 --save
 ```
@@ -17,6 +17,7 @@ const vec = new Float32Array([0,0]);
 ```
 
 You can perform multiple operations:
+
 ```
 add(vec,new Float32Array([1,2]));
 mul(vec,3);
