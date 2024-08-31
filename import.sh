@@ -22,6 +22,6 @@ FILTER_BRANCH_SQUELCH_WARNING=1 \
   git filter-branch --msg-filter "awk \"{print \\\"$language($name): \\\" \\\$0}\"" -f && \
   git rebase --root --committer-date-is-author-date --signoff
 
-hash=$(git hash)
+hash=$(git log -1 --format='%H')
 git switch master
 git merge --allow-unrelated $hash --log -m "Add \`$language/$name\`"
