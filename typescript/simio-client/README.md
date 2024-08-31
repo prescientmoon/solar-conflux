@@ -1,3 +1,3 @@
-# sim.io-client
+# Simio client:
 
-the front-end for sim.io
+This project is pretty much dead. It was my first angular project, so i did a lot of things 'the wrong way'.
