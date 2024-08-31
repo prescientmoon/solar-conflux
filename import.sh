@@ -24,4 +24,4 @@ FILTER_BRANCH_SQUELCH_WARNING=1 \
 
 hash=$(git hash)
 git switch master
-git merge --allow-unrelated $hash -m "Add `$language/$name`"
+git merge --allow-unrelated $hash --log -m "Add \`$language/$name\`"
