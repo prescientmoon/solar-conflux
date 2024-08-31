@@ -1,0 +1,30 @@
+---
+to: packages/<%= name %>/package.json
+---
+{
+    "name": "@<%= org %>/<%= name %>",
+    "version": "0.0.0",
+    "description": "<%- description %>",
+    "keywords": [],
+    "main": "dist/bundle.cjs.js",
+    "module": "dist/bundle.esm.js",
+    "browser": "dist/bundle.umd.js",
+    "typings": "./dist/bundle.esm.d.ts",
+    "scripts": {
+        "build": "rollup -c ../../rollup.config.ts"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "files": [
+        "dist"
+    ],
+    "author": "<%= author %>",
+    "homepage": "<%= homepage %>",
+    "license": "<%= license %>",
+    "repository": <%- repository %>,
+    "bugs": <%- bugs %>,
+    "dependencies": {},
+    "devDependencies": {},
+    "sideEffects": false
+}

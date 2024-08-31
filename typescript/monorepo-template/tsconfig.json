@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "downlevelIteration": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strictBindCallApply": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "module": "ESNext",
+    "moduleResolution": "Node"
+  },
+  "include": ["packages/*/src/**/*.ts"],
+  "exclude": ["**/node_modules/**"]
+}
