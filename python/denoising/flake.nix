@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/release-22.11";
+    nixpkgs.url = "github:nixos/nixpkgs/release-24.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -9,14 +9,14 @@
       (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          pyDeps = p: with p; [ numpy scipy matplotlib pillow ];
+          pyDeps = p: with p; [ numpy scipy matplotlib pillow jupyter ];
         in
         rec {
           devShell = pkgs.mkShell {
-            buildInputs = with pkgs; [
+            packages = with pkgs; [
               (python3.withPackages pyDeps)
-              jupyter
-              pandoc
+              pkgs.texlive.combined.scheme-full
+              # pandoc
             ];
           };
         });
