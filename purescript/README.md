@@ -9,8 +9,8 @@
 | [ecs](./ecs/)                                 | Purescript-wrapper for [thi.ng/ecs](thi.ng/ecs)                                                                      |
 | [existentials-blog](./existentials-blog)      | Perhaps supposed to turn into a blog about existentials?                                                             |
 | [existentials](./existentials)                | Experiment regarding the Church-encoding of existential types                                                        |
-| [free](./free/)                               | Experiments regarding free monads and interpreting algebras                                                          |
 | [factorio-throughput](./factorio-throughput/) | Experiments with computing throughput of factorio systems                                                            |
+| [free](./free/)                               | Experiments regarding free monads and interpreting algebras                                                          |
 | [gadts](./gadts)                              | Experiment regarding ways to encode GADTs in Purescript                                                              |
 | [kombinators](./kombinators)                  | Attempt at generating factorio combinator networks programmatically                                                  |
 | [lambda-calculus](./lambda-calculus)          | Lambda calculus evaluator                                                                                            |
@@ -24,5 +24,6 @@
 | [sprint](./sprint)                            | Failled effect-system based on typelevel lists                                                                       |
 | [strategy](./strategy)                        | Unfinished attempt at implementing a mixed strategy nash equilibrium solver                                          |
 | [streams](./streams)                          | Playing with `purescript-pipes`                                                                                      |
+| [switcheroo](./switcheroo)                    | Index-monad based stream library idea                                                                                |
 | [thumbor](./thumbor)                          | Dropped attempt at writing purescript bindings for [thumbor-ts](https://github.com/Brettm12345/thumbor-ts)           |
 | [typelevel](./typelevel)                      | Typelevel naturals, vectors, sum-types, orderings and lambda-calculus evaluation and a value-level bounded-type GADT |
