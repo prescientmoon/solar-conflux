@@ -20,6 +20,7 @@
 | [proofs](./proofs)                            | Attempt at expressing mathematical proofs using Purescript's effect system                                           |
 | [purebird](./purebird)                        | Flappy-bird game                                                                                                     |
 | [purpleflow](./purpleflow)                    | Unfinished dependently-typed programming language                                                                    |
+| [reverse-state](./reverse-state)              | Implementation of, (drum roll), reverse state                                                                        |
 | [slice](./slice)                              | Basic benchmarks and a `Slice` type                                                                                  |
 | [sprint](./sprint)                            | Failled effect-system based on typelevel lists                                                                       |
 | [strategy](./strategy)                        | Unfinished attempt at implementing a mixed strategy nash equilibrium solver                                          |
