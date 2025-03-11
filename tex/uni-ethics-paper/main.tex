@@ -15,8 +15,10 @@
 \usepackage{amsthm}
 \usepackage[english]{babel}
 \usepackage{hyperref}
+\usepackage{apacite}
 \newtheorem{theorem}{Theorem}[section]\newtheorem{corollary}{Corollary}[theorem]\newtheorem{lemma}[theorem]{Lemma}\theoremstyle{definition}\newtheorem{definition}{Definition}[section]\theoremstyle{remark}\newtheorem*{remark}{Remark}
-\title{}
+
+\title{Statistical Profiling for Insurance}
 
 
 \usepackage{hyperref}
@@ -28,62 +30,13 @@
 \date{}
 
 \begin{document}
-\maketitle
-\section{Characterize the innovation/technology}
-\subsection{Technological Focus}
-The innovation central to our topic is statistics. Which is a very established method which has been used for many years. What's relatively new is how insurance companies are using statistics to determine how likely specific people are to require their insurance based on, for example, the person their genetics.
 
 
-\subsection{Context and Use}
-Insurance companies using statistics is what we're looking at. They want to use statistics to evaluate how likely it is that a person is going to need their insurance, increasing the pricing when this probability is high. They want their insurance policies to be a good investment for them.
+\input{introduction.tex}
+\input{methodology.tex}
 
-\subsection{Effectiveness and alternatives}
-The alternative to personalised policies is ofcourse unpersonalised ones. This way no personal data has to be used and discrimination would be elliminated but it would mean higher costs for low risk people. 
-
-\section{Estimate effects of the technology on society}
-\subsection{Direct and indirect effects}
-Because of this, certain people will be forced to pay more for their insurance or even be unable to get certain policies at all. For insurance companies, it means reduced risks, allowing for generally lower prices for policies.\\\\
-It might encourage safer behavior; for example, car insurance rewards safe driving. It could also enforce biases leading to discrimination. There are also privacy concerns with the insurance companies that collect your data.
-
-\subsection{Intended and unintended consequences}
-
-
-
-\section{Normative assessment}
-\subsection{Stakeholder impact}
-The important stakeholders related to using statistical profiling in insurance are:
-\begin{enumerate}
-    \item \textbf{Policy Holders}: The people getting insured. They could get fairer pricing based on personal factors and statistical models. On the other hand the result could also be very unfair when people based on their genetics are forced to pay more to be insured. The privacy of Policy holders is also in question dependent on what and how much data is used for these models.
-    \item \textbf{Insurance Companies}: Using statistical profiling will mean that insurance companies have to take on less risk. They do have to navigate regulations regarding privacy and discrimination. 
-    \item \textbf{Policy makers}: Politicians decide to what extend companies are allowed to use statistical profiling. It's up to regulate and inspect the actions of companies ensuring fairness.
-\end{enumerate}
-
-\subsection{Ethical and moral dilemmas}
-\subsubsection{Privacy}
-Collecting data on individuals raises concerns regarding privacy. This can be analysis through different ethical frameworks:
-\begin{enumerate}
-    \item \textbf{Consequentialist}: If personalised policies lead to more accurate pricing, the majority would benefit. On the other hand if this results in excessive use of personal data or discrimination than the harm outweighs the benefit.   
-    \item \textbf{Deontological}: Independent of outcome, violating privacy is inherently unethical.
-\end{enumerate}
-\subsubsection{Discrimination}
-Personalised policies could results in discrimination. This can be analysis through different ethical frameworks:
-\begin{enumerate}
-    \item \textbf{Virtue Ethics}: Statistcal methods might enfore societal biases. A fair insurance system should not enforce inequalities.
-\end{enumerate}
-\section{Steering}
-\subsection{Technological adjustments}
-\subsubsection{Discrimination}
-To reduce the probability of discrimination better models could be used. For example by using better data sets.\\\\
-Being transparant about why certain decisions are made and why a certain policy might be more or less expansive could also be helpful.\\\\
-It's also important to make sure there is human oversight on what the algorithms produce. 
-\subsubsection{Privacy}
-Ensuring that private data is very safe and only ever used for policies is important. Could also decrease how much and what type of data is used. Make sure important decision are made by people, not AI. 
-\subsection{Societal interventions}
-\subsubsection{Discrimination}:
-Policy makers could enforce that companies are transparent in their use of data. They could also ensure that the AI that companies use isn't biased. Letting independent bodies review companies their methodology could be an option. 
-\subsubsection{Privacy}
-Data protection laws could be implemented to ensure peoples privacy. From ensuring that the data that is stored is stored savely and not used anywhere else and to ensure that the types of data stored aren't too intrusive.
-
-
+\bibliographystyle{apacite} % We choose the "plain" reference style
+\bibliography{refs} % Entries are in the refs.bib file
 
 \end{document}
+
