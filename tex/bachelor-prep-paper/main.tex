@@ -58,11 +58,12 @@ spaces} \\\ Preparation Bachelor's Project}
 \begin{document}
 \maketitle
 
-
+\newpage
 \section{Abstract}
 
 We present a study of cosmic microwave background (CMB) temperature fluctuations in spherical spaces, which are the models of the universe where the space is a 3-dimensional sphere or its quotient. We give an overview of the preliminary machinery used in the study of CMB temperature fluctuations for spherical space. We examine the behavior of isospectral but not isometric spherical forms. We explore the problem of testing for anisotropies in the mean of CMB temperature fluctuations for spherical spaces.
 
+\newpage
 \section{Introduction}
 The cosmic microwave background (CMB) is the electromagnetic radiation left from the Big Bang.  Temperature fluctuations provide an idea of the early state of the universe, as well as possible hints on its current shape. Observations of space missions such as COBE, WMAP and PLANK have revealed an unexpectedly low variance in CMB anisotropies, which are small variations in the radiation, at really large angular scales \cite{aurich_2012}. This goes against the expected results of the infinite and flat universe from the standard $\Lambda$CDM model.
 
@@ -295,7 +296,7 @@ $$ d(x_0,x) \leq d(x_0,g\cdot x) \quad \forall\, g\in\Gamma $$
 
 where $d(\cdot,\cdot)$ is the $\S^3$-distance.
 
-To figure out whether a spherical manifold is homogeneous, one must understand what the group action does under a change of observer position. Changing the observer position is done mathematically by applying a change of coordinates $u'=uq$ with $u\in\S^3$ and the isometry $q\in\text{SU}(2,\mathbb C) \equiv \S^3$, making $u=q^{-1}$ the new origin $u'=q^{-1}q=e$. Now, using the general group element $g = (g_l,g_r)\in\Gamma$ and letting $\tilde u = g\cdot u = (g_l)^{-1}ug_r $, we get $ \tilde u' = (g_l)^{-1} u' (q^{-1}g_rq) $. This means that the transformation in our shifted space is $g' = (g_{l},q^{-1}g_{r}q)$, which is not the same as $g$ in general, so if $g_r = q^{-1}g_rq$ does not always hold in a manifold, it is inhomogeneous.
+To figure out whether a spherical manifold is homogeneous, one must understand what the group action does under a change of observer position. Changing the observer position is done mathematically by applying a change of coordinates $u'=uq$ with $u\in\S^3$ and the isometry $q\in\text{SU}(2,\mathbb C) \equiv \S^3$, making $u=q^{-1}$ the new origin $u'=q^{-1}q=e$. Now, using the general group element $g = (g_l,g_r)\in\Gamma$ and letting $\tilde u = g\cdot u = (g_l)^{-1}ug_r $, we get $ \tilde u' = (g_l)^{-1} u' (q^{-1}g_rq) $. This means that the transformation in our shifted space is $g' = (g_{l},q^{-1}g_{r}q)$, which is not the same as $g=(g_l,g_r)$ in general. Therefore, if $g_r = q^{-1}g_rq$ does not hold for some $g,q$ in the manifold, it is inhomogeneous.
 
 All of this can be used to figure out the observer-dependent CMB variations and other related values in different inhomogeneous spherical manifolds.
 
@@ -337,18 +338,18 @@ S_i = \sum_{j} W_{ij} M_j
 \]
 where $W$ is a decorrelation matrix derived from the covariance structure. If significant anomalies appear in the mean values of $a_{\ell m}$, this suggests deviations from isotropy that may indicate the need for new theories.
 
-For plotting, we used the results of different frequency channels used in the CMB analysis, originating from the WMAP (Wilkinson Microwave Anisotropy Probe) data. This corresponds to the following frequency band categories: Q-band $(\~40 GHz)$, V-band $(~60 GHz)$ and W-band $(~90 GHz)$ \cite{Jarosik_2011}. Each band has slightly different noise levels and sensitivity to galactic foregrounds.
+For plotting, we used the results of different frequency channels used in the CMB analysis, originating from the WMAP (Wilkinson Microwave Anisotropy Probe) data. This corresponds to the following frequency band categories: Q-band $(40 GHz)$, V-band $(60 GHz)$ and W-band $(90 GHz)$ \cite{Jarosik_2011}. Each band has slightly different noise levels and sensitivity to galactic foregrounds.
 
-Taking these data, we plot the comparison between expected noise levels and observed anomalies in the mean multipole moments. Let the x-axis represent the multipole moment $\ell$, which corresponds to angular scales, with lower values representing large-scale features and higher values representing smaller-scale fluctuations. The y-axis represents the test statistic $S_i$, which quantifies deviations from statistical isotropy, or in other words the temperature fluctuations from the expected results for an isotropical space. 
+Taking these data, we plot the comparison between expected noise levels and observed anomalies in the mean multipole moments. Let the $x$-axis represent the multipole moment $\ell$, which corresponds to angular scales, with lower values representing large-scale features and higher values representing smaller-scale fluctuations. The $y$-axis represents the test statistic $S_i$, which quantifies deviations from statistical isotropy, or in other words the temperature fluctuations from the expected results for an isotropical space. 
 
 The multipole moment $\ell$ and the angular scale $\theta$ are inversely related. The higher the value of $\ell$, the smaller the angular scale, meaning we are looking at finer details. This relationship is approximately given by:
 $\theta \approx \frac{180^\circ}{\ell}$.\
 
-Plotting the results for the frequency bands Q,V and W, we get the graph for the decorrelated Statistical Spectrum in Figure \ref{fig:Decorrelated Statistical Spectrum} (This is the main graph from \cite{Kashino_2012}) 
+Plotting the results for the frequency bands $Q$,$V$ and $W$, we get the graph for the decorrelated Statistical Spectrum in Figure \ref{fig:Decorrelated Statistical Spectrum} (This is the main graph from \cite{Kashino_2012}) 
 \begin{figure} [h!]
     \centering
     \includegraphics[width=0.8\linewidth]{DSE-Test Graph}
-    \caption{The decorrelated band mean spectrum obtained by the seven-year WMAP data. The boxes and solid line are the result of the overall combined map (Q+V+W) and color data points are the results of the individual frequency maps (Q, V, W). The horizontal width of boxes indicates the bin size $\Delta \ell = 20$ for calculating the binned mean spectrum. Image source: \cite{Kashino_2012}}
+    \caption{The decorrelated band mean spectrum obtained by the seven-year WMAP data. The boxes and solid line are the result of the overall combined map $(Q+V+W)$ and color data points are the results of the individual frequency maps $(Q, V, W)$. The horizontal width of boxes indicates the bin size $\Delta \ell = 20$ for calculating the binned mean spectrum. Image source: \cite{Kashino_2012}}
     \label{fig:Decorrelated Statistical Spectrum}
 \end{figure}
 \\
@@ -399,6 +400,8 @@ We have designed and outlined a study of CMB temperature fluctuations in spheric
 
 %apalike-ejor IAS THE 
 
+
+\newpage
 \bibliographystyle{plain}
 \bibliography{sources.bib}
 
