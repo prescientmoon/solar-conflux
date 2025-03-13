@@ -1,24 +1,21 @@
 \documentclass[a4paper, 12pt, table]{article}
-\usepackage[margin=0.8in]{geometry}
+% \usepackage[margin=0.8in]{geometry}
 \usepackage{amsmath}
 \numberwithin{equation}{section}
 \usepackage{amsfonts}
 \usepackage{xcolor}
-\usepackage{ amssymb }
-\usepackage{ dsfont }
+\usepackage{amssymb}
+\usepackage{dsfont}
 \usepackage{caption}
 \usepackage{graphicx}
 \usepackage{pgfplots}
-\usepackage{ upgreek }
+\usepackage{upgreek}
 \usepackage{enumitem}
 \usepackage{hyperref}
 \usepackage{amsthm}
 \usepackage[english]{babel}
 \usepackage{hyperref}
 \usepackage{apacite}
-\newtheorem{theorem}{Theorem}[section]\newtheorem{corollary}{Corollary}[theorem]\newtheorem{lemma}[theorem]{Lemma}\theoremstyle{definition}\newtheorem{definition}{Definition}[section]\theoremstyle{remark}\newtheorem*{remark}{Remark}
-
-
 
 \usepackage{hyperref}
 
@@ -31,11 +28,10 @@
 
 \maketitle
 
-
 \section{Introduction}
 \input{introduction.tex}
 
-\section{Methodology}
+\section{Methodology}\label{sec:methodology}
 \input{methodology.tex}
 
 \section{Ethical analysis}
@@ -43,8 +39,12 @@
 \input{consequentialism.tex}
 \subsection{Deontology}
 \input{deontology.tex}
+\section{Policy analysis}
+\input{policy.tex}
+\section{Conclusion}
+\input{conclusion.tex}
 
-\bibliographystyle{apacite} % We choose the "plain" reference style
-\bibliography{refs} % Entries are in the refs.bib file
+\bibliographystyle{apacite}
+\bibliography{refs}
 
 \end{document}
