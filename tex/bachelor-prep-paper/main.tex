@@ -61,12 +61,12 @@ spaces} \\\ Preparation Bachelor's Project}
 
 \section{Abstract}
 
-We present a study of cosmic microwave background (CMB) temperature fluctuations in spherical spaces, which are the models of the universe where the space is a 3-dimensional sphere or its quotient. We give an overview of the preliminary machinery used in the study of CMB temperature fluctuations for spherical space. We examine the behavior of isospectral but not isometric spherical forms. We explore the problem of testing for anisotropies in the mean of CMB temperature fluctuations for spherical spaces.
+We present a study of cosmic microwave background (CMB) temperature fluctuations in spherical spaces, which are the models of the universe where the space is a 3-dimensional sphere or its quotient. We give an overview of the preliminary machinery used in the study of CMB temperature fluctuations for spherical space. Next, we examine the behavior of isospectral but not isometric spherical forms. Finally, we explore the problem of testing for anisotropies in the mean of CMB temperature fluctuations for spherical spaces.
 
 \section{Introduction}
 The cosmic microwave background (CMB) is the electromagnetic radiation left from the Big Bang.  Temperature fluctuations provide an idea of the early state of the universe, as well as possible hints on its current shape. Observations of space missions such as COBE, WMAP and PLANK have revealed an unexpectedly low variance in CMB anisotropies, which are small variations in the radiation, at really large angular scales \cite{aurich_2012}. This goes against the expected results of the infinite and flat universe from the standard $\Lambda$CDM model.
 
-This motivates exploring cosmological models beyond the infinite flat spaces. One possible explanation is that the universe is not infinite, as often assumed, but finite and multiconnected, the latter means it is connected but not simply connected. Specifically, if we consider the universe to be a finite spherical space (positively curved and closed, rather than infinite and flat), this would naturally introduce an upper limit to the size of CMB fluctuations \cite{aurich_2012}, potentially explaining lower large-angle correlations. 
+This motivates exploring cosmological models beyond the infinite flat spaces. One possible explanation is that the universe is not infinite, as often assumed, but finite and multiconnected, the latter means it is connected but not simply connected. Specifically, if we consider the universe to be a finite spherical space (positively curved and closed, rather than infinite and flat), this would naturally introduce an upper limit to the size of CMB fluctuations \cite{aurich_2012}, potentially explaining lower large-angle correlations.
 
 The spherical space topology has been studied as a candidate for the shape of the universe by many researchers. For example, the 3-sphere $\mathbb{S}^3$ and its quotient manifolds can produce lower CMB power on large scales due to their finite size \cite{aurich_2012}. Some authors systematically examined entire families of spherical topologies such as lens spaces $L(p,q) = \mathbb{S}^3/Z_p$ (taking the quotient of $\mathbb{S}^3$ by the group of rotations of order $p$) with $p\le 500$ being the upper bound \cite{aurich_2012}. While such models did not show a dramatically strong suppression of CMB power in the tested range, they set an important methodology for how one might analyze and compare CMB temperature  fluctuations in spherical space models. The important component of the articles involved is how these theoretical results compare to observations and what do they imply about the possible (shape) topology of the universe.
 
@@ -78,25 +78,25 @@ Metric and topological spaces allow us to generalize concepts from analysis like
 The definition of a topological space is too general to meaningfully describe physical reality. The concept of topological manifolds tries to limit the potential pathological examples of topological spaces by requiring the spaces to look Euclidean at a local level. Formally, this means that any point on the set has a neighborhood around it equivalent (homeomorphic) to an open set of Euclidean space.
 
 \begin{figure}[h]
-    \centering
-    \includegraphics[width=0.5\linewidth]{mug-neighbourhoods.png}
-    \caption{The prototypical example of a manifold -- a mug. Image source: \cite{serri}}
-    \label{fig:mug-neighbourhoods}
+	\centering
+	\includegraphics[width=0.5\linewidth]{mug-neighbourhoods.png}
+	\caption{The prototypical example of a manifold -- a mug. Image source: \cite{serri}}
+	\label{fig:mug-neighbourhoods}
 \end{figure}
 
 \begin{definition}
-    A topological space $M$ is a \textbf{topological manifold} of dimension $n$, or topological $n$-manifold, if it has the following properties: 
-    \begin{itemize}
-        \item $M$ is a Hausdorff space,
-        \item $M$ is second countable,
-        \item $M$ is locally euclidean of dimension $n$, that is, for any point $p \in M$ there exist an open subset $U \subset M$ with $p \in U$, and open subset $V \subset \mathbb{R}^n$ and a homeomorphism $\varphi: U \rightarrow V$.
-    \end{itemize}
+	A topological space $M$ is a \textbf{topological manifold} of dimension $n$, or topological $n$-manifold, if it has the following properties:
+	\begin{itemize}
+		\item $M$ is a Hausdorff space,
+		\item $M$ is second countable,
+		\item $M$ is locally euclidean of dimension $n$, that is, for any point $p \in M$ there exist an open subset $U \subset M$ with $p \in U$, and open subset $V \subset \mathbb{R}^n$ and a homeomorphism $\varphi: U \rightarrow V$.
+	\end{itemize}
 \end{definition}
 
 Where second-countability is defined as follows.
 
 \begin{definition}[]
-    A topological space $(X,T)$ is said to be \textbf{second countable} if there exists a countable set $B \subset T$ such that any open set can be written as a union of sets from $B$. In such case, $B$ is called a (countable) basis for the topology $T$ .
+	A topological space $(X,T)$ is said to be \textbf{second countable} if there exists a countable set $B \subset T$ such that any open set can be written as a union of sets from $B$. In such case, $B$ is called a (countable) basis for the topology $T$ .
 \end{definition}
 
 %This is very useful, as it allows us to `pull back' many familiar concepts from Euclidean space (for instance, derivatives). Still, this turns out not to be enough. Analysis is built upon limits and sequences, yet those building blocks can behave in unexpected ways when taken out of the Euclidean setting.
@@ -113,50 +113,50 @@ When transporting (i.e. moving) a vector around a loop on a flat plane, the vect
 
 A natural application of the above is detecting the curvature of the universe itself, i.e. the nature of the (spatial) geometry in which we exist. Our best tool when it comes to trying to detect such matters is the study of the cosmic microwave background radiation. In particular, this article is interested in the consequences of assuming that the underlying geometry is spherical. Indeed, although this might sound trivial (i.e. the universe would spatially be the surface of a giant four-dimensional ball), more interesting spaces arise when we allow the underlying space to have `holes'.
 
-Topologically, holes can be detected using homology groups (the abelian group of loops in the space, under the identification of loops that can be smoothly transformed into each other as equivalent). In particular, a space is contractible if any loop can be smoothly transformed into the trivial loop (a path that never leaves the initial point). That is, the (first) homology group must be trivial. We say a space is simply connected when it is both contractible and path connected (i.e. every two points are connected by a path). 
+Topologically, holes can be detected using homology groups (the abelian group of loops in the space, under the identification of loops that can be smoothly transformed into each other as equivalent). In particular, a space is contractible if any loop can be smoothly transformed into the trivial loop (a path that never leaves the initial point). That is, the (first) homology group must be trivial. We say a space is simply connected when it is both contractible and path connected (i.e. every two points are connected by a path).
 
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.25\linewidth]{amogus.png}
-    \caption{The yellow path is non contractible on the space highlighted in red (there's an additional hole in the back of the figure, thus the path cannot simply contract through there)}
-    \label{fig:amogus}
+	\centering
+	\includegraphics[width=0.25\linewidth]{amogus.png}
+	\caption{The yellow path is non contractible on the space highlighted in red (there's an additional hole in the back of the figure, thus the path cannot simply contract through there)}
+	\label{fig:amogus}
 \end{figure}
 
 
 In what follows we use the concrete definition of the 3-sphere as an embedded submanifold of $\mathbb{R}^4$ lying in Euclidean space meaning $\mathbb{S}^3 := \{x \in \mathbb{R}^4 \; |\; \|x\| = 1\}.$ Next we define a certain special set of matrices which induce well-defined maps on the sphere.
 
 \begin{definition}
-    We define $$SO(4) = \{A \in \mathbb{R}^{4 \times 4}:\; A^TA = I_4, \; \det(A) = 1\}.$$
+	We define $$SO(4) = \{A \in \mathbb{R}^{4 \times 4}:\; A^TA = I_4, \; \det(A) = 1\}.$$
 \end{definition}
 
-By the standard action of $\mathbb{R}^{4 \times 4} $ on $\mathbb{R}^4$ we have that $SO(4)$ is naturally a subgroup of the group of isometries of $\mathbb{S}^3$. This is because for any $x \in \mathbb{S}^3$ we get $$\|Ax\| = (Ax)^T(Ax) = 
-x^T(A^TA)x = x^Tx = \|x\| =1$$
+By the standard action of $\mathbb{R}^{4 \times 4} $ on $\mathbb{R}^4$ we have that $SO(4)$ is naturally a subgroup of the group of isometries of $\mathbb{S}^3$. This is because for any $x \in \mathbb{S}^3$ we get $$\|Ax\| = (Ax)^T(Ax) =
+	x^T(A^TA)x = x^Tx = \|x\| =1$$
 hence $Ax \in \mathbb{S}^3$ implying $A|_{\mathbb{S}^3}$ is a well-defined map and a bijection. By analogous reasoning, we find that:
 
 $$\|Ax - Ay\| = \|A(x-y)\| = \|x-y\|,$$ hence $A$ is an isometry.
 
-Now, for any subgroup $H \leq SO(4)$ we can consider the orbits of the action of $H$ on $\mathbb{S}^3$. We recall from group theory that this produces an equivalence relation on $\mathbb{S}^3$ where $x \sim y$ whenever $x$ and $y$ are in the same orbit of $H$. That is, the set of equivalency classes of $\mathbb S^3$ with 
-$$x \sim y \,\iff\, \exists\, g\in H: x = g\cdot y.$$ 
+Now, for any subgroup $H \leq SO(4)$ we can consider the orbits of the action of $H$ on $\mathbb{S}^3$. We recall from group theory that this produces an equivalence relation on $\mathbb{S}^3$ where $x \sim y$ whenever $x$ and $y$ are in the same orbit of $H$. That is, the set of equivalency classes of $\mathbb S^3$ with
+$$x \sim y \,\iff\, \exists\, g\in H: x = g\cdot y.$$
 
 The set $\mathbb{S}^3/_\sim$ can be given a manifold structure if certain conditions on the projection $\pi: \mathbb{S}^3 \to\mathbb{S}^3 /_\sim $ are satisfied, the details can be found in \cite{serri}. For instance, if $H$ is a finite subgroup of $SO(4)$ then the manifold $\mathbb{S}^3 /_\sim$ is a 3-manifold which has positive curvature, similar to $\mathbb{S}^3$.
 
 \begin{comment}
 
-There is an alternative way of viewing the quotient $\mathbb{S}^3/\Gamma$ using the concept of a covering space.  In particular for our universe, the spaces are interested in are quotients $\mathbb S^3 /_\sim$ for various groups $\Gamma$ of covering transformations (i.e. transformations that shuffle around the different copies of the underlying manifold which tile the covering space). 
+There is an alternative way of viewing the quotient $\mathbb{S}^3/\Gamma$ using the concept of a covering space.  In particular for our universe, the spaces are interested in are quotients $\mathbb S^3 /_\sim$ for various groups $\Gamma$ of covering transformations (i.e. transformations that shuffle around the different copies of the underlying manifold which tile the covering space).
 
 \begin{definition}[Covering spaces]
-    A covering space $\tilde X$ for a space $X$ is a (continuous) map $\pi : \tilde X \to X$, such that every point $x \in X$ has a neighborhood $U_x$ such that $\pi ^{-1} (U_x) = \coprod_{d \in D_x} V_d$ for some indexing set $D_x$ and sets $V_d$ such that $\pi |_{V_x} : V_x \to U_x$ is a homeomorphism.
+	A covering space $\tilde X$ for a space $X$ is a (continuous) map $\pi : \tilde X \to X$, such that every point $x \in X$ has a neighborhood $U_x$ such that $\pi ^{-1} (U_x) = \coprod_{d \in D_x} V_d$ for some indexing set $D_x$ and sets $V_d$ such that $\pi |_{V_x} : V_x \to U_x$ is a homeomorphism.
 \end{definition}
 
 \begin{figure}[h]
-    \centering
-    \includegraphics[width=0.25\linewidth]{covering-space.png}
-    \caption{The space $Y \coloneq [0, 1] \times \mathbb R$ is a covering space for $X \coloneq [0,1] \times \S^1$. The disjoint open sets $S_i$ are mapped homeomorphically onto $U$. The fiber of $x$ consists of the points $y_i$. Source: \cite{wiki:covering} }
-    \label{fig:enter-label}
+	\centering
+	\includegraphics[width=0.25\linewidth]{covering-space.png}
+	\caption{The space $Y \coloneq [0, 1] \times \mathbb R$ is a covering space for $X \coloneq [0,1] \times \S^1$. The disjoint open sets $S_i$ are mapped homeomorphically onto $U$. The fiber of $x$ consists of the points $y_i$. Source: \cite{wiki:covering} }
+	\label{fig:enter-label}
 \end{figure}
 \end{comment}
 
- 
+
 
 
 \section{Discussion of results from selected articles}
@@ -165,29 +165,29 @@ There is an alternative way of viewing the quotient $\mathbb{S}^3/\Gamma$ using 
 
 In \cite{emilio}, the authors go over the theoretical grounding of the literature on the topic. The candidate manifolds for the shape of the universe are, as discussed above, manifolds of the form $\mathbb S^3 / \Gamma$ (for some subgroup $\Gamma$ of the isometry group of the sphere, i.e. $\so(4)$). We will refer to such spaces as `space forms.
 
-An important class of manifolds are the so-called `lens spaces', which correspond to the case where $\Gamma$ is cyclic and the dimension of the underlying manifold is odd. As we are interested in studying the shape of our (spatially) three-dimensional universe, all the spaces we are interested in will be lens spaces as long as $\Gamma$ is cyclic. 
+An important class of manifolds are the so-called `lens spaces', which correspond to the case where $\Gamma$ is cyclic and the dimension of the underlying manifold is odd. As we are interested in studying the shape of our (spatially) three-dimensional universe, all the spaces we are interested in will be lens spaces as long as $\Gamma$ is cyclic.
 
 \begin{definition}[Lens spaces]
-    Formally, we denote by $\lens q s$ (where $q \in \mathbb N$, $s \in \mathbb Z ^n $ and $\gcd(q, s_i) = 1$ for all $i$), the space $\mathbb S^{2n - 1} / \Gamma _{q;s}$, where $\Gamma_{q;s}$ is the (cyclic) group generated by the diagonal matrix with diagonal entries $R(2 \pi s_i/ q)$ (where $R(-)$ is a two-dimensional rotation matrix by the given angle).
+	Formally, we denote by $\lens q s$ (where $q \in \mathbb N$, $s \in \mathbb Z ^n $ and $\gcd(q, s_i) = 1$ for all $i$), the space $\mathbb S^{2n - 1} / \Gamma _{q;s}$, where $\Gamma_{q;s}$ is the (cyclic) group generated by the diagonal matrix with diagonal entries $R(2 \pi s_i/ q)$ (where $R(-)$ is a two-dimensional rotation matrix by the given angle).
 \end{definition}
 The condition $\gcd(q, s_i) = 1$ is necessary to ensure that $\Gamma$ acts freely on $\mathbb S^{2n-1}$.
 
-The Laplace-Beltrami operator generalizes the Laplace operator on smooth functions defined on $\mathbb{R}^n$ to general manifolds. 
+The Laplace-Beltrami operator generalizes the Laplace operator on smooth functions defined on $\mathbb{R}^n$ to general manifolds.
 \begin{definition}[Laplace-Beltrami operator]
-  The Laplace-Beltrami operator is defined as the divergence of the gradient:
-  \begin{align*}
-      \Delta f \coloneqq \divergence (\nabla f)
-  \end{align*}
+	The Laplace-Beltrami operator is defined as the divergence of the gradient:
+	\begin{align*}
+		\Delta f \coloneqq \divergence (\nabla f)
+	\end{align*}
 \end{definition}
 
-In particular, the spectrum of Laphlace-Beltrami operator (collection of eigenvalues) in $L^2(M, g)$ is a discrete subset of the non-negative reals, in which every value occurs with a finite multiplicity. Two such manifolds are said to be isospectral if they share a spectrum. 
+In particular, the spectrum of Laphlace-Beltrami operator (collection of eigenvalues) in $L^2(M, g)$ is a discrete subset of the non-negative reals, in which every value occurs with a finite multiplicity. Two such manifolds are said to be isospectral if they share a spectrum.
 
 
 Inverse spectral geometry studies the different ways in which the spectrum affects different properties of the underlying space. For instance, the dimension and volume of a manifold are completely determined by its spectrum. However, this spectrum does not completely determine the manifold uniquely up to isometry.
 
 \subsubsection{Volume maximizing isospectral pairs of sphere forms}
 
-The first important problem tackled by \cite{emilio} is that of determining the isospectral sphere form pair (that is, a pair of spaces that are isospectral yet not isometric) of largest volume. According to \cite{ikeda80}, if $\mathbb S^{2n-1}/\Gamma_1$ and $\mathbb S^{2n-1}/\Gamma_2$ are isospectral spherical forms, the two groups have equal order and equal set of element orders. As a consequence, one is cyclic only if the other is cyclic (thus one space is a lens space if and only if the other is as well). 
+The first important problem tackled by \cite{emilio} is that of determining the isospectral sphere form pair (that is, a pair of spaces that are isospectral yet not isometric) of largest volume. According to \cite{ikeda80}, if $\mathbb S^{2n-1}/\Gamma_1$ and $\mathbb S^{2n-1}/\Gamma_2$ are isospectral spherical forms, the two groups have equal order and equal set of element orders. As a consequence, one is cyclic only if the other is cyclic (thus one space is a lens space if and only if the other is as well).
 
 After classifying $\Gamma$ for spherical forms with homotopy group of order strictly smaller than $24$ and non-cyclic into four specific groups of different orders (the specific groups are irrelevant here), the paper concludes that if a pair of odd-dimensional isospectral but not isometric spherical space forms exists with fundamental group of order strictly less than $24$, then the two are cyclic (otherwise one of the two would be one of the four groups classified above, but then so would the other, as by \cite{ikeda80} isospectral pairs share their cyclic-ness), and thus lens spaces. The isospectral pair with the largest volume must then also be the one containing lens spaces (since no other kind of pair can exist for such groups). The paper then defines a way to generate larger lens spaces from smaller ones by concatenating the indices (which we denoted earlier by $s$, and can be treated like ordered lists here). Together with a computational search, the paper was able to build a table of the precise lens spaces that maximize volume for multiple dimensions, although whether lens spaces are the solutions for all dimensions is still an open question.
 
@@ -215,7 +215,7 @@ While the study of isospectral pairs is indeed interesting, we can take solace i
 
 In \cite{aurich_2005} the authors consider the 3-manifolds of the form $\mathcal{M} := \mathbb{S}^3 /_ \sim$ where $\sim$ is an equivalence relation coming from identifying orbits of some finite subgroup of the special linear group $SO(4)$.
 
-On any smooth manifold we can define the notion of smooth functions and the Laplace-Beltrami operator $\Delta$, as explained before. One can then consider the solutions of the so-called Helmholtz equation on $\mathcal{M}$ given by 
+On any smooth manifold we can define the notion of smooth functions and the Laplace-Beltrami operator $\Delta$, as explained before. One can then consider the solutions of the so-called Helmholtz equation on $\mathcal{M}$ given by
 
 $$(\Delta + E_\beta^\mathcal{M})\psi_\beta^{\mathcal{M}, i} = 0$$
 where $E_\beta^\mathcal{M} \in \mathbb{R}$ the functions $\psi_\beta^{\mathcal{M}}$ is a smooth function on $\mathcal{M}$ and $\beta \in \mathbb{N}.$ We call the function $\psi_\beta^\mathcal{M}$ the eigenmode of the Helmholtz operator and $E_\beta^\mathcal{M}$ the corresponding eigenvalue.
@@ -242,7 +242,7 @@ $$\delta T  (\hat{n}) =\sum_{l \geq 2}\sum_{m = -l}^{m = l}a_{lm}\tilde{Y}(n)$$
 
 in terms of spherical harmonics $\tilde{Y}_{lm}$ which comprise an orthonormal basis for $L^2(\mathbb{S}^2)$ (the two sphere $\mathbb{S}^2$ is the natural domain for the CMB when we observe it.)
 
-The definition of the angular power spectrum is then 
+The definition of the angular power spectrum is then
 
 $$\delta T^2_l = \frac{l(l+1)}{2}\frac{1}{2l+1 }\left\langle \sum_{m = -l}^la_{lm}^2\right\rangle.$$
 
@@ -282,10 +282,10 @@ Furthermore, they excluded other groups such as the binary tetrahedral group $T^
 
 
 \subsection{CMB radiation in an inhomogeneous spherical space}
-In \cite{Aurich_2011}, the authors consider the CMB in spherical 3-manifolds that are inhomogeneous. Specifically, the space which we are working with is of the form $\mathbb S^3/\Gamma$, where $\Gamma$ is a group acting on $\mathbb S^3$ and the quotient is the set of orbits. 
+In \cite{Aurich_2011}, the authors consider the CMB in spherical 3-manifolds that are inhomogeneous. Specifically, the space which we are working with is of the form $\mathbb S^3/\Gamma$, where $\Gamma$ is a group acting on $\mathbb S^3$ and the quotient is the set of orbits.
 
 %This can also be seen as a covering, where $\S^3$ is the covering space, $\S^3/\Gamma$ is the space being covered, $\Gamma$ is the automorphism group and $\pi: x\mapsto \Gamma x$ is the covering map. 
-The condition of the manifold being inhomogeneous means that, unlike the 3-sphere $\mathbb S^3$ and 3-torus $\mathbb T^3$, the manifold does not look the same at each point on the manifold. Because of inhomogeneity, the CMB is very much dependent on the point of observation. 
+The condition of the manifold being inhomogeneous means that, unlike the 3-sphere $\mathbb S^3$ and 3-torus $\mathbb T^3$, the manifold does not look the same at each point on the manifold. Because of inhomogeneity, the CMB is very much dependent on the point of observation.
 
 In the article, the authors discuss different spherical 3-manifolds, classifying whether they are inhomogeneous, analyzing their properties, and finding equivalences. For example, some of the manifolds in question are the lens manifolds $L(p,q)$ and the cubic manifolds $N2$ and $N3$.
 
@@ -302,7 +302,7 @@ All of this can be used to figure out the observer-dependent CMB variations and 
 
 
 \subsection{Test for anisotropy in the mean of the CMB temperature fluctuation in spherical harmonic space}
-The temperature fluctuations of the Cosmic Microwave Background (CMB) provide crucial insights into the physics of the early universe and the underlying cosmological model. 
+The temperature fluctuations of the Cosmic Microwave Background (CMB) provide crucial insights into the physics of the early universe and the underlying cosmological model.
 
 From the point of view of Earth, we can view CMB as a function defined on the celestial sphere $\mathbb{S}^2$. Hence we can express CMB as the sum of spherical harmonics - a certain family of smooth functions defined on $\mathbb{S}^2$ which forms an orthonormal basis for $L^2(\mathbb{S}^2)$, meaning they are orthogonoal and of size 1, whith respect to the $L^2$ inner product.
 
@@ -314,17 +314,17 @@ Under the assumption that the primordial fluctuations are statistically homogene
 \[\langle a_{\ell m} \rangle = 0, \quad \langle a_{\ell m} a^*_{\ell' m'} \rangle = C_\ell \delta_{\ell \ell'} \delta_{m m'}\]
 
 Here $\langle ... \rangle$ denotes the average, $C_\ell$ is the ensemble average power spectrum, which describes the variance of temperature fluctuations as a function of angular scale and $\delta$ is the Kronecker symbol. \\
-Thus, if the mean is nonzero $\langle a_{\ell m} \rangle \neq 0$, it \textbf{suggests possible anisotropies or preferred directions in the universe}. 
+Thus, if the mean is nonzero $\langle a_{\ell m} \rangle \neq 0$, it \textbf{suggests possible anisotropies or preferred directions in the universe}.
 
 Since real CMB observations are affected by instrumental noise and sky masking, estimating $C_\ell$ accurately requires simulations. Given a theoretical power spectrum $C^{th}_\ell$, the corresponding harmonic coefficients are drawn from a Gaussian distribution:
 \[
-a_{\ell m} \sim \mathcal{N} (0, C_\ell^{\text{th}})
+	a_{\ell m} \sim \mathcal{N} (0, C_\ell^{\text{th}})
 \]
 
 Applying a sky mask function $M(\hat{n})$ modifies the observed coefficients:
 
 \[
-a^{\text{mask}}_{\ell m} = \sum_{\ell' m'} M_{\ell m, \ell' m'} a^{\text{all sky}}_{\ell' m'}
+	a^{\text{mask}}_{\ell m} = \sum_{\ell' m'} M_{\ell m, \ell' m'} a^{\text{all sky}}_{\ell' m'}
 \]
 
 where $a^{\text{all sky}}$ is taken from the all sky CMB map (which we can
@@ -333,53 +333,53 @@ the mask. This introduces mode coupling, which must be corrected using a decorre
 
 To test the assumption of statistical isotropy, we examine the mean of $a_{\ell m}$ across multipole bins. The test statistic is defined as:
 \[
-S_i = \sum_{j} W_{ij} M_j
+	S_i = \sum_{j} W_{ij} M_j
 \]
 where $W$ is a decorrelation matrix derived from the covariance structure. If significant anomalies appear in the mean values of $a_{\ell m}$, this suggests deviations from isotropy that may indicate the need for new theories.
 
 For plotting, we used the results of different frequency channels used in the CMB analysis, originating from the WMAP (Wilkinson Microwave Anisotropy Probe) data. This corresponds to the following frequency band categories: Q-band $(\~40 GHz)$, V-band $(~60 GHz)$ and W-band $(~90 GHz)$ \cite{Jarosik_2011}. Each band has slightly different noise levels and sensitivity to galactic foregrounds.
 
-Taking these data, we plot the comparison between expected noise levels and observed anomalies in the mean multipole moments. Let the x-axis represent the multipole moment $\ell$, which corresponds to angular scales, with lower values representing large-scale features and higher values representing smaller-scale fluctuations. The y-axis represents the test statistic $S_i$, which quantifies deviations from statistical isotropy, or in other words the temperature fluctuations from the expected results for an isotropical space. 
+Taking these data, we plot the comparison between expected noise levels and observed anomalies in the mean multipole moments. Let the x-axis represent the multipole moment $\ell$, which corresponds to angular scales, with lower values representing large-scale features and higher values representing smaller-scale fluctuations. The y-axis represents the test statistic $S_i$, which quantifies deviations from statistical isotropy, or in other words the temperature fluctuations from the expected results for an isotropical space.
 
 The multipole moment $\ell$ and the angular scale $\theta$ are inversely related. The higher the value of $\ell$, the smaller the angular scale, meaning we are looking at finer details. This relationship is approximately given by:
 $\theta \approx \frac{180^\circ}{\ell}$.\
 
-Plotting the results for the frequency bands Q,V and W, we get the graph for the decorrelated Statistical Spectrum in Figure \ref{fig:Decorrelated Statistical Spectrum} (This is the main graph from \cite{Kashino_2012}) 
+Plotting the results for the frequency bands Q,V and W, we get the graph for the decorrelated Statistical Spectrum in Figure \ref{fig:Decorrelated Statistical Spectrum} (This is the main graph from \cite{Kashino_2012})
 \begin{figure} [h!]
-    \centering
-    \includegraphics[width=0.8\linewidth]{DSE-Test Graph}
-    \caption{The decorrelated band mean spectrum obtained by the seven-year WMAP data. The boxes and solid line are the result of the overall combined map (Q+V+W) and color data points are the results of the individual frequency maps (Q, V, W). The horizontal width of boxes indicates the bin size $\Delta \ell = 20$ for calculating the binned mean spectrum. Image source: \cite{Kashino_2012}}
-    \label{fig:Decorrelated Statistical Spectrum}
+	\centering
+	\includegraphics[width=0.8\linewidth]{DSE-Test Graph}
+	\caption{The decorrelated band mean spectrum obtained by the seven-year WMAP data. The boxes and solid line are the result of the overall combined map (Q+V+W) and color data points are the results of the individual frequency maps (Q, V, W). The horizontal width of boxes indicates the bin size $\Delta \ell = 20$ for calculating the binned mean spectrum. Image source: \cite{Kashino_2012}}
+	\label{fig:Decorrelated Statistical Spectrum}
 \end{figure}
 \\
 We should note that Figure \ref{fig:Decorrelated Statistical Spectrum} contains a bin of size 20. The bin size in this context refers to the range of multipole moments $\ell$ that are grouped together when calculating the test statistic $S_i$. Or, in other words, instead of analyzing each individual $\ell$ separately, we sum over a range of values (a bin).
 Moreover, Figure \ref{fig:Decorrelated Statistical Spectrum} presents the plots for: \begin{itemize}
-    \item $Q+V+W$: A combined dataset that merges all three frequency bands to improve the signal-to-noise ratio.
-    \item $Q1-Q2, V1-V2, W1-W2$: These are difference maps, created by subtracting different detector readings of the same frequency band. Due to this, they primarily contain instrumental noise, since the real CMB signal cancels out when differencing measurements from the same frequency.
+	\item $Q+V+W$: A combined dataset that merges all three frequency bands to improve the signal-to-noise ratio.
+	\item $Q1-Q2, V1-V2, W1-W2$: These are difference maps, created by subtracting different detector readings of the same frequency band. Due to this, they primarily contain instrumental noise, since the real CMB signal cancels out when differencing measurements from the same frequency.
 \end{itemize}
 These maps help verify whether anomalies seen in the main dataset are truly cosmological or just instrumental artifacts.
 
 Now, to understand this graph, note that:
 $S_i > 0$ represents more temperature fluctuations than expected at that scale.
-Therefore, $S_i < 0$ corresponds to fewer temperature fluctuations than expected on that scale. In short, larger absolute values of $S_i$ correspond to a stronger deviation from isotropy. 
-Moreover, to understand the multipole moment $\ell$ and what it represents in the graph, we can break it down into three main scenarios: 
+Therefore, $S_i < 0$ corresponds to fewer temperature fluctuations than expected on that scale. In short, larger absolute values of $S_i$ correspond to a stronger deviation from isotropy.
+Moreover, to understand the multipole moment $\ell$ and what it represents in the graph, we can break it down into three main scenarios:
 
 \begin{itemize}
-  \item Deviations only at high $\ell$ (small scales, $\ell > 300$): This would correspond to deviations caused by instrumental noise or foreground contamination \cite{Kashino_2012}.
-  
-  \item Deviations only at low $\ell$ (large scales, $\ell < 50$): This would correspond to deviations caused by large-scale anisotropies, potentially challenging the assumption of a statistically isotropic universe \cite{Bielewicz_2004}\cite{Pedro_2013}.
+	\item Deviations only at high $\ell$ (small scales, $\ell > 300$): This would correspond to deviations caused by instrumental noise or foreground contamination \cite{Kashino_2012}.
 
-  \item Deviations on both large and small scales: This could indicate a more fundamental cosmological effect affecting multiple scales.
+	\item Deviations only at low $\ell$ (large scales, $\ell < 50$): This would correspond to deviations caused by large-scale anisotropies, potentially challenging the assumption of a statistically isotropic universe \cite{Bielewicz_2004}\cite{Pedro_2013}.
+
+	\item Deviations on both large and small scales: This could indicate a more fundamental cosmological effect affecting multiple scales.
 \end{itemize}
 
-In Figure \ref{fig:Decorrelated Statistical Spectrum} we can see that the most significant anomaly appears in the mid-range multipoles ($221 \leq \ell \leq 240$), where $S_i$ is strongly negative, suggesting that the mean spherical harmonic coefficients at this scale are lower than expected compared to a statistically isotropic model. In other words, this means that temperature fluctuations at these angular scales are weaker than predicted by standard cosmological models. 
+In Figure \ref{fig:Decorrelated Statistical Spectrum} we can see that the most significant anomaly appears in the mid-range multipoles ($221 \leq \ell \leq 240$), where $S_i$ is strongly negative, suggesting that the mean spherical harmonic coefficients at this scale are lower than expected compared to a statistically isotropic model. In other words, this means that temperature fluctuations at these angular scales are weaker than predicted by standard cosmological models.
 Thus, we can say that these results suggest something unexpected at these angular scales. But what is the cause? we can take a look at the three main scenarios stated above for the multipole moment $\ell$ ranges.
 In our graph, we account for instrumental noise with the plots for $Q1-Q2, V1-V2, W1-W2$. Since the anomalies appear in $Q+V+W$ but not in $Q1-Q2$, $V1-V2$, or $W1-W2$, it suggests they are not due to noise, but instead a real cosmic effect. Moreover, the significant anomaly occurs at $221 \leq \ell \leq 240$, not at high $\ell$ ($\ell > 300$), where the noise-dominated behavior appears. This means that instrumental noise alone cannot explain the observed anomaly.\
 Similarly, the strongest deviation we observe is at intermediate scales $221 \leq \ell \leq 240$, not at very large scales ($\ell < 50$). Thus, our anomaly does not directly suggest a large-scale anisotropy.
 If we try to look at deviations at both large and small scales simultaneously. In this case, the main anomaly is localized in a particular range of $\ell$, rather than appearing at both low and high $\ell$. So, this suggests that it is not a fundamental cosmological effect affecting multiple scales.
 
 The presence of an anomaly at $221 \leq \ell \leq 240$ suggests a possible connection to models of a finite curved universe. In a positively curved space (e.g., a three-sphere), allowed wave modes are quantized, which could lead to certain multipoles scales being preferred or suppressed in the CMB power spectrum.
-The results of this article, although not conclusive, support the idea that the universe (or at least the CMB sky) has a small preferred direction. Supporting the idea of a non-trivial topology in the universe, specifically a spherical one. Which is analyzed more into detail in the other articles discussed in the other sections. 
+The results of this article, although not conclusive, support the idea that the universe (or at least the CMB sky) has a small preferred direction. Supporting the idea of a non-trivial topology in the universe, specifically a spherical one. Which is analyzed more into detail in the other articles discussed in the other sections.
 As a final note, the analysis is limited by the existing data for the CMB temperatures. Thus, future high-resolution independent CMB observations like PLANCK will further refine these methods, offering deeper insights into the fundamental nature of the universe and the topology of space-time.
 
 
@@ -387,11 +387,11 @@ As a final note, the analysis is limited by the existing data for the CMB temper
 \section{Conclusion}
 
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.25\linewidth]{binary-octahedron.png}
-    \caption{
-In conclusion, the universe has a strange shape, and everything you knew is a lie. Fear the binary octahedral, for the end is near.}
-    \label{fig:binary-octahedron}
+	\centering
+	\includegraphics[width=0.25\linewidth]{binary-octahedron.png}
+	\caption{
+		In conclusion, the universe has a strange shape, and everything you knew is a lie. Fear the binary octahedral, for the end is near.}
+	\label{fig:binary-octahedron}
 \end{figure}
 
 We have designed and outlined a study of CMB temperature fluctuations in spherical spaces. We introduced spherical 3-manifolds as a plausible class of cosmological models and developed the mathematical tools (topology and eigenmode analysis) to handle them. Using these tools, we describe how one can compute CMB anisotropy patterns for a given spherical topology. We then connected these predictions to real data, discussing how one would recognize the fingerprint of a closed spherical universe in CMB observations ( such as through statistical anisotropies). Our synthesis of results from the articles by Aurich et al., Kashino et al., Pranav et al., and others shows that while no specific spherical topology is confirmed, the concept remains consistent with current data and even offers potential explanations for certain anomalies. It is relevant to mention that ongoing refinements in both theory and measurement could yet reveal a topological signature.
