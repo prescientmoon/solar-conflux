@@ -15,6 +15,7 @@ typedef enum CommandType {
   CD,
   CAT,
   TOUCH,
+  ECHO_INTO,
   // Not required, but useful for debugging. Prints the current working directory.
   PWD
 } CommandType;
@@ -27,12 +28,15 @@ struct Command {
     struct { Path path; } cd;
     struct { Path path; } ls;
     struct { Path path; } cat;
+    struct { Path path; char contents[MAX_COMMAND_LENGTH]; bool overwrite; } echo;
     struct { char filenames[MAX_COMMAND_LENGTH]; } touch;
   } data;
 };
 
 typedef struct {
   char* contents;
+  size_t contents_cap;
+  size_t contents_len; // The file could theoretically be large, so `strlen` could be slow.
 
   // We use reference counting to maintain hardlinks
   int ref_count;
@@ -113,6 +117,28 @@ Command parse_command(State *state) {
     } else if (strcmp(command, "cd") == 0) {
       out.type = CD;
       out.data.cd.path = parse_path(args, str_path("/"));
+    } else if (strcmp(command, "echo") == 0) {
+      char operator[3];
+      char contents[MAX_COMMAND_LENGTH];
+      if (sscanf(
+        args,
+        "\"%[^\"]\" %[>] %[^\n]",
+        contents,
+        operator,
+        args
+      ) == 3) {
+        out.type = ECHO_INTO;
+        if (strcmp(operator, ">") == 0) {
+          out.data.echo.overwrite = true;
+        } else if (strcmp(operator, ">>") == 0) {
+          out.data.echo.overwrite = false;
+        } else {
+          printf("ERROR: unknown operator '%s' after `echo` command\n", operator);
+        }
+
+        out.data.echo.path = parse_path(args, str_path(""));
+        strcpy(out.data.echo.contents, contents);
+      }
     }
   }
 
@@ -230,11 +256,46 @@ bool exec_command(State *state, Command command) {
       strcpy(new_node.name, filename);
       new_node.type = T_File;
       new_node.data.file = malloc(sizeof(FileData));
-      new_node.data.file->contents = NULL;
+
+      new_node.data.file->contents = malloc(sizeof(char));
+      new_node.data.file->contents[0] = '\0';
+      new_node.data.file->contents_cap = 0;
+      new_node.data.file->contents_len = 0;
+
       new_node.data.file->ref_count = 1;
       directory->children[target_index] = new_node;
 
       filename = strtok(NULL, " ");
+    }
+  } else if (command.type == ECHO_INTO) {
+    Node *node = get_node_by_path(
+      &state->root,
+      make_absolute(state, command.data.echo.path)
+    );
+
+    FileData *file = node->data.file;
+
+    size_t required_len = strlen(command.data.echo.contents);
+
+    if (command.data.echo.overwrite) {
+      required_len += file->contents_len;
+    }
+
+    if (required_len > file->contents_cap) {
+      file->contents_len = required_len;
+      while (file->contents_cap < required_len + 1) {
+        file->contents_cap = 2 * file->contents_cap + 1;
+        file->contents = realloc(
+          file->contents,
+          file->contents_cap * sizeof(char)
+        );
+      }
+    }
+
+    if (command.data.echo.overwrite) {
+      strcpy(file->contents, command.data.echo.contents);
+    } else {
+      strcat(file->contents, command.data.echo.contents);
     }
   }
 

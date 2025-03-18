@@ -1,4 +1,10 @@
 touch test a b c
 ls
 pwd
+echo "heyyy" > test
+cat test
+echo " meow" >> test
+cat test
+echo "oops" > test
+cat test
 exit
