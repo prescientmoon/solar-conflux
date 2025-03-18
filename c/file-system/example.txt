@@ -1,0 +1,4 @@
+touch test a b c
+ls
+pwd
+exit
