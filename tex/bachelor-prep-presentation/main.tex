@@ -79,18 +79,16 @@ code-for-last-col = \color{blue}
 
 \begin{frame}[fragile]{CMB Anisotropy of Homogeneous Spherical Spaces}
 	\begin{itemize}
-		\item Manifolds $\textcolor{blue}{M} := \mathbb{S}^3 /_ \sim$ where $\sim $ identifies the orbits of finite $H \leq SO(4)$
-
-		\item Helmholtz equation on $\textcolor{blue}{M}$ given by
+		\item The Helmholtz equation on $\textcolor{blue}{M}$ has the spectrum as its solutions, and is given by
 		      \begin{align*}
-			      (\Delta + E_{\textcolor{red}{\beta}}^{\textcolor{blue}{M}})\psi_{\textcolor{red}{\beta}}^{{\textcolor{blue}{M}}, i} = 0
+			      (\Delta + E_{\textcolor{red}{\beta}}^{\textcolor{blue}{M}})\psi_{\textcolor{red}{\beta}}^{{\textcolor{blue}{M}}, i} = 0.
 		      \end{align*}
 
-		\item In fact $E_{\textcolor{red}{\beta}}^m = {\textcolor{red}{\beta}}^2-1$ for $\textcolor{red}{\beta} \in \mathbb{N}$ we call $\textcolor{red}{\beta}$ a wave number
+		\item In fact $E_{\textcolor{red}{\beta}}^m = {\textcolor{red}{\beta}}^2-1$ for $\textcolor{red}{\beta} \in \mathbb{N}$ we call $\textcolor{red}{\beta}$ a wave number.
 
-		\item The set of all possible wave numbers [for which there exists a non-zero solution] depends on $H$
+		\item The set of all possible wave numbers [for which there exists a non-zero solution] depends on $\Gamma$.
 
-		\item Solutions to the Helmholtz equation are calculated for each $H$ and CMB anisotropies $\frac{\delta T}{T}$ computed
+		\item Solutions to the Helmholtz equation are calculated for each $\Gamma$ and CMB anisotropy $\frac{\delta T}{T}$ computed.
 	\end{itemize}
 \end{frame}
 
@@ -108,16 +106,15 @@ code-for-last-col = \color{blue}
 \end{comment}
 
 
-\begin{frame}[fragile]{CMB Anisotropy of Homogeneous Spherical Spaces - Conclusion}
+\begin{frame}[fragile]{CMB Anisotropy of Homogeneous Spherical Spaces — Conclusion}
 	\begin{itemize}
-		\item For the majority of groups $H$ the anisotropies $\frac{\delta T}{T}$ do not coincide with observations
-		\item The only for which it does are $H = O^*$ and $H = I^*.$ the \textcolor{red}{binary octahedral} and \textcolor{red}{binary icosahedral} groups of order 48 and 120
-
+		\item For the majority of groups $\Gamma$, the anisotropies $\frac{\delta T}{T}$ do not coincide with observations.
+		\item The only groups for which it does are $\Gamma = O^*$ and $\Gamma = I^*$ — the \textcolor{red}{binary octahedral} and \textcolor{red}{binary icosahedral} groups of order 48 and 120 respectively.
 
 	\end{itemize}
 	\begin{figure}[H]
 		\centering
-		\includegraphics[width=0.4\linewidth]{binary-octahedron.png}
+		\includegraphics[width=0.35\linewidth]{binary-octahedron.png}
 		\caption{Graphical representation of the binary tetrahedral group
 				[5]}
 	\end{figure}
@@ -129,14 +126,14 @@ code-for-last-col = \color{blue}
 
 	\begin{itemize}
 		\item Manifolds of the form $\mathbb S/\Gamma$ with $\Gamma$ a group acting on $\mathbb S^3$.
-		\item Multi-connected space: it has non-contractable loops
-		\item Inhomogeneous space: it does not look identical from every point in space
+		\item Multi-connected space: it has non-contractable loops.
+		\item Inhomogeneous space: it does not look identical from every point in space.
 		\item Fixing $|\Gamma|=8$, we have three multi-connected manifolds, up to equivalence:
-        \begin{enumerate}
-            \item homogeneous: $N3$ and $L(8,1)$
-            \item inhomogeneous: $N2 \equiv L(8,3)$
-        \end{enumerate}
-        \item Results: inhomogeneous spaces have more variety in CMB anisotropies than homogeneous spaces, because different observation points have
+		      \begin{enumerate}
+			      \item homogeneous: $N3$ and $L(8,1)$
+			      \item inhomogeneous: $N2 \equiv L(8,3)$
+		      \end{enumerate}
+		\item Results: inhomogeneous spaces have more variety in CMB anisotropies than homogeneous spaces, because different observation points have.
 	\end{itemize}
 
 
@@ -145,15 +142,16 @@ code-for-last-col = \color{blue}
 \section{Test for anisotropy in the mean of the CMB temperature fluctuation in spherical harmonic space}
 
 \begin{frame}{The setup}
-	From the perspective of an Earth-based observer, we can view CMB as a function defined on the celestial sphere $\mathbb{S}^2$. \\
-	So, $\Delta T(\hat{n})$ expanded using \textit{spherical harmonics}, with $a_{\ell m}$ its coefficients.\\
+	From the perspective of an Earth-based observer, we can view CMB as a function defined on the celestial sphere $\mathbb{S}^2$. We expand $\Delta T(\hat{n})$ using \emph{spherical harmonics}, yielding coefficients $a_{\ell m}$.
+
 	We assume the fluctuations:
 	\begin{itemize}
 		\item Statistically isotropic and homogeneous in the mean.
 		\item Gaussian distribution.
 		\item $\textcolor{blue}{a_{\ell m}}$ are independent Gaussian variables.
 	\end{itemize}
-	Coefficients should satisfy:$\langle \textcolor{blue}{a_{\ell m}} \rangle = 0$ \\
+
+	Coefficients should satisfy:$\langle \textcolor{blue}{a_{\ell m}} \rangle = 0$.
 
 	\textbf{\textcolor{red}{Remark:}} $\langle \textcolor{blue}{a_{\ell m}} \rangle \neq 0$, \textbf{suggests possible anisotropies or preferred directions in the universe}
 \end{frame}
@@ -182,7 +180,7 @@ code-for-last-col = \color{blue}
 		\includegraphics[width=0.7\linewidth]{DSE-Test Graph}
 		\caption{The decorrelated band mean spectrum obtained by the seven-year WMAP data [9].}
 	\end{figure}
-\textcolor{red}{Remark}: In a positively curved space certain multipoles scales being preferred or suppressed in the CMB power spectrum.
+	\textcolor{red}{Remark}: In a positively curved space certain multipoles scales being preferred or suppressed in the CMB power spectrum.
 
 \end{frame}
 
