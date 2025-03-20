@@ -57,22 +57,24 @@ code-for-last-col = \color{blue}
 
 \setbeamercolor{block title}{fg=white, bg=purple!50!black}
 \setbeamercolor{block body}{fg=black, bg=pink!20}
+
+
+
+\setbeamercolor{titlebox}{fg=black,bg=white}
 \begin{document}
 
-
-\maketitle
+{
+\usebackgroundtemplate{\includegraphics[height=\paperheight]{cmb.png}}
+\begin{frame}
+	\begin{beamercolorbox}[center]{titlebox}%
+		\titlepage
+	\end{beamercolorbox}
+\end{frame}
+}
 
 \section{Introduction}
 
 \begin{frame}{Outline}
-	%Should we make an outline?
-	\begin{enumerate}%[<+->]
-		\item Motivation
-		\item Part 1
-		\item Part 2
-		\item Part 3
-		\item etc
-	\end{enumerate}
 \end{frame}
 
 \include{prerequisites}
