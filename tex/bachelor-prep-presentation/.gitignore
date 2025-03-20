@@ -11,7 +11,5 @@
 *.out
 *.synctex
 *.synctex(busy)
-main.pdf
-paper.pdf
-technology.pdf
+# main.pdf
 *.synctex.gz
