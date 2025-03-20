@@ -133,7 +133,7 @@ We recall that second-countability is defined as follows:
 For one, limits need not be unique in the general case. This could happen if there are not enough neighborhoods to direct the sequence to a single point, which is why we require manifolds to be Hausdorff.
 
 
-Moreover, sequences are just functions from the naturals to our space, so they are inherently \emph{countable} in nature. Indeed, we are used to many nice properties of limits. For instance, if a function in real space preserves the limits of sequences, then it is guaranteed to be continuous. But such a test might not hold in the general case. Indeed, we could find too many neighborhoods around each point, such that a simple sequence does not suffice for detecting properties like continuity. Requiring the space to be \emph{first countable} (that is, requiring that each point has a countable basis for its neighborhoods) solves this issue. In fact, we require an even stronger condition for manifolds in second countability (that is, a countable basis must exist for the entire space). %%I'm actually not super sure what second countability adds over first countability here, but perhaps even first countability can have the issue of ``too many open sets'' (this time at a global level). 
+Moreover, sequences are just functions from the naturals to our space, so they are inherently \emph{countable} in nature. Indeed, we are used to many nice properties of limits. For instance, if a function in real space preserves the limits of sequences, then it is guaranteed to be continuous. But such a test might not hold in the general case. Indeed, we could find too many neighborhoods around each point, such that a simple sequence does not suffice for detecting properties like continuity. Requiring the space to be \emph{first countable} (that is, requiring that each point has a countable basis for its neighborhoods) solves this issue. In fact, we require an even stronger condition for manifolds in second countability (that is, a countable basis must exist for the entire space). %%I'm actually not super sure what second countability adds over first countability here, but perhaps even first countability can have the issue of ``too many open sets'' (this time at a global level).
 
 
 For a more in-depth treatment of manifolds and their many-fold properties, the reader should consider \cite{serri}. A more thorough exposition of the way limits and sequences break down in the general setting (and how we can work around that) can be found in the third chapter of \cite{topcat}.
@@ -175,7 +175,7 @@ hence $Ax \in \mathbb{S}^3$ implying $A|_{\mathbb{S}^3}$ is a well-defined map a
 $$\|Ax - Ay\| = \|A(x-y)\| = \|x-y\|,$$ hence $A$ is an isometry.
 Next, for any subgroup $\Gamma \leq SO(4)$ we can consider the orbits of the action of $\Gamma$ on $\mathbb{S}^3$. We recall from group theory that this produces an equivalence relation on $\mathbb{S}^3$, where $x \sim y$ precisely when $x$ and $y$ are in the same orbit of $\Gamma$. That is, the set of equivalency classes of $\mathbb S^3$ with
 $$x \sim y \,\iff\, \exists\, g\in \Gamma: x = g\cdot y.$$
-The set $\mathbb{S}^3/_\sim$ can be given a manifold structure if certain conditions on the projection $\pi: \mathbb{S}^3 \to\mathbb{S}^3 /_\sim $ are satisfied, the details of which can be found in \cite{serri}. For instance, if $\Gamma$ is a finite subgroup of $SO(4)$ then the manifold $\mathbb{S}^3 /_\sim$ is a 3-manifold with positive curvature, similarly to $\mathbb{S}^3$ itself (which can be constructed when starting with the trivial group). 
+The set $\mathbb{S}^3/_\sim$ can be given a manifold structure if certain conditions on the projection $\pi: \mathbb{S}^3 \to\mathbb{S}^3 /_\sim $ are satisfied, the details of which can be found in \cite{serri}. For instance, if $\Gamma$ is a finite subgroup of $SO(4)$ then the manifold $\mathbb{S}^3 /_\sim$ is a 3-manifold with positive curvature, similarly to $\mathbb{S}^3$ itself (which can be constructed when starting with the trivial group).
 
 \begin{comment}
 
@@ -230,7 +230,7 @@ After classifying $\Gamma$ for spherical forms with non-cyclic homotopy group of
 
 \subsubsection{The silver lining}
 
-While the study of isospectral pairs is interesting in its own right, we can take solace in knowing that no such pairs exist in dimension three. That is, for the purpose of this article, all pairs of isospectral sphere forms must also be isometric. The motivated reader is encouraged to read \cite{emilio} for further details. For the rest of this paper, our primary means of CMB analysis will relate to the spectrum of different concrete models of spherical universes. 
+While the study of isospectral pairs is interesting in its own right, we can take solace in knowing that no such pairs exist in dimension three. That is, for the purpose of this article, all pairs of isospectral sphere forms must also be isometric. The motivated reader is encouraged to read \cite{emilio} for further details. For the rest of this paper, our primary means of CMB analysis will relate to the spectrum of different concrete models of spherical universes.
 
 A key aspect of this pursuit is understanding the ways in which \emph{eigenmodes of the Helmholtz equation} (which we formally define in the next section) behave under different spherical topologies, as these modes determine the possible temperature fluctuations in a CMB model. The work of Aurich, Lustig, and Steiner (2005) explores these spectral properties and their consequences for modeling CMB fluctuations in spherical space forms.
 
@@ -268,10 +268,10 @@ From \cite{aurich_2005} we know that the spectrum of the Helmholtz operator is a
     \item If $H = \mathbb Z/m\mathbb Z$ for odd $m$ (that is, if the underlying manifold is a lens space), the set of wave numbers is $$\{1,3,\cdots, m\}\cup \{m+1, m+2, m+3, \cdots \}.$$
     \item  If $H = O^*$, the binary tetrahedral group --- a subgroup of $SO(4)$ of size 24, the set of wave numbers turns out to be $$\{ 1,7,9 \} \cup \{13,15,17,\cdots \}.$$
 \end{enumerate}
- 
 
 
-Furthermore, we can write any eigenfunction of the Helmholtz operator on $M$ in terms of known eigenfunctions on $\mathbb{S}^3$ while being able to compute the necessary coefficients. 
+
+Furthermore, we can write any eigenfunction of the Helmholtz operator on $M$ in terms of known eigenfunctions on $\mathbb{S}^3$ while being able to compute the necessary coefficients.
 
 Section 3 of \cite{aurich_2005} constitutes the technical part of the paper, the complete understanding of which requires a background in cosmology. The authors' goal is to compute the relative fluctuations $\frac{\delta T}{T}$ of the CMB for the various spherical manifolds obtained as the quotients of finite subgroups of $SO(4)$. First, they explain how the CMB fluctuations arise as manifestations of different effects, such as the Sachs-Wolfe contribution. For the computations, the authors assume that the initial values for the fluctuations corresponding to each wave number are certain Gaussian random variables.
 
@@ -289,12 +289,12 @@ For each spherical manifold, the authors plot $\delta T_l^2$ with respect to $\O
 
 The authors conclude that the spherical manifolds which align closest with the measured data are the ones obtained when setting $H = O^*$ and $H = I^*$, the \textit{binary octahedral} and \textit{binary icosahedral} groups respectively, which are of orders $48$ and $120$. The authors present an explicit description of the groups generated by left- and right- multiplication of certain quaternions, but we will omit the details for the sake of brevity.
 
-Furthermore, the authors excluded other groups (such as the binary tetrahedral group $T^*$ and infinite families of binary dihedral groups and cyclic groups) as possible models of the universe, as they exhibit drastically different behavior. 
+Furthermore, the authors excluded other groups (such as the binary tetrahedral group $T^*$ and infinite families of binary dihedral groups and cyclic groups) as possible models of the universe, as they exhibit drastically different behavior.
 
 \begin{figure}[H]
 	\centering
 \includegraphics[width=0.25\linewidth]{binary-octahedron.png}
-	\caption{Graphical representation of the binary tetrahedral group 
+	\caption{Graphical representation of the binary tetrahedral group
     \cite{Egan_2021}}
 	\label{fig:binary-octahedron}
 \end{figure}
@@ -325,10 +325,10 @@ To conclude, the above illustrates how different spherical spaces influence CMB 
 \subsection{CMB radiation in an inhomogeneous spherical space}
 In \cite{Aurich_2011}, the authors consider the CMB in spherical 3-manifolds that are \textit{multi-connected} and inhomogeneous, comparing them with their homogeneous counterparts. To start off, the manifolds used in the paper are all of the form $\mathbb S^3/\Gamma$, where $\Gamma$ is a group acting on $\mathbb S^3$, with the quotient being the set of orbits. The space being multi-connected means it is not simply connected, i.e. that not all loops are contractable to a point.
 
-%This can also be seen as a covering, where $\S^3$ is the covering space, $\S^3/\Gamma$ is the space being covered, $\Gamma$ is the automorphism group and $\pi: x\mapsto \Gamma x$ is the covering map. 
+%This can also be seen as a covering, where $\S^3$ is the covering space, $\S^3/\Gamma$ is the space being covered, $\Gamma$ is the automorphism group and $\pi: x\mapsto \Gamma x$ is the covering map.
 The condition of the manifold being inhomogeneous means that, unlike the 3-sphere $\mathbb S^3$ and 3-torus $\mathbb T^3$, the manifold does not look the same at each point on the manifold. We will define this properly later. Because of inhomogeneity, the CMB is very much dependent on the point of observation.
 
-An important concept needed for formalizing this concept is that of the fundamental domain. Given the manifold $\mathbb S^3/\Gamma$, a fundamental domain is a subset of $\S^3$ which covers the entirety of $\S^3$ under the action of $\Gamma$. Moreover, all non-identity elements of $\Gamma$ must send elements in this set outside of it. 
+An important concept needed for formalizing this concept is that of the fundamental domain. Given the manifold $\mathbb S^3/\Gamma$, a fundamental domain is a subset of $\S^3$ which covers the entirety of $\S^3$ under the action of $\Gamma$. Moreover, all non-identity elements of $\Gamma$ must send elements in this set outside of it.
 
 Intuitively, one can imagine the manifold being covered by disjoint copies of the fundamental domain placed next to eachother, similarly to how $\mathbb{R}$ is tiled by the intervals $[n,n+1)$ for $n \in \mathbb{Z}$, forming a collection of such domains that cover the space under the standard action of $\mathbb{Z}$ on $\mathbb{R}$. Importantly, we are interested in one specific fundamental domain called the \emph{Voronoi domain}. Given an observation point $x_0\in\S^3$, the Voronoi domain is the set of elements $x\in\S^3$ such that
 $$ d(x_0,x) \leq d(x_0,g\cdot x) \quad \forall\, g\in\Gamma, $$
@@ -336,11 +336,11 @@ where $d(\cdot,\cdot)$ is the $\S^3$-distance, analogous to the angular distance
 
 To determine whether a spherical manifold is homogeneous, one must understand the way group action changes with observer position. Changing the observer position is done mathematically by applying a change of coordinates $u'=uq$ with $u\in\S^3$ and $q$ an isometry in $\text{SU}(2,\mathbb C) \equiv \S^3$, making $u=q^{-1}$ the new origin $u'=q^{-1}q=e$. Then, using the general group element $g = (g_l,g_r)\in\Gamma$ and letting $\tilde u = g\cdot u = (g_l)^{-1}ug_r $, we get $ \tilde u' = (g_l)^{-1} u' (q^{-1}g_rq) $. The transformation in our shifted space is then $g' = (g_{l},q^{-1}g_{r}q)$, which generally differs from $g=(g_l,g_r)$. Therefore, if $g_r = q^{-1}g_rq$ does not hold for some $g$ and $q$ in the manifold, then the manifold is known to be inhomogeneous.
 
-In the article, the authors discuss different spherical 3-manifolds, classifying whether they are inhomogeneous, analyzing their properties, and finding equivalences. Specifically, they look at manifolds of the form $\S^3/\Gamma$  with $\Gamma$ a group of order $8$, in order to make the volume equal to $2\pi^2/8$. Within those restrictions, we have the lens spaces $L(8,1)$ and $L(8,3)$, the cubic Platonic manifolds $N2$ and $N3$, and the manifold $D_8^*$ obtained when $\Gamma$ is the binary dihedral group. Analyzing said manifolds, one finds the equivalences $N2 \equiv L(8,3)$ and $N3\equiv D_8^*$. Furthermore, using the theory introduced previously, we learn that $N2$ is inhomogeneous while $N3$ and $L(8,1)$ are homogeneous. 
+In the article, the authors discuss different spherical 3-manifolds, classifying whether they are inhomogeneous, analyzing their properties, and finding equivalences. Specifically, they look at manifolds of the form $\S^3/\Gamma$  with $\Gamma$ a group of order $8$, in order to make the volume equal to $2\pi^2/8$. Within those restrictions, we have the lens spaces $L(8,1)$ and $L(8,3)$, the cubic Platonic manifolds $N2$ and $N3$, and the manifold $D_8^*$ obtained when $\Gamma$ is the binary dihedral group. Analyzing said manifolds, one finds the equivalences $N2 \equiv L(8,3)$ and $N3\equiv D_8^*$. Furthermore, using the theory introduced previously, we learn that $N2$ is inhomogeneous while $N3$ and $L(8,1)$ are homogeneous.
 
 \subsubsection{Results}
 
-The rest of the article is about finding out how the CMB would look like in our three spaces $L(8,1)$, $L(8,3)\equiv N2$ and $N3$, with a focus on the difference between the homogeneous and inhomogeneous manifolds. For example, it finds that inhomogeneous spaces like $N2$ have a much higher variety of CMB anisotropies, because of how elements $g\in\Gamma$ act different depending on the observer. The main result is related to the suppression of CMB anisotropy over angles $60^\circ$ and larger. We see the strongest suppression in the Voronoi domains of $N2$ that are Platonic cube shaped. On the other hand, we see the least suppression in the lens shaped Voronoi domains of $N2$. Looking at $N3$ together with the total energy density parameter $\Omega_\text{tot}>1.07$, we notice an even larger suppression than for observers in $N2$. 
+The rest of the article is about finding out how the CMB would look like in our three spaces $L(8,1)$, $L(8,3)\equiv N2$ and $N3$, with a focus on the difference between the homogeneous and inhomogeneous manifolds. For example, it finds that inhomogeneous spaces like $N2$ have a much higher variety of CMB anisotropies, because of how elements $g\in\Gamma$ act different depending on the observer. The main result is related to the suppression of CMB anisotropy over angles $60^\circ$ and larger. We see the strongest suppression in the Voronoi domains of $N2$ that are Platonic cube shaped. On the other hand, we see the least suppression in the lens shaped Voronoi domains of $N2$. Looking at $N3$ together with the total energy density parameter $\Omega_\text{tot}>1.07$, we notice an even larger suppression than for observers in $N2$.
 %this is just so that the change of section is not out of nowhere, put it at the end of what you are writting, it doesnt need to be in a dfferent subsection, however you should maybe do a small subsection of the main conslusion (like ariel and jus, with the subsections "silver lining" and "results"). if you do the small subsetion, put what i wrote in that section, perfect
 
 Given the potential for anisotropies in spherical space models, it is crucial to test whether CMB fluctuations exhibit directional dependence. The study by \cite{Kashino_2012} develops a statistical framework for detecting anisotropies in the mean CMB temperature fluctuations. Their method employs spherical harmonic decomposition and Monte Carlo simulations to compare theoretical predictions with WMAP observational data.
@@ -354,7 +354,7 @@ Given the potential for anisotropies in spherical space models, it is crucial to
 The temperature fluctuations of the Cosmic Microwave Background (CMB) provide crucial insights into the physics of the early universe and the underlying cosmological model.
 A fundamental assumption in standard cosmology ($\Lambda CDM$ model) is \textit{statistical isotropy}, meaning that the statistical properties of the CMB should be the same in all directions. Testing this assumption is essential, as deviations from isotropy could indicate alternative topologies for the universe.
 
-Following the article by \cite{Kashino_2012}, this section goes through an overview of a mathematical method for computing and interpreting CMB temperature fluctuations in spherical spaces, incorporating statistical isotropy, covariance structures, and Monte Carlo simulations, which are later compared with the Wilkinson Microwave Anisotropy Probe (WMAP) seven-year observation data. 
+Following the article by \cite{Kashino_2012}, this section goes through an overview of a mathematical method for computing and interpreting CMB temperature fluctuations in spherical spaces, incorporating statistical isotropy, covariance structures, and Monte Carlo simulations, which are later compared with the Wilkinson Microwave Anisotropy Probe (WMAP) seven-year observation data.
 
 From the perspective of an Earth-based observer, we can view CMB as a function defined on the celestial sphere $\mathbb{S}^2$. Hence we can express CMB as the sum of spherical harmonics.\\
 The observed temperature fluctuations along a given direction in the celestial sphere can be expanded using spherical harmonics
@@ -428,7 +428,7 @@ If we try to look at deviations at both large and small scales simultaneously. I
 
 The presence of an anomaly at $221 \leq \ell \leq 240$ suggests a possible connection to models of a finite curved universe. In a positively curved space (e.g., a three-sphere), allowed wave modes are quantized, which could lead to certain multipoles scales being preferred or suppressed in the CMB power spectrum.
 The results of this article, although not conclusive, support the idea that the universe (or at least the CMB sky) has a small preferred direction. Supporting the idea of a non-trivial topology in the universe, specifically a spherical one. Which is analyzed more into detail in the other articles discussed in the other sections.
-As a final note, the analysis is limited by the existing data for the CMB temperatures. Thus, future high-resolution independent CMB observations like PLANCK will further refine these methods, offering deeper insights into the fundamental nature of the universe and the topology of space-time. 
+As a final note, the analysis is limited by the existing data for the CMB temperatures. Thus, future high-resolution independent CMB observations like PLANCK will further refine these methods, offering deeper insights into the fundamental nature of the universe and the topology of space-time.
 
 
 \section{Conclusion}
@@ -441,7 +441,7 @@ As a final note, the analysis is limited by the existing data for the CMB temper
 %	\label{fig:binary-octahedron}
 %\end{figure}
 
-The study of CMB temperature fluctuations provides a means of establishing the geometry and topology of the universe. By analyzing key results from various studies, we discovered how different finite spherical topologies can constrain the possible allowed temperature fluctuations of the CMB, resulting in distinct theoretical predictions for the temperature anisotropies. 
+The study of CMB temperature fluctuations provides a means of establishing the geometry and topology of the universe. By analyzing key results from various studies, we discovered how different finite spherical topologies can constrain the possible allowed temperature fluctuations of the CMB, resulting in distinct theoretical predictions for the temperature anisotropies.
 
 We took a detour into the realm of \emph{inverse spectral geometry and the Laplace-Beltrami operator}, and investigated isospectral pairs of spherical forms. Were any such pairs to exist, ambiguity in CMB analysis would become an issue, as our primary approach is analysis of the manifolds' spectrums. The silver lining is that all three-dimensional isospectral pairs of spherical spaces are also isometric, implying that determining the eigenmode spectrum is enough to determine the underlying topology for our spatial universe.
 
@@ -453,7 +453,7 @@ While no topology can be confirmed definitively, the mathematical and observatio
 
 %\printbibliography
 
-%apalike-ejor IAS THE 
+%apalike-ejor IAS THE
 
 
 

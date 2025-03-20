@@ -7,7 +7,5 @@
 *.out
 *.synctex
 *.synctex(busy)
-main.pdf
 paper.pdf
-technology.pdf
 *.synctex.gz
