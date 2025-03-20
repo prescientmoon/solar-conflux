@@ -131,11 +131,11 @@ code-for-last-col = \color{blue}
 		\item Multi-connected space: it has non-contractable loops
 		\item Inhomogeneous space: it does not look identical from every point in space
 		\item Fixing $|\Gamma|=8$, we have three multi-connected manifolds, up to equivalence:
-        \begin{enumerate}
-            \item homogeneous: $N3$ and $L(8,1)$
-            \item inhomogeneous: $N2 \equiv L(8,3)$
-        \end{enumerate}
-        \item Results: inhomogeneous spaces have more variety in CMB anisotropies than homogeneous spaces, because the strength of anisotropy suppression is observer dependent.
+		      \begin{enumerate}
+			      \item homogeneous: $N3$ and $L(8,1)$
+			      \item inhomogeneous: $N2 \equiv L(8,3)$
+		      \end{enumerate}
+		\item Results: inhomogeneous spaces have more variety in CMB anisotropies than homogeneous spaces, because the strength of anisotropy suppression is observer dependent.
 	\end{itemize}
 
 
@@ -159,19 +159,19 @@ code-for-last-col = \color{blue}
 \end{frame}
 
 \begin{frame}{The setup}
-	Real CMB observations are affected by instrumental noise and \textit{sky masking}. So, estimating $C_\ell$ accurately requires simulations.
+	Real CMB observations are affected by instrumental noise and \emph{sky masking}. As a result, estimating $C_\ell$ accurately requires simulations.
 
 	Given $C^{th}_\ell$, used to generate synthetic realizations of the CMB sky
 	\[
 		\textcolor{blue}{a_{\ell m}} \sim \mathcal{N} (0, C_\ell^{\text{th}}).
 	\]
-	However, this introduces bias, which must be corrected using a decorrelation matrix  $W$, and a \textit{sky mask} matrix  $M$ which accounts for issues caused by masking effects.
 
-	Giving us the test statistic (tests the assumption of statistical isotropy):
+	Unfortunately, this introduces bias, which must be corrected using a decorrelation matrix  $W$, and a \textit{sky mask} matrix  $M$ which accounts for issues caused by masking effects. This gives us the test statistic (tests the assumption of statistical isotropy):
 	\[
 		S_i = \sum_{j} W_{ij} M_j,
 	\]
-	Which examines $\langle \textcolor{blue}{a_{\ell m}} \rangle$ across multipole ranges. \\
+	which examines $\langle \textcolor{blue}{a_{\ell m}} \rangle$ across multipole ranges.
+
 	\textbf{\textcolor{red}{Recall:}} $\langle a_{\ell m} \rangle \neq 0$, \textbf{suggests possible anisotropies or preferred directions in the universe}
 
 \end{frame}
@@ -182,6 +182,7 @@ code-for-last-col = \color{blue}
 		\includegraphics[width=0.7\linewidth]{DSE-Test Graph}
 		\caption{The decorrelated band mean spectrum obtained by the seven-year WMAP data [9].}
 	\end{figure}
+
 	\textcolor{red}{Remark}: In a positively curved space certain multipoles scales being preferred or suppressed in the CMB power spectrum.
 
 \end{frame}
