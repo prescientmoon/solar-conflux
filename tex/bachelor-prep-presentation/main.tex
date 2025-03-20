@@ -2,8 +2,6 @@
 \usetheme{Warsaw}
 \usecolortheme{lily}
 
-
-
 % boadilla seems to be the only one with enough space for stuff.compile it now it is very toxic but works
 
 \usepackage{graphicx} % Required for inserting images
@@ -20,8 +18,12 @@
 
 \DeclareMathOperator{\divergence}{div}
 \DeclareMathOperator{\lensop}{L}
-\DeclareMathOperator{\rotmat}{R}
+\DeclareMathOperator{\rotmatop}{R}
+\DeclareMathOperator{\soop}{SO}
 \newcommand*{\lens}[2]{\lensop\left(#1,#2\right)} %
+\newcommand*{\so}[1]{\soop\left(#1\right)}
+\newcommand*{\rotmat}[1]{\rotmatop\left(#1\right)}
+\renewcommand{\S}{\mathbb{S}}
 
 % cool color
 
@@ -49,9 +51,12 @@ code-for-last-col = \color{blue}
 \setbeamertemplate{headline}{%
   \leavevmode%
   \begin{beamercolorbox}[wd=\paperwidth,ht=2.5ex,dp=1.5ex]{section in head/foot}%
-    \hspace{.5em}\strut\insertsectionhead\hfill\mbox{}%
+    \mbox{}\hspace{.5em}\strut\insertsectionhead\hfill%
   \end{beamercolorbox}%
 }
+
+\setbeamercolor{block title}{fg=white, bg=purple!50!black}
+\setbeamercolor{block body}{fg=black, bg=pink!20}
 \begin{document}
 
 
@@ -76,10 +81,10 @@ code-for-last-col = \color{blue}
 		\item 1
 		\item 2
 	\end{itemize}
-
 \end{frame}
 
 \include{prerequisites}
+
 \include{isospectral}
 
 \begin{frame}[fragile]{CMB Anisotropy of Homogeneous Spherical Spaces}
@@ -123,7 +128,6 @@ code-for-last-col = \color{blue}
 		\includegraphics[width=0.4\linewidth]{binary-octahedron.png}
 		\caption{Graphical representation of the binary tetrahedral group
 				[5]}
-		\label{fig:binary-octahedron}
 	\end{figure}
 
 \end{frame}
@@ -158,7 +162,6 @@ code-for-last-col = \color{blue}
 		\centering
 		\includegraphics[width=0.6\linewidth]{DSE-Test Graph}
 		\caption{The decorrelated band mean spectrum obtained by the seven-year WMAP data [9].}
-		\label{fig:Decorrelated Statistical Spectrum}
 	\end{figure}
 \end{frame}
 
