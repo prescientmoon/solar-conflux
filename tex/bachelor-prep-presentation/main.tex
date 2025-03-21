@@ -81,16 +81,18 @@ code-for-last-col = \color{blue}
 
 \begin{frame}[fragile]{Homogeneous Spherical Spaces}
 	\begin{itemize}
+		\pause
 		\item Finite subgroup $\Gamma \leq \so 4.$
+		      \pause
 		\item The Helmholtz equation on $\textcolor{blue}{M}$ has the spectrum of the underlying manifold as its solutions, and is given by
 		      \begin{align*}
 			      (\Delta + E_{\textcolor{red}{\beta}}^{\textcolor{blue}{M}})\psi_{\textcolor{red}{\beta}}^{{\textcolor{blue}{M}}, i} = 0.
 		      \end{align*}
-
+		      \pause
 		\item In fact $E_{\textcolor{red}{\beta}}^m = {\textcolor{red}{\beta}}^2-1$ for $\textcolor{red}{\beta} \in \mathbb{N}$. We call $\textcolor{red}{\beta}$ a wave number.
-
+		      \pause
 		\item The set of all possible wave numbers [for which a nonzero solution exists] depends on $\Gamma$ - usually a proper subset of $\mathbb{{N}}$.
-
+		      \pause
 		\item Solutions to the Helmholtz equation are calculated for each $\Gamma$ and CMB anisotropy $\frac{\delta T}{T}$ computed as a sum of spherical harmonics.
 	\end{itemize}
 \end{frame}
@@ -111,9 +113,11 @@ code-for-last-col = \color{blue}
 
 \begin{frame}[fragile]{Homogenous Spherical Spaces --- Results}
 	\begin{itemize}
+		\pause
 		\item For the majority of groups $\Gamma$, the anisotropies $\frac{\delta T}{T}$ do not coincide with observations.
+		      \pause
 		\item The only groups for which it does are $\Gamma = O^*$ and $\Gamma = I^*$ — the \textcolor{red}{binary octahedral} and \textcolor{red}{binary icosahedral} groups of order 48 and 120 respectively.
-
+		      \pause
 	\end{itemize}
 	\begin{figure}[H]
 		\centering
@@ -132,11 +136,13 @@ code-for-last-col = \color{blue}
 		\item Manifolds of the form $\S^3/\Gamma$ with $\Gamma$ a group acting on $\S^3$.
 		\item Multi-connected space: it has non-contractable loops
 		\item Inhomogeneous space: it does not look identical from every point in space
-		\item Fixing $|\Gamma|=8$, we have three multi-connected manifolds, up to equivalence:
+		      \pause
+		\item Fixing $|\Gamma|=8$, we have three multi-connected manifolds, up to equivalence: \pause
 		      \begin{enumerate}
 			      \item homogeneous: $N3$ and $L(8,1)$
 			      \item inhomogeneous: $N2 \equiv L(8,3)$
 		      \end{enumerate}
+		      \pause
 		\item Results: inhomogeneous spaces have more variety in the CMB anisotropies than homogeneous spaces, because the strength of anisotropy suppression is observer dependent.
 	\end{itemize}
 
@@ -150,16 +156,18 @@ code-for-last-col = \color{blue}
 	\textbf{Theoretical Expectation:}\\
 	From the perspective of an Earth-based observer, we can view the CMB as a function defined on the celestial sphere $\mathbb{S}^2$.\\
 	\begin{itemize}
+		\pause
 		\item The CMB temperature fluctuations can be expanded as:
 		      \[
 			      \Delta T(\hat{n}) = \sum_{\ell=0}^{\infty} \sum_{m=-\ell}^{\ell} a_{\ell m} Y_{\ell m}(\hat{n})
 		      \]
+		      \pause
 		\item If the universe is isotropic, the \textbf{mean of the harmonic coefficients} should satisfy:
 		      \[
 			      \langle a_{\ell m} \rangle = 0
 		      \]
 	\end{itemize}
-
+	\pause
 	\textbf{Key Question:}
 	- Does the observed CMB data deviate from statistical isotropy?
 	- If \( \langle a_{\ell m} \rangle \neq 0 \), this suggests a preferred cosmic direction.
@@ -170,13 +178,15 @@ code-for-last-col = \color{blue}
 	\textbf{Challenges in Real Observations:}
 	\begin{itemize}
 		\item We cannot observe the full CMB sky due to foreground contamination.
+
 		\item A \textbf{sky mask function} \( A(\hat{n}) \) removes contaminated regions, but introduces bias.
+		      \pause
 		\item The test statistic \( S_i \) is used, with a matrix $W$ to correct for these effects:
 		      \[
 			      S_i = \sum_{j} W_{ij} M_j
 		      \]
 	\end{itemize}
-
+	\pause
 	\textbf{Monte Carlo Simulations:}
 	\begin{itemize}
 		\item We generate thousands of \textbf{simulated CMB skies} assuming isotropy.
@@ -199,12 +209,13 @@ code-for-last-col = \color{blue}
 			\caption{The decorrelated band mean test statistic values over multipole ranges [9].}
 		\end{figure}
 		\column{0.5\textwidth}
+		\pause
 		\textbf{Key Findings:}
 		\begin{itemize}
 			\item A statistically significant deviation was found in \( 221 \leq \ell \leq 240 \).
 			\item This suggests a potential \textcolor{red}{preferred cosmic direction}.
 		\end{itemize}
-
+		\pause
 		\textbf{Possible Explanations:}
 		\begin{itemize}
 			\item A real cosmological signal? → A finite universe or new physics.
@@ -216,10 +227,18 @@ code-for-last-col = \color{blue}
 
 \section{Conclusion}
 \begin{frame}{Conclusion}
+
+	\pause
 	\begin{enumerate}
 		\item We can infer the shape of the universe from its spectrum
+
+		      \pause
 		\item There are two homogeneous spherical manifolds obtained as $\S^3/\Gamma$ which produce CMB similar to observations
+
+		      \pause
 		\item Inhomogeneous spherical spaces exhibit varied behavior of CMB anisotropies
+
+		      \pause
 		\item Statistical test results suggest possibilities of finite multi-connected topology
 	\end{enumerate}
 \end{frame}
