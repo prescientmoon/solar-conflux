@@ -22,9 +22,9 @@
 \DeclareMathOperator{\lensop}{L}
 \DeclareMathOperator{\rotmatop}{R}
 \DeclareMathOperator{\soop}{SO}
-\newcommand*{\lens}[2]{\lensop\left(#1,#2\right)} %
+\newcommand*{\lens}[2]{\textcolor{darkyellow}{\lensop\left(\textcolor{black}{#1},\textcolor{black}{#2}\right)}} %
 \newcommand*{\so}[1]{\soop\left(#1\right)}
-\newcommand*{\rotmat}[1]{\rotmatop\left(#1\right)}
+\newcommand*{\rotmat}[1]{\textcolor{red}{\rotmatop\left(\textcolor{black}{#1}\right)}}
 \renewcommand{\S}{\mathbb{S}}
 \newcommand{\R}{\mathbb{R}}
 
@@ -63,6 +63,7 @@ code-for-last-col = \color{blue}
 \setbeamercolor{titlebox}{fg=black,bg=white}
 
 \definecolor{silver}{RGB}{192, 192, 192}
+\definecolor{darkyellow}{RGB}{186, 142, 35}
 
 \begin{document}
 
@@ -136,14 +137,13 @@ code-for-last-col = \color{blue}
 \begin{frame}{Inhomogeneous spherical space}
 
 	\begin{itemize}
-		\item Manifolds of the form $\S^3/\Gamma$ with $\Gamma$ a group acting on $\S^3$.
 		\item Multi-connected space: it has non-contractable loops.
 		\item Inhomogeneous space: it does not look identical from every point in space.
 		      \pause
 		\item Fixing $|\Gamma|=8$, we have three multi-connected manifolds, up to equivalence: \pause
 		      \begin{enumerate}
-			      \item homogeneous: $N3$ and $L(8,1)$.
-			      \item inhomogeneous: $N2 \equiv L(8,3)$.
+			      \item homogeneous: $N3$ and $\lens 8 1 $.
+			      \item inhomogeneous: $N2 \equiv \lens 8 3 $.
 		      \end{enumerate}
 		      \pause
 		\item Results: inhomogeneous spaces have more variety in the CMB anisotropies than homogeneous spaces, because the strength of anisotropy suppression is observer dependent.
