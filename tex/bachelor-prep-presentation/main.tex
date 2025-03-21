@@ -1,5 +1,6 @@
 \documentclass{beamer}
 \usetheme{Warsaw}
+\usepackage{amsmath, amssymb}
 \usecolortheme{lily}
 
 % boadilla seems to be the only one with enough space for stuff.compile it now it is very toxic but works
@@ -78,18 +79,22 @@ code-for-last-col = \color{blue}
 \include{prerequisites}
 \include{isospectral}
 
-\begin{frame}[fragile]{CMB Anisotropy of Homogeneous Spherical Spaces}
+\section{CMB Anisotropy of Spherical Spaces
+}
+
+\begin{frame}[fragile]{Homogeneous Spherical Spaces}
 	\begin{itemize}
-		\item The Helmholtz equation on $\textcolor{blue}{M}$ has the spectrum as its solutions, and is given by
+    \item Finite subgroup $\Gamma \leq \so 4.$
+		\item The Helmholtz equation on $\textcolor{blue}{M}$ has the spectrum of the underlying manifold as its solutions, and is given by
 		      \begin{align*}
 			      (\Delta + E_{\textcolor{red}{\beta}}^{\textcolor{blue}{M}})\psi_{\textcolor{red}{\beta}}^{{\textcolor{blue}{M}}, i} = 0.
 		      \end{align*}
 
-		\item In fact $E_{\textcolor{red}{\beta}}^m = {\textcolor{red}{\beta}}^2-1$ for $\textcolor{red}{\beta} \in \mathbb{N}$ we call $\textcolor{red}{\beta}$ a wave number.
+		\item In fact $E_{\textcolor{red}{\beta}}^m = {\textcolor{red}{\beta}}^2-1$ for $\textcolor{red}{\beta} \in \mathbb{N}$. We call $\textcolor{red}{\beta}$ a wave number.
 
-		\item The set of all possible wave numbers [for which there exists a non-zero solution] depends on $\Gamma$.
+		\item The set of all possible wave numbers [for which a nonzero solution exists] depends on $\Gamma$ - usually a proper subset of $\mathbb{{N}}$.
 
-		\item Solutions to the Helmholtz equation are calculated for each $\Gamma$ and CMB anisotropy $\frac{\delta T}{T}$ computed.
+		\item Solutions to the Helmholtz equation are calculated for each $\Gamma$ and CMB anisotropy $\frac{\delta T}{T}$ computed as a sum of spherical harmonics.
 	\end{itemize}
 \end{frame}
 
@@ -107,7 +112,7 @@ code-for-last-col = \color{blue}
 \end{comment}
 
 
-\begin{frame}[fragile]{CMB Anisotropy of Homogeneous Spherical Spaces — Conclusion}
+\begin{frame}[fragile]{Homogenous Spherical Spaces --- Results}
 	\begin{itemize}
 		\item For the majority of groups $\Gamma$, the anisotropies $\frac{\delta T}{T}$ do not coincide with observations.
 		\item The only groups for which it does are $\Gamma = O^*$ and $\Gamma = I^*$ — the \textcolor{red}{binary octahedral} and \textcolor{red}{binary icosahedral} groups of order 48 and 120 respectively.
@@ -122,7 +127,7 @@ code-for-last-col = \color{blue}
 
 \end{frame}
 
-\section{CMB radiation in an inhomogeneous spherical space}
+\section{CMB Radiation in an Inhomogeneous Spherical Space}
 
 \begin{frame}{Inhomogeneous spherical space}
 
@@ -135,7 +140,7 @@ code-for-last-col = \color{blue}
 			      \item homogeneous: $N3$ and $L(8,1)$
 			      \item inhomogeneous: $N2 \equiv L(8,3)$
 		      \end{enumerate}
-		\item Results: inhomogeneous spaces have more variety in CMB anisotropies than homogeneous spaces, because the strength of anisotropy suppression is observer dependent.
+		\item Results: inhomogeneous spaces have more variety in the CMB anisotropies than homogeneous spaces, because the strength of anisotropy suppression is observer dependent.
 	\end{itemize}
 
 
@@ -143,64 +148,85 @@ code-for-last-col = \color{blue}
 
 \section{Test for anisotropy in the mean of the CMB temperature fluctuation in spherical harmonic space}
 
-\begin{frame}{The setup}
-	From the perspective of an Earth-based observer, we can view CMB as a function defined on the celestial sphere $\mathbb{S}^2$. We expand $\Delta T(\hat{n})$ using \emph{spherical harmonics}, yielding coefficients $a_{\ell m}$.
+\begin{frame}{Statistical Isotropy and Hypothesis}
+\small
+    \textbf{Theoretical Expectation:}\\
+    From the perspective of an Earth-based observer, we can view the CMB as a function defined on the celestial sphere $\mathbb{S}^2$.\\
+    \begin{itemize}
+        \item The CMB temperature fluctuations can be expanded as:
+        \[
+        \Delta T(\hat{n}) = \sum_{\ell=0}^{\infty} \sum_{m=-\ell}^{\ell} a_{\ell m} Y_{\ell m}(\hat{n})
+        \]
+        \item If the universe is isotropic, the \textbf{mean of the harmonic coefficients} should satisfy:
+        \[
+        \langle a_{\ell m} \rangle = 0
+        \]
+    \end{itemize}
 
-	We assume the fluctuations:
-	\begin{itemize}
-		\item Statistically isotropic and homogeneous in the mean.
-		\item Gaussian distribution.
-		\item $\textcolor{blue}{a_{\ell m}}$ are independent Gaussian variables.
-	\end{itemize}
-
-	Coefficients should satisfy:$\langle \textcolor{blue}{a_{\ell m}} \rangle = 0$.
-
-	\textbf{\textcolor{red}{Remark:}} $\langle \textcolor{blue}{a_{\ell m}} \rangle \neq 0$, \textbf{suggests possible anisotropies or preferred directions in the universe}
+    \textbf{Key Question:}  
+    - Does the observed CMB data deviate from statistical isotropy?  
+    - If \( \langle a_{\ell m} \rangle \neq 0 \), this suggests a preferred cosmic direction.  
 \end{frame}
 
-\begin{frame}{The setup}
-	Real CMB observations are affected by instrumental noise and \emph{sky masking}. As a result, estimating $C_\ell$ accurately requires simulations.
-
-	Given $C^{th}_\ell$, used to generate synthetic realizations of the CMB sky
-	\[
-		\textcolor{blue}{a_{\ell m}} \sim \mathcal{N} (0, C_\ell^{\text{th}}).
-	\]
-
-	Unfortunately, this introduces bias, which must be corrected using a decorrelation matrix  $W$, and a \textit{sky mask} matrix  $M$ which accounts for issues caused by masking effects. This gives us the test statistic (tests the assumption of statistical isotropy):
-	\[
-		S_i = \sum_{j} W_{ij} M_j,
-	\]
-	which examines $\langle \textcolor{blue}{a_{\ell m}} \rangle$ across multipole ranges.
-
-	\textbf{\textcolor{red}{Recall:}} $\langle a_{\ell m} \rangle \neq 0$, \textbf{suggests possible anisotropies or preferred directions in the universe}
-
+\begin{frame}{Methodology: Sky Masking and the Test Statistic}
+\small
+    \textbf{Challenges in Real Observations:}
+    \begin{itemize}
+        \item We cannot observe the full CMB sky due to foreground contamination.
+        \item A \textbf{sky mask function} \( A(\hat{n}) \) removes contaminated regions, but introduces bias.
+        \item The test statistic \( S_i \) is used, with a matrix $W$ to correct for these effects:
+        \[
+        S_i = \sum_{j} W_{ij} M_j
+        \]
+    \end{itemize}
+    
+    \textbf{Monte Carlo Simulations:}
+    \begin{itemize}
+        \item We generate thousands of \textbf{simulated CMB skies} assuming isotropy.
+        \item Each sky has different random \( a_{\ell m} \), drawn from:
+        \[
+        a_{\ell m} \sim \mathcal{N} (0, C_\ell)
+        \]
+        \item The observed WMAP data is compared against these simulations.
+    \end{itemize}
 \end{frame}
 
-\begin{frame}{The Results}
-	\begin{figure} [h!]
+
+\begin{frame}{Results and Interpretation}
+\small
+  \begin{columns}
+    \column{0.5\textwidth}
+	\begin{figure}
 		\centering
-		\includegraphics[width=0.7\linewidth]{DSE-Test Graph}
-		\caption{The decorrelated band mean spectrum obtained by the seven-year WMAP data [9].}
+		\includegraphics[width=6.2cm]{DSE-Test Graph}
+		\caption{The decorrelated band mean test statistic values over multipole ranges [9].}
 	\end{figure}
+    \column{0.5\textwidth}
+    \textbf{Key Findings:}
+    \begin{itemize}
+        \item A statistically significant deviation was found in \( 221 \leq \ell \leq 240 \).
+        \item This suggests a potential \textcolor{red}{preferred cosmic direction}.
+    \end{itemize}
 
-	\textcolor{red}{Remark}: In a positively curved space certain multipoles scales being preferred or suppressed in the CMB power spectrum.
-
+    \textbf{Possible Explanations:}
+    \begin{itemize}
+        \item A real cosmological signal? → A finite universe or new physics.
+        \item A systematic effect? → Foreground contamination or instrumental noise. 
+    \end{itemize}
+  \end{columns}
 \end{frame}
+
 
 \section{Conclusion}
 \begin{frame}{Conclusion}
-	akbbfbsKJBKJBLJs
+	\begin{enumerate}
+	    \item We can infer the shape of the universe from its spectrum
+        \item There are two homogeneous spherical manifolds obtained as $\S^3/\Gamma$ which produce CMB similar to observations
+        \item Inhomogeneous spherical spaces exhibit varied behavior of CMB anisotropies
+        \item Statistical test results suggest possibilities of finite multi-connected topology
+	\end{enumerate}
 \end{frame}
 
-\begin{frame}{To summerize}
-	egqgaaf
-	\begin{itemize}
-		\item 1
-		\item 2
-		\item 3
-	\end{itemize}
-
-\end{frame}
 
 \section{References}
 \begin{frame}{References}
@@ -244,5 +270,6 @@ code-for-last-col = \color{blue}
 		\huge Thank You!
 	\end{center}
 \end{frame}
+
 
 \end{document}
