@@ -32,16 +32,20 @@
 \end{frame}
 \end{comment}
 
-\begin{frame}{The silver lining}
+{
+\usebackgroundtemplate{
 	\begin{tikzpicture}
 		\clip (0,0) rectangle (\paperwidth,\paperheight);
-		\fill[color=orange] (\paperwidth-10pt,0) rectangle (\paperwidth,\paperheight);
+		\fill[color=silver] (\paperwidth-10pt,0) rectangle (\paperwidth,\paperheight);
 		% Added
-		\fill[color=orange](0,0) rectangle (10pt,\paperheight);
+		\fill[color=silver](0,0) rectangle (10pt,\paperheight);
 	\end{tikzpicture}
+}
+
+\begin{frame}{The silver lining}
 	\begin{itemize}
-    
 		\item Isospectral pairs are cool and all, but they cannot occur in dimension $3$.
 		\item We can thus attempt to infer the shape of our universe based on its spectrum.
 	\end{itemize}
 \end{frame}
+}
