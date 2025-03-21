@@ -13,3 +13,4 @@
 *.synctex(busy)
 # main.pdf
 *.synctex.gz
+.fuse_*
