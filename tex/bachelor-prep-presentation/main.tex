@@ -13,6 +13,7 @@
 \usepackage{pgfplots}
 \usepackage{verbatim}
 \usepackage{mathtools}
+
 \pgfplotsset{compat = newest}
 \usetikzlibrary{matrix}
 \usepackage[dvipsnames]{xcolor}
@@ -27,6 +28,7 @@
 \newcommand*{\rotmat}[1]{\textcolor{red}{\rotmatop\left(\textcolor{black}{#1}\right)}}
 \renewcommand{\S}{\mathbb{S}}
 \newcommand{\R}{\mathbb{R}}
+\newcommand{\sparkles}{\includegraphics[height=0.9em]{sparkles.png}}
 
 % cool color
 
@@ -54,7 +56,7 @@ code-for-last-col = \color{blue}
 \setbeamertemplate{headline}{%
   \leavevmode%
   \begin{beamercolorbox}[wd=\paperwidth,ht=2.5ex,dp=1.5ex]{section in head/foot}%
-    \mbox{}\hspace{.5em}\strut\insertsectionhead\hfill%
+    \mbox{}\hspace{.5em}\strut\insertsectionhead\mbox{}\hfill\strut  {\insertframenumber/\inserttotalframenumber}\mbox{}\strut\hspace{.5em}\mbox{}%
   \end{beamercolorbox}%
 }
 
@@ -287,7 +289,7 @@ code-for-last-col = \color{blue}
 		\includegraphics[width=.4\paperwidth]{qrcode.png}
 	\end{figure}
 	\begin{center}
-		\huge Thank You!
+		\huge \sparkles\: Thank You! \sparkles
 	\end{center}
 \end{frame}
 
