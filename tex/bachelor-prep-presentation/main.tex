@@ -97,7 +97,7 @@ code-for-last-col = \color{blue}
 		      \pause
 		\item The set of all possible wave numbers [for which a nonzero solution exists] depends on $\Gamma$ - usually a proper subset of $\mathbb{{N}}$.
 		      \pause
-		\item Solutions to the Helmholtz equation are calculated for each $\Gamma$ and CMB anisotropy $\frac{\delta T}{T}$ computed as a sum of spherical harmonics.
+		\item Solutions to the Helmholtz equation are calculated for each $\Gamma$ and CMB anisotropy $\textcolor{purple}{\frac{\delta T}{T}}$ computed as a sum of spherical harmonics.
 	\end{itemize}
 \end{frame}
 
@@ -137,16 +137,17 @@ code-for-last-col = \color{blue}
 \begin{frame}{Inhomogeneous spherical space}
 
 	\begin{itemize}
-		\item Multi-connected space: it has non-contractable loops.
-		\item Inhomogeneous space: it does not look identical from every point in space.
+		\item Manifolds of the form $\S^3/\Gamma$ with $\Gamma$ a group acting on $\S^3$.
+		\item \textcolor{red}{Multi-connected} space: it has non-contractable loops.
+		\item \textcolor{red}{Inhomogeneous} space: it does not look identical from every point in space.
 		      \pause
-		\item Fixing $|\Gamma|=8$, we have three multi-connected manifolds, up to equivalence: \pause
+		\item Fixing $|\Gamma|=8$, we have \textcolor{red}{three} multi-connected manifolds, up to equivalence: \pause
 		      \begin{enumerate}
 			      \item homogeneous: $N3$ and $\lens 8 1 $.
 			      \item inhomogeneous: $N2 \equiv \lens 8 3 $.
 		      \end{enumerate}
 		      \pause
-		\item Results: inhomogeneous spaces have more variety in the CMB anisotropies than homogeneous spaces, because the strength of anisotropy suppression is observer dependent.
+		\item Results: inhomogeneous spaces have \textcolor{red}{more variety} in the CMB anisotropies than homogeneous spaces, because the strength of anisotropy suppression is \textcolor{red}{observer dependent}.
 	\end{itemize}
 
 
@@ -162,18 +163,18 @@ code-for-last-col = \color{blue}
 		\pause
 		\item The CMB temperature fluctuations can be expanded as:
 		      \[
-			      \Delta T(\hat{n}) = \sum_{\ell=0}^{\infty} \sum_{m=-\ell}^{\ell} a_{\ell m} Y_{\ell m}(\hat{n})
+			      \Delta T(\hat{n}) = \sum_{\ell=0}^{\infty} \sum_{m=-\ell}^{\ell} \textcolor{blue}{a_{\ell m}}  Y_{\ell m}(\hat{n})
 		      \]
 		      \pause
 		\item If the universe is isotropic, the \textbf{mean of the harmonic coefficients} should satisfy:
 		      \[
-			      \langle a_{\ell m} \rangle = 0
+			      \langle \textcolor{blue}{a_{\ell m}}  \rangle = 0
 		      \]
 	\end{itemize}
 	\pause
 	\textbf{Key Question:}
 	- Does the observed CMB data deviate from statistical isotropy?
-	- If \( \langle a_{\ell m} \rangle \neq 0 \), this suggests a preferred cosmic direction.
+	- If \( \langle \textcolor{blue}{a_{\ell m}} \rangle \neq 0 \), this suggests a preferred cosmic direction.
 \end{frame}
 
 \begin{frame}{Methodology: Sky Masking and the Test Statistic}
@@ -195,7 +196,7 @@ code-for-last-col = \color{blue}
 		\item We generate thousands of \textbf{simulated CMB skies} assuming isotropy.
 		\item Each sky has different random \( a_{\ell m} \), drawn from:
 		      \[
-			      a_{\ell m} \sim \mathcal{N} (0, C_\ell)
+			      \textcolor{blue}{a_{\ell m}}  \sim \mathcal{N} (0, C_\ell)
 		      \]
 		\item The observed WMAP data is compared against these simulations.
 	\end{itemize}
@@ -250,11 +251,11 @@ code-for-last-col = \color{blue}
 \section{References}
 \begin{frame}{References}
 	\begin{itemize}
-		\item R. Aurich, P. Kramer, and S. Lustig. \textit{Cosmic microwave background radiation in an inhomogeneous spherical space}. Physica Scripta, 2011.
-		\item R. Aurich, P. Kramer, and S. Lustig. \textit{A survey of lens spaces and large-scale CMB anisotropy}. Monthly Notices of the Royal Astronomical Society, 2012.
-		\item  R. Aurich, S. Lustig, and F. Steiner. \textit{CMB anisotropy of spherical spaces}. Classical and Quantum Gravity, 2005.
-		\item P. Bielewicz, K. M. G´orski, and A. J. Banday. \textit{Low-order multipole maps of cosmic microwave background anisotropy derived from WMAP}. Oxford University Press, 2004.
-		\item G. Egan. \textit{Symmetries and the 24-cell}. 2021. Accessed at https://www.gregegan.net/SCIENCE/24-cell/24-cell.html.
+		\item [1] R. Aurich, P. Kramer, and S. Lustig. \textit{Cosmic microwave background radiation in an inhomogeneous spherical space}. Physica Scripta, 2011.
+		\item [2] R. Aurich, P. Kramer, and S. Lustig. \textit{A survey of lens spaces and large-scale CMB anisotropy}. Monthly Notices of the Royal Astronomical Society, 2012.
+		\item [3] R. Aurich, S. Lustig, and F. Steiner. \textit{CMB anisotropy of spherical spaces}. Classical and Quantum Gravity, 2005.
+		\item [4] P. Bielewicz, K. M. G´orski, and A. J. Banday. \textit{Low-order multipole maps of cosmic microwave background anisotropy derived from WMAP}. Oxford University Press, 2004.
+		\item [5]G. Egan. \textit{Symmetries and the 24-cell}. 2021. Accessed at https://www.gregegan.net/SCIENCE/24-cell/24-cell.html.
 	\end{itemize}
 \end{frame}
 
@@ -262,20 +263,20 @@ code-for-last-col = \color{blue}
 \begin{frame}{References}
 	\begin{itemize}
 
-		\item N. Jarosik et. al. \textit{Seven-year Wilkinson Microwave Anisotropy Probe (WMAP) Observations: Sky Maps, Systematic Errors, and Basic Results}. The American Astronomical Society, 2011.
-		\item M. Herlihy and N. Shavit. \textit{The Topological Structure of Asynchronous Computability}. Journal of the ACM, 1996.
-		\item A. Ikeda. \textit{On the spectrum of a Riemannian manifold of positive constant curvature}. Osaka Journal of Mathematics, 1980.
-		\item D. Kashino, K. Ichiki, and T. Takeuchi. \textit{Test for anisotropy in the mean of the CMB temperature fluctuation in spherical harmonic space}. Physics Review, 2012.
-		\item P. Labrana. \textit{Emergent Universe Scenario and the Low CMB Multipoles}. Physical Review, 2013.
+		\item [6] N. Jarosik et. al. \textit{Seven-year Wilkinson Microwave Anisotropy Probe (WMAP) Observations: Sky Maps, Systematic Errors, and Basic Results}. The American Astronomical Society, 2011.
+		\item [7] M. Herlihy and N. Shavit. \textit{The Topological Structure of Asynchronous Computability}. Journal of the ACM, 1996.
+		\item [8] A. Ikeda. \textit{On the spectrum of a Riemannian manifold of positive constant curvature}. Osaka Journal of Mathematics, 1980.
+		\item [9] D. Kashino, K. Ichiki, and T. Takeuchi. \textit{Test for anisotropy in the mean of the CMB temperature fluctuation in spherical harmonic space}. Physics Review, 2012.
+		\item [10] P. Labrana. \textit{Emergent Universe Scenario and the Low CMB Multipoles}. Physical Review, 2013.
 	\end{itemize}
 \end{frame}
 
 \begin{frame}{References}
 	\begin{itemize}
-		\item E. A. Lauret and B. Linowitz. \textit{The spectral geometry of hyperbolic and spherical manifolds: analogies and open problems}. New York Journal of Mathematics, 2025.
-		\item R. Lehoucq, J. Weeks, J. P. Uzan, E. Gausmann, and J.P. Luminet. \textit{Eigenmodes of three-dimensional spherical spaces and their application to cosmology}. Classical and Quantum Gravity, 2002.
-		\item M. Serri. \textit{Analysis on Manifolds}. AMS Open Math Notes, 2025.
-		\item B. Tai-Dana, T. Bryson, and J. Terilla. \textit{Topology, a categorical approach}. The MIT Press, 2020.
+		\item [11] E. A. Lauret and B. Linowitz. \textit{The spectral geometry of hyperbolic and spherical manifolds: analogies and open problems}. New York Journal of Mathematics, 2025.
+		\item [12] R. Lehoucq, J. Weeks, J. P. Uzan, E. Gausmann, and J.P. Luminet. \textit{Eigenmodes of three-dimensional spherical spaces and their application to cosmology}. Classical and Quantum Gravity, 2002.
+		\item [13] M. Serri. \textit{Analysis on Manifolds}. AMS Open Math Notes, 2025.
+		\item [14] B. Tai-Dana, T. Bryson, and J. Terilla. \textit{Topology, a categorical approach}. The MIT Press, 2020.
 	\end{itemize}
 \end{frame}
 
