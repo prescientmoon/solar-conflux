@@ -1,6 +1,8 @@
 package visuals
 
+import "base:runtime"
 import "core:c"
+import "core:fmt"
 import "core:log"
 import "vendor:OpenGL"
 import "vendor:sdl3"
@@ -19,13 +21,64 @@ init :: proc() -> (state: State, ok: bool) {
 	GL_MAJOR :: 3
 	GL_MINOR :: 3
 
+	// {{{ Configure logging
+	@(static) g_ctx: runtime.Context
+	g_ctx = context
+
+	sdl3.SetLogPriorities(.VERBOSE)
+	sdl3.SetLogOutputFunction(
+		proc "c" (
+			userdata: rawptr,
+			category: sdl3.LogCategory,
+			priority: sdl3.LogPriority,
+			message: cstring,
+		) {
+			context = g_ctx
+
+			level: log.Level
+			switch priority {
+			case .TRACE, .DEBUG, .VERBOSE:
+				level = .Debug
+			case .INFO:
+				level = .Info
+			case .WARN:
+				level = .Warning
+			case .ERROR:
+				level = .Error
+			case .CRITICAL:
+				level = .Fatal
+			case .INVALID:
+				fallthrough
+			case:
+				log.panicf("Unexpected log level %v", priority)
+			}
+
+			options: runtime.Logger_Options =
+				context.logger.options - {.Short_File_Path, .Long_File_Path, .Procedure, .Line}
+
+			context.logger.procedure(
+				context.logger.data,
+				level,
+				fmt.tprintf("[SDL/%v]: %v", category, message),
+				options,
+			)
+		},
+		nil,
+	)
+	// }}}
+
 	sdl3.Init(sdl3.InitFlags{.VIDEO}) or_return
 	sdl3.GL_SetAttribute(.CONTEXT_MAJOR_VERSION, GL_MAJOR) or_return
 	sdl3.GL_SetAttribute(.CONTEXT_MINOR_VERSION, GL_MINOR) or_return
 	sdl3.GL_SetAttribute(.CONTEXT_PROFILE_MASK, c.int(sdl3.GL_CONTEXT_PROFILE_CORE)) or_return
 	sdl3.GL_SetSwapInterval(1) // vsync
 
-	state.window = sdl3.CreateWindow("SDL visual experiment", 640, 480, {.FULLSCREEN, .OPENGL})
+	state.window = sdl3.CreateWindow(
+		"SDL visual experiment",
+		640,
+		480,
+		{.FULLSCREEN, .OPENGL, .RESIZABLE},
+	)
 	(state.window != nil) or_return
 
 	sdl3.StartTextInput(state.window) or_return
@@ -52,7 +105,6 @@ init :: proc() -> (state: State, ok: bool) {
 
 	// IBO data
 	index_data := [?]u32{0, 1, 2, 3}
-
 
 	OpenGL.GenVertexArrays(1, &state.vao)
 	OpenGL.BindVertexArray(state.vao)
@@ -111,7 +163,18 @@ close :: proc(state: State) {
 }
 
 main :: proc() {
-	context.logger = log.create_console_logger()
+	log.Level_Headers = {
+		0 ..< 10 = "[DEBUG] ",
+		10 ..< 20 = "[INFO ] ",
+		20 ..< 30 = "[WARN ] ",
+		30 ..< 40 = "[ERROR] ",
+		40 ..< 50 = "[FATAL] ",
+	}
+
+	logger := log.create_console_logger()
+	logger.options -= {.Date, .Time}
+	context.logger = logger
+
 	state, ok := init()
 	log.assertf(ok, "Got SDL error: %v", sdl3.GetError())
 	defer close(state)

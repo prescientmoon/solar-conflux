@@ -68,14 +68,14 @@
           ];
 
           buildInputs = [
-            pkgs.libGL
-            pkgs.libxkbcommon
-
-            pkgs.xorg.libXi
-            pkgs.xorg.libX11
-            pkgs.xorg.libXrandr
-            pkgs.xorg.libXinerama
-            pkgs.xorg.libXcursor
+            # pkgs.libGL
+            # pkgs.libxkbcommon
+            # pkgs.xorg.libXi
+            # pkgs.xorg.libX11
+            # pkgs.xorg.libXrandr
+            # pkgs.xorg.libXinerama
+            # pkgs.xorg.libXcursor
+            # pkgs.wayland
             pkgs.sdl3
           ];
 
