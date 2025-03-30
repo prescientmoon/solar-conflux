@@ -55,6 +55,7 @@
         # {{{ Shell
         devShell = pkgs.mkShell rec {
           nativeBuildInputs = [
+            pkgs.pkg-config
             pkgs.entr # File change detection
             pkgs.odin # Compiler
             pkgs.mold # Linker
@@ -76,7 +77,6 @@
             pkgs.xorg.libXinerama
             pkgs.xorg.libXcursor
             pkgs.sdl3
-            raylib
           ];
 
           LD_LIBRARY_PATH = with pkgs; lib.makeLibraryPath buildInputs;
