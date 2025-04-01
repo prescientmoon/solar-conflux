@@ -1,10 +1,13 @@
 #version 330
 
-in vec2 aPos;
+layout (location = 0) in vec2 aPos;
+layout (location = 1) in vec4 instanceFill;
+layout (location = 2) in mat3 instanceMatrix;
 
 out vec4 vertexColor;
 
 void main() {
-  gl_Position = vec4(aPos.x, aPos.y, 0, 1);
-  vertexColor = vec4((aPos.x + 1) / 2, (aPos.y + 1) / 2, 1, 1);
+  vec3 pos    = instanceMatrix * vec3(aPos.xy, 1);
+  gl_Position = vec4(pos.xyz, 1);
+  vertexColor = instanceFill;
 }
