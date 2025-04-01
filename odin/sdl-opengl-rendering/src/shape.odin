@@ -12,25 +12,25 @@ Mat3 :: matrix[3, 3]ℝ
 Color :: [4]ℝ
 // }}}
 // {{{ Command queues
+Shape :: struct {
+	z:    ℝ,
+	fill: Color,
+}
 Rect :: struct {
-	top_left:   ℝ²,
-	dimensions: ℝ²,
-	z:          ℝ,
-	fill:       Color,
+	using shape: Shape,
+	top_left:    ℝ²,
+	dimensions:  ℝ²,
 }
 
 Circle :: struct {
-	center: ℝ²,
-	radius: ℝ,
-}
-
-Shape :: union {
-	Rect,
-	Circle,
+	using shape: Shape,
+	center:      ℝ²,
+	radius:      ℝ,
 }
 
 Command_Queue :: struct {
-	rects: [dynamic]Rect,
+	rects:   [dynamic]Rect,
+	circles: [dynamic]Circle,
 }
 
 queue: ^Command_Queue
@@ -43,7 +43,9 @@ init_command_queue :: proc() {
 }
 
 draw_rect_args :: proc(top_left: ℝ², dimensions: ℝ², color: Color, z: ℝ = 0) {
-	draw_rect_struct(Rect{top_left, dimensions, z, color})
+	draw_rect_struct(
+		Rect{top_left = top_left, dimensions = dimensions, shape = Shape{z = z, fill = color}},
+	)
 }
 
 draw_rect_struct :: proc(rect: Rect) {
@@ -51,10 +53,24 @@ draw_rect_struct :: proc(rect: Rect) {
 }
 
 draw_rect :: proc {
-	draw_rect_args,
 	draw_rect_struct,
+	draw_rect_args,
 }
 
+draw_circle_args :: proc(center: ℝ², radius: ℝ, color: Color, z: ℝ = 0) {
+	draw_circle_struct(
+		Circle{center = center, radius = radius, shape = Shape{z = z, fill = color}},
+	)
+}
+
+draw_circle_struct :: proc(circle: Circle) {
+	append(&queue.circles, circle)
+}
+
+draw_circle :: proc {
+	draw_circle_struct,
+	draw_circle_args,
+}
 // }}}
 
 // {{{ VAO & consts
@@ -167,6 +183,36 @@ set_rect_transforms :: proc(vao: ^VAO, rects: []Rect) -> ℕ {
 
 	return len(rects)
 }
+
+set_circle_transforms :: proc(vao: ^VAO, circles: []Circle) -> ℕ {
+	log.assert(len(circles) <= INSTANCES, "Attempting to send too many circles to the GPU")
+	matrices := new([INSTANCES]Mat3, context.temp_allocator)
+	fills := new([INSTANCES]Color, context.temp_allocator)
+
+	for circle, i in circles {
+		mat: Mat3
+
+		mat[0, 0] = circle.radius
+		mat[1, 1] = circle.radius
+		mat[2].xy = circle.center.xy
+		mat[2].z = circle.z
+
+		matrices[i] = mat
+		fills[i] = circle.fill
+	}
+
+	OpenGL.BindBuffer(OpenGL.ARRAY_BUFFER, vao.instance_mat_buffer)
+	OpenGL.BufferData(
+		OpenGL.ARRAY_BUFFER,
+		INSTANCES * size_of(Mat3),
+		matrices,
+		OpenGL.DYNAMIC_DRAW,
+	)
+	OpenGL.BindBuffer(OpenGL.ARRAY_BUFFER, vao.instance_fill_buffer)
+	OpenGL.BufferData(OpenGL.ARRAY_BUFFER, INSTANCES * size_of(Color), fills, OpenGL.DYNAMIC_DRAW)
+
+	return len(circles)
+}
 // }}}
 // {{{ Render the entire queue
 draw_instances :: proc(vao: VAO, instances: ℕ) {
@@ -191,5 +237,15 @@ render_queue :: proc(state: ^State) {
 	}
 
 	clear(&queue.rects)
+	circle_steps := len(queue.circles) / INSTANCES
+
+	for i := 0; i < len(queue.circles); i += INSTANCES {
+		slice := queue.circles[i:]
+		if len(slice) > INSTANCES {slice = slice[:INSTANCES]}
+		instances := set_circle_transforms(&state.circle_vao, slice)
+		draw_instances(state.circle_vao, instances)
+	}
+
+	clear(&queue.circles)
 }
 // }}}
