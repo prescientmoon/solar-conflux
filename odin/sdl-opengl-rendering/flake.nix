@@ -46,11 +46,19 @@
       system:
       let
         pkgs = inputs.nixpkgs.legacyPackages.${system}.extend inputs.self.overlays.default;
-        raylib = pkgs.raylib.override { platform = "SDL"; };
+        cross = import inputs.nixpkgs {
+          localSystem = system;
+          crossSystem.config = "x86_64-w64-mingw32";
+        };
+
         inherit (pkgs) lib;
       in
       {
-        packages = { inherit (pkgs) odin; };
+        packages = {
+          inherit (pkgs) odin;
+          gcc = cross.callPackage (import ./gcc.nix) { };
+          libgl = cross.libGL;
+        };
 
         # {{{ Shell
         devShell = pkgs.mkShell rec {
@@ -65,18 +73,19 @@
             pkgs.gdb # Debugger
             pkgs.seer # Debugger GUI
             pkgs.valgrind # Detect memory leaks
+            pkgs.renderdoc # Graphics debugger
           ];
 
           buildInputs = [
-            # pkgs.libGL
-            # pkgs.libxkbcommon
-            # pkgs.xorg.libXi
-            # pkgs.xorg.libX11
-            # pkgs.xorg.libXrandr
-            # pkgs.xorg.libXinerama
-            # pkgs.xorg.libXcursor
-            # pkgs.wayland
             pkgs.sdl3
+
+            pkgs.xorg.libX11
+            pkgs.xorg.libXScrnSaver
+            pkgs.xorg.libXcursor
+            pkgs.xorg.libXext
+            pkgs.xorg.libXfixes
+            pkgs.xorg.libXi
+            pkgs.xorg.libXrandr
           ];
 
           LD_LIBRARY_PATH = with pkgs; lib.makeLibraryPath buildInputs;
