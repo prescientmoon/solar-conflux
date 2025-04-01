@@ -4,17 +4,16 @@ import "base:runtime"
 import "core:c"
 import "core:fmt"
 import "core:log"
+import "core:math"
 import "vendor:OpenGL"
 import "vendor:sdl3"
 
 State :: struct {
-	window:              ^sdl3.Window,
-	program:             u32,
-	vertex_pos_location: u32,
-	vao:                 u32,
-	vbo:                 u32,
-	ibo:                 u32,
-	wireframe:           bool,
+	tick:      u32,
+	window:    ^sdl3.Window,
+	program:   u32,
+	rect_vao:  VAO,
+	wireframe: bool,
 }
 
 init :: proc() -> (state: State, ok: bool) {
@@ -67,6 +66,11 @@ init :: proc() -> (state: State, ok: bool) {
 	)
 	// }}}
 
+	sdl3.SetAppMetadata(
+		"odin-rendering-experiments",
+		"<hash-here>",
+		"dev.moonythm.odin-rendering-experiments",
+	) or_return
 	sdl3.Init(sdl3.InitFlags{.VIDEO}) or_return
 	sdl3.GL_SetAttribute(.CONTEXT_MAJOR_VERSION, GL_MAJOR) or_return
 	sdl3.GL_SetAttribute(.CONTEXT_MINOR_VERSION, GL_MINOR) or_return
@@ -87,60 +91,24 @@ init :: proc() -> (state: State, ok: bool) {
 	(gl_ctx != nil) or_return
 
 	OpenGL.load_up_to(GL_MAJOR, GL_MINOR, sdl3.gl_set_proc_address)
+	OpenGL.ClearColor(0, 0, 0, 1)
+	OpenGL.Enable(OpenGL.DEPTH_TEST)
 
 	state.program = OpenGL.load_shaders_source(
 		#load("./vert.glsl"),
 		#load("./frag.glsl"),
 	) or_return
-	// log.debug("Doing Opengl stuff")
 
-	vertex_pos_location := OpenGL.GetAttribLocation(state.program, "aPos")
-	(vertex_pos_location != -1) or_return
-	state.vertex_pos_location = u32(vertex_pos_location)
+	state.rect_vao = create_vao({{-1, -1}, {1, -1}, {1, 1}, {-1, 1}}, {0, 1, 2, 3}) or_return
 
-	OpenGL.ClearColor(0, 0, 0, 1)
-
-	// VBO data
-	vertex_data := 2 * [?]f32{-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5}
-
-	// IBO data
-	index_data := [?]u32{0, 1, 2, 3}
-
-	OpenGL.GenVertexArrays(1, &state.vao)
-	OpenGL.BindVertexArray(state.vao)
-
-	//Create VBO
-	OpenGL.GenBuffers(1, &state.vbo)
-	OpenGL.BindBuffer(OpenGL.ARRAY_BUFFER, state.vbo)
-	OpenGL.BufferData(OpenGL.ARRAY_BUFFER, 2 * 4 * size_of(f32), &vertex_data, OpenGL.STATIC_DRAW)
-
-	OpenGL.EnableVertexAttribArray(state.vertex_pos_location)
-	OpenGL.VertexAttribPointer(
-		state.vertex_pos_location,
-		2,
-		OpenGL.FLOAT,
-		false,
-		2 * size_of(f32),
-		0,
-	)
-
-	OpenGL.GenBuffers(1, auto_cast &state.ibo)
-	OpenGL.BindBuffer(OpenGL.ELEMENT_ARRAY_BUFFER, state.ibo)
-	OpenGL.BufferData(
-		OpenGL.ELEMENT_ARRAY_BUFFER,
-		4 * size_of(u32),
-		&index_data,
-		OpenGL.STATIC_DRAW,
-	)
-
-	OpenGL.BindVertexArray(0)
-	OpenGL.DisableVertexAttribArray(state.vertex_pos_location)
+	init_command_queue()
 
 	return state, true
 }
 
-render :: proc(state: State) {
-	OpenGL.Clear(OpenGL.COLOR_BUFFER_BIT)
+render :: proc(state: ^State) {
+	state.tick += 1
+	OpenGL.Clear(OpenGL.COLOR_BUFFER_BIT | OpenGL.DEPTH_BUFFER_BIT)
 
 	OpenGL.UseProgram(state.program)
 	defer OpenGL.UseProgram(0)
@@ -151,8 +119,23 @@ render :: proc(state: State) {
 		OpenGL.PolygonMode(OpenGL.FRONT_AND_BACK, OpenGL.FILL)
 	}
 
-	OpenGL.BindVertexArray(state.vao)
-	OpenGL.DrawElements(OpenGL.TRIANGLE_FAN, 4, OpenGL.UNSIGNED_INT, nil)
+	draw_rect({-0.5, 0}, {0.75, 0.5}, {1, 0, 0, 1}, z = 0.5)
+	draw_rect({0.5, 0.25}, {0.3, 0.5}, {0, 1, 0, 1}, z = -0.5)
+
+	count := ℝ(32)
+	for x in ℝ(0) ..< count {
+		for y in ℝ(0) ..< count {
+			i := x * count + y
+			pos :=
+				ℝ²{x + math.sin_f32(2 * math.π * (ℝ(state.tick) + i) / 60), y} *
+					2 /
+					ℝ(count) -
+				1
+			draw_rect(Rect{pos, 1 / ℝ(count), 0, {(pos.x + 1) / 2, (pos.y + 1) / 2, 1, 1}})
+		}
+	}
+
+	render_queue(state)
 }
 
 close :: proc(state: State) {
@@ -194,11 +177,12 @@ main :: proc() {
 				case 'w':
 					state.wireframe = !state.wireframe
 				}
-				log.debug(event.text)
 			}
 		}
 
-		render(state)
+		render(&state)
 		sdl3.GL_SwapWindow(state.window)
+
+		free_all(context.temp_allocator)
 	}
 }
