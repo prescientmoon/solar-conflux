@@ -9,13 +9,15 @@ import "vendor:OpenGL"
 import "vendor:sdl3"
 
 State :: struct {
-	tick:      u32,
-	window:    ^sdl3.Window,
-	program:   u32,
-	rect_vao:  VAO,
-	wireframe: bool,
+	tick:       u32,
+	window:     ^sdl3.Window,
+	program:    u32,
+	rect_vao:   VAO,
+	circle_vao: VAO,
+	wireframe:  bool,
 }
 
+// {{{ Initialization
 init :: proc() -> (state: State, ok: bool) {
 	GL_MAJOR :: 3
 	GL_MINOR :: 3
@@ -93,6 +95,8 @@ init :: proc() -> (state: State, ok: bool) {
 	OpenGL.load_up_to(GL_MAJOR, GL_MINOR, sdl3.gl_set_proc_address)
 	OpenGL.ClearColor(0, 0, 0, 1)
 	OpenGL.Enable(OpenGL.DEPTH_TEST)
+	OpenGL.Enable(OpenGL.BLEND)
+	OpenGL.BlendFunc(OpenGL.SRC_ALPHA, OpenGL.ONE_MINUS_SRC_ALPHA)
 
 	state.program = OpenGL.load_shaders_source(
 		#load("./vert.glsl"),
@@ -101,11 +105,35 @@ init :: proc() -> (state: State, ok: bool) {
 
 	state.rect_vao = create_vao({{-1, -1}, {1, -1}, {1, 1}, {-1, 1}}, {0, 1, 2, 3}) or_return
 
+	CIRCLE_POINTS :: 127
+	circle_vertices: [CIRCLE_POINTS + 1]ℝ²
+	circle_indices: [CIRCLE_POINTS + 2]u32
+
+	for i in 0 ..< CIRCLE_POINTS {
+		θ := ℝ(i) * 2 * math.π / CIRCLE_POINTS
+		circle_vertices[i + 1] = {math.cos(θ), math.sin(θ)}
+		circle_indices[i + 1] = u32(i + 1)
+	}
+
+	circle_indices[CIRCLE_POINTS + 1] = circle_indices[1]
+
+	state.circle_vao = create_vao(circle_vertices[:], circle_indices[:]) or_return
+
 	init_command_queue()
 
 	return state, true
 }
+// }}}
+// {{{ Close
+close :: proc(state: State) {
+	OpenGL.DeleteProgram(state.program)
+	_ = sdl3.StopTextInput(state.window)
+	sdl3.DestroyWindow(state.window)
+	sdl3.Quit()
+}
+// }}}
 
+// {{{ Render
 render :: proc(state: ^State) {
 	state.tick += 1
 	OpenGL.Clear(OpenGL.COLOR_BUFFER_BIT | OpenGL.DEPTH_BUFFER_BIT)
@@ -131,20 +159,22 @@ render :: proc(state: ^State) {
 					2 /
 					ℝ(count) -
 				1
-			draw_rect(Rect{pos, 1 / ℝ(count), 0, {(pos.x + 1) / 2, (pos.y + 1) / 2, 1, 1}})
+			color := Color{(pos.x + 1) / 2, (pos.y + 1) / 2, 1, 1}
+
+			if x > y {
+				draw_rect(pos, 1 / ℝ(count), color)
+			} else {
+				r := 1 / ℝ(count) / 2
+				draw_circle(pos + r, r, color)
+			}
 		}
 	}
 
+	draw_circle({-0.25, -0.3}, 0.6, Color{0, 0, 0.5, 0.75}, z = -0.1)
 	render_queue(state)
 }
-
-close :: proc(state: State) {
-	OpenGL.DeleteProgram(state.program)
-	_ = sdl3.StopTextInput(state.window)
-	sdl3.DestroyWindow(state.window)
-	sdl3.Quit()
-}
-
+// }}}
+// {{{ Main
 main :: proc() {
 	log.Level_Headers = {
 		0 ..< 10 = "[DEBUG] ",
@@ -186,3 +216,4 @@ main :: proc() {
 		free_all(context.temp_allocator)
 	}
 }
+// }}}
