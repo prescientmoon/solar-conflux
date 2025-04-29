@@ -53,6 +53,7 @@
 ]
 
 #slide[
+  #set align(horizon)
   = The $clam$-calculus
   #v(1em)
 
@@ -110,25 +111,32 @@
 
 #slide[
   #set text(size: 25pt)
+  #grid(columns:(auto, auto), gutter:20pt, [
   = The #S#K#I combinators
   #v(1em)
   #set text(size: 23pt)
+  #set align(horizon)
 
-  - Any term in the $clam$-calculus can be written using nothing but the #S#K combinators. #later[For example $#I := #S #K #S$.
+  Any term in the $clam$-calculus can be written using nothing but the #S#K combinators.
 
-  #align(horizon+center)[
-    #image("images/ithinkshespartoftheskteam.jpg", width:40%)
-  ]
-]
+    #show: later
+    For example $#I := #S #K #S$.
+    ],[
+  #set align(horizon+center)
+    #uncover(2)[
+    #image("images/ithinkshespartoftheskteam.jpg", height:80%)
+    ]
+  ])
 ]
 
 #slide[
   #set text(size: 25pt)
   = A combinator to conquer them all
   #v(1em)
-  #set text(size: 20pt)
+  #grid(columns:(auto, auto), gutter: 5pt,[
+  #set text(size: 18pt)
 
-  Enter, the $iota$-combinator!
+  Enter _the $iota$-combinator_!
   $ iota := la(x, x #S #K) = #S (#S #I (#K #S))(#K #K). $
 
   #show:later
@@ -139,6 +147,13 @@
   #K &= iota( iota (iota iota)) \
   #S &= iota(iota(iota(iota iota)))
   $
+  ],[
+    #align(horizon)[
+      #uncover(2)[
+    #image("images/alwayshasbeenallfunctions.jpg")
+      ]
+    ]
+  ])
 ]
 
 #slide[
@@ -206,7 +221,9 @@
 
   #align(bottom)[
   #set text(size: 11pt)
+  #uncover(2)[
   Note: the naturals are essentially just ordered lists of the unit type, but don't worry about that.
+    ]
   ]
 ]
 
@@ -315,7 +332,23 @@
 ]
 
 #slide[
+  #set page(margin:5pt)
   #align(center+horizon)[
+  #set text(size: 18pt)
+    #grid(columns:(35%,35%),
+    gutter:5pt,
+    [
+      #set align(top)
+      #image("images/slides-qrcode.png", height:50%)
+      Slide repository
+    ],
+    [
+      #set align(top)
+      #image("images/challenge-qrcode.png", height:50%)
+      The riddle from my team's previous presentation
+    ]
+    )
+
   #set text(size: 35pt)
   ✨ Thanks You! ✨
   ]

@@ -28,8 +28,15 @@
 
         commonArgs = handout: {
           typstSource = "iotas.typ";
-          fontPaths = [ "${pkgs.cascadia-code}/share/fonts/truetype" ];
           virtualPaths = [ ];
+
+          fontPaths = [
+            "${pkgs.cascadia-code}/share/fonts/truetype"
+            "${pkgs.cascadia-code}/share/fonts/opentype"
+            "${pkgs.cm_unicode}/share/fonts/opentype"
+            "${pkgs.unifont}/share/fonts/opentype"
+          ];
+
           unstable_typstPackages = [
             {
               name = "polylux";
@@ -57,7 +64,10 @@
       in
       {
         devShell = pkgs.mkShell {
-          nativeBuildInputs = [ pkgs.typst ];
+          nativeBuildInputs = [
+            pkgs.typst
+            pkgs.pdfpc
+          ];
         };
 
         packages.default = presentation;
