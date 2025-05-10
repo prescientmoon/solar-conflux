@@ -1,11 +1,14 @@
 package enfold
 
+import "base:runtime"
+import "core:fmt"
 import "core:log"
-import "core:math"
 
 Expr :: union {
 	EInt,
 	EString,
+	EVar,
+	EProp,
 	EApp,
 	EParen,
 	EBlock,
@@ -20,6 +23,15 @@ EInt :: struct {
 EString :: struct {
 	tok:   Token,
 	value: string,
+}
+
+EVar :: struct {
+	name: Token,
+}
+
+EProp :: struct {
+	tok:  Token,
+	name: string,
 }
 
 EApp :: struct {
@@ -47,20 +59,17 @@ Block_Args :: struct {
 	rparen: Token,
 }
 
-Block_Modifier :: struct {
-	tok: Token,
-}
-
 ST_Declaration :: struct {
 	vars:   []Token,
 	walrus: Token,
-	value:  Token,
+	value:  Expr,
 }
 
 ST_Assignment :: struct {
-	name:  Token,
-	eq:    Token,
-	value: Token,
+	path_toks: []Token,
+	path:      []string,
+	eq:        Token,
+	value:     Expr,
 }
 
 ST_Expr :: struct {
@@ -74,11 +83,12 @@ Block_Statement :: union {
 }
 
 EBlock :: struct {
-	kind:      Block_Kind,
+	kind_tok: Token `fmt:"-"`,
+	kind:     Block_Kind,
 	// Null when this is not a function
-	args:      ^Block_Args,
-	modifiers: []Block_Modifier,
-	contents:  []Block_Statement,
+	args:     Block_Args,
+	no_align: bool `fmt:"-"`,
+	contents: []Block_Statement,
 }
 // }}}
 
@@ -97,6 +107,8 @@ Parser :: struct {
 	source:          string,
 	lexer:           Lexer,
 	curr:            Token,
+	alloc:           runtime.Allocator,
+	labels:          ^[dynamic]string, // Keeps track of what we are parsing
 
 	// Indentation state
 	indent_range:    Indentation_Range,
@@ -104,10 +116,65 @@ Parser :: struct {
 	indent_absolute: bool,
 }
 
-@(private = "file")
-fail :: proc(parser: ^Parser, pos: Source_Loc, msg: string) {
-	log.panicf("Error at %v: %v", pos, msg)
+Parser_Error :: struct {
+	loc:   Source_Loc,
+	msg:   string,
+	stack: []string,
 }
+
+// Returned when a parser refuses to continue along a branch, but before 
+// committing to said branch, letting the parent choose another one
+Parser_Cancellation :: struct {
+}
+
+parser_error :: proc(parser: ^Parser, msg: string, loc: Source_Loc = {}) -> Parser_Error {
+	return Parser_Error {
+		msg = msg,
+		stack = parser.labels[:],
+		loc = loc == {} ? parser.curr.from : loc,
+	}
+}
+
+mk_parser :: proc(
+	source: string,
+	alloc: runtime.Allocator,
+) -> (
+	parser: Parser,
+	err: Enfold_Error,
+) {
+	lexer := mk_lexer(source) or_return
+	parser = Parser {
+		source          = source,
+		lexer           = lexer,
+		indent_relation = .Gte,
+		indent_range    = {1, ~Indentation(0)},
+		indent_absolute = false,
+		alloc           = alloc,
+	}
+
+	parser.labels = new_clone(make([dynamic]string, 0, 64, alloc), alloc)
+
+	next_token(&parser) or_return
+	// parser.curr = tokenize(&parser.lexer)
+
+	return parser, nil
+}
+
+
+@(private = "file")
+@(deferred_in = post_label)
+label :: proc(parser: ^Parser, label: string) {
+	append(parser.labels, label)
+}
+
+@(private = "file")
+post_label :: proc(parser: ^Parser, label: string) {
+	pop(parser.labels)
+}
+
+// fail :: proc(pos: Source_Loc, msg: string) {
+// 	log.panicf("Error at %v: %v", pos, msg)
+// }
 // }}}
 
 // {{{ Indent state helpers
@@ -139,9 +206,9 @@ with_relation :: proc(
 	top := ~Indentation(0) // max indentation
 
 	// Applies the relation
-	switch parser.indent_relation {
+	switch relation {
 	case .Eq:
-		break
+		break // Is this even correct? Is EQ even used???
 	case .Gte:
 		parser.indent_range = {parser.indent_range[0], top}
 	case .Gt:
@@ -170,13 +237,13 @@ post_with_relation :: proc(
 	}
 
 	// Un-applies the relation
-	switch parser.indent_relation {
+	switch relation {
 	case .Eq:
 		parser.indent_range = intersect_ranges(pre_range, parser.indent_range)
 	case .Gte:
-		parser.indent_range = intersect_ranges(pre_range, {0, parser.indent_range.y})
+		parser.indent_range = intersect_ranges(pre_range, {1, parser.indent_range.y})
 	case .Gt:
-		parser.indent_range = intersect_ranges(pre_range, {0, parser.indent_range.y - 1})
+		parser.indent_range = intersect_ranges(pre_range, {1, parser.indent_range.y - 1})
 	case .Any:
 		parser.indent_range = pre_range
 	}
@@ -184,28 +251,405 @@ post_with_relation :: proc(
 	parser.indent_relation = pre_relation
 }
 // }}}
-// {{{ Token peeking/advancement 
-next_token :: proc(parser: ^Parser) {
-	c := Indentation(parser.curr.from.col)
+// {{{ Token peeking/advancement
+@(require_results)
+next_token :: proc(parser: ^Parser, relation: Indentation_Relation = .Gte) -> (err: Enfold_Error) {
+	with_relation(parser, relation)
 
-	if c < parser.indent_range[0] || c > parser.indent_range[1] {
-		fail(parser, parser.curr.from, "invalid indentation")
+	if parser.curr.content != {} {
+		c := Indentation(parser.curr.from.col)
+
+		if c < parser.indent_range[0] || c > parser.indent_range[1] {
+			return parser_error(
+				parser,
+				fmt.tprintf(
+					"invalid indentation (not in range %v..%v)",
+					parser.indent_range[0],
+					parser.indent_range[1],
+				),
+			)
+		}
+
+		// Collapse indentation range to that of the token
+		parser.indent_absolute = false
+		parser.indent_range = {c, c}
 	}
 
-	// Collapse indentation range to that of the token
-	parser.indent_absolute = false
-	parser.indent_range = {c, c}
+	for {
+		tok := tokenize(&parser.lexer) or_return
 
-	parser.curr = tokenize(&parser.lexer)
+		#partial switch tok.kind {
+		case .Newline, .Comment:
+			continue
+		case:
+			parser.curr = tok
+			return
+		}
+	}
 }
 
-peek :: proc(parser: ^Parser) -> (tok: Token, ok: bool) {
+peek :: proc(
+	parser: ^Parser,
+	relation: Indentation_Relation = .Gte,
+) -> (
+	tok: Token,
+	err: Enfold_Error,
+) {
+	with_relation(parser, relation)
 	c := Indentation(parser.curr.from.col)
 
 	if c < parser.indent_range[0] || c > parser.indent_range[1] {
-		return tok, false
+		return {}, Parser_Cancellation{}
 	}
 
-	return tok, true
+	return parser.curr, nil
 }
 // }}}
+
+// {{{ Assignments
+@(private = "file")
+parse_assignment :: proc(parser: ^Parser) -> (stmt: ST_Assignment, err: Enfold_Error) {
+	label(parser, "assignment")
+
+	if tok := peek(parser) or_return; tok.kind != .Identifier {
+		return stmt, Parser_Cancellation{}
+	}
+
+	path_toks := make([dynamic]Token, 0, 2, parser.alloc)
+	append(&path_toks, parser.curr)
+	next_token(parser) or_return
+
+	for {
+		tok := peek(parser, .Gt) or_break
+		(tok.kind == .Property) or_break
+
+		append(&path_toks, parser.curr)
+		next_token(parser, .Gt) or_return
+	}
+
+	stmt.path_toks = path_toks[:]
+
+	if parser.curr.kind != .Equal {
+		if len(path_toks) == 1 {
+			return stmt, Parser_Cancellation{}
+		} else {
+			return stmt, parser_error(parser, "expected =")
+		}
+	}
+
+	stmt.eq = parser.curr
+	next_token(parser, .Gt) or_return
+
+	// We're commited now, so let's create a list of strings for the path
+	stmt.path = make_slice([]string, len(path_toks), parser.alloc)
+	for s, i in path_toks {
+		if i == 0 {
+			stmt.path[i] = stmt.path_toks[i].content
+		} else {
+			stmt.path[i] = string(stmt.path_toks[i].content[1:])
+		}
+	}
+
+	stmt.value = parse_expr(parser, .Gt) or_return
+
+	return stmt, nil
+}
+// }}}
+// {{{ Declarations
+@(private = "file")
+parse_declaration :: proc(parser: ^Parser) -> (stmt: ST_Declaration, err: Enfold_Error) {
+	label(parser, "declaration")
+
+	if tok := peek(parser) or_return; tok.kind != .Identifier {
+		return stmt, Parser_Cancellation{}
+	}
+
+	vars := make([dynamic]Token, 0, 2, parser.alloc)
+	append(&vars, parser.curr)
+	next_token(parser) or_return
+
+	for {
+		tok := peek(parser, .Gt) or_break
+		(tok.kind == .Comma) or_break
+
+		next_token(parser, .Gt) or_return
+
+		if parser.curr.kind != .Identifier {
+			return stmt, parser_error(parser, "expected identifier")
+		} else {
+			append(&vars, parser.curr)
+			next_token(parser, .Gt) or_return
+		}
+	}
+
+	stmt.vars = vars[:]
+
+	if parser.curr.kind != .Walrus {
+		if len(vars) == 1 {
+			return stmt, Parser_Cancellation{}
+		} else {
+			return stmt, parser_error(parser, "expected :=")
+		}
+	}
+
+	stmt.walrus = parser.curr
+	next_token(parser, .Gt) or_return
+
+	stmt.value = parse_expr(parser, .Gt) or_return
+
+	return stmt, nil
+}
+// }}}
+// {{{ Statements
+@(private = "file")
+parse_statement :: proc(parser: ^Parser) -> (stmt: Block_Statement, err: Enfold_Error) {
+	label(parser, "statement")
+	og_parser: Parser = parser^ // Save the parser state
+
+	stmt, err = parse_assignment(parser)
+	if parser_cancelled(err) {
+		parser^ = og_parser
+	} else {
+		return stmt, err
+	}
+
+	stmt, err = parse_declaration(parser)
+	if parser_cancelled(err) {
+		parser^ = og_parser
+	} else {
+		return stmt, err
+	}
+
+	parser^ = og_parser // Backtrack
+	expr := try_parse_expr(parser, .Gt) or_return
+
+	stmt = ST_Expr {
+		expr = new_clone(expr, parser.alloc),
+	}
+
+	return stmt, nil
+}
+// }}}
+// {{{ Applications
+parse_toplevel_expr :: proc(parser: ^Parser) -> (expr: Expr, err: Enfold_Error) {
+	expr = parse_expr(parser) or_return
+
+	if parser.curr.kind != .Eof {
+		err = parser_error(parser, "expected eof")
+	}
+
+	return
+}
+
+parse_expr :: proc(
+	parser: ^Parser,
+	relation: Indentation_Relation = .Gte,
+) -> (
+	expr: Expr,
+	err: Enfold_Error,
+) {
+	expr, err = try_parse_expr(parser, relation)
+
+	if parser_cancelled(err) {
+		err = parser_error(parser, "expected expression")
+	}
+
+	return
+}
+
+try_parse_expr :: proc(
+	parser: ^Parser,
+	relation: Indentation_Relation = .Gte,
+) -> (
+	expr: Expr,
+	err: Enfold_Error,
+) {
+	label(parser, "expression")
+	result := parse_single_expr(parser, relation) or_return
+
+	for {
+		arg, err := parse_single_expr(parser, relation)
+
+		(!parser_cancelled(err)) or_break
+		err or_return
+
+		result = EApp {
+			function = new_clone(result, parser.alloc),
+			argument = new_clone(arg, parser.alloc),
+		}
+	}
+
+	return result, nil
+}
+// }}}
+
+parse_single_expr :: proc(
+	parser: ^Parser,
+	relation: Indentation_Relation = .Gte,
+) -> (
+	expr: Expr,
+	err: Enfold_Error,
+) {
+	with_relation(parser, relation)
+	tok := peek(parser) or_return
+	#partial switch tok.kind {
+	// {{{ Integers
+	case .Integer:
+		res: i128
+
+		for c in parser.curr.content {
+			res = res * 10 + i128(c - '0')
+		}
+
+		expr = EInt {
+			tok   = parser.curr,
+			value = res,
+		}
+
+		next_token(parser) or_return
+	// }}}
+	// {{{ Strings
+	case .String:
+		expr = EString {
+			tok   = parser.curr,
+			value = parser.curr.content[1:len(parser.curr.content) - 1],
+		}
+
+		next_token(parser) or_return
+	// }}}
+	// {{{ Vars
+	case .Identifier:
+		expr = EVar {
+			name = parser.curr,
+		}
+
+		next_token(parser) or_return
+	case .Property:
+		expr = EProp {
+			tok  = parser.curr,
+			name = string(parser.curr.content[1:]),
+		}
+
+		next_token(parser) or_return
+	// }}}
+	// {{{ ( expr )
+	case .LParen:
+		lparen := parser.curr
+		next_token(parser) or_return
+
+		log.debug(parser)
+		inner, err := parse_expr(parser)
+
+		rparen := parser.curr
+		if rparen.kind != .RParen {return expr, parser_error(parser, "expected )")}
+		next_token(parser) or_return
+
+		expr = EParen {
+			lparen = lparen,
+			rparen = rparen,
+			expr   = new_clone(inner, parser.alloc),
+		}
+	// }}}
+	// {{{ Blocks
+	case .Multi, .Effect, .List, .Object:
+		block: EBlock
+
+		// {{{ Kind
+		#partial switch parser.curr.kind {
+		case .Multi:
+			block.kind = .Multi
+		case .Effect:
+			block.kind = .Effect
+		case .List:
+			block.kind = .List
+		case .Object:
+			block.kind = .Object
+		}
+
+		block.kind_tok = parser.curr
+		next_token(parser) or_return
+		// }}}
+		// {{{ Args
+		if parser.curr.kind == .LParen {
+			block.args.lparen = parser.curr
+			next_token(parser, .Gt) or_return
+
+			// Start with capacity 4, because why not
+			args := make([dynamic]Token, 0, 4, parser.alloc)
+
+			for {
+				if parser.curr.kind == .RParen {break}
+				if parser.curr.kind != .Identifier {
+					return expr, parser_error(parser, "expected argument name")
+				}
+
+				with_relation(parser, .Gt)
+				append(&args, parser.curr)
+				next_token(parser) or_return
+
+				// Optional commas
+				if parser.curr.kind == .Comma {
+					next_token(parser) or_return
+				}
+			}
+
+			block.args.names = args[:]
+
+			block.args.rparen = parser.curr
+			if parser.curr.kind != .RParen {return expr, parser_error(parser, "expected )")}
+			next_token(parser) or_return
+		}
+		// }}}
+		// {{{ Modifiers
+		for parser.curr.kind == .No_Align {
+			block.no_align = true
+
+			if parser.curr.from.line != block.kind_tok.from.line {
+				return expr, parser_error(parser, "block modifiers cannot go on a separate line")
+			}
+
+			next_token(parser, .Gt) or_return
+		}
+		// }}}
+
+		statements := make([dynamic]Block_Statement, 0, 16, parser.alloc)
+
+		with_relation(parser, .Gt)
+		if !block.no_align && block.kind_tok.from.line == parser.curr.from.line {
+			// {{{ Inline statements
+			for {
+				statement, err := parse_statement(parser)
+
+				(!parser_cancelled(err)) or_break
+				err or_return
+
+				append(&statements, statement)
+
+				tok := peek(parser) or_break
+				(tok.kind == .Comma) or_break
+				next_token(parser) or_return
+			}
+			// }}}
+		} else {
+			// {{{ Multiline blocks
+			for {
+				absolute(parser)
+				statement, err := parse_statement(parser)
+
+				(!parser_cancelled(err)) or_break
+				err or_return
+
+				append(&statements, statement)
+			}
+			// }}}
+		}
+
+		block.contents = statements[:]
+		expr = block
+	// }}}
+	case:
+		return expr, Parser_Cancellation{}
+	}
+
+	return expr, nil
+}
