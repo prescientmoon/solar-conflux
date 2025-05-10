@@ -68,5 +68,6 @@ test_toplevel_expr_good :: proc(t: ^testing.T) {
 
 @(test)
 test_toplevel_expr_bad :: proc(t: ^testing.T) {
+	// context.logger.options -= {.Short_File_Path, .Line}
 	test_parser("test/expr/bad", parse_toplevel_expr, false)
 }

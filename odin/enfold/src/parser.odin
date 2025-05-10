@@ -104,7 +104,6 @@ Indentation_Relation :: enum {
 Indentation_Range :: [2]Indentation
 
 Parser :: struct {
-	source:          string,
 	lexer:           Lexer,
 	curr:            Token,
 	alloc:           runtime.Allocator,
@@ -122,7 +121,7 @@ Parser_Error :: struct {
 	stack: []string,
 }
 
-// Returned when a parser refuses to continue along a branch, but before 
+// Returned when a parser refuses to continue along a branch, but before
 // committing to said branch, letting the parent choose another one
 Parser_Cancellation :: struct {
 }

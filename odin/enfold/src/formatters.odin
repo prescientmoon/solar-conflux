@@ -1,11 +1,25 @@
 package enfold
 
+import "core:log"
 import "core:fmt"
 import "core:io"
 
 Bytes :: distinct uint
 
 @(init)
+@(private="file")
+set_level_headers :: proc() {
+	log.Level_Headers = {
+		0 ..< 10 = "[DEBUG] ",
+		10 ..< 20 = "[SHOUT] ",
+		20 ..< 30 = "[WARN ] ",
+		30 ..< 40 = "[ERROR] ",
+		40 ..< 50 = "[FATAL] ",
+	}
+}
+
+@(init)
+@(private="file")
 init_formatters :: proc() {
 	fmt.set_user_formatters(new(map[typeid]fmt.User_Formatter))
 
@@ -210,6 +224,7 @@ init_formatters :: proc() {
 }
 
 @(fini)
+@(private="file")
 deinit_formatters :: proc() {
 	delete(fmt._user_formatters^)
 	free(fmt._user_formatters)
