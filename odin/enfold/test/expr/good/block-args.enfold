@@ -1,0 +1,14 @@
+list
+  list "no args"
+  list(a, b, c) "many args"
+  list(a  b  c) "no commas"
+  list(a, b  c) "mixed commas"
+
+  list(
+   a
+    b
+   c) "many lines"
+
+  list(
+   a b c
+  ) "fancy closing paren"
