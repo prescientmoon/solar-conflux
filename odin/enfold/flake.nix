@@ -16,8 +16,6 @@
         inherit (pkgs) lib;
       in
       {
-        packages = { inherit (pkgs) odin; };
-
         # {{{ Shell
         devShell = pkgs.mkShell rec {
           nativeBuildInputs = [
@@ -29,6 +27,7 @@
             pkgs.gdb # Debugger
             pkgs.seer # Debugger GUI
             pkgs.valgrind # Detect memory leaks
+            pkgs.stylua # Lua formatter
           ];
 
           buildInputs = [ ];

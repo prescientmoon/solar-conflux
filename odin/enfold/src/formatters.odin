@@ -1,13 +1,13 @@
 package enfold
 
-import "core:log"
 import "core:fmt"
 import "core:io"
+import "core:log"
 
 Bytes :: distinct uint
 
 @(init)
-@(private="file")
+@(private = "file")
 set_level_headers :: proc() {
 	log.Level_Headers = {
 		0 ..< 10 = "[DEBUG] ",
@@ -19,7 +19,7 @@ set_level_headers :: proc() {
 }
 
 @(init)
-@(private="file")
+@(private = "file")
 init_formatters :: proc() {
 	fmt.set_user_formatters(new(map[typeid]fmt.User_Formatter))
 
@@ -221,10 +221,115 @@ init_formatters :: proc() {
 		}
 	})
 	// }}}
+	// {{{ NVar
+	fmt.register_user_formatter(NVar, proc(fi: ^fmt.Info, arg: any, verb: rune) -> bool {
+		expr := cast(^NVar)arg.data
+
+		switch verb {
+		case 'v':
+			fmt.wprintf(fi.writer, "%v", expr.name)
+
+			return true
+		case:
+			return false
+		}
+	})
+	// }}}
+	// {{{ NST_Declaration
+	fmt.register_user_formatter(
+		NST_Declaration,
+		proc(fi: ^fmt.Info, arg: any, verb: rune) -> bool {
+			st := cast(^NST_Declaration)arg.data
+
+			switch verb {
+			case 'v':
+				for v, i in st.vars {
+					fmt.wprintf(fi.writer, "%v", v.content)
+					if i != len(st.vars) - 1 {fmt.wprintf(fi.writer, ", ")}
+				}
+
+				fmt.wprintf(fi.writer, " := %v", st.value)
+
+				return true
+			case:
+				return false
+			}
+		},
+	)
+	// }}}
+	// {{{ NApp
+	fmt.register_user_formatter(NApp, proc(fi: ^fmt.Info, arg: any, verb: rune) -> bool {
+		expr := cast(^NApp)arg.data
+
+		switch verb {
+		case 'v':
+			fmt.wprintf(fi.writer, "%v(", expr.function^)
+			for v, i in expr.arguments {
+				fmt.wprintf(fi.writer, "%v", v)
+
+				if i != len(expr.arguments) - 1 {
+					fmt.wprintf(fi.writer, ", ")
+				}
+			}
+
+			fmt.wprintf(fi.writer, ")")
+
+			return true
+		case:
+			return false
+		}
+	})
+	// }}}
+	// {{{ NList
+	fmt.register_user_formatter(NList, proc(fi: ^fmt.Info, arg: any, verb: rune) -> bool {
+		expr := cast(^NList)arg.data
+
+		switch verb {
+		case 'v':
+			fmt.wprintf(fi.writer, "[")
+			for v, i in expr.elements {
+				fmt.wprintf(fi.writer, "%v", v)
+
+				if i != len(expr.elements) - 1 {
+					fmt.wprintf(fi.writer, ", ")
+				}
+			}
+
+			fmt.wprintf(fi.writer, "]")
+
+			return true
+		case:
+			return false
+		}
+	})
+	// }}}
+	// {{{ NLambda
+	fmt.register_user_formatter(NLambda, proc(fi: ^fmt.Info, arg: any, verb: rune) -> bool {
+		expr := cast(^NLambda)arg.data
+
+		switch verb {
+		case 'v':
+			fmt.wprintf(fi.writer, "(λ")
+			for v, i in expr.args {
+				fmt.wprintf(fi.writer, "%v", v.content)
+
+				if i != len(expr.args) - 1 {
+					fmt.wprintf(fi.writer, ", ")
+				}
+			}
+
+			fmt.wprintf(fi.writer, ". %v)", expr.body)
+
+			return true
+		case:
+			return false
+		}
+	})
+	// }}}
 }
 
 @(fini)
-@(private="file")
+@(private = "file")
 deinit_formatters :: proc() {
 	delete(fmt._user_formatters^)
 	free(fmt._user_formatters)

@@ -11,5 +11,9 @@ effect
     a.b.c = 3
     foo
      .huh
-      =
-     "bar"
+     =
+      "bar"
+
+  multi "a test...", list object
+    foo = "...of nested blocks"
+    bar = "this used to break!"

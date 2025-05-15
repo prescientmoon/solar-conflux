@@ -143,18 +143,16 @@ mk_parser :: proc(
 ) {
 	lexer := mk_lexer(source) or_return
 	parser = Parser {
-		source          = source,
 		lexer           = lexer,
 		indent_relation = .Gte,
 		indent_range    = {1, ~Indentation(0)},
-		indent_absolute = false,
+		indent_absolute = true,
 		alloc           = alloc,
 	}
 
 	parser.labels = new_clone(make([dynamic]string, 0, 64, alloc), alloc)
 
 	next_token(&parser) or_return
-	// parser.curr = tokenize(&parser.lexer)
 
 	return parser, nil
 }
@@ -170,10 +168,6 @@ label :: proc(parser: ^Parser, label: string) {
 post_label :: proc(parser: ^Parser, label: string) {
 	pop(parser.labels)
 }
-
-// fail :: proc(pos: Source_Loc, msg: string) {
-// 	log.panicf("Error at %v: %v", pos, msg)
-// }
 // }}}
 
 // {{{ Indent state helpers
@@ -252,19 +246,21 @@ post_with_relation :: proc(
 // }}}
 // {{{ Token peeking/advancement
 @(require_results)
-next_token :: proc(parser: ^Parser, relation: Indentation_Relation = .Gte) -> (err: Enfold_Error) {
+next_token :: proc(parser: ^Parser, relation: Indentation_Relation = .Gt) -> (err: Enfold_Error) {
 	with_relation(parser, relation)
 
 	if parser.curr.content != {} {
 		c := Indentation(parser.curr.from.col)
 
 		if c < parser.indent_range[0] || c > parser.indent_range[1] {
+			context.temp_allocator = parser.alloc
 			return parser_error(
 				parser,
 				fmt.tprintf(
-					"invalid indentation (not in range %v..%v)",
+					"invalid indentation (not in range %v..%v; absolute: %v)",
 					parser.indent_range[0],
 					parser.indent_range[1],
+					parser.indent_absolute,
 				),
 			)
 		}
@@ -289,7 +285,7 @@ next_token :: proc(parser: ^Parser, relation: Indentation_Relation = .Gte) -> (e
 
 peek :: proc(
 	parser: ^Parser,
-	relation: Indentation_Relation = .Gte,
+	relation: Indentation_Relation = .Gt,
 ) -> (
 	tok: Token,
 	err: Enfold_Error,
@@ -319,11 +315,11 @@ parse_assignment :: proc(parser: ^Parser) -> (stmt: ST_Assignment, err: Enfold_E
 	next_token(parser) or_return
 
 	for {
-		tok := peek(parser, .Gt) or_break
+		tok := peek(parser) or_break
 		(tok.kind == .Property) or_break
 
 		append(&path_toks, parser.curr)
-		next_token(parser, .Gt) or_return
+		next_token(parser) or_return
 	}
 
 	stmt.path_toks = path_toks[:]
@@ -337,7 +333,7 @@ parse_assignment :: proc(parser: ^Parser) -> (stmt: ST_Assignment, err: Enfold_E
 	}
 
 	stmt.eq = parser.curr
-	next_token(parser, .Gt) or_return
+	next_token(parser) or_return
 
 	// We're commited now, so let's create a list of strings for the path
 	stmt.path = make_slice([]string, len(path_toks), parser.alloc)
@@ -349,7 +345,7 @@ parse_assignment :: proc(parser: ^Parser) -> (stmt: ST_Assignment, err: Enfold_E
 		}
 	}
 
-	stmt.value = parse_expr(parser, .Gt) or_return
+	stmt.value = parse_expr(parser) or_return
 
 	return stmt, nil
 }
@@ -368,16 +364,16 @@ parse_declaration :: proc(parser: ^Parser) -> (stmt: ST_Declaration, err: Enfold
 	next_token(parser) or_return
 
 	for {
-		tok := peek(parser, .Gt) or_break
+		tok := peek(parser) or_break
 		(tok.kind == .Comma) or_break
 
-		next_token(parser, .Gt) or_return
+		next_token(parser) or_return
 
 		if parser.curr.kind != .Identifier {
 			return stmt, parser_error(parser, "expected identifier")
 		} else {
 			append(&vars, parser.curr)
-			next_token(parser, .Gt) or_return
+			next_token(parser) or_return
 		}
 	}
 
@@ -392,9 +388,9 @@ parse_declaration :: proc(parser: ^Parser) -> (stmt: ST_Declaration, err: Enfold
 	}
 
 	stmt.walrus = parser.curr
-	next_token(parser, .Gt) or_return
+	next_token(parser) or_return
 
-	stmt.value = parse_expr(parser, .Gt) or_return
+	stmt.value = parse_expr(parser) or_return
 
 	return stmt, nil
 }
@@ -419,8 +415,7 @@ parse_statement :: proc(parser: ^Parser) -> (stmt: Block_Statement, err: Enfold_
 		return stmt, err
 	}
 
-	parser^ = og_parser // Backtrack
-	expr := try_parse_expr(parser, .Gt) or_return
+	expr := try_parse_expr(parser) or_return
 
 	stmt = ST_Expr {
 		expr = new_clone(expr, parser.alloc),
@@ -440,14 +435,8 @@ parse_toplevel_expr :: proc(parser: ^Parser) -> (expr: Expr, err: Enfold_Error) 
 	return
 }
 
-parse_expr :: proc(
-	parser: ^Parser,
-	relation: Indentation_Relation = .Gte,
-) -> (
-	expr: Expr,
-	err: Enfold_Error,
-) {
-	expr, err = try_parse_expr(parser, relation)
+parse_expr :: proc(parser: ^Parser) -> (expr: Expr, err: Enfold_Error) {
+	expr, err = try_parse_expr(parser)
 
 	if parser_cancelled(err) {
 		err = parser_error(parser, "expected expression")
@@ -456,18 +445,12 @@ parse_expr :: proc(
 	return
 }
 
-try_parse_expr :: proc(
-	parser: ^Parser,
-	relation: Indentation_Relation = .Gte,
-) -> (
-	expr: Expr,
-	err: Enfold_Error,
-) {
+try_parse_expr :: proc(parser: ^Parser) -> (expr: Expr, err: Enfold_Error) {
 	label(parser, "expression")
-	result := parse_single_expr(parser, relation) or_return
+	result := parse_single_expr(parser) or_return
 
 	for {
-		arg, err := parse_single_expr(parser, relation)
+		arg, err := parse_single_expr(parser)
 
 		(!parser_cancelled(err)) or_break
 		err or_return
@@ -482,14 +465,7 @@ try_parse_expr :: proc(
 }
 // }}}
 
-parse_single_expr :: proc(
-	parser: ^Parser,
-	relation: Indentation_Relation = .Gte,
-) -> (
-	expr: Expr,
-	err: Enfold_Error,
-) {
-	with_relation(parser, relation)
+parse_single_expr :: proc(parser: ^Parser) -> (expr: Expr, err: Enfold_Error) {
 	tok := peek(parser) or_return
 	#partial switch tok.kind {
 	// {{{ Integers
@@ -536,7 +512,6 @@ parse_single_expr :: proc(
 		lparen := parser.curr
 		next_token(parser) or_return
 
-		log.debug(parser)
 		inner, err := parse_expr(parser)
 
 		rparen := parser.curr
@@ -554,24 +529,27 @@ parse_single_expr :: proc(
 		block: EBlock
 
 		// {{{ Kind
-		#partial switch parser.curr.kind {
-		case .Multi:
-			block.kind = .Multi
-		case .Effect:
-			block.kind = .Effect
-		case .List:
-			block.kind = .List
-		case .Object:
-			block.kind = .Object
-		}
+		{
+			label(parser, "block kind")
+			#partial switch parser.curr.kind {
+			case .Multi:
+				block.kind = .Multi
+			case .Effect:
+				block.kind = .Effect
+			case .List:
+				block.kind = .List
+			case .Object:
+				block.kind = .Object
+			}
 
-		block.kind_tok = parser.curr
-		next_token(parser) or_return
+			block.kind_tok = parser.curr
+			next_token(parser) or_return
+		}
 		// }}}
 		// {{{ Args
 		if parser.curr.kind == .LParen {
 			block.args.lparen = parser.curr
-			next_token(parser, .Gt) or_return
+			next_token(parser) or_return
 
 			// Start with capacity 4, because why not
 			args := make([dynamic]Token, 0, 4, parser.alloc)
@@ -582,7 +560,6 @@ parse_single_expr :: proc(
 					return expr, parser_error(parser, "expected argument name")
 				}
 
-				with_relation(parser, .Gt)
 				append(&args, parser.curr)
 				next_token(parser) or_return
 
@@ -596,7 +573,10 @@ parse_single_expr :: proc(
 
 			block.args.rparen = parser.curr
 			if parser.curr.kind != .RParen {return expr, parser_error(parser, "expected )")}
-			next_token(parser) or_return
+
+			// We pass .Gte in order to allow closing the parenthesis on the left-most
+			// allowed line
+			next_token(parser, .Gte) or_return
 		}
 		// }}}
 		// {{{ Modifiers
@@ -607,13 +587,12 @@ parse_single_expr :: proc(
 				return expr, parser_error(parser, "block modifiers cannot go on a separate line")
 			}
 
-			next_token(parser, .Gt) or_return
+			next_token(parser) or_return
 		}
 		// }}}
 
 		statements := make([dynamic]Block_Statement, 0, 16, parser.alloc)
 
-		with_relation(parser, .Gt)
 		if !block.no_align && block.kind_tok.from.line == parser.curr.from.line {
 			// {{{ Inline statements
 			for {
@@ -630,6 +609,7 @@ parse_single_expr :: proc(
 			}
 			// }}}
 		} else {
+			with_relation(parser, .Gt)
 			// {{{ Multiline blocks
 			for {
 				absolute(parser)
