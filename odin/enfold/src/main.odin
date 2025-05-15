@@ -33,7 +33,7 @@ main_impl :: proc() -> int {
 		Bytes(arena.total_reserved),
 	)
 
-	source := #load("source2.idea", string)
+	source := #load("../experiments/source2.idea", string)
 	parser, err := mk_parser(source, virtual.arena_allocator(&arena))
 	if err != nil {log.error(err)}
 
