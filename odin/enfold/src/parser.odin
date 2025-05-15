@@ -5,6 +5,7 @@ import "core:fmt"
 import "core:log"
 
 Expr :: union {
+	EBool,
 	EInt,
 	EString,
 	EVar,
@@ -15,6 +16,11 @@ Expr :: union {
 }
 
 // {{{ Simple expressions
+EBool :: struct {
+	tok:   Token,
+	value: bool,
+}
+
 EInt :: struct {
 	tok:   Token,
 	value: i128,
@@ -76,10 +82,15 @@ ST_Expr :: struct {
 	expr: ^Expr,
 }
 
+ST_Globals :: struct {
+	names: []Token,
+}
+
 Block_Statement :: union {
 	ST_Declaration,
 	ST_Assignment,
 	ST_Expr,
+	ST_Globals,
 }
 
 EBlock :: struct {
@@ -325,11 +336,7 @@ parse_assignment :: proc(parser: ^Parser) -> (stmt: ST_Assignment, err: Enfold_E
 	stmt.path_toks = path_toks[:]
 
 	if parser.curr.kind != .Equal {
-		if len(path_toks) == 1 {
-			return stmt, Parser_Cancellation{}
-		} else {
-			return stmt, parser_error(parser, "expected =")
-		}
+		return stmt, Parser_Cancellation{}
 	}
 
 	stmt.eq = parser.curr
@@ -395,6 +402,40 @@ parse_declaration :: proc(parser: ^Parser) -> (stmt: ST_Declaration, err: Enfold
 	return stmt, nil
 }
 // }}}
+// {{{ Globals
+@(private = "file")
+parse_globals :: proc(parser: ^Parser) -> (stmt: ST_Globals, err: Enfold_Error) {
+	label(parser, "globals")
+
+	if tok := peek(parser) or_return; tok.kind != .Global {
+		return stmt, Parser_Cancellation{}
+	}
+
+	next_token(parser) or_return
+
+	names := make([dynamic]Token, 0, 2, parser.alloc)
+
+	for {
+		tok := peek(parser) or_break
+
+		if tok.kind == .Comma {
+			next_token(parser) or_return
+			continue
+		}
+
+		if tok.kind != .Identifier {
+			return stmt, parser_error(parser, "expected identifier")
+		}
+
+		append(&names, parser.curr)
+		next_token(parser) or_return
+	}
+
+	stmt.names = names[:]
+
+	return stmt, nil
+}
+// }}}
 // {{{ Statements
 @(private = "file")
 parse_statement :: proc(parser: ^Parser) -> (stmt: Block_Statement, err: Enfold_Error) {
@@ -409,6 +450,13 @@ parse_statement :: proc(parser: ^Parser) -> (stmt: Block_Statement, err: Enfold_
 	}
 
 	stmt, err = parse_declaration(parser)
+	if parser_cancelled(err) {
+		parser^ = og_parser
+	} else {
+		return stmt, err
+	}
+
+	stmt, err = parse_globals(parser)
 	if parser_cancelled(err) {
 		parser^ = og_parser
 	} else {
@@ -468,6 +516,16 @@ try_parse_expr :: proc(parser: ^Parser) -> (expr: Expr, err: Enfold_Error) {
 parse_single_expr :: proc(parser: ^Parser) -> (expr: Expr, err: Enfold_Error) {
 	tok := peek(parser) or_return
 	#partial switch tok.kind {
+	// {{{ Bools
+	case .Bool:
+		res: bool = parser.curr.content == "true"
+		expr = EBool {
+			tok   = parser.curr,
+			value = res,
+		}
+
+		next_token(parser) or_return
+	// }}}
 	// {{{ Integers
 	case .Integer:
 		res: i128
@@ -631,4 +689,27 @@ parse_single_expr :: proc(parser: ^Parser) -> (expr: Expr, err: Enfold_Error) {
 	}
 
 	return expr, nil
+}
+
+parse_toplevel_block :: proc(parser: ^Parser) -> (block: EBlock, err: Enfold_Error) {
+	block.kind = .Effect
+	statements := make([dynamic]Block_Statement, 0, 16, parser.alloc)
+
+	for {
+		absolute(parser)
+		statement, err := parse_statement(parser)
+
+		(!parser_cancelled(err)) or_break
+		err or_return
+
+		append(&statements, statement)
+	}
+
+	block.contents = statements[:]
+
+	if parser.curr.kind != .Eof {
+		err = parser_error(parser, "expected eof")
+	}
+
+	return
 }

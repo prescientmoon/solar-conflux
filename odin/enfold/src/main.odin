@@ -18,7 +18,7 @@ parser_cancelled :: proc(err: Enfold_Error) -> bool {
 	return ok
 }
 
-main :: proc() {
+main_impl :: proc() -> int {
 	context.logger = log.create_console_logger()
 
 	arena: virtual.Arena
@@ -33,16 +33,16 @@ main :: proc() {
 		Bytes(arena.total_reserved),
 	)
 
-	source := #load("source.idea", string)
+	source := #load("source2.idea", string)
 	parser, err := mk_parser(source, virtual.arena_allocator(&arena))
 	if err != nil {log.error(err)}
 
 	expr: Expr
-	expr, err = parse_toplevel_expr(&parser)
+	expr, err = parse_toplevel_block(&parser)
 
 	if err != nil {
 		log.error(err)
-		return
+		return 1
 	} else {
 		log.infof("Expr: %#v", expr)
 	}
@@ -53,7 +53,7 @@ main :: proc() {
 
 	if err != nil {
 		log.error(err)
-		return
+		return 1
 	} else {
 		log.infof("Effect: %#v", neffect)
 	}
@@ -71,4 +71,13 @@ main :: proc() {
 	lua_code := strings.to_string(cg.out)
 	// log.info(lua_code)
 	fmt.fprint(f, lua_code)
+
+	return 0
+}
+
+main :: proc() {
+	exit_code := main_impl()
+	if exit_code != 0 {
+		os.exit(exit_code)
+	}
 }

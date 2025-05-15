@@ -19,6 +19,8 @@ expr_to_lua :: proc(cg: ^Codegen, expr: NExpr) {
 		strings.write_string(&cg.out, inner.name)
 	case EString:
 		strings.write_quoted_string(&cg.out, inner.value)
+	case EBool:
+		fmt.sbprintf(&cg.out, "%v", inner.value)
 	case EInt:
 		fmt.sbprintf(&cg.out, "%v", inner.value)
 	case NList:

@@ -20,6 +20,7 @@ import "core:log"
 // - variables are always bound before appearing in some scope
 // - objects no longer contain nested paths
 NExpr :: union {
+	EBool,
 	EInt,
 	EString,
 	NVar,
@@ -135,6 +136,8 @@ expr_unparen :: proc(expr: Expr) -> Expr {
 @(private = "file")
 expr_pos :: proc(expr: Expr) -> Source_Loc {
 	switch inner in expr {
+	case EBool:
+		return inner.tok.from
 	case EInt:
 		return inner.tok.from
 	case EString:
@@ -247,6 +250,28 @@ store_declaration :: proc(
 	return nil
 }
 // }}}
+// {{{ Keep track of globals
+@(private = "file")
+store_globals :: proc(
+	evaluator: ^Evaluator,
+	decl: ST_Globals,
+	pop_counter: ^uint,
+) -> (
+	err: Enfold_Error,
+) {
+	for v in decl.names {
+		if v.content in evaluator.scope {
+			return Evaluator_Error{loc = v.from, msg = "globals cannot shadow"}
+		}
+
+		scope_push(evaluator, v)
+	}
+
+	pop_counter^ += len(decl.names)
+
+	return nil
+}
+// }}}
 // {{{ Handle multi blocks
 multi_block_to_norm :: proc(
 	evaluator: ^Evaluator,
@@ -262,13 +287,15 @@ multi_block_to_norm :: proc(
 
 	for st, i in block.contents {
 		switch st_inner in st {
+		case ST_Globals:
+			store_globals(evaluator, st_inner, &pop_counter) or_return
+		case ST_Declaration:
+			store_declaration(evaluator, st_inner, &pop_counter) or_return
 		case ST_Assignment:
 			return nil, Evaluator_Error {
 				loc = st_inner.eq.from,
 				msg = "assignments are not permitted inside multi blocks",
 			}
-		case ST_Declaration:
-			store_declaration(evaluator, st_inner, &pop_counter) or_return
 		case ST_Expr:
 			norm := expr_to_normal(evaluator, st_inner.expr^) or_return
 			if norm == nil {
@@ -289,6 +316,8 @@ multi_block_to_norm :: proc(
 @(private = "file")
 expr_to_normal :: proc(evaluator: ^Evaluator, expr: Expr) -> (out: NExpr, err: Enfold_Error) {
 	switch inner in expr {
+	case EBool:
+		return NExpr(inner), nil
 	case EInt:
 		return NExpr(inner), nil
 	case EString:
@@ -326,12 +355,12 @@ expr_to_normal :: proc(evaluator: ^Evaluator, expr: Expr) -> (out: NExpr, err: E
 	case EVar:
 		name := inner.name.content
 		if !(name in evaluator.scope) {
-			// context.temp_allocator = evaluator.alloc
-			// return nil, Evaluator_Error {
-			// 	loc = inner.name.from,
-			// 	msg = fmt.tprintf("variable %v not in scope", name),
-			// }
-			return NExpr(NVar{tok = inner.name, name = name}), nil
+			context.temp_allocator = evaluator.alloc
+			return nil, Evaluator_Error {
+				loc = inner.name.from,
+				msg = fmt.tprintf("variable `%v` not in scope", name),
+			}
+			// return NExpr(NVar{tok = inner.name, name = name}), nil
 		}
 
 		return NExpr(NVar{tok = inner.name, name = evaluator.scope[name]}), nil
@@ -358,7 +387,7 @@ expr_to_normal :: proc(evaluator: ^Evaluator, expr: Expr) -> (out: NExpr, err: E
 		}
 
 		#partial switch _ in f {
-		case EInt, EString, NList, NObject:
+		case EBool, EInt, EString, NList, NObject:
 			return nil, Evaluator_Error {
 				loc = expr_pos(inner.function^),
 				msg = "expression is not callable",
@@ -433,13 +462,15 @@ expr_to_normal :: proc(evaluator: ^Evaluator, expr: Expr) -> (out: NExpr, err: E
 			return_value: NExpr
 			for st, i in inner.contents {
 				switch st_inner in st {
+				case ST_Globals:
+					store_globals(evaluator, st_inner, &pop_counter) or_return
+				case ST_Declaration:
+					store_declaration(evaluator, st_inner, &pop_counter) or_return
 				case ST_Assignment:
 					return nil, Evaluator_Error {
 						loc = st_inner.eq.from,
 						msg = "assignments are not permitted inside effect blocks",
 					}
-				case ST_Declaration:
-					store_declaration(evaluator, st_inner, &pop_counter) or_return
 				case ST_Expr:
 					norm := expr_to_normal(evaluator, st_inner.expr^) or_return
 					if i == len(inner.contents) - 1 {
@@ -463,13 +494,15 @@ expr_to_normal :: proc(evaluator: ^Evaluator, expr: Expr) -> (out: NExpr, err: E
 
 			for st, i in inner.contents {
 				switch st_inner in st {
+				case ST_Globals:
+					store_globals(evaluator, st_inner, &pop_counter) or_return
+				case ST_Declaration:
+					store_declaration(evaluator, st_inner, &pop_counter) or_return
 				case ST_Assignment:
 					return nil, Evaluator_Error {
 						loc = st_inner.eq.from,
 						msg = "assignments are not permitted inside list blocks",
 					}
-				case ST_Declaration:
-					store_declaration(evaluator, st_inner, &pop_counter) or_return
 				case ST_Expr:
 					norm := expr_to_normal(evaluator, st_inner.expr^) or_return
 					if norm != nil {append(&elements, norm)}
@@ -484,6 +517,15 @@ expr_to_normal :: proc(evaluator: ^Evaluator, expr: Expr) -> (out: NExpr, err: E
 
 			for st, i in inner.contents {
 				switch st_inner in st {
+				case ST_Globals:
+					store_globals(evaluator, st_inner, &pop_counter) or_return
+				case ST_Declaration:
+					store_declaration(evaluator, st_inner, &pop_counter) or_return
+				case ST_Expr:
+					return nil, Evaluator_Error {
+						loc = expr_pos(st_inner.expr^),
+						msg = "standalone expressions are not permitted inside object blocks",
+					}
 				case ST_Assignment:
 					norm := expr_to_normal(evaluator, st_inner.value) or_return
 
@@ -556,13 +598,6 @@ expr_to_normal :: proc(evaluator: ^Evaluator, expr: Expr) -> (out: NExpr, err: E
 
 							object = elements
 						}
-					}
-				case ST_Declaration:
-					store_declaration(evaluator, st_inner, &pop_counter) or_return
-				case ST_Expr:
-					return nil, Evaluator_Error {
-						loc = expr_pos(st_inner.expr^),
-						msg = "standalone expressions are not permitted inside object blocks",
 					}
 				}
 			}

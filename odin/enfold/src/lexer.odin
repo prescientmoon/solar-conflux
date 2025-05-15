@@ -17,6 +17,7 @@ Token_Kind :: enum {
 	List,
 	Object,
 	No_Align,
+	Global,
 
 	// Identifier-like
 	Identifier,
@@ -146,7 +147,12 @@ tokenize :: proc(lexer: ^Lexer) -> (tok: Token, err: Enfold_Error) {
 			tok.kind = .List
 		} else if lit == "object" {
 			tok.kind = .Object
+		} else if lit == "global" || lit == "globals" {
+			tok.kind = .Global
+		} else if lit == "false" || lit == "true" {
+			tok.kind = .Bool
 		}
+
 	// }}}
 	// {{{ Integers
 	case '0' <= ch && ch <= '9':
