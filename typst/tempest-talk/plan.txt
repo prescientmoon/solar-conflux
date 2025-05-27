@@ -1,0 +1,75 @@
+Nix side:
+- Overload things
+- Useful helpers
+- Encode everything as json
+
+
+0. Introduction
+1. What is neovim?
+- neovim is a terminal based editor
+- neovim is extremely configurable and extensible
+- neovim has a huge plugin ecosystem
+- neovim can be configured using either vimscript (eww) or lua
+2. Why would you configure neovim using nix?
+- access to nix-provided information like the current instance type (neovim, neovide, firenvim), certain paths (xdg projects dir, miros snippet cache, obsidian vault location)
+  - this can be achieved using env vars or other means
+- collocating plugin deps with their config
+  - example: installing formatters or language servers
+3. Existing approaches
+- Attempt to create proper nix options for every plugin and whatnot (example: nixvim)
+  - this is very nice for a lot of plugins!
+  - this can get ugly when you have to write actual lua code
+  - this can get ugly when you want to use unsupported plugins (you have to do it yourself)
+  - this is way less hackable
+  - usually only configures plugins or other basic options. No keymaps inside autocmds or other fancy stuff
+- Fancy ways to bring in your lua config (i.e. nvimcats)
+  - doesn't solve the root issue for why I'm doing this
+4. My goal
+- Create a DSL which allows writing 99% of the config directly in Nix
+- Generate clean & readable code
+- Allows using one of the many neovim package managers
+- Best of both worlds
+5. Building blocks (1) — the lua code block
+- We can create a lua code block with `lua "..."`
+- Under the hood, this generates an object with a __tempestTag="lua"
+6. Building blocks (2) — primitives
+- Strings, numbers, booleans, null, arrays and objects produce `lua` blocks containing their representation
+7. Building blocks (3) — variables
+- <nixpkgs> is syntax sugar for `builtins.findFile builtins.nixPath "nixpkgs"`
+- `builtins.foo` is sugar for `__foo`
+- we can shadow the builtin function with our own implementation, allowing us refer to lua variables with <varname>
+8. Building blocks (4) — Function calls
+- nix allows overriding function application by providing a __functor property of an object
+- we can override function application on lua code objects to produce the lua code block for the function call!
+- lua functions are usually not curried, so if we receive an array, we will unpack that as a list of arguments
+9. Building blocks (5) — Property access
+- no overloading the . operator:(
+- we can make calling a lua code block with a path `/foo/bar/goo/` as argument produce the property access `.foo.bar.goo`
+- for convenience, we can also allow `/` inside variable names. That is, `<foo/bar/goo>` produces `foo.bar.goo`
+10. Building blocks (5) — Functions
+- when we receive a function, we give it a generated parameter name as argument
+- for instance, `var: { test = lua var; }` will produce the lua code `function (a) return { test: a } end`
+- most of the time we will only do this to produce thunks, so it is ok
+11. Inline vs blocks
+- when defining a function call, if the contents are inline, we auto-return them
+- blocks support defining keybinds and autocmds (we'll see what those are in a sec)
+- blocks support mutation! A block like `{ vim.opt.wrap = true; }` will desugar to `vim.opt.wrap = true`
+- we can usually be smart about when we expect a block and when we do not. You can always manually create a block with `block` though!
+12. Keybinds
+- plugins support specifying a list of keybinds. Such keybinds can also appear at the toplevel of the config
+13. Autocmds
+- autocmds are essentially event listeners we can attach behaviour to
+- example
+14. Context
+- tempest.nvim passes some context around implicitly, so for example by default, creating a keybind inside an autocmd event specific to a certain buffer will only create the keybind for the buffer in question. This is what the programmer wants 99% of the time.
+15. Plugins
+- we can technically support multiple package managers, but I've added helpers for lazy.nvim
+- code block showing basic plugin structure
+16. Putting it all together
+- nix code -> generator -> autoformatter -> your own structure! (symlink this wherever you want)
+17. Downsides of the system
+- not that nice for some conditional stuff (obsidian example)
+  - the hot path of "only enable this plugin when ... holds" is still well supported
+- upside: you can always write actual lua code for the parts you want to.
+18. Final thoughts
+- I've been using tempest.nvim for over a year. It works nicely for me, but it's underlying mechanism is pretty hacky, and I do not recommend it unless you want to hack on it yourself.
