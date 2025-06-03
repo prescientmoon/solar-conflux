@@ -30,9 +30,10 @@ Line :: struct {
 }
 
 Command_Queue :: struct {
-	rects:   [dynamic]Rect,
-	circles: [dynamic]Circle,
-	lines:   [dynamic]Line,
+	rects:         [dynamic]Rect,
+	circles:       [dynamic]Circle,
+	lines:         [dynamic]Line,
+	rounded_lines: [dynamic]Line,
 }
 
 queue: ^Command_Queue
@@ -40,9 +41,10 @@ queue: ^Command_Queue
 init_command_queue :: proc() {
 	queue = new(Command_Queue)
 	queue^ = Command_Queue {
-		rects   = make([dynamic]Rect),
-		circles = make([dynamic]Circle),
-		lines   = make([dynamic]Line),
+		rects         = make([dynamic]Rect),
+		circles       = make([dynamic]Circle),
+		lines         = make([dynamic]Line),
+		rounded_lines = make([dynamic]Line),
 	}
 }
 
@@ -90,9 +92,24 @@ draw_line :: proc {
 	draw_line_struct,
 	draw_line_args,
 }
+
+draw_rounded_line_args :: proc(from, to: ℝ², thickness: ℝ, color: Color, z: ℝ = 0) {
+	draw_rounded_line_struct(
+		Line{from = from, to = to, thickness = thickness, shape = Shape{z = z, fill = color}},
+	)
+}
+
+draw_rounded_line_struct :: proc(line: Line) {
+	append(&queue.rounded_lines, line)
+}
+
+draw_rounded_line :: proc {
+	draw_rounded_line_struct,
+	draw_rounded_line_args,
+}
 // }}}
 
-// {{{ VAO & consts
+// {{{ GPU data types
 VAO :: struct {
 	vao:                  u32,
 	ibo:                  u32,
@@ -102,10 +119,38 @@ VAO :: struct {
 	index_count:          ℕ,
 }
 
+
+// odinfmt: disable
+RMat3 ::   matrix[4, 4]f32
+// odinfmt: enable
+
+UBO :: u32
+Global_Uniforms :: struct {
+	viewport_matrix: RMat3,
+	aaWidth:         f32,
+}
+
+Program :: u32
+
 INSTANCES :: 1024 // The number of instances to allocate space in the buffer for
 VERTEX_POS_LOCATION :: 0
 INSTANCE_FILL_LOCATION :: 1
 INSTANCE_MAT_LOCATION :: 2
+GLOBALS_UBO_BINDING :: 0
+// }}}
+// {{{ Create globals UBO
+
+create_globals_ubo :: proc() -> (out: UBO) {
+	OpenGL.GenBuffers(1, &out)
+	OpenGL.BindBuffer(OpenGL.UNIFORM_BUFFER, out)
+	defer OpenGL.BindBuffer(OpenGL.UNIFORM_BUFFER, 0)
+
+	// Allocate buffer data
+	OpenGL.BufferData(OpenGL.UNIFORM_BUFFER, size_of(Global_Uniforms), {}, OpenGL.STATIC_DRAW)
+	OpenGL.BindBufferBase(OpenGL.UNIFORM_BUFFER, GLOBALS_UBO_BINDING, out)
+
+	return out
+}
 // }}}
 // {{{ Create VAO
 create_vao :: proc(vertices: []ℝ², indices: []u32) -> (out: VAO, ok: bool) {
@@ -246,6 +291,28 @@ set_line_transforms :: proc(state: ^State, vao: ^VAO, lines: []Line) -> ℕ {
 
 	return len(lines)
 }
+
+set_rounded_line_transforms :: proc(state: ^State, vao: ^VAO, lines: []Line) -> ℕ {
+	log.assert(len(lines) <= INSTANCES, "Attempting to send too many lines to the GPU")
+
+	for line, i in lines {
+		mat: Mat3
+
+		dir := line.to - line.from
+		mat[0].xy = dir / 2
+		mat[1].xy = vec2_perp(linalg.normalize0(dir)) * line.thickness
+		mat[2].xy = (line.from + line.to) / 2
+		mat[2].z = line.z
+
+		mat[0, 0] /= 2
+		mat[0, 1] /= 2
+
+		state.buf_matrices[i] = mat
+		state.buf_colors[i] = line.fill
+	}
+
+	return len(lines)
+}
 // }}}
 // {{{ Render the entire queue
 draw_instances :: proc(vao: VAO, instances: ℕ) {
@@ -264,6 +331,17 @@ clear_screen :: proc() {
 }
 
 render_queue :: proc(state: ^State) {
+	// Update uniform data
+	OpenGL.BindBuffer(OpenGL.UNIFORM_BUFFER, state.globals_ubo)
+	OpenGL.BufferData(
+		OpenGL.UNIFORM_BUFFER,
+		size_of(Global_Uniforms),
+		&state.globals,
+		OpenGL.DYNAMIC_DRAW,
+	)
+	OpenGL.BindBuffer(OpenGL.UNIFORM_BUFFER, 0)
+
+	// Toggle the wireframe
 	if state.wireframe {
 		OpenGL.PolygonMode(OpenGL.FRONT_AND_BACK, OpenGL.LINE)
 	} else {
@@ -299,6 +377,16 @@ render_queue :: proc(state: ^State) {
 		draw_instances(state.rect_vao, instances)
 	}
 	clear(&queue.lines)
+
+	OpenGL.UseProgram(state.rounded_line_program)
+	for i := 0; i < len(queue.rounded_lines); i += INSTANCES {
+		slice := queue.rounded_lines[i:]
+		if len(slice) > INSTANCES {slice = slice[:INSTANCES]}
+		instances := set_rounded_line_transforms(state, &state.rect_vao, slice)
+		commit_buffers(state, &state.rect_vao)
+		draw_instances(state.rect_vao, instances)
+	}
+	clear(&queue.rounded_lines)
 
 	OpenGL.UseProgram(0)
 }

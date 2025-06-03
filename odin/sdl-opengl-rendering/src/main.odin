@@ -9,22 +9,30 @@ import "vendor:OpenGL"
 import "vendor:sdl3"
 
 State :: struct {
-	tick:           u32,
-	window:         ^sdl3.Window,
-	rect_program:   u32,
-	circle_program: u32,
-	line_program:   u32,
-	rect_vao:       VAO,
-	circle_vao:     VAO,
-	wireframe:      bool,
-	buf_matrices:   [INSTANCES]Mat3,
-	buf_colors:     [INSTANCES]Color,
+	window:               ^sdl3.Window,
+
+	// GPU data
+	rect_program:         Program,
+	circle_program:       Program,
+	line_program:         Program,
+	rounded_line_program: Program,
+	rect_vao:             VAO,
+	globals_ubo:          UBO,
+
+	// Instance buffers
+	buf_matrices:         [INSTANCES]Mat3,
+	buf_colors:           [INSTANCES]Color,
+
+	// Flags
+	tick:                 u32,
+	wireframe:            bool,
+	globals:              Global_Uniforms,
 }
 
 // {{{ Initialization
 init :: proc() -> (state: State, ok: bool) {
-	GL_MAJOR :: 3
-	GL_MINOR :: 3
+	GL_MAJOR :: 4
+	GL_MINOR :: 2
 
 	// {{{ Configure logging
 	@(static) g_ctx: runtime.Context
@@ -117,8 +125,18 @@ init :: proc() -> (state: State, ok: bool) {
 		#load("./shaders/line.frag.glsl"),
 	) or_return
 
+	state.rounded_line_program = OpenGL.load_shaders_source(
+		#load("./shaders/vert.glsl"),
+		#load("./shaders/rounded-line.frag.glsl"),
+	) or_return
+
 	state.rect_vao = create_vao({{-1, -1}, {1, -1}, {1, 1}, {-1, 1}}, {0, 1, 2, 3}) or_return
-	// state.circle_vao = create_vao({{-1, -1}, {1, -1}, {1, 1}, {-1, 1}}, {0, 1, 2, 3}) or_return
+	state.globals_ubo = create_globals_ubo()
+
+	// Perform initial resize
+	w, h: i32
+	sdl3.GetWindowSize(state.window, &w, &h)
+	on_resize(&state, w, h)
 
 	init_command_queue()
 
@@ -135,13 +153,34 @@ close :: proc(state: State) {
 	sdl3.Quit()
 }
 // }}}
+// {{{ Resize
+on_resize :: proc(state: ^State, width, height: i32) {
+	OpenGL.Viewport(0, 0, width, height)
+
+	m: Mat4
+	m[0, 0] = 2.0 / f32(width)
+	m[1, 1] = -2.0 / f32(height)
+	m[2, 2] = 1
+	m[3, 3] = 1
+	m[0, 3] = -1
+	m[1, 3] = 1
+
+	state.globals.viewport_matrix = RMat3(m)
+	log.debug(m)
+}
+// }}}
+
 
 // {{{ Render
 render :: proc(state: ^State) {
 	state.tick += 1
 
-	draw_rect({-0.5, 0}, {0.75, 0.5}, {1, 0, 0, 1}, z = 0.5)
-	draw_rect({0.5, 0.25}, {0.3, 0.5}, {0, 1, 0, 1}, z = -0.5)
+	wi, hi: i32
+	sdl3.GetWindowSize(state.window, &wi, &hi)
+	center: ℝ² = {f32(wi), f32(hi)} / 2
+	draw_rect({30, 20}, {100, 200}, {1, 0, 0, 1}, z = 0.4)
+	draw_rect(10, center + center * math.sin(f32(state.tick) / 60), {0, 1, 0, 1}, z = 0.6)
+	draw_rect({1000, 800}, center / 3, {0, 1, 1, 1}, z = 0.5)
 
 	count := ℝ(32)
 	for x in ℝ(0) ..< count {
@@ -154,17 +193,20 @@ render :: proc(state: ^State) {
 				1
 			color := Color{(pos.x + 1) / 2, (pos.y + 1) / 2, 1, 1}
 
+			r := f32(wi) / ℝ(count) / 4
+			pos = (pos + 1) * center
+			pos.y = 2 * center.y - pos.y
 			if x > y {
-				draw_rect(pos, 1 / ℝ(count), color)
+				draw_rect(pos, 2 * r, color)
 			} else {
-				r := 1 / ℝ(count) / 2
 				draw_circle(pos + r, r, color)
 			}
 		}
 	}
 
-	draw_circle({-0.25, -0.3}, 0.6, Color{0, 0, 0.5, 0.75}, z = -0.1)
-	draw_line({-0.25, 0}, {0.66, 0.4}, 0.01, Color{1, 1, 1, 1}, z = -0.5)
+	draw_circle(center + center * {-0.25, -0.3}, 450, Color{0, 0, 0.5, 0.75}, z = -0.1)
+	draw_line({750, 200}, {1800, 1600}, 10, Color{1, 1, 1, 1}, z = -0.5)
+	draw_rounded_line({200, 750}, {1200, 100}, 50, Color{1, 1, 1, 1}, z = -0.5)
 
 	clear_screen()
 	render_queue(state)
@@ -195,7 +237,7 @@ main :: proc() {
 		for sdl3.PollEvent(&event) {
 			#partial switch event.type {
 			case .WINDOW_RESIZED:
-				OpenGL.Viewport(0, 0, event.window.data1, event.window.data2)
+				on_resize(&state, event.window.data1, event.window.data2)
 			case .QUIT:
 				quit = true
 			case .TEXT_INPUT:
