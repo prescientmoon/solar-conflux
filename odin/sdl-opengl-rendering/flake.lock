@@ -20,11 +20,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1738680400,
-        "narHash": "sha256-ooLh+XW8jfa+91F1nhf9OF7qhuA/y1ChLx6lXDNeY5U=",
+        "lastModified": 1748693115,
+        "narHash": "sha256-StSrWhklmDuXT93yc3GrTlb0cKSS0agTAxMGjLKAsY8=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "799ba5bffed04ced7067a91798353d360788b30d",
+        "rev": "910796cabe436259a29a72e8d3f5e180fc6dfacc",
         "type": "github"
       },
       "original": {
@@ -34,10 +34,61 @@
         "type": "github"
       }
     },
+    "odin": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1747681085,
+        "narHash": "sha256-tG177/u/vDUnxXeIFjJWYTRSuvYRfSCDYv3tjgdf+Ec=",
+        "owner": "starlitcanopy",
+        "repo": "odin",
+        "rev": "612433442cc03297474a31d3d40fce74ce3f5331",
+        "type": "github"
+      },
+      "original": {
+        "owner": "starlitcanopy",
+        "repo": "odin",
+        "type": "github"
+      }
+    },
+    "ols": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "odin": [
+          "odin"
+        ]
+      },
+      "locked": {
+        "lastModified": 1747682765,
+        "narHash": "sha256-uq7kh10bBIx/gnnYOUCO2YD5+4UaNeD1W6YSlrYtJyQ=",
+        "owner": "starlitcanopy",
+        "repo": "ols",
+        "rev": "81d3e8ecb1ade5c02c4769961027b3d86b7a6f94",
+        "type": "github"
+      },
+      "original": {
+        "owner": "starlitcanopy",
+        "repo": "ols",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "odin": "odin",
+        "ols": "ols"
       }
     },
     "systems": {
