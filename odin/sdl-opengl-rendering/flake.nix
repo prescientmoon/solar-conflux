@@ -46,7 +46,6 @@
 
           buildInputs = [
             pkgs.sdl3
-
             pkgs.xorg.libX11
             pkgs.xorg.libXScrnSaver
             pkgs.xorg.libXcursor

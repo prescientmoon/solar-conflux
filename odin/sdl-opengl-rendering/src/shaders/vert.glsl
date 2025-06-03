@@ -12,10 +12,16 @@ layout(std140, binding = 0) uniform Globals {
   float aaWidth; // Anti aliasing width
 };
 
+  // struct Line {
+  //   vec2 from;
+  //   vec2 to;
+  // };
+  //
+  // layout (location = 5) in Line instanceLine;
+
 void main() {
-  vec4 pos    = viewportMatrix * vec4(instanceMatrix * vec3(aPos.xy, 1), 1);
-  // vec3 pos    = vec3(aPos.xy, 1);
+  vec4 pos    = viewportMatrix * vec4(instanceMatrix * vec3(aPos, 1), 1);
   gl_Position = vec4(pos.xyz, 1);
   vertexColor = instanceFill;
-  vertexPos = aPos.xy;
+  vertexPos = aPos;
 }

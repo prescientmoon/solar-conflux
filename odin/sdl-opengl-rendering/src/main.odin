@@ -170,7 +170,6 @@ on_resize :: proc(state: ^State, width, height: i32) {
 }
 // }}}
 
-
 // {{{ Render
 render :: proc(state: ^State) {
 	state.tick += 1

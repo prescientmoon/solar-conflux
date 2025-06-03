@@ -210,10 +210,15 @@ create_vao :: proc(vertices: []ℝ², indices: []u32) -> (out: VAO, ok: bool) {
 	// Create instance fill VBO
 	out.instance_fill_buffer = gen_buffer()
 	bind_buffer(out.instance_fill_buffer, .Array)
-	setup_vbo(out.instance_fill_buffer, INSTANCE_FILL_LOCATION, rows = 4, divisor = 1)
+
+	OpenGL.EnableVertexAttribArray(INSTANCE_FILL_LOCATION)
+	OpenGL.VertexAttribPointer(INSTANCE_FILL_LOCATION, 4, OpenGL.FLOAT, false, size_of(Color), 0)
+	OpenGL.VertexAttribDivisor(INSTANCE_FILL_LOCATION, 1)
 
 	// Create instance mat VBO
 	out.instance_mat_buffer = gen_buffer()
+	bind_buffer(out.instance_mat_buffer, .Array)
+
 	setup_vbo(
 		out.instance_mat_buffer,
 		INSTANCE_MAT_LOCATION,
@@ -223,10 +228,26 @@ create_vao :: proc(vertices: []ℝ², indices: []u32) -> (out: VAO, ok: bool) {
 		divisor = 1,
 	)
 
+	for i in u32(0) ..< 3 {
+		OpenGL.EnableVertexAttribArray(INSTANCE_MAT_LOCATION + i)
+		vec3_size :: size_of(ℝ³)
+		OpenGL.VertexAttribPointer(
+			INSTANCE_MAT_LOCATION + i,
+			3,
+			OpenGL.FLOAT,
+			false,
+			3 * vec3_size,
+			uintptr(i * vec3_size),
+		)
+		OpenGL.VertexAttribDivisor(INSTANCE_MAT_LOCATION + i, 1)
+	}
+
 	// Create position VBO
 	out.vertex_pos_buffer = gen_buffer()
 	set_buffer(out.vertex_pos_buffer, vertices, usage = .Static)
-	setup_vbo(out.vertex_pos_buffer, VERTEX_POS_LOCATION, ty = .Float, rows = 2)
+
+	OpenGL.EnableVertexAttribArray(VERTEX_POS_LOCATION)
+	OpenGL.VertexAttribPointer(VERTEX_POS_LOCATION, 2, OpenGL.FLOAT, false, 2 * size_of(ℝ), 0)
 
 	// Create the vertex_ind_buffer
 	out.vertex_ind_buffer = gen_buffer()
