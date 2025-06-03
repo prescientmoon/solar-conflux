@@ -44,11 +44,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1747681085,
-        "narHash": "sha256-tG177/u/vDUnxXeIFjJWYTRSuvYRfSCDYv3tjgdf+Ec=",
+        "lastModified": 1748975148,
+        "narHash": "sha256-Gxp3ycjTnGSlkb/MpMAAbRY7bjzVjXaeaO+TBtx++/E=",
         "owner": "starlitcanopy",
         "repo": "odin",
-        "rev": "612433442cc03297474a31d3d40fce74ce3f5331",
+        "rev": "d2cc7127df2555ed57d71575a235bd1a3eebd26a",
         "type": "github"
       },
       "original": {
@@ -70,11 +70,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1748918175,
-        "narHash": "sha256-fv5w3riPVpAhMArOVR2O6jXekdiPV7KhvFLD6fE8q60=",
+        "lastModified": 1748975728,
+        "narHash": "sha256-7/AZrVRz8bLOToQjlvz36m4yPb1ZXDm3hhM7HJ8VbcY=",
         "owner": "starlitcanopy",
         "repo": "ols",
-        "rev": "6afccf760e9f519e12ed4b155550c8896adef61b",
+        "rev": "f0ae178c1e600d04e2fd16dc810e41427b290c69",
         "type": "github"
       },
       "original": {
