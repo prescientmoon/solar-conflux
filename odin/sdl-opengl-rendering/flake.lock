@@ -70,11 +70,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1747682765,
-        "narHash": "sha256-uq7kh10bBIx/gnnYOUCO2YD5+4UaNeD1W6YSlrYtJyQ=",
+        "lastModified": 1748918175,
+        "narHash": "sha256-fv5w3riPVpAhMArOVR2O6jXekdiPV7KhvFLD6fE8q60=",
         "owner": "starlitcanopy",
         "repo": "ols",
-        "rev": "81d3e8ecb1ade5c02c4769961027b3d86b7a6f94",
+        "rev": "6afccf760e9f519e12ed4b155550c8896adef61b",
         "type": "github"
       },
       "original": {
