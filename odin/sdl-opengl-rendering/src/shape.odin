@@ -1,21 +1,15 @@
 package visuals
 
 import "core:log"
+import "core:math/linalg"
 import "vendor:OpenGL"
 
-// {{{ Math constants
-ℝ :: f32
-ℝ² :: [2]ℝ
-ℝ³ :: [3]ℝ
-ℕ :: uint
-Mat3 :: matrix[3, 3]ℝ
-Color :: [4]ℝ
-// }}}
 // {{{ Command queues
 Shape :: struct {
 	z:    ℝ,
 	fill: Color,
 }
+
 Rect :: struct {
 	using shape: Shape,
 	top_left:    ℝ²,
@@ -28,9 +22,17 @@ Circle :: struct {
 	radius:      ℝ,
 }
 
+Line :: struct {
+	using shape: Shape,
+	from:        ℝ²,
+	to:          ℝ²,
+	thickness:   ℝ,
+}
+
 Command_Queue :: struct {
 	rects:   [dynamic]Rect,
 	circles: [dynamic]Circle,
+	lines:   [dynamic]Line,
 }
 
 queue: ^Command_Queue
@@ -38,7 +40,9 @@ queue: ^Command_Queue
 init_command_queue :: proc() {
 	queue = new(Command_Queue)
 	queue^ = Command_Queue {
-		rects = make([dynamic]Rect),
+		rects   = make([dynamic]Rect),
+		circles = make([dynamic]Circle),
+		lines   = make([dynamic]Line),
 	}
 }
 
@@ -70,6 +74,21 @@ draw_circle_struct :: proc(circle: Circle) {
 draw_circle :: proc {
 	draw_circle_struct,
 	draw_circle_args,
+}
+
+draw_line_args :: proc(from, to: ℝ², thickness: ℝ, color: Color, z: ℝ = 0) {
+	draw_line_struct(
+		Line{from = from, to = to, thickness = thickness, shape = Shape{z = z, fill = color}},
+	)
+}
+
+draw_line_struct :: proc(line: Line) {
+	append(&queue.lines, line)
+}
+
+draw_line :: proc {
+	draw_line_struct,
+	draw_line_args,
 }
 // }}}
 
@@ -151,12 +170,29 @@ create_vao :: proc(vertices: []ℝ², indices: []u32) -> (out: VAO, ok: bool) {
 	return out, true
 }
 // }}}
-// {{{ Set rect transforms
-set_rect_transforms :: proc(vao: ^VAO, rects: []Rect) -> ℕ {
-	log.assert(len(rects) <= INSTANCES, "Attempting to send too many rects to the GPU")
-	matrices := new([INSTANCES]Mat3, context.temp_allocator)
-	fills := new([INSTANCES]Color, context.temp_allocator)
+// {{{ Set transforms
+// Commit the contents of `state.buf_matrices` and `state.buf_colors` to the 
+// GPU.
+commit_buffers :: proc(state: ^State, vao: ^VAO) {
+	OpenGL.BindBuffer(OpenGL.ARRAY_BUFFER, vao.instance_mat_buffer)
+	OpenGL.BufferData(
+		OpenGL.ARRAY_BUFFER,
+		INSTANCES * size_of(Mat3),
+		&state.buf_matrices,
+		OpenGL.DYNAMIC_DRAW,
+	)
 
+	OpenGL.BindBuffer(OpenGL.ARRAY_BUFFER, vao.instance_fill_buffer)
+	OpenGL.BufferData(
+		OpenGL.ARRAY_BUFFER,
+		INSTANCES * size_of(Color),
+		&state.buf_colors,
+		OpenGL.DYNAMIC_DRAW,
+	)
+}
+
+set_rect_transforms :: proc(state: ^State, vao: ^VAO, rects: []Rect) -> ℕ {
+	log.assert(len(rects) <= INSTANCES, "Attempting to send too many rects to the GPU")
 	for rect, i in rects {
 		// This matrix must transform the rect [-1, 1]² into the desired rect
 		mat: Mat3
@@ -167,27 +203,15 @@ set_rect_transforms :: proc(vao: ^VAO, rects: []Rect) -> ℕ {
 		mat[2].xy = center.xy
 		mat[2].z = rect.z
 
-		matrices[i] = mat
-		fills[i] = rect.fill
+		state.buf_matrices[i] = mat
+		state.buf_colors[i] = rect.fill
 	}
-
-	OpenGL.BindBuffer(OpenGL.ARRAY_BUFFER, vao.instance_mat_buffer)
-	OpenGL.BufferData(
-		OpenGL.ARRAY_BUFFER,
-		INSTANCES * size_of(Mat3),
-		matrices,
-		OpenGL.DYNAMIC_DRAW,
-	)
-	OpenGL.BindBuffer(OpenGL.ARRAY_BUFFER, vao.instance_fill_buffer)
-	OpenGL.BufferData(OpenGL.ARRAY_BUFFER, INSTANCES * size_of(Color), fills, OpenGL.DYNAMIC_DRAW)
 
 	return len(rects)
 }
 
-set_circle_transforms :: proc(vao: ^VAO, circles: []Circle) -> ℕ {
+set_circle_transforms :: proc(state: ^State, vao: ^VAO, circles: []Circle) -> ℕ {
 	log.assert(len(circles) <= INSTANCES, "Attempting to send too many circles to the GPU")
-	matrices := new([INSTANCES]Mat3, context.temp_allocator)
-	fills := new([INSTANCES]Color, context.temp_allocator)
 
 	for circle, i in circles {
 		mat: Mat3
@@ -197,21 +221,30 @@ set_circle_transforms :: proc(vao: ^VAO, circles: []Circle) -> ℕ {
 		mat[2].xy = circle.center.xy
 		mat[2].z = circle.z
 
-		matrices[i] = mat
-		fills[i] = circle.fill
+		state.buf_matrices[i] = mat
+		state.buf_colors[i] = circle.fill
 	}
 
-	OpenGL.BindBuffer(OpenGL.ARRAY_BUFFER, vao.instance_mat_buffer)
-	OpenGL.BufferData(
-		OpenGL.ARRAY_BUFFER,
-		INSTANCES * size_of(Mat3),
-		matrices,
-		OpenGL.DYNAMIC_DRAW,
-	)
-	OpenGL.BindBuffer(OpenGL.ARRAY_BUFFER, vao.instance_fill_buffer)
-	OpenGL.BufferData(OpenGL.ARRAY_BUFFER, INSTANCES * size_of(Color), fills, OpenGL.DYNAMIC_DRAW)
-
 	return len(circles)
+}
+
+set_line_transforms :: proc(state: ^State, vao: ^VAO, lines: []Line) -> ℕ {
+	log.assert(len(lines) <= INSTANCES, "Attempting to send too many lines to the GPU")
+
+	for line, i in lines {
+		mat: Mat3
+
+		dir := line.to - line.from
+		mat[0].xy = dir / 2
+		mat[1].xy = vec2_perp(linalg.normalize0(dir)) * line.thickness
+		mat[2].xy = (line.from + line.to) / 2
+		mat[2].z = line.z
+
+		state.buf_matrices[i] = mat
+		state.buf_colors[i] = line.fill
+	}
+
+	return len(lines)
 }
 // }}}
 // {{{ Render the entire queue
@@ -226,26 +259,47 @@ draw_instances :: proc(vao: VAO, instances: ℕ) {
 	)
 }
 
-render_queue :: proc(state: ^State) {
-	rect_steps := len(queue.rects) / INSTANCES
+clear_screen :: proc() {
+	OpenGL.Clear(OpenGL.COLOR_BUFFER_BIT | OpenGL.DEPTH_BUFFER_BIT)
+}
 
+render_queue :: proc(state: ^State) {
+	if state.wireframe {
+		OpenGL.PolygonMode(OpenGL.FRONT_AND_BACK, OpenGL.LINE)
+	} else {
+		OpenGL.PolygonMode(OpenGL.FRONT_AND_BACK, OpenGL.FILL)
+	}
+
+	OpenGL.UseProgram(state.rect_program)
 	for i := 0; i < len(queue.rects); i += INSTANCES {
 		slice := queue.rects[i:]
 		if len(slice) > INSTANCES {slice = slice[:INSTANCES]}
-		instances := set_rect_transforms(&state.rect_vao, slice)
+		instances := set_rect_transforms(state, &state.rect_vao, slice)
+		commit_buffers(state, &state.rect_vao)
 		draw_instances(state.rect_vao, instances)
 	}
-
 	clear(&queue.rects)
-	circle_steps := len(queue.circles) / INSTANCES
 
+	OpenGL.UseProgram(state.circle_program)
 	for i := 0; i < len(queue.circles); i += INSTANCES {
 		slice := queue.circles[i:]
 		if len(slice) > INSTANCES {slice = slice[:INSTANCES]}
-		instances := set_circle_transforms(&state.circle_vao, slice)
-		draw_instances(state.circle_vao, instances)
+		instances := set_circle_transforms(state, &state.rect_vao, slice)
+		commit_buffers(state, &state.rect_vao)
+		draw_instances(state.rect_vao, instances)
 	}
-
 	clear(&queue.circles)
+
+	OpenGL.UseProgram(state.line_program)
+	for i := 0; i < len(queue.lines); i += INSTANCES {
+		slice := queue.lines[i:]
+		if len(slice) > INSTANCES {slice = slice[:INSTANCES]}
+		instances := set_line_transforms(state, &state.rect_vao, slice)
+		commit_buffers(state, &state.rect_vao)
+		draw_instances(state.rect_vao, instances)
+	}
+	clear(&queue.lines)
+
+	OpenGL.UseProgram(0)
 }
 // }}}
