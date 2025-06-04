@@ -2,6 +2,7 @@ package visuals
 
 import "base:intrinsics"
 import "base:runtime"
+import "core:log"
 import "core:reflect"
 import "vendor:OpenGL"
 
@@ -16,37 +17,14 @@ GL_Buffer_Kind :: enum u32 {
 	Uniform       = OpenGL.UNIFORM_BUFFER,
 }
 
+GL_Base_Type :: enum {
+	Float,
+}
+
 // {{{ Set array buffer
-@(private)
-gl_sizeof_ptr :: proc(ptr: ^$T) -> int {
-	return size_of(T)
-}
-
-@(private)
-gl_sizeof_slice :: proc(slice: []$T) -> int {
-	return len(slice) * size_of(T)
-}
-
-@(private)
-gl_sizeof :: proc {
-	gl_sizeof_ptr,
-	gl_sizeof_slice,
-}
-
-@(private)
-gl_to_rawptr_ptr :: proc(ptr: ^$T) -> rawptr {
-	return ptr
-}
-
-@(private)
-gl_to_rawptr_slice :: proc(slice: []$T) -> rawptr {
-	return raw_data(slice)
-}
-
-@(private)
-gl_to_rawptr :: proc {
-	gl_to_rawptr_ptr,
-	gl_to_rawptr_slice,
+gen_buffer :: proc() -> (out: u32) {
+	OpenGL.GenBuffers(1, &out)
+	return out
 }
 
 bind_buffer :: proc(id: u32, buffer: GL_Buffer_Kind = .Array) {
@@ -58,27 +36,28 @@ set_buffer :: proc(
 	data: $T,
 	buffer: GL_Buffer_Kind = .Array,
 	usage: GL_Buffer_Usage = .Dynamic,
+	loc := #caller_location,
 ) {
 	bind_buffer(id, buffer)
-	OpenGL.BufferData(u32(buffer), gl_sizeof(data), gl_to_rawptr(data), u32(usage))
-}
 
-gen_buffer :: proc() -> (out: u32) {
-	OpenGL.GenBuffers(1, &out)
-	return out
+	data := data
+	size: int
+	ptr: rawptr
+	when intrinsics.type_is_slice(T) {
+		size = len(data) * size_of(intrinsics.type_elem_type(T))
+		ptr = raw_data(data)
+	} else when intrinsics.type_is_pointer(T) {
+		size = size_of(intrinsics.type_elem_type(T))
+		ptr = data
+	} else {
+		size = size_of(T)
+		ptr = &data
+	}
+
+	OpenGL.BufferData(u32(buffer), size, ptr, u32(usage))
 }
 // }}}
-// {{{ Drawing commands
-clear_screen :: proc() {
-	OpenGL.Clear(OpenGL.COLOR_BUFFER_BIT | OpenGL.DEPTH_BUFFER_BIT)
-}
-// }}}
-
-
-GL_Base_Type :: enum {
-	Float,
-}
-
+// {{{ VBO setup
 setup_vbo :: proc(
 	id: u32,
 	location: u32,
@@ -118,3 +97,9 @@ setup_vbo :: proc(
 		}
 	}
 }
+// }}}
+// {{{ Drawing commands
+clear_screen :: proc() {
+	OpenGL.Clear(OpenGL.COLOR_BUFFER_BIT | OpenGL.DEPTH_BUFFER_BIT)
+}
+// }}}
