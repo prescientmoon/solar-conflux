@@ -5,38 +5,32 @@ import "core:math/linalg"
 import "vendor:OpenGL"
 
 // {{{ Shape Types
-Shape :: struct {
-	z:    ℝ,
-	fill: Color,
+Shape_Options :: struct {
+	z:            ℝ,
+	fill:         Color,
+	stroke:       Color,
+	stroke_width: f32,
 }
 
-Rect :: struct {
-	using shape: Shape,
-	top_left:    ℝ²,
-	dimensions:  ℝ²,
-}
-
-Circle :: struct {
-	using shape: Shape,
-	center:      ℝ²,
-	radius:      ℝ,
+Shape :: struct(T: typeid) {
+	using opts: Shape_Options,
+	using data: T,
 }
 
 Line :: struct {
-	using shape: Shape,
-	from:        ℝ²,
-	to:          ℝ²,
-	thickness:   ℝ,
+	from:      ℝ²,
+	to:        ℝ²,
+	thickness: ℝ,
 }
 
 Rounded_Line :: distinct Line
 // }}}
 // {{{ Command queues
 Command_Queue :: struct {
-	rects:         [dynamic]Rect,
-	circles:       [dynamic]Circle,
-	lines:         [dynamic]Line,
-	rounded_lines: [dynamic]Rounded_Line,
+	rects:         [dynamic]Shape(□),
+	circles:       [dynamic]Shape(Circle2),
+	lines:         [dynamic]Shape(Line),
+	rounded_lines: [dynamic]Shape(Rounded_Line),
 }
 
 queue: ^Command_Queue
@@ -44,21 +38,19 @@ queue: ^Command_Queue
 init_command_queue :: proc() {
 	queue = new(Command_Queue)
 	queue^ = Command_Queue {
-		rects         = make([dynamic]Rect),
-		circles       = make([dynamic]Circle),
-		lines         = make([dynamic]Line),
-		rounded_lines = make([dynamic]Rounded_Line),
+		rects         = make([dynamic]Shape(□)),
+		circles       = make([dynamic]Shape(Circle2)),
+		lines         = make([dynamic]Shape(Line)),
+		rounded_lines = make([dynamic]Shape(Rounded_Line)),
 	}
 }
 
-draw_rect_args :: proc(top_left: ℝ², dimensions: ℝ², color: Color, z: ℝ = 0) {
-	draw_rect_struct(
-		Rect{top_left = top_left, dimensions = dimensions, shape = Shape{z = z, fill = color}},
-	)
+draw_rect_args :: proc(top_left: ℝ², dimensions: ℝ², fill: Color, z: ℝ = 0) {
+	draw_rect_struct(□{top_left = top_left, dimensions = dimensions}, fill, z)
 }
 
-draw_rect_struct :: proc(rect: Rect) {
-	append(&queue.rects, rect)
+draw_rect_struct :: proc(aabb: □, fill: Color, z: ℝ = 0) {
+	append(&queue.rects, Shape(□){data = aabb, fill = fill, z = z})
 }
 
 draw_rect :: proc {
@@ -66,14 +58,12 @@ draw_rect :: proc {
 	draw_rect_args,
 }
 
-draw_circle_args :: proc(center: ℝ², radius: ℝ, color: Color, z: ℝ = 0) {
-	draw_circle_struct(
-		Circle{center = center, radius = radius, shape = Shape{z = z, fill = color}},
-	)
+draw_circle_args :: proc(center: ℝ², radius: ℝ, fill: Color, z: ℝ = 0) {
+	draw_circle_struct(Circle2{center = center, radius = radius}, fill, z)
 }
 
-draw_circle_struct :: proc(circle: Circle) {
-	append(&queue.circles, circle)
+draw_circle_struct :: proc(circle: Circle2, fill: Color, z: ℝ = 0) {
+	append(&queue.circles, Shape(Circle2){data = circle, fill = fill, z = z})
 }
 
 draw_circle :: proc {
@@ -81,51 +71,36 @@ draw_circle :: proc {
 	draw_circle_args,
 }
 
-draw_line_args :: proc(from, to: ℝ², thickness: ℝ, color: Color, z: ℝ = 0) {
-	draw_line_struct(
-		Line{from = from, to = to, thickness = thickness, shape = Shape{z = z, fill = color}},
-	)
+draw_line_args :: proc(from, to: ℝ², thickness: ℝ, opts: Shape_Options, rounded := true) {
+	draw_line_struct(Line{from = from, to = to, thickness = thickness}, opts, rounded)
 }
 
-draw_line_struct :: proc(line: Line) {
-	append(&queue.lines, line)
+draw_line_struct :: proc(line: Line, opts: Shape_Options, rounded := true) {
+	if rounded {
+		append(&queue.rounded_lines, Shape(Rounded_Line){data = Rounded_Line(line), opts = opts})
+	} else {
+		append(&queue.lines, Shape(Line){data = line, opts = opts})
+	}
 }
 
 draw_line :: proc {
 	draw_line_struct,
 	draw_line_args,
 }
-
-draw_rounded_line_args :: proc(from, to: ℝ², thickness: ℝ, color: Color, z: ℝ = 0) {
-	draw_rounded_line_struct(
-		Line{from = from, to = to, thickness = thickness, shape = Shape{z = z, fill = color}},
-	)
-}
-
-draw_rounded_line_struct :: proc(line: $T/Line) {
-	append(&queue.rounded_lines, Rounded_Line(line))
-}
-
-draw_rounded_line :: proc {
-	draw_rounded_line_struct,
-	draw_rounded_line_args,
-}
 // }}}
 // {{{ Shape -> Transform
-to_transform_rect :: proc(rect: Rect) -> (mat: Mat3) {
+to_transform_rect :: proc(rect: □) -> (mat: Mat3) {
 	center := rect.top_left + rect.dimensions / 2
 	mat[0, 0] = rect.dimensions.x / 2
 	mat[1, 1] = rect.dimensions.y / 2
-	mat[2, 2] = 1
 	mat[2].xy = center.xy
 	return mat
 }
 
-to_transform_circle :: proc(circle: Circle) -> (mat: Mat3) {
+to_transform_circle :: proc(circle: Circle2) -> (mat: Mat3) {
 	mat[0, 0] = circle.radius
 	mat[1, 1] = circle.radius
-	mat[2, 2] = 1
-	mat[2].xy = circle.center.xy
+	mat[2].xy = circle.center
 	return mat
 }
 
@@ -134,18 +109,17 @@ to_transform_line :: proc(line: Line) -> (mat: Mat3) {
 	mat[0].xy = dir / 2
 	mat[1].xy = vec2_perp(linalg.normalize0(dir)) * line.thickness
 	mat[2].xy = (line.from + line.to) / 2
-	mat[2].z = line.z
 	return mat
 }
 
-to_transform_rounded_line :: proc(line: Rounded_Line) -> (mat: Mat3) {
+to_transform_rounded_line :: proc(line: Shape(Rounded_Line)) -> (mat: Mat3) {
 	dir := line.to - line.from
 	len := linalg.length(dir) // TODO: return if this is close to 0
 
-	mat[0].xy = dir * (len + line.thickness * 2) / len / 2
-	mat[1].xy = vec2_perp(dir / len) * line.thickness
+	thickness := line.thickness + line.stroke_width
+	mat[0].xy = dir * (len + thickness * 2) / len / 2
+	mat[1].xy = vec2_perp(dir / len) * thickness
 	mat[2].xy = (line.from + line.to) / 2
-	mat[2].z = line.z
 	return mat
 }
 
@@ -166,8 +140,10 @@ VAO :: struct {
 	index_count:               ℕ,
 
 	// Per instance attributes
-	instance_fill_buffer:      u32,
-	instance_mat_buffer:       u32,
+	i_buf_fill:                u32,
+	i_buf_stroke:              u32,
+	i_buf_stroke_thickness:    u32,
+	i_buf_mat:                 u32,
 
 	// Optional
 	instance_line_buffer:      u32,
@@ -190,17 +166,19 @@ Program :: u32
 INSTANCES :: 1024 // The number of instances to allocate space in the buffer for
 VERTEX_POS_LOCATION :: 0
 INSTANCE_FILL_LOCATION :: 1
-INSTANCE_MAT_LOCATION :: 2
-INSTANCE_LINE_LOCATION :: 5
-INSTANCE_THICKNESS_LOCATION :: 7
-ubo_globals_BINDING :: 0
+INSTANCE_STROKE_LOCATION :: 2
+INSTANCE_STROKE_THICKNESS_LOCATION :: 3
+INSTANCE_MAT_LOCATION :: 4
+INSTANCE_LINE_LOCATION :: 7
+INSTANCE_THICKNESS_LOCATION :: 9
+UBO_GLOBALS_BINDING :: 0
 // }}}
 // {{{ Create globals UBO
 create_ubo_globals :: proc() -> UBO {
 	id := gen_buffer()
 
 	set_buffer(id, &Global_Uniforms{}, buffer = .Uniform)
-	OpenGL.BindBufferBase(OpenGL.UNIFORM_BUFFER, ubo_globals_BINDING, id)
+	OpenGL.BindBufferBase(OpenGL.UNIFORM_BUFFER, UBO_GLOBALS_BINDING, id)
 
 	return id
 }
@@ -218,20 +196,23 @@ create_vao :: proc(out: ^VAO) {
 	defer OpenGL.BindVertexArray(0)
 
 	// Create instance fill VBO
-	if out.instance_fill_buffer == 0 do out.instance_fill_buffer = gen_buffer()
-	bind_buffer(out.instance_fill_buffer, .Array)
-	setup_vbo(out.instance_fill_buffer, INSTANCE_FILL_LOCATION, rows = 4, divisor = 1)
+	if out.i_buf_fill == 0 do out.i_buf_fill = gen_buffer()
+	bind_buffer(out.i_buf_fill, .Array)
+	setup_vbo(out.i_buf_fill, INSTANCE_FILL_LOCATION, rows = 4, divisor = 1)
+
+	// Create instance stroke VBO
+	if out.i_buf_stroke == 0 do out.i_buf_stroke = gen_buffer()
+	bind_buffer(out.i_buf_stroke, .Array)
+	setup_vbo(out.i_buf_stroke, INSTANCE_STROKE_LOCATION, rows = 4, divisor = 1)
+
+	// Create instance stroke thickness VBO
+	if out.i_buf_stroke_thickness == 0 do out.i_buf_stroke_thickness = gen_buffer()
+	bind_buffer(out.i_buf_stroke_thickness, .Array)
+	setup_vbo(out.i_buf_stroke_thickness, INSTANCE_STROKE_THICKNESS_LOCATION, divisor = 1)
 
 	// Create instance mat VBO
-	if out.instance_mat_buffer == 0 do out.instance_mat_buffer = gen_buffer()
-	setup_vbo(
-		out.instance_mat_buffer,
-		INSTANCE_MAT_LOCATION,
-		ty = .Float,
-		rows = 3,
-		cols = 3,
-		divisor = 1,
-	)
+	if out.i_buf_mat == 0 do out.i_buf_mat = gen_buffer()
+	setup_vbo(out.i_buf_mat, INSTANCE_MAT_LOCATION, ty = .Float, rows = 3, cols = 3, divisor = 1)
 
 	// Create position VBO
 	if out.vertex_pos_buffer == 0 do out.vertex_pos_buffer = gen_buffer()
@@ -243,10 +224,10 @@ create_vao :: proc(out: ^VAO) {
 	set_buffer(out.vertex_ind_buffer, NDC_RECT_INDICES, buffer = .Element_Array, usage = .Static)
 }
 
-create_rounded_line_vao :: proc(state: ^State) {
-	vao := &state.rounded_line_vao
+create_rounded_line_vao :: proc() {
+	vao := &g_renderer_state().rounded_line_vao
 	// Create VAO
-	vao^ = state.rect_vao
+	vao^ = g_renderer_state().rect_vao
 	create_vao(vao)
 
 	OpenGL.BindVertexArray(vao.vao)
@@ -264,7 +245,7 @@ create_rounded_line_vao :: proc(state: ^State) {
 // }}}
 
 // {{{ Render the entire queue
-render_instanced :: proc(state: ^State, vao: VAO, shapes: ^[dynamic]$T) {
+render_instanced :: proc(state: ^State, vao: VAO, shapes: ^[dynamic]Shape($T)) {
 	OpenGL.BindVertexArray(vao.vao)
 
 	steps := len(shapes) / INSTANCES
@@ -279,18 +260,26 @@ render_instanced :: proc(state: ^State, vao: VAO, shapes: ^[dynamic]$T) {
 			state.buf_colors[i] = shape.fill
 		}
 
-		set_buffer(vao.instance_mat_buffer, &state.buf_matrices)
-		set_buffer(vao.instance_fill_buffer, &state.buf_colors)
+		set_buffer(vao.i_buf_mat, &state.buf_matrices)
+		set_buffer(vao.i_buf_fill, &state.buf_colors)
+
+		for shape, i in shapes {
+			state.buf_colors[i] = shape.stroke
+			state.buf_floats[i] = shape.stroke_width
+		}
+
+		set_buffer(vao.i_buf_stroke, &state.buf_colors)
+		set_buffer(vao.i_buf_stroke_thickness, &state.buf_floats)
 
 		when T == Rounded_Line {
 			for shape, i in shapes {
 				state.buf_lines[i][0] = shape.from
 				state.buf_lines[i][1] = shape.to
-				state.buf_thicknesses[i] = shape.thickness
+				state.buf_floats[i] = shape.thickness
 			}
 
 			set_buffer(vao.instance_line_buffer, &state.buf_lines)
-			set_buffer(vao.instance_thickness_buffer, &state.buf_thicknesses)
+			set_buffer(vao.instance_thickness_buffer, &state.buf_floats)
 		}
 
 		OpenGL.DrawElementsInstanced(
@@ -305,7 +294,9 @@ render_instanced :: proc(state: ^State, vao: VAO, shapes: ^[dynamic]$T) {
 	clear(shapes)
 }
 
-render_queue :: proc(state: ^State) {
+render_queue :: proc() {
+	state := g_renderer_state()
+
 	// Update uniform data
 	set_buffer(state.ubo_globals, &state.globals, buffer = .Uniform)
 

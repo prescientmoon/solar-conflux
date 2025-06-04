@@ -8,7 +8,24 @@ Mat3 :: matrix[3, 3]ℝ
 Mat4 :: matrix[4, 4]ℝ
 Color :: [4]ℝ
 
+AABB :: struct {
+	top_left:   ℝ²,
+	dimensions: ℝ²,
+}
+
+□ :: AABB
+
+Circle2 :: struct {
+	center: ℝ²,
+	radius: ℝ,
+}
+
 // Get a vector perpendicular to the given input
 vec2_perp :: proc(v: ℝ²) -> ℝ² {
 	return {-v.y, v.x}
+}
+
+g_state: State
+g_renderer_state :: proc() -> ^State {
+	return &g_state
 }
