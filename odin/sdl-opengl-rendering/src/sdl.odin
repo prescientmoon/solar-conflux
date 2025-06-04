@@ -10,20 +10,32 @@ import "vendor:sdl3"
 State :: struct {
 	window:               ^sdl3.Window,
 
+	// TODO: do not use dynamic arrays here
+	// Render queues
+	q_rects:              [dynamic]Shape(□),
+	q_circles:            [dynamic]Shape(Circle2),
+	q_lines:              [dynamic]Shape(Line),
+	q_rounded_lines:      [dynamic]Shape(Rounded_Line),
+
 	// GPU data
+	rect_mesh:            Mesh,
+	ubo_globals:          UBO,
+
+	// Programs
 	rect_program:         Program,
 	circle_program:       Program,
 	line_program:         Program,
 	rounded_line_program: Program,
-	rect_vao:             VAO,
-	rounded_line_vao:     VAO,
-	ubo_globals:          UBO,
 
-	// Instance buffers
+	// Instance buffers (CPU)
 	buf_matrices:         [INSTANCES]Mat3,
 	buf_colors:           [INSTANCES]Color,
 	buf_lines:            [INSTANCES][2]ℝ²,
 	buf_floats:           [INSTANCES]ℝ,
+	buf_vecs:             [INSTANCES]ℝ²,
+
+	// Instance buffers (GPU)
+	instance_buffers:     [Instance_Param_Buf]u32,
 
 	// Flags
 	tick:                 u32,
@@ -110,7 +122,7 @@ sdl_init :: proc() -> (ok: bool) {
 		nil,
 	)
 	// }}}
-
+	// {{{ Initialize window & GL context
 	sdl3.SetAppMetadata(
 		"odin-rendering-experiments",
 		"<hash-here>",
@@ -142,43 +154,67 @@ sdl_init :: proc() -> (ok: bool) {
 	OpenGL.Enable(OpenGL.BLEND)
 	OpenGL.BlendFunc(OpenGL.SRC_ALPHA, OpenGL.ONE_MINUS_SRC_ALPHA)
 
-	state.rect_program = OpenGL.load_shaders_source(
-		#load("./shaders/vert.glsl"),
-		#load("./shaders/rect.frag.glsl"),
-	) or_return
-
-	state.circle_program = OpenGL.load_shaders_source(
-		#load("./shaders/vert.glsl"),
-		#load("./shaders/circle.frag.glsl"),
-	) or_return
-
-	state.line_program = OpenGL.load_shaders_source(
-		#load("./shaders/vert.glsl"),
-		#load("./shaders/line.frag.glsl"),
-	) or_return
-
-	state.rounded_line_program = OpenGL.load_shaders_source(
-		#load("./shaders/rounded-line.vert.glsl"),
-		#load("./shaders/rounded-line.frag.glsl"),
-	) or_return
-
-	create_vao(&state.rect_vao)
-	create_rounded_line_vao()
-
-	state.ubo_globals = create_ubo_globals()
-
 	// Perform initial resize
 	sdl_on_resize(screen_dimensions())
+	// }}}
+	// {{{ Initialize GPU buffers & programs
+	// Initialize GPU buffers
+	OpenGL.GenBuffers(len(state.instance_buffers), ([^]u32)(&state.instance_buffers))
 
-	init_command_queue()
+	// Initialize meshes
+	state.rect_mesh = create_mesh({{0, 0}, {1, 0}, {1, 1}, {0, 1}}, {0, 1, 2, 3})
+
+	// Initialize programs
+	state.rect_program = gen_program(
+		{
+			sdf_name = "sdf_rect",
+			sdf_args = {"v_center", "v_dimensions"},
+			params = {{buf = .Center, name = "center"}, {buf = .Dimensions, name = "dimensions"}},
+			id = 0,
+		},
+	) or_return
+
+	state.circle_program = gen_program(
+		{
+			sdf_name = "sdf_circle",
+			sdf_args = {"v_center", "v_radius"},
+			params = {{buf = .Center, name = "center"}, {buf = .Radius, name = "radius"}},
+			id = 1,
+		},
+	) or_return
+
+	state.rounded_line_program = gen_program(
+		{
+			sdf_name = "sdf_line",
+			sdf_args = {"v_line", "v_thickness"},
+			params = {{buf = .Line, name = "line"}, {buf = .Thickness, name = "thickness"}},
+			id = 2,
+		},
+	) or_return
+
+	state.rounded_line_program = gen_program(
+		{
+			sdf_name = "sdf_rounded_line",
+			sdf_args = {"v_line", "v_thickness"},
+			params = {{buf = .Line, name = "line"}, {buf = .Thickness, name = "thickness"}},
+			id = 3,
+		},
+	) or_return
+
+	state.ubo_globals = create_ubo_globals()
+	// }}}
+
+	state.q_rects = make([dynamic]Shape(□))
+	state.q_circles = make([dynamic]Shape(Circle2))
+	state.q_lines = make([dynamic]Shape(Line))
+	state.q_rounded_lines = make([dynamic]Shape(Rounded_Line))
+
 	return true
 }
 // }}}
 // {{{ Close
 sdl_close :: proc() {
 	state := g_renderer_state()
-	OpenGL.DeleteProgram(state.rect_program)
-	OpenGL.DeleteProgram(state.circle_program)
 
 	_ = sdl3.StopTextInput(state.window)
 	sdl3.DestroyWindow(state.window)
@@ -198,6 +234,6 @@ sdl_on_resize :: proc(dims: ℝ²) {
   }
   // odinfmt: enable
 
-	g_renderer_state().globals.viewport_matrix = RMat3(m)
+	g_renderer_state().globals.viewport_matrix = m
 }
 // }}}

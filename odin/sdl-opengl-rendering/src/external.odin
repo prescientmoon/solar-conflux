@@ -15,6 +15,10 @@ AABB :: struct {
 
 □ :: AABB
 
+aabb_center :: proc(aabb: □) -> ℝ² {
+	return aabb.top_left + aabb.dimensions / 2
+}
+
 Circle2 :: struct {
 	center: ℝ²,
 	radius: ℝ,

@@ -13,37 +13,59 @@ render :: proc() {
 
 	dims := screen_dimensions()
 	center := dims / 2
-	draw_rect(ℝ²{30, 20}, ℝ²{100, 200}, Color{1, 0, 0, 1}, z = 0.4)
-	draw_rect(10, center + center * math.sin(f32(state.tick) / 60), Color{0, 1, 0, 1}, z = 0.6)
-	draw_rect(ℝ²{1000, 800}, center / 3, Color{0, 1, 1, 1}, z = 0.5)
+	draw_rect(ℝ²{30, 20}, ℝ²{100, 200}, Shape_Options{fill = {1, 0, 0, 1}, z = 0.4})
+	draw_rect(
+		10,
+		center + center * math.sin(f32(state.tick) / 60),
+		Shape_Options{fill = {0, 1, 0, 1}, z = 0.6},
+	)
+	draw_rect(
+		ℝ²{1000, 800},
+		center / 3,
+		Shape_Options{fill = {0, 1, 1, 1}, z = 0.5, stroke = {0, 0.5, 0.5, 1}, stroke_width = 3},
+	)
 
-	count := ℝ(32)
+	count := math.pow(2, math.mod(ℝ(state.tick) / 30, 10))
 	for x in ℝ(0) ..< count {
 		for y in ℝ(0) ..< count {
 			i := x * count + y
 			pos :=
-				ℝ²{x + math.sin_f32(2 * math.π * (ℝ(state.tick) + i) / 60), y} *
-					2 /
-					ℝ(count) -
-				1
+				ℝ²{x + math.sin_f32(2 * math.π * (ℝ(state.tick) + i) / 60), y} / ℝ(count)
 			color := Color{(pos.x + 1) / 2, (pos.y + 1) / 2, 1, 1}
 
 			r := dims.x / ℝ(count) / 4
-			pos = (pos + 1) * center
-			pos.y = 2 * center.y - pos.y
+			pos = pos * dims
+			// pos.y = 2 * center.y - pos.y
+			opts := Shape_Options {
+				fill = color,
+				z    = 0.3,
+			}
+			opts.stroke.a = 1
+			opts.stroke.rgb = 1 - opts.fill.rgb
+			opts.stroke_width = 1
+
 			if x > y {
-				draw_rect(pos, 2 * r, color)
+				draw_rect(pos, 2 * r, opts)
 			} else {
-				draw_circle(pos + r, r, color)
+				draw_circle(pos + r, r, opts)
 			}
 		}
 	}
 
 	rect := □{center / 2, center / 2 + center * math.sin(f32(state.tick) / 120)}
-	draw_rect(rect, fill = {1, 0.6, 0.85, 0.3})
+	draw_rect(rect, Shape_Options{fill = {1, 0.6, 0.85, 0.3}})
 
 	// set_clip_rect(rect)
-	draw_circle(center + center * {-0.25, -0.3}, 450, Color{0, 0, 0.5, 0.75}, z = -0.1)
+	draw_circle(
+		center + center * {-0.25, -0.3},
+		450,
+		Shape_Options {
+			fill = {0, 0, 0.5, 0.75},
+			z = -0.1,
+			stroke = Color{0.7, 0.85, 1, 1},
+			stroke_width = 1,
+		},
+	)
 
 	draw_line(
 		Line{ℝ²{750, 200}, ℝ²{1800, 1600}, 10},
