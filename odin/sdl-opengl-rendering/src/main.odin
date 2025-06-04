@@ -17,11 +17,14 @@ State :: struct {
 	line_program:         Program,
 	rounded_line_program: Program,
 	rect_vao:             VAO,
-	globals_ubo:          UBO,
+	rounded_line_vao:     VAO,
+	ubo_globals:          UBO,
 
 	// Instance buffers
 	buf_matrices:         [INSTANCES]Mat3,
 	buf_colors:           [INSTANCES]Color,
+	buf_lines:            [INSTANCES][2]ℝ²,
+	buf_thicknesses:      [INSTANCES]ℝ,
 
 	// Flags
 	tick:                 u32,
@@ -126,12 +129,14 @@ init :: proc() -> (state: State, ok: bool) {
 	) or_return
 
 	state.rounded_line_program = OpenGL.load_shaders_source(
-		#load("./shaders/vert.glsl"),
+		#load("./shaders/rounded-line.vert.glsl"),
 		#load("./shaders/rounded-line.frag.glsl"),
 	) or_return
 
-	state.rect_vao = create_vao({{-1, -1}, {1, -1}, {1, 1}, {-1, 1}}, {0, 1, 2, 3}) or_return
-	state.globals_ubo = create_globals_ubo()
+	create_vao(&state.rect_vao)
+	create_rounded_line_vao(&state)
+
+	state.ubo_globals = create_ubo_globals()
 
 	// Perform initial resize
 	w, h: i32
@@ -205,7 +210,9 @@ render :: proc(state: ^State) {
 
 	draw_circle(center + center * {-0.25, -0.3}, 450, Color{0, 0, 0.5, 0.75}, z = -0.1)
 	draw_line({750, 200}, {1800, 1600}, 10, Color{1, 1, 1, 1}, z = -0.5)
-	draw_rounded_line({200, 750}, {1200, 100}, 50, Color{1, 1, 1, 1}, z = -0.5)
+	draw_rounded_line({750, 1000}, {1200, 1000}, 5, Color{1, 1, 1, 1}, z = -0.5)
+	draw_rounded_line({1200, 1000}, {300, 450}, 5, Color{1, 1, 1, 1}, z = -0.5)
+	draw_rounded_line({230, 1000}, {1700, 350}, 20, Color{1, 0, 1, 0.3}, z = -0.7)
 
 	clear_screen()
 	render_queue(state)

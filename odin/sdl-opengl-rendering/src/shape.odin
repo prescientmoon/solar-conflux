@@ -4,7 +4,6 @@ import "core:log"
 import "core:math/linalg"
 import "vendor:OpenGL"
 
-
 // {{{ Shape Types
 Shape :: struct {
 	z:    ℝ,
@@ -141,12 +140,12 @@ to_transform_line :: proc(line: Line) -> (mat: Mat3) {
 
 to_transform_rounded_line :: proc(line: Rounded_Line) -> (mat: Mat3) {
 	dir := line.to - line.from
-	mat[0].xy = dir / 2
-	mat[1].xy = vec2_perp(linalg.normalize0(dir)) * line.thickness
+	len := linalg.length(dir) // TODO: return if this is close to 0
+
+	mat[0].xy = dir * (len + line.thickness * 2) / len / 2
+	mat[1].xy = vec2_perp(dir / len) * line.thickness
 	mat[2].xy = (line.from + line.to) / 2
 	mat[2].z = line.z
-	mat[0, 0] /= 2
-	mat[0, 1] /= 2
 	return mat
 }
 
@@ -161,12 +160,18 @@ to_transform :: proc {
 
 // {{{ GPU data types
 VAO :: struct {
-	vao:                  u32,
-	vertex_ind_buffer:    u32,
-	vertex_pos_buffer:    u32,
-	instance_fill_buffer: u32,
-	instance_mat_buffer:  u32,
-	index_count:          ℕ,
+	vao:                       u32,
+	vertex_ind_buffer:         u32,
+	vertex_pos_buffer:         u32,
+	index_count:               ℕ,
+
+	// Per instance attributes
+	instance_fill_buffer:      u32,
+	instance_mat_buffer:       u32,
+
+	// Optional
+	instance_line_buffer:      u32,
+	instance_thickness_buffer: u32,
 }
 
 
@@ -186,21 +191,26 @@ INSTANCES :: 1024 // The number of instances to allocate space in the buffer for
 VERTEX_POS_LOCATION :: 0
 INSTANCE_FILL_LOCATION :: 1
 INSTANCE_MAT_LOCATION :: 2
-GLOBALS_UBO_BINDING :: 0
+INSTANCE_LINE_LOCATION :: 5
+INSTANCE_THICKNESS_LOCATION :: 7
+ubo_globals_BINDING :: 0
 // }}}
 // {{{ Create globals UBO
-create_globals_ubo :: proc() -> UBO {
+create_ubo_globals :: proc() -> UBO {
 	id := gen_buffer()
 
 	set_buffer(id, &Global_Uniforms{}, buffer = .Uniform)
-	OpenGL.BindBufferBase(OpenGL.UNIFORM_BUFFER, GLOBALS_UBO_BINDING, id)
+	OpenGL.BindBufferBase(OpenGL.UNIFORM_BUFFER, ubo_globals_BINDING, id)
 
 	return id
 }
 // }}}
 // {{{ Create VAO
-create_vao :: proc(vertices: []ℝ², indices: []u32) -> (out: VAO, ok: bool) {
-	out.index_count = len(indices)
+NDC_RECT_VERTICES: [4]ℝ² : {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}}
+NDC_RECT_INDICES: [4]u32 : {0, 1, 2, 3}
+
+create_vao :: proc(out: ^VAO) {
+	out.index_count = len(NDC_RECT_INDICES)
 
 	// Create VAO
 	OpenGL.GenVertexArrays(1, &out.vao)
@@ -208,12 +218,12 @@ create_vao :: proc(vertices: []ℝ², indices: []u32) -> (out: VAO, ok: bool) {
 	defer OpenGL.BindVertexArray(0)
 
 	// Create instance fill VBO
-	out.instance_fill_buffer = gen_buffer()
+	if out.instance_fill_buffer == 0 do out.instance_fill_buffer = gen_buffer()
 	bind_buffer(out.instance_fill_buffer, .Array)
 	setup_vbo(out.instance_fill_buffer, INSTANCE_FILL_LOCATION, rows = 4, divisor = 1)
 
 	// Create instance mat VBO
-	out.instance_mat_buffer = gen_buffer()
+	if out.instance_mat_buffer == 0 do out.instance_mat_buffer = gen_buffer()
 	setup_vbo(
 		out.instance_mat_buffer,
 		INSTANCE_MAT_LOCATION,
@@ -224,15 +234,32 @@ create_vao :: proc(vertices: []ℝ², indices: []u32) -> (out: VAO, ok: bool) {
 	)
 
 	// Create position VBO
-	out.vertex_pos_buffer = gen_buffer()
-	set_buffer(out.vertex_pos_buffer, vertices, usage = .Static)
+	if out.vertex_pos_buffer == 0 do out.vertex_pos_buffer = gen_buffer()
+	set_buffer(out.vertex_pos_buffer, NDC_RECT_VERTICES, usage = .Static)
 	setup_vbo(out.vertex_pos_buffer, VERTEX_POS_LOCATION, ty = .Float, rows = 2)
 
 	// Create the vertex_ind_buffer
-	out.vertex_ind_buffer = gen_buffer()
-	set_buffer(out.vertex_ind_buffer, indices, buffer = .Element_Array, usage = .Static)
+	if out.vertex_ind_buffer == 0 do out.vertex_ind_buffer = gen_buffer()
+	set_buffer(out.vertex_ind_buffer, NDC_RECT_INDICES, buffer = .Element_Array, usage = .Static)
+}
 
-	return out, true
+create_rounded_line_vao :: proc(state: ^State) {
+	vao := &state.rounded_line_vao
+	// Create VAO
+	vao^ = state.rect_vao
+	create_vao(vao)
+
+	OpenGL.BindVertexArray(vao.vao)
+	defer OpenGL.BindVertexArray(0)
+
+	// Create instance line VBO
+	vao.instance_line_buffer = gen_buffer()
+	bind_buffer(vao.instance_line_buffer, .Array)
+	setup_vbo(vao.instance_line_buffer, INSTANCE_LINE_LOCATION, rows = 2, cols = 2, divisor = 1)
+
+	vao.instance_thickness_buffer = gen_buffer()
+	bind_buffer(vao.instance_thickness_buffer, .Array)
+	setup_vbo(vao.instance_thickness_buffer, INSTANCE_THICKNESS_LOCATION, divisor = 1)
 }
 // }}}
 
@@ -255,6 +282,17 @@ render_instanced :: proc(state: ^State, vao: VAO, shapes: ^[dynamic]$T) {
 		set_buffer(vao.instance_mat_buffer, &state.buf_matrices)
 		set_buffer(vao.instance_fill_buffer, &state.buf_colors)
 
+		when T == Rounded_Line {
+			for shape, i in shapes {
+				state.buf_lines[i][0] = shape.from
+				state.buf_lines[i][1] = shape.to
+				state.buf_thicknesses[i] = shape.thickness
+			}
+
+			set_buffer(vao.instance_line_buffer, &state.buf_lines)
+			set_buffer(vao.instance_thickness_buffer, &state.buf_thicknesses)
+		}
+
 		OpenGL.DrawElementsInstanced(
 			OpenGL.TRIANGLE_FAN,
 			i32(vao.index_count),
@@ -269,7 +307,7 @@ render_instanced :: proc(state: ^State, vao: VAO, shapes: ^[dynamic]$T) {
 
 render_queue :: proc(state: ^State) {
 	// Update uniform data
-	set_buffer(state.globals_ubo, &state.globals, buffer = .Uniform)
+	set_buffer(state.ubo_globals, &state.globals, buffer = .Uniform)
 
 	// Toggle the wireframe
 	OpenGL.PolygonMode(OpenGL.FRONT_AND_BACK, state.wireframe ? OpenGL.LINE : OpenGL.FILL)
@@ -284,7 +322,7 @@ render_queue :: proc(state: ^State) {
 	render_instanced(state, state.rect_vao, &queue.lines)
 
 	OpenGL.UseProgram(state.rounded_line_program)
-	render_instanced(state, state.rect_vao, &queue.rounded_lines)
+	render_instanced(state, state.rounded_line_vao, &queue.rounded_lines)
 
 	OpenGL.UseProgram(0)
 }
