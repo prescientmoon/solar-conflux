@@ -12,6 +12,7 @@ Render_Pass :: enum {
 	SDF,
 	JFA_Seed,
 	JFA,
+	All,
 }
 
 State :: struct {

@@ -55,7 +55,8 @@ to_transform_line :: proc(line: Line) -> (mat: Affine2) {
 
 to_transform_rounded_line :: proc(line: Shape(Rounded_Line)) -> (mat: Affine2) {
 	dir := line.to - line.from
-	len := linalg.length(dir) // TODO: return if this is close to 0
+	len := linalg.length(dir)
+	if ≃(len, 0) {return}
 
 	thickness := line.thickness + line.stroke_width
 	mat[0].xy = dir * (len + thickness * 2) / len
