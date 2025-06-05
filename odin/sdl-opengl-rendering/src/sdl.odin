@@ -7,6 +7,13 @@ import "core:log"
 import "vendor:OpenGL"
 import "vendor:sdl3"
 
+// For debugging purposes, we allow drawing up to any given pass
+Render_Pass :: enum {
+	SDF,
+	JFA_Seed,
+	JFA,
+}
+
 State :: struct {
 	window:               ^sdl3.Window,
 
@@ -19,30 +26,31 @@ State :: struct {
 
 	// GPU data
 	rect_mesh:            Mesh,
-	ubo_globals:          UBO,
+	ubos:                 [UBO_ID]UBO,
+	framebuffers:         [Framebuffer_ID]FBO,
+	instance_buffers:     [Instance_Param_Buf]u32,
 
 	// Programs
 	rect_program:         Program,
 	circle_program:       Program,
 	line_program:         Program,
 	rounded_line_program: Program,
+	jfa_program:          Program,
+	jfa_seed_program:     Program,
 
 	// Instance buffers (CPU)
-	buf_matrices:         [INSTANCES]Mat3,
+	buf_matrices:         [INSTANCES]Affine2,
 	buf_colors:           [INSTANCES]Color,
 	buf_lines:            [INSTANCES][2]ℝ²,
 	buf_floats:           [INSTANCES]ℝ,
 	buf_vecs:             [INSTANCES]ℝ²,
 
-	// Instance buffers (GPU)
-	instance_buffers:     [Instance_Param_Buf]u32,
-
 	// Flags
 	tick:                 u32,
 	wireframe:            bool,
+	pass:                 Render_Pass,
 	globals:              Global_Uniforms,
 }
-
 
 // {{{ Screen dimensions
 screen_dimensions :: proc() -> ℝ² {
@@ -149,7 +157,7 @@ sdl_init :: proc() -> (ok: bool) {
 	(gl_ctx != nil) or_return
 
 	OpenGL.load_up_to(GL_MAJOR, GL_MINOR, sdl3.gl_set_proc_address)
-	OpenGL.ClearColor(0, 0, 0, 1)
+	OpenGL.ClearColor(0, 0, 0, 0)
 	OpenGL.Enable(OpenGL.DEPTH_TEST)
 	OpenGL.Enable(OpenGL.BLEND)
 	OpenGL.BlendFunc(OpenGL.SRC_ALPHA, OpenGL.ONE_MINUS_SRC_ALPHA)
@@ -158,8 +166,14 @@ sdl_init :: proc() -> (ok: bool) {
 	sdl_on_resize(screen_dimensions())
 	// }}}
 	// {{{ Initialize GPU buffers & programs
-	// Initialize GPU buffers
+	// Initialize instance buffers
 	OpenGL.GenBuffers(len(state.instance_buffers), ([^]u32)(&state.instance_buffers))
+
+	// Initialize UBOs
+	OpenGL.GenBuffers(len(state.ubos), ([^]u32)(&state.ubos))
+	for ubo, i in state.ubos {
+		OpenGL.BindBufferBase(OpenGL.UNIFORM_BUFFER, UBO_ID_BINDING[i], ubo)
+	}
 
 	// Initialize meshes
 	state.rect_mesh = create_mesh({{0, 0}, {1, 0}, {1, 1}, {0, 1}}, {0, 1, 2, 3})
@@ -167,47 +181,49 @@ sdl_init :: proc() -> (ok: bool) {
 	// Initialize programs
 	state.rect_program = gen_program(
 		{
+			template = .SDF,
 			sdf_name = "sdf_rect",
 			sdf_args = {"v_center", "v_dimensions"},
 			params = {{buf = .Center, name = "center"}, {buf = .Dimensions, name = "dimensions"}},
-			id = 0,
 		},
 	) or_return
 
 	state.circle_program = gen_program(
 		{
+			template = .SDF,
 			sdf_name = "sdf_circle",
 			sdf_args = {"v_center", "v_radius"},
 			params = {{buf = .Center, name = "center"}, {buf = .Radius, name = "radius"}},
-			id = 1,
 		},
 	) or_return
 
 	state.rounded_line_program = gen_program(
 		{
+			template = .SDF,
 			sdf_name = "sdf_line",
 			sdf_args = {"v_line", "v_thickness"},
 			params = {{buf = .Line, name = "line"}, {buf = .Thickness, name = "thickness"}},
-			id = 2,
 		},
 	) or_return
 
 	state.rounded_line_program = gen_program(
 		{
+			template = .SDF,
 			sdf_name = "sdf_rounded_line",
 			sdf_args = {"v_line", "v_thickness"},
 			params = {{buf = .Line, name = "line"}, {buf = .Thickness, name = "thickness"}},
-			id = 3,
 		},
 	) or_return
 
-	state.ubo_globals = create_ubo_globals()
+	state.jfa_seed_program = gen_program({template = .JFA_Seed}) or_return
+	state.jfa_program = gen_program({template = .JFA}) or_return
 	// }}}
 
 	state.q_rects = make([dynamic]Shape(□))
 	state.q_circles = make([dynamic]Shape(Circle2))
 	state.q_lines = make([dynamic]Shape(Line))
 	state.q_rounded_lines = make([dynamic]Shape(Rounded_Line))
+	state.pass = .JFA
 
 	return true
 }
@@ -216,6 +232,12 @@ sdl_init :: proc() -> (ok: bool) {
 sdl_close :: proc() {
 	state := g_renderer_state()
 
+	// TODO: perhaps perform some cleanup here?
+
+	for fb in state.framebuffers {
+		destroy_framebuffer(fb)
+	}
+
 	_ = sdl3.StopTextInput(state.window)
 	sdl3.DestroyWindow(state.window)
 	sdl3.Quit()
@@ -223,6 +245,7 @@ sdl_close :: proc() {
 // }}}
 // {{{ Resize
 sdl_on_resize :: proc(dims: ℝ²) {
+	state := g_renderer_state()
 	OpenGL.Viewport(0, 0, i32(dims.x), i32(dims.y))
 	
   // odinfmt: disable
@@ -234,6 +257,11 @@ sdl_on_resize :: proc(dims: ℝ²) {
   }
   // odinfmt: enable
 
-	g_renderer_state().globals.viewport_matrix = m
+	state.globals.viewport_matrix = m
+
+	for &fb in state.framebuffers {
+		destroy_framebuffer(fb)
+		fb = create_framebuffer(dims)
+	}
 }
 // }}}

@@ -1,6 +1,6 @@
 #header
 
-layout (location = 0) in vec2 a_pos;
+layout(location = 0) in vec2 a_pos;
 out vec2 v_pos;
 
 layout(std140, binding = 0) uniform Globals {
@@ -11,10 +11,9 @@ layout(std140, binding = 0) uniform Globals {
 #toplevelExtra
 
 void main() {
-  vec4 pos    = u_viewport_matrix * vec4(i_model_matrix * vec3(a_pos, 1), 1);
+  v_pos = i_model_matrix * vec3(a_pos, 1);
+  vec4 pos = u_viewport_matrix * vec4(v_pos, i_z_offset, 1);
   gl_Position = vec4(pos.xyz, 1);
-
-  v_pos = (i_model_matrix * vec3(a_pos, 1)).xy;
 
   #mainExtra
 }

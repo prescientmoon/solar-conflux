@@ -1,3 +1,5 @@
+// This file contains types/constants/functions that are already implemented
+// in my proper projects.
 package visuals
 
 ℝ :: f32
@@ -7,6 +9,7 @@ package visuals
 Mat3 :: matrix[3, 3]ℝ
 Mat4 :: matrix[4, 4]ℝ
 Color :: [4]ℝ
+Affine2 :: matrix[2, 3]ℝ
 
 AABB :: struct {
 	top_left:   ℝ²,
@@ -29,6 +32,7 @@ vec2_perp :: proc(v: ℝ²) -> ℝ² {
 	return {-v.y, v.x}
 }
 
+@(private = "file")
 g_state: State
 g_renderer_state :: proc() -> ^State {
 	return &g_state

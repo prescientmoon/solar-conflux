@@ -1,9 +1,9 @@
 #header
 
 out vec4 FragColor;
-in  vec2 v_pos;
+in vec2 v_pos;
 
-layout(std140) uniform Globals {
+layout(std140, binding = 0) uniform Globals {
   mat4 u_viewport_matrix;
   float u_aa_width;
 };
@@ -33,8 +33,8 @@ float sdf_rounded_line(vec2[2] line, float thickness, vec2 p) {
 
 void main() {
   // This function gets auto-generated to call the right sdf
-  float dist    = sdf(v_pos);
-  float alpha   = smoothstep(u_aa_width, -u_aa_width, dist);
+  float dist = sdf(v_pos);
+  float alpha = smoothstep(u_aa_width, -u_aa_width, dist);
   float s_alpha = smoothstep(u_aa_width, -u_aa_width, abs(dist) - v_stroke_width);
 
   if (alpha < 0.001 && s_alpha < 0.001) discard;
