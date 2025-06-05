@@ -6,9 +6,9 @@ Methods to convert:
 [x] unset_clip_rect
 [x] clear_background
 [x] draw_rectangle
-[ ] draw_rectangle_lines
+[x] draw_rectangle_lines
 [x] draw_circle
-[ ] draw_circle_lines
+[x] draw_circle_lines
 [x] draw_line
 [ ] draw_triangle
 [ ] draw_circle_arc_lines_impl

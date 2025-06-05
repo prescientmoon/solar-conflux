@@ -18,6 +18,22 @@
         "type": "github"
       }
     },
+    "glsl_analyzer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1749076974,
+        "narHash": "sha256-KnJPO3eVDfaHDwDrE1s0YvkVxpjMXtG8JlhqUe3G+30=",
+        "owner": "starlitcanopy",
+        "repo": "glsl_analyzer",
+        "rev": "0209e194a53370416d4f02487031740fc1ff913a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "starlitcanopy",
+        "repo": "glsl_analyzer",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1748693115,
@@ -86,6 +102,7 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
+        "glsl_analyzer": "glsl_analyzer",
         "nixpkgs": "nixpkgs",
         "odin": "odin",
         "ols": "ols"
