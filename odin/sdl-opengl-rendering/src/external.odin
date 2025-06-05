@@ -1,6 +1,9 @@
 // This file contains types/constants/functions that are already implemented
-// in my proper projects.
+// in my proper projects, and have been copy-pasted here on a per-need basis.
 package visuals
+
+import "base:intrinsics"
+import "core:math"
 
 ℝ :: f32
 ℝ² :: [2]ℝ
@@ -31,6 +34,21 @@ Circle2 :: struct {
 vec2_perp :: proc(v: ℝ²) -> ℝ² {
 	return {-v.y, v.x}
 }
+
+ε: ℝ : 0.0001
+π: ℝ : math.π
+∞ := math.inf_f32(1)
+
+// Checks whether two values are "close enough to be considered equal".
+close_enough :: proc(a, b: $T) -> bool where intrinsics.type_is_numeric(T) {
+	when intrinsics.type_is_array(T) {
+		return linalg.length2(a - b) < ε * ε
+	} else {
+		return abs(a - b) < ε
+	}
+}
+
+≃ :: close_enough
 
 @(private = "file")
 g_state: State
