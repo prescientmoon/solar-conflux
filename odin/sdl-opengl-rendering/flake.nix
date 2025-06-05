@@ -11,6 +11,9 @@
     ols.inputs.nixpkgs.follows = "nixpkgs";
     ols.inputs.flake-utils.follows = "flake-utils";
     ols.inputs.odin.follows = "odin";
+
+    glsl_analyzer.url = "github:starlitcanopy/glsl_analyzer";
+    glsl_analyzer.flake = false;
   };
 
   outputs =
@@ -25,6 +28,14 @@
             inputs.ols.overlays.default
           ];
         };
+
+        glsl_analyzer = pkgs.glsl_analyzer.overrideAttrs (_: {
+          src = inputs.glsl_analyzer;
+
+          nativeBuildInputs = [
+            pkgs.zig_0_14.hook
+          ];
+        });
 
         inherit (pkgs) lib;
       in
@@ -42,6 +53,7 @@
             pkgs.seer # Debugger GUI
             pkgs.valgrind # Detect memory leaks
             pkgs.renderdoc # Graphics debugger
+            glsl_analyzer # GLSL language server
           ];
 
           buildInputs = [
