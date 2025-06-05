@@ -16,6 +16,7 @@ The repositories are properly imported using [./import.sh](./import.sh) — a da
 
 The experiments are currently organized based on the language they use:
 
+- [Bash](./bash/)
 - [Dart](./dart/)
 - [Elm](./elm/)
 - [F#](./fsharp/)
@@ -23,6 +24,7 @@ The experiments are currently organized based on the language they use:
 - [Javascript](./javascript/)
 - [Lean](./lean/)
 - [Lua](./lua/)
+- [Odin](./odin/)
 - [Purescript](./purescript/)
 - [Python](./python/)
 - [Typescript](./typescript/)
