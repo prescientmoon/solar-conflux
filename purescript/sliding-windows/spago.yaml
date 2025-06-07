@@ -1,0 +1,11 @@
+package:
+  name: sliding-windows
+  dependencies:
+    - console
+    - effect
+    - lists
+    - prelude
+workspace:
+  packageSet:
+    registry: 64.10.0
+  extraPackages: {}

@@ -23,6 +23,7 @@
 | [reverse-state](./reverse-state)              | Implementation of, (drum roll), reverse state                                                                        |
 | [run-supply](./run-supply)                    | Effect for generating an infinite supply of unique values                                                            |
 | [slice](./slice)                              | Basic benchmarks and a `Slice` type                                                                                  |
+| [sliding-windows](./sliding-windows)          | Implement sliding windows over lists of monoids in linear complexity                                                 |
 | [sprint](./sprint)                            | Failled effect-system based on typelevel lists                                                                       |
 | [strategy](./strategy)                        | Unfinished attempt at implementing a mixed strategy nash equilibrium solver                                          |
 | [streams](./streams)                          | Playing with `purescript-pipes`                                                                                      |
