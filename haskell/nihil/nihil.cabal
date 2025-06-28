@@ -24,15 +24,21 @@ common warnings
 executable nihil
     import:           warnings
     main-is:          Main.hs
-    hs-source-dirs:   app
-    default-language: GHC2024
+    hs-source-dirs:   src
 
-    -- other-modules:
-    -- other-extensions:
+    default-language: GHC2024
+    default-extensions:
+        UnicodeSyntax,
+        DuplicateRecordFields
+
+    other-modules:
+        Nihil.Cst,
+        Nihil.Parser
 
     build-depends:
-        base   ^>=4.20.0.0,
-        relude ^>=1.2.0.0
+        base       ^>=4.20.0.0,
+        relude     ^>=1.2.0.0,
+        megaparsec ^>=9.7.0
 
     mixins:
         base hiding (Prelude),

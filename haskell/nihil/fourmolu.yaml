@@ -1,0 +1,5 @@
+indentation: 2
+function-arrows: leading
+import-export-style: leading
+haddock-style: single-line
+unicode: always
