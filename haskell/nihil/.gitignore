@@ -1,0 +1,5 @@
+# Haskell build stuff
+dist-newstyle
+
+# Nix build result
+result
