@@ -28,17 +28,31 @@ executable nihil
 
     default-language: GHC2024
     default-extensions:
+        BlockArguments,
         UnicodeSyntax,
-        DuplicateRecordFields
+        DuplicateRecordFields,
+        NoFieldSelectors,
+        OverloadedLabels,
+        OverloadedStrings
 
     other-modules:
         Nihil.Cst,
-        Nihil.Parser
+        Nihil.Cst.Base,
+        Nihil.Cst.Type,
+        Nihil.Cst.Expr,
+        Nihil.Cst.Module,
+        Nihil.Parser.Core,
+        Nihil.Parser.Type,
+        Nihil.Parser.Expr,
+        Nihil.Parser.Module
 
     build-depends:
-        base       ^>=4.20.0.0,
-        relude     ^>=1.2.0.0,
-        megaparsec ^>=9.7.0
+        base           ^>=4.20.0.0,
+        relude         ^>=1.2.0.0,
+        optics         ^>=0.4.2.0,
+        optics-core    ^>=0.4.1.0,
+        megaparsec     ^>=9.7.0,
+        pretty-simple  ^>=4.1.3.0,
 
     mixins:
         base hiding (Prelude),
