@@ -1,0 +1,7 @@
+:l Nihil.Parser.Core
+:l Nihil.Parser.Combinators
+:l Nihil.Parser.Module
+
+:m +Nihil.Parser.Core
+:m +Nihil.Parser.Combinators
+:m +Nihil.Parser.Module
