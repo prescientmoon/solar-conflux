@@ -17,6 +17,8 @@ module Nihil.Cst.Expr
   , LocalDeclaration (..)
   ) where
 
+import Relude
+
 import Nihil.Cst.Base qualified as Base
 import Nihil.Cst.Type qualified as Type
 
