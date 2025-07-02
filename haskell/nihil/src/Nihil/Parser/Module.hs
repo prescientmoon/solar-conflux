@@ -1,42 +1,67 @@
-module Nihil.Parser.Module () where
+module Nihil.Parser.Module (module') where
 
-import Data.Sequence ((|>))
-import Data.Text qualified as Text
+import Relude
+
+import Data.Set qualified as Set
+import Error.Diagnose qualified as DG
 import Nihil.Cst.Base qualified as Base
 import Nihil.Cst.Module
+import Nihil.Parser.Combinators qualified as Core
 import Nihil.Parser.Core qualified as Core
-import Optics qualified as O
+import Nihil.Parser.Notation qualified as Core
 import Text.Megaparsec qualified as M
-import Text.Megaparsec.Char qualified as M
-
-{-
-Module headers:
-
-module A (exports) where
-module A (exports)
-module A where
-module A
-module (exports) where
-module (exports)
-module where
--}
 
 module' ∷ Core.Parser Module
-module' = M.label "module" $ Core.exactlyIndented do
-  mbModule' ← M.optional $ Core.string "module"
+module' = Core.exactlyIndented do
+  block ← Core.blockLike
+  offset ← M.getOffset
+  pos ← M.getSourcePos
+  mbModule' ← Core.mkBlock block $ M.optional $ M.try $ snd $ Core.string "module"
+  -- (name, exports, where') ← pure (Nothing, Nothing, Nothing)
   (name, exports, where') ← case mbModule' of
-    Nothing → pure (Nothing, Nothing, Nothing)
-    Just tmodule' → do
-      name ← M.optional Core.name
-      where' ← M.optional $ Core.string "where"
-      pure (name, Nothing, where')
-  eof ← Core.token M.eof
+    Nothing → do
+      Core.reportError
+        offset
+        "NoModuleHeader"
+        "No module header found."
+        [(Base.mkMegaparsecSpan' pos, DG.This "This is where I thought the module header might be.")]
+        [] -- TODO: suggest fix based on file name
+      pure (Nothing, Nothing, Nothing)
+    Just _ → Core.tighten Core.do
+      name ← Core.step $ Core.label "module name" Core.name
+      exports' ←
+        Core.optStep
+          $ Core.label "export list"
+          $ Core.delimitedList
+            (Core.string "(")
+            (Core.string ")")
+            (Core.string ",")
+          $ Core.label "export name" Core.name
+      where' ← Core.pre $ Core.step $ Core.string "where"
+      Core.pure (name, exports', where')
+
+  -- let (decls, mbEof) = (mempty, Nothing)
+  (decls, mbEof) ←
+    Core.manyTill
+      (Core.label "declaration" $ Core.mkBlock block decl)
+      (second (fmap void) $ Core.string "struct")
+  eof ← case mbEof of
+    Nothing → Core.resetStopOn $ Core.junkTill ("end of file", Core.token M.eof)
+    Just e → pure e
+
   pure $
     Module
       { module' = mbModule'
       , name = name
       , exports = exports
       , where' = where'
-      , decls = []
+      , decls = decls
       , eof = eof
       }
+
+decl ∷ Core.Parser Declaration
+decl = do
+  void
+    . Core.separated False (Core.string ",")
+    $ Core.label "name" Core.name
+  pure $ DeclValue $ Value Nothing Nothing Nothing []

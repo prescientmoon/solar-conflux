@@ -8,6 +8,8 @@ module Nihil.Cst.Type
   , Var (..)
   ) where
 
+import Relude
+
 import Nihil.Cst.Base qualified as Base
 
 data Type'

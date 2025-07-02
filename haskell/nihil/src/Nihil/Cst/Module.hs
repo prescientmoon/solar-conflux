@@ -11,20 +11,35 @@ module Nihil.Cst.Module
   , ValueEquation (..)
   ) where
 
+import Relude
+
 import Nihil.Cst.Base qualified as Base
 import Nihil.Cst.Expr qualified as Expr
 import Nihil.Cst.Type qualified as Type
+import Prettyprinter qualified as PP
 
 data Module
   = Module
-  { module' ∷ Maybe (Base.Token ())
+  { module' ∷ Maybe Base.Token'
   , name ∷ Maybe Base.Name
-  , exports ∷ Maybe (Base.Delimited Base.Name)
-  , where' ∷ Maybe (Base.Token ())
-  , decls ∷ [Declaration]
+  , exports ∷ Maybe (Base.Delimited (Base.Separated Base.Token' Base.Name))
+  , where' ∷ Maybe Base.Token'
+  , decls ∷ Seq Declaration
   , eof ∷ Base.Token ()
   }
   deriving (Generic, Show)
+
+instance PP.Pretty Module where
+  pretty (Module{..}) =
+    Base.prettyTree
+      "module"
+      $ catMaybes
+        [ PP.pretty <$> module'
+        , PP.pretty <$> name
+        , PP.pretty <$> exports
+        , PP.pretty <$> where'
+        , Just $ PP.pretty eof
+        ]
 
 data Declaration
   = DeclIndLike IndLike
@@ -42,7 +57,7 @@ data IndLike
   { kind ∷ Base.Token IndLikeKind
   , name ∷ Maybe Base.Name
   , args ∷ [Base.Name]
-  , where' ∷ Maybe (Base.Token ())
+  , where' ∷ Maybe Base.Token'
   , fields ∷ [Field]
   }
   deriving (Generic, Show)
@@ -50,25 +65,25 @@ data IndLike
 data Field
   = Field
   { name ∷ Maybe Base.Name
-  , colon ∷ Maybe (Base.Token ())
+  , colon ∷ Maybe Base.Token'
   , ty ∷ Maybe Type.Type'
   }
   deriving (Generic, Show)
 
 data TypeAlias
   = TypeAlias
-  { ty ∷ Base.Token ()
+  { ty ∷ Base.Token'
   , name ∷ Maybe Base.Name
   , args ∷ [Base.Name]
-  , eq ∷ Maybe (Base.Token ())
-  , body ∷ Maybe (Type.Type')
+  , eq ∷ Maybe Base.Token'
+  , body ∷ Maybe Type.Type'
   }
   deriving (Generic, Show)
 
 data ForeignType
   = ForeignType
-  { foreign' ∷ Base.Token ()
-  , ty ∷ Base.Token ()
+  { foreign' ∷ Base.Token'
+  , ty ∷ Base.Token'
   , name ∷ Maybe Base.Name
   , args ∷ [Base.Name]
   }
@@ -76,9 +91,9 @@ data ForeignType
 
 data ForeignValue
   = ForeignValue
-  { foreign' ∷ Base.Token ()
+  { foreign' ∷ Base.Token'
   , name ∷ Maybe Base.Name
-  , colon ∷ Maybe (Base.Token ())
+  , colon ∷ Maybe Base.Token'
   , ty ∷ Maybe Type.Type'
   }
   deriving (Generic, Show)
@@ -86,7 +101,7 @@ data ForeignValue
 data Value
   = Value
   { name ∷ Maybe Base.Name
-  , colon ∷ Maybe (Base.Token ())
+  , colon ∷ Maybe Base.Token'
   , ty ∷ Maybe Type.Type'
   , branches ∷ [ValueEquation]
   }
@@ -95,7 +110,7 @@ data Value
 data ValueEquation = ValueEquation
   { name ∷ Base.Name
   , args ∷ [Expr.Pattern]
-  , eq ∷ Maybe (Base.Token ())
+  , eq ∷ Maybe Base.Token'
   , expr ∷ Maybe Expr.Expr
   }
   deriving (Generic, Show)
