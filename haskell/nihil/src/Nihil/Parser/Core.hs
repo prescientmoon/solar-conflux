@@ -1,9 +1,11 @@
 module Nihil.Parser.Core
   ( LabelledParser
+  , KeyedParser
   , ParserState (..)
   , ParserContext (..)
   , Parser
   , StopOnTiming (..)
+  , keyedAppend
   , reportError
   , throwError
   , reportExpectedError
@@ -16,6 +18,8 @@ module Nihil.Parser.Core
   , resetStopOn
   , withIndentation
   , exactlyIndented
+  , anyIndentation
+  , unindented
   , blockLike
   , mkBlock
   , badIndent
@@ -25,6 +29,8 @@ module Nihil.Parser.Core
   , label
   , junkTill
   , tryJunkTill
+  , tryReportedJunkTill
+  , noHints
   ) where
 
 import Relude
@@ -32,6 +38,7 @@ import Relude
 import Data.Char qualified as Char
 import Data.Foldable1 (foldl1)
 import Data.Sequence ((|>))
+import Data.Sequence qualified as Seq
 import Data.Set qualified as Set
 import Data.Text qualified as Text
 import Error.Diagnose qualified as DG
@@ -47,15 +54,18 @@ import Text.Megaparsec.Internal qualified as MI
 import Text.Megaparsec.State qualified as M
 
 ---------- The parser monad
+data IndentationRelation
+  = IGT
+  | IGTE
+  | IEQ
+  | IAny
+  deriving (Generic, Show)
 
 data ParserState
   = ParserState
   { trivia ∷ Seq Base.Trivia
   -- ^ trivia that have been parsed, but are yet to get attached to some token.
-  , exactIndentation ∷ Bool
-  -- ^ When 'False', tokens must be indented strictly more than 'indentation'.
-  -- When `True`, the first token of the incoming stream must be indented
-  -- precisely equal to `indentation`.
+  , relation ∷ IndentationRelation
   }
   deriving (Generic, Show)
 
@@ -63,7 +73,7 @@ data ParserContext
   = ParserContext
   { indentation ∷ M.Pos
   -- ^ All tokens must start at this column (or to the right)
-  , stopOn ∷ (Parser (), Parser ())
+  , stopOn ∷ (KeyedParser (), KeyedParser ())
   -- ^ When consuming junk input, stop when this parser succeeds.
   --
   -- The first element of the pair runs before the parser we're currently
@@ -86,6 +96,14 @@ instance Eq Error where
 instance Ord Error where
   compare (Error a _) (Error b _) = compare a b
 
+instance M.ShowErrorComponent Error where
+  showErrorComponent (Error _ r) =
+    Text.unpack
+      . Error.showDiagnostic
+      . Error.addReports
+      . pure
+      $ r
+
 type Parser =
   ReaderT
     ParserContext
@@ -95,45 +113,51 @@ type Parser =
 -- associated with the next token, and kept inside the CST.
 saveTrivia ∷ Base.Trivia → Parser ()
 saveTrivia c = O.modifying #trivia (|> c)
+{-# INLINE saveTrivia #-}
 
 -- | Update the minimum indentation of some parser.
 withIndentation ∷ ∀ a. M.Pos → Parser a → Parser a
 withIndentation level = local (O.set #indentation level)
+{-# INLINE withIndentation #-}
 
 -- | Tell a parser to stop consuming junk when hitting a certain element.
-alsoStopOn ∷ ∀ a. (Parser (), Parser ()) → Parser a → Parser a
-alsoStopOn (pre, post) =
-  local $
-    O.over (#stopOn % O._1) (<|> M.lookAhead pre)
-      . O.over (#stopOn % O._2) (<|> M.lookAhead post)
-
--- | Tell a parser to stop consuming junk when hitting a certain element.
---
--- The given parser runs before the one we're actively trying to complete.
-alsoStopOnPre ∷ ∀ stop a. Parser stop → Parser a → Parser a
-alsoStopOnPre pre = local $ O.over (#stopOn % O._1) (<|> void (M.lookAhead pre))
+alsoStopOn ∷ ∀ a. (LabelledParser (), LabelledParser ()) → Parser a → Parser a
+alsoStopOn (pre, post) = alsoStopOnPre pre . alsoStopOnPost post
+{-# INLINE alsoStopOn #-}
 
 -- | Tell a parser to stop consuming junk when hitting a certain element.
 --
 -- The given parser runs before the one we're actively trying to complete.
-alsoStopOnPost ∷ ∀ stop a. Parser stop → Parser a → Parser a
-alsoStopOnPost post = local $ O.over (#stopOn % O._2) (<|> void (M.lookAhead post))
+alsoStopOnPre ∷ ∀ stop a. LabelledParser stop → Parser a → Parser a
+alsoStopOnPre pre = local $ O.over (#stopOn % O._1) (keyedAppend . fmap void $ pre)
+{-# INLINE alsoStopOnPre #-}
+
+-- | Tell a parser to stop consuming junk when hitting a certain element.
+--
+-- The given parser runs before the one we're actively trying to complete.
+alsoStopOnPost ∷ ∀ stop a. LabelledParser stop → Parser a → Parser a
+alsoStopOnPost post = local $ O.over (#stopOn % O._2) (keyedAppend . fmap void $ post)
+{-# INLINE alsoStopOnPost #-}
 
 -- | Tells a parser to only stop on bad indentation & EOF.
 resetStopOn ∷ ∀ a. Parser a → Parser a
-resetStopOn = local (O.set #stopOn (empty, badIndent <|> M.eof))
+resetStopOn =
+  local $
+    O.set
+      #stopOn
+      (KeyedParser mempty badIndent, KeyedParser mempty M.eof)
+{-# INLINE resetStopOn #-}
 
 -- | Create a custom error. The offset is there for sorting purposes.
 reportError
-  ∷ Int
-  → Text
+  ∷ Text
   → Error.Doc
   → [(Error.Span, DG.Marker Error.Doc)]
   → [DG.Note Error.Doc]
   → Parser ()
-reportError offset code desc markers hints =
-  M.region (M.setErrorOffset offset)
-    . M.registerFancyFailure
+reportError code desc markers hints = do
+  offset ← M.getOffset
+  M.registerFancyFailure
     . Set.singleton
     . M.ErrorCustom
     $ Error offset
@@ -159,8 +183,14 @@ throwError offset code desc markers hints =
 -- given. The parser state at the very end of the parse is also shown.
 parseTest ∷ ∀ a. (PP.Pretty a) ⇒ Parser a → Text → IO ()
 parseTest p input = do
-  let initialCtx = ParserContext (M.mkPos 1) (empty, empty)
-  let initialState = ParserState mempty True
+  let initialCtx =
+        ParserContext
+          (M.mkPos 1)
+          ( KeyedParser mempty empty
+          , KeyedParser mempty empty
+          )
+
+  let initialState = ParserState mempty IAny
 
   let filename = "<test>"
   let readerResult = runReaderT (resetStopOn $ sc *> p <* M.eof) initialCtx
@@ -177,6 +207,21 @@ parseTest p input = do
       filename
       (Text.unpack input)
 
+-- | Forget every hint collected by megaparsec.
+--
+-- Used for performance only.
+noHints ∷ ∀ a. Parser a → Parser a
+noHints p = ReaderT \ctx → StateT \s →
+  MI.ParsecT \ps cok cerr eok eerr →
+    MI.unParser
+      (runStateT (runReaderT p ctx) s)
+      ps
+      (\a st _ → cok a st mempty)
+      (\pe st → cerr pe st)
+      (\a st _ → eok a st mempty)
+      (\pe st → eerr pe st)
+{-# INLINE noHints #-}
+
 runParser
   ∷ ∀ a
    . M.Parsec Error Text a
@@ -185,6 +230,7 @@ runParser
   → ([Error.Report], Maybe a)
 runParser p s i = runIdentity do
   (MI.Reply s' _ result) ← MI.runParsecT p (M.initialState s i)
+  -- TODO: take custom error spans into account when sorting
   let bundle es = finalizeError =<< sortWith M.errorOffset es
   pure $ case result of
     MI.OK _ x → (bundle (M.stateParseErrors s'), Just x)
@@ -228,16 +274,16 @@ runParser p s i = runIdentity do
               , "instead."
               ]
           )
-          [ (iSpan expected, DG.Where $ "Expected indentation")
-          , (iSpan actual, DG.This $ "Actual indentation")
+          [ (iSpan actual, DG.This $ "Actual indentation")
+          , (iSpan expected, DG.Where $ "Expected indentation")
           ]
           [shouldNeverSeeThis]
    where
     -- The span for an indentation error
     iSpan ∷ M.Pos → Base.Span
     iSpan pos =
-      O.set (#end % O._2) (M.unPos pos)
-        . O.set (#begin % O._2) 1
+      O.set (#end % O._2) (M.unPos pos + 1)
+        . O.set (#begin % O._2) (M.unPos pos)
         $ mkPos offset
 
   shouldNeverSeeThis ∷ DG.Note Error.Doc
@@ -268,8 +314,8 @@ runParser p s i = runIdentity do
     | otherwise =
         fold
           [ "Expected one of "
-          , PP.sep
-              . intersperse ","
+          , fold
+              . intersperse ", "
               . fmap prettyItem
               $ Set.toList variants
           , "."
@@ -277,10 +323,9 @@ runParser p s i = runIdentity do
 
   prettyItem = PP.dquotes . PP.pretty . M.showErrorItem (Proxy @Text)
 
-reportExpectedError ∷ Int → Error.Span → Text → Parser ()
-reportExpectedError offset s l = do
+reportExpectedError ∷ Error.Span → Text → Parser ()
+reportExpectedError s l = do
   reportError
-    offset
     ("Expected")
     (PP.hsep ["Unexpected token."])
     [
@@ -304,6 +349,7 @@ spanned p = do
   inner ← p
   end ← M.getSourcePos
   pure (Base.mkMegaparsecSpan start end, inner)
+{-# INLINE spanned #-}
 
 -- | Turns a parser into one which keeps track of the source spam it's
 -- consumed, and of the trivia that came before. The resulting parser will
@@ -315,9 +361,9 @@ spanned p = do
 -- the expected amount.
 token ∷ ∀ a. Parser a → Parser (Base.Token a)
 token p = do
-  void checkIndentation
+  void $ checkIndentation True
   (innerSpan, inner) ← spanned p
-  O.assign #exactIndentation False
+  O.assign #relation IGT
 
   -- Take the saved trivia, and reset the list
   trivia ← O.use #trivia
@@ -332,30 +378,40 @@ token p = do
       }
 
 -- | Ensures the current indentation is at least the minimum allowed level.
-checkIndentation ∷ Parser M.Pos
-checkIndentation = do
+checkIndentation ∷ Bool → Parser (Bool, M.Pos)
+checkIndentation shouldReport = do
   col ← O.view #sourceColumn <$> M.getSourcePos
   indentation ← O.gview #indentation
-  exact ← O.use #exactIndentation
-  if exact
-    then do
-      when (col /= indentation) do
-        M.fancyFailure . Set.singleton $
+  relation ← O.use #relation
+  ok ← case relation of
+    IEQ | col /= indentation → do
+      when shouldReport do
+        M.registerFancyFailure . Set.singleton $
           M.ErrorIndentation EQ indentation col
-    else when (col <= indentation) do
-      M.fancyFailure . Set.singleton $
-        M.ErrorIndentation GT indentation col
-  pure col
+      pure False
+    IGT | col <= indentation → do
+      when shouldReport do
+        M.registerFancyFailure . Set.singleton $
+          M.ErrorIndentation GT indentation col
+      pure False
+    IGTE | col < indentation → do
+      -- TODO: this reporting is just wrong
+      when shouldReport do
+        M.registerFancyFailure . Set.singleton $
+          M.ErrorIndentation GT indentation col
+      pure False
+    _ → pure True
+  pure (ok, col)
 
 -- | Parse space characters / trivia. Although it might look at it, not all
 -- results are thrown away. Parsed trivia are saved in the parser state.
 sc ∷ Parser ()
 sc =
-  M.skipMany $
-    M.choice
-      [ M.hidden M.space1
-      , M.hidden comment
-      ]
+  M.skipMany . M.choice $
+    [ M.hidden M.space1
+    , M.hidden comment
+    ]
+{-# INLINE sc #-}
 
 -- | Parse a comment, and save it to the parser's state. The comment will be
 -- saved together with the next token inside the CST.
@@ -396,23 +452,54 @@ newtype BlockMaker = BlockMaker (∀ a. Parser a → Parser a)
 -- - declarations in a module
 blockLike ∷ Parser BlockMaker
 blockLike =
-  checkIndentation <&> \expected → BlockMaker \p → do
-    O.assign #exactIndentation True
+  checkIndentation True <&> \(_, expected) → BlockMaker \p → do
+    O.assign #relation IEQ
     r ← withIndentation expected p
-    O.assign #exactIndentation False
+    O.assign #relation IGT
     pure r
 
 mkBlock ∷ ∀ a. BlockMaker → Parser a → Parser a
 mkBlock (BlockMaker f) a = f a
 
 -- | Turns a parser into one with strict indentation enabled. Check
--- `ParserState.exactIndentation` for details regarding what this means.
+-- `ParserState.relation` for details regarding what this means.
 exactlyIndented ∷ ∀ a. Parser a → Parser a
-exactlyIndented p = blockLike >>= flip mkBlock p
+exactlyIndented p =
+  -- TODO: make this not report indentation errors
+  blockLike >>= flip mkBlock p
+
+restoreRelation ∷ ∀ a. Parser a → Parser a
+restoreRelation p = do
+  r ← O.use #relation
+  result ← p
+  O.assign #relation r
+  pure result
+
+-- | Make a parser skip indentation checks (kinda...).
+anyIndentation ∷ ∀ a. Parser a → Parser a
+anyIndentation p = restoreRelation do
+  O.assign #relation IAny *> p
+
+-- | Make a parser only work at the very start of the line.
+unindented ∷ ∀ a. Parser a → Parser a
+unindented p = restoreRelation do
+  O.assign #relation IEQ *> withIndentation (M.mkPos 1) p
 
 -- | A parser which succeeds precisely when the indentation rules are violated.
 badIndent ∷ Parser ()
-badIndent = M.notFollowedBy (void checkIndentation)
+badIndent = do
+  (ok, _) ← checkIndentation False
+  when ok $ fail "bad indent"
+{-# INLINE badIndent #-}
+
+---------- Keyed parsers
+data KeyedParser a = KeyedParser (Set Text) (Parser a)
+  deriving (Generic, Functor)
+
+keyedAppend ∷ ∀ a. LabelledParser a → KeyedParser a → KeyedParser a
+keyedAppend (l, p) k@(KeyedParser ls ps)
+  | Set.member l ls = k
+  | otherwise = KeyedParser (Set.insert l ls) (ps <|> p)
 
 ---------- Labelled parsers
 
@@ -420,75 +507,72 @@ badIndent = M.notFollowedBy (void checkIndentation)
 type LabelledParser a = (Text, Parser a)
 
 label ∷ ∀ a. Text → Parser a → LabelledParser a
-label l p = (l, M.label (Text.unpack l) p)
+label l p = (l, p)
+{-# INLINE label #-}
 
 ---------- Error-tolerant parsing
 
 -- | Consume text, annotating it as junk, until the given parser succeeds.
-junkTill ∷ ∀ a. LabelledParser a → Parser a
+junkTill ∷ ∀ a. (Base.HasTrivia a) ⇒ LabelledParser a → Parser a
 junkTill (l, p) = do
-  offset ← M.getOffset
-  -- TODO: avoid the lookahead here for performance?
-  chunks ← M.manyTill single (M.lookAhead p)
+  triviaAmount ← length <$> O.use #trivia
+  (chunks, res) ← M.manyTill_ single p
 
-  if
-    | Just neChunks ← nonEmpty chunks → do
-        let chunksSpan = foldl1 Error.mergeSpans $ fst <$> neChunks
-        saveTrivia $ Base.TJunk chunksSpan (foldMap snd chunks)
-        reportError
-          offset
-          "Junk"
-          ( PP.hsep
-              [ "I was looking for a"
-              , PP.dquotes $ PP.pretty l
-              , "when I came across a bunch of unreadable characters."
-              ]
-          )
-          [(chunksSpan, DG.This "I have no idea what this is supposed to mean.")]
-          []
-    | otherwise → pure ()
+  case nonEmpty chunks of
+    Just neChunks → do
+      let chunksSpan = foldl1 Error.mergeSpans $ fst <$> neChunks
+      let piece = Base.TJunk chunksSpan (foldMap snd chunks)
+      reportError
+        "Junk"
+        ( PP.hsep
+            [ "I was looking for a"
+            , PP.pretty l
+            , "when I came across a bunch of unreadable characters."
+            ]
+        )
+        [(chunksSpan, DG.This "I have no idea what this is supposed to mean.")]
+        []
 
-  p
+      case Base.attachTrivia (pure piece) res of
+        Just res' → pure res'
+        Nothing → do
+          O.modifying #trivia (Seq.insertAt triviaAmount piece)
+          pure res
+    Nothing → pure res
  where
   single ∷ Parser (Error.Span, Text)
-  single =
-    spanned chunk
-      <* sc
-      <* O.assign #exactIndentation False
+  single = spanned chunk <* sc
 
   chunk ∷ Parser Text
   chunk = do
     h ← M.anySingle
     if Char.isAlpha h
       then do
-        more ← M.takeWhile1P (Just "junk") Char.isAlpha
+        more ← M.takeWhileP (Just "junk") Char.isAlpha
         pure $ Text.singleton h <> more
       else pure $ Text.singleton h
 
 -- | Similar to 'junkTill', except will automatically stop when encountering
 -- an element matching the context's 'stopOn' parser.
-tryJunkTill
-  ∷ ∀ a
-   . Bool
-  -- ^ Whether to report an error on @`Nothing`.
-  → LabelledParser a
-  → Parser (Maybe a)
-tryJunkTill shouldReport (l, inner) = do
-  void checkIndentation
+tryJunkTill ∷ ∀ a. (Base.HasTrivia a) ⇒ LabelledParser a → Parser (Maybe a)
+tryJunkTill (l, inner) = do
+  (KeyedParser _ pre, KeyedParser _ post) ← O.gview #stopOn
+  junkTill
+    . (l,)
+    . M.choice
+    $ [ Nothing <$ M.lookAhead pre
+      , Just <$> inner
+      , Nothing <$ M.lookAhead post
+      ]
+{-# INLINE tryJunkTill #-}
 
-  offset ← M.getOffset
-  (pre, post) ← O.gview #stopOn
-
-  (resultSpan, result) ←
-    spanned $
-      junkTill . (l,) . M.choice $
-        [ Nothing <$ pre
-        , Just <$> inner
-        , Nothing <$ post
-        ]
-
-  when (shouldReport && isNothing result) $
-    reportExpectedError offset resultSpan l
+-- | Similar to @'tryJunkTill', except an error gets reported if the value
+-- is missing.
+tryReportedJunkTill ∷ ∀ a. (Base.HasTrivia a) ⇒ LabelledParser a → Parser (Maybe a)
+tryReportedJunkTill p = do
+  (resultSpan, result) ← spanned $ tryJunkTill p
+  when (isNothing result) do
+    reportExpectedError resultSpan $ fst p
 
   pure result
 
@@ -497,6 +581,9 @@ instance PP.Pretty ParserState where
   pretty st =
     Base.prettyTree
       "ParserState"
-      [ PP.pretty ("exactIndentation" ∷ Text, O.view #exactIndentation st)
+      [ PP.pretty ("relation" ∷ Text, O.view #relation st)
       , PP.pretty ("trivia" ∷ Text, toList $ O.view #trivia st)
       ]
+
+instance PP.Pretty IndentationRelation where
+  pretty i = PP.pretty (show i ∷ Text)

@@ -7,13 +7,17 @@ module Nihil.Cst.Base
   , Separated (..)
   , Name
   , HasSpan (..)
+  , HasTrivia (..)
   , mkMegaparsecSpan
   , mkMegaparsecSpan'
+  , mergeSpans
   , prettyTree
+  , tokAttachTrivia
   ) where
 
 import Relude
 
+import Data.Sequence (Seq ((:<|)), (<|))
 import Error.Diagnose qualified as DG
 import Nihil.Error qualified as Error
 import Optics qualified as O
@@ -94,8 +98,56 @@ instance (HasSpan sep, HasSpan a) ⇒ HasSpan (Separated sep a) where
       (mkMegaparsecSpan' start)
       elements
 
+instance (HasSpan a) ⇒ HasSpan (Delimited a) where
+  spanOf (Delimited open inner close) =
+    mergeSpans
+      (spanOf open)
+      [ guard (isNothing close) $> spanOf inner
+      , spanOf <$> close
+      ]
+
+mergeSpans ∷ Span → [Maybe Span] → Span
+mergeSpans s ss = foldl' Error.mergeSpans s (catMaybes ss)
+
+---------- Trivia attachments
+tokAttachTrivia ∷ Seq Trivia → Token a → Token a
+tokAttachTrivia trivia = O.over #trivia (trivia <>)
+
+class HasTrivia a where
+  -- | Attaches a given sequence of trivia pieces before an element.
+  --
+  -- `@Nothing@ is returned when no place to attach the trivia exists.
+  attachTrivia ∷ Seq Trivia → a → Maybe a
+
+instance HasTrivia (Token a) where
+  attachTrivia t = Just . tokAttachTrivia t
+
+instance (HasTrivia a, HasTrivia b) ⇒ HasTrivia (Either a b) where
+  attachTrivia trivia =
+    either
+      (fmap Left . attachTrivia trivia)
+      (fmap Right . attachTrivia trivia)
+
+instance (HasTrivia a) ⇒ HasTrivia (Maybe a) where
+  attachTrivia trivia x = x >>= attachTrivia trivia <&> pure
+
+instance (HasTrivia sep, HasTrivia a) ⇒ HasTrivia (Separated sep a) where
+  attachTrivia trivia x = do
+    elems ← attachTrivia trivia (O.view #elements x)
+    pure $ O.set #elements elems x
+
+instance (HasTrivia a) ⇒ HasTrivia (Seq a) where
+  attachTrivia trivia (h :<| t) = case attachTrivia trivia h of
+    Nothing → (h <|) <$> attachTrivia trivia t
+    Just h' → pure $ h' <| t
+  attachTrivia _ _ = Nothing
+
+instance (HasTrivia a) ⇒ HasTrivia (Delimited a) where
+  attachTrivia trivia = Just . O.over #open (tokAttachTrivia trivia)
+
 ---------- Pretty printing
 prettyTree ∷ ∀ a. PP.Doc a → [PP.Doc a] → PP.Doc a
+prettyTree label [] = label
 prettyTree label members =
   PP.vsep
     [ label <> ":"
