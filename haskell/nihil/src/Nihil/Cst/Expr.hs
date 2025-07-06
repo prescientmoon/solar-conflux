@@ -21,6 +21,7 @@ import Relude
 
 import Nihil.Cst.Base qualified as Base
 import Nihil.Cst.Type qualified as Type
+import Prettyprinter qualified as PP
 
 data Expr
   = EVar Var
@@ -33,6 +34,9 @@ data Expr
   | EMake Make
   | EParens (Base.Delimited Expr)
   deriving (Generic, Show)
+
+instance PP.Pretty Expr where
+  pretty _ = "<Expr>"
 
 data Var = Var
   { name ∷ Base.Name
@@ -77,6 +81,9 @@ data Pattern
   | PApp PatternApp
   | PParens (Base.Delimited Pattern)
   deriving (Generic, Show)
+
+instance PP.Pretty Pattern where
+  pretty _ = "<Pattern>"
 
 data PatternApp = PatternApp
   { dot ∷ Base.Token ()

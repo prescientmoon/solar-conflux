@@ -1,6 +1,7 @@
 module Nihil.Error where
 
 import Error.Diagnose qualified as DG
+import Nihil.Utils qualified as Utils
 import Optics qualified as O
 import Prettyprinter qualified as PP
 import Prettyprinter.Render.Terminal qualified as DG
@@ -26,6 +27,12 @@ printDiagnostic =
     DG.WithUnicode
     (DG.TabSize 2)
     DG.defaultStyle
+
+showDiagnostic ∷ Diagnostics → Text
+showDiagnostic =
+  Utils.textPretty'
+    . PP.unAnnotate
+    . DG.prettyDiagnostic' DG.WithUnicode (DG.TabSize 2)
 
 -- | Fills in the role of the non-existent instance for `Semigroup Span`.
 mergeSpans ∷ Span → Span → Span
