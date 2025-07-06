@@ -4,6 +4,7 @@ module Nihil.Parser.Combinators
   , separated
   , delimitedList
   , manyTill
+  , many'
   , string
   , name
   ) where
@@ -31,7 +32,8 @@ import Text.Megaparsec.Char qualified as MC
 -- from the input.
 pair
   ∷ ∀ a b
-   . Core.LabelledParser a
+   . (Base.HasTrivia a, Base.HasTrivia b)
+  ⇒ Core.LabelledParser a
   -- ^ The first step to parse
   → Core.LabelledParser b
   -- ^ The second step to parse
@@ -45,7 +47,7 @@ pair a b = Notation.tighten Notation.do
 -- be anything (not just parenthesis).
 delimited
   ∷ ∀ a
-   . (Base.HasSpan a)
+   . (Base.HasSpan a, Base.HasTrivia a)
   ⇒ Core.LabelledParser Base.Token'
   → Core.LabelledParser Base.Token'
   → Core.LabelledParser a
@@ -60,7 +62,6 @@ delimited open close inner = do
   offset' ← M.getOffset
   when (isNothing c) do
     Core.reportError
-      offset
       "NoClosingDelimiter"
       (PP.hsep ["Missing closing delimiter."])
       ( catMaybes
@@ -98,7 +99,11 @@ delimited open close inner = do
 -- an element that satifies the context's 'stopOn' element
 separated
   ∷ ∀ sep a
-   . (Base.HasSpan sep, Base.HasSpan a)
+   . ( Base.HasSpan sep
+     , Base.HasSpan a
+     , Base.HasTrivia sep
+     , Base.HasTrivia a
+     )
   ⇒ Bool
   -- ^ Whether to allow a trailing separator
   → Core.LabelledParser sep
@@ -108,20 +113,17 @@ separated allowTrailing sep inner = do
   start ← M.getSourcePos
   result ← go mempty
   startErrorSearch result
-  pure $ Base.Separated start $ snd <$> result
+  pure $ Base.Separated start result
  where
   go acc = do
-    offset ← M.getOffset
-    mbResult ← Core.alsoStopOnPost (snd sep) $ Core.tryJunkTill False inner
-
-    offset' ← M.getOffset
-    mbSep ← Core.alsoStopOnPost (snd inner) $ Core.tryJunkTill False sep
+    mbResult ← Core.alsoStopOnPost sep $ Core.tryJunkTill inner
+    mbSep ← Core.alsoStopOnPost inner $ Core.tryJunkTill sep
 
     if isJust mbSep || isJust mbResult
       then
         go
-          . appendMb ((offset,) . Left <$> mbSep)
-          . appendMb ((offset',) . Right <$> mbResult)
+          . appendMb (Left <$> mbSep)
+          . appendMb (Right <$> mbResult)
           $ acc
       else pure acc
 
@@ -129,10 +131,9 @@ separated allowTrailing sep inner = do
   appendMb a s = maybe s (s |>) a
 
   -- Similar to @errs@, but assumes it is being called at the very beginning.
-  startErrorSearch ∷ Seq (Int, Either sep a) → Core.Parser ()
-  startErrorSearch ((o, Left s) :<| next) = do
+  startErrorSearch ∷ Seq (Either sep a) → Core.Parser ()
+  startErrorSearch (Left s :<| next) = do
     Core.reportError
-      o
       "LeadingSeparator"
       ( PP.hsep
           [ "Leading"
@@ -154,10 +155,9 @@ separated allowTrailing sep inner = do
   startErrorSearch res = errs res
 
   -- Looks for inconsistencies along the parsed list of separators / elements.
-  errs ∷ Seq (Int, Either sep a) → Core.Parser ()
-  errs ((_, Right e1) :<| next@((o2, Right e2) :<| _)) = do
+  errs ∷ Seq (Either sep a) → Core.Parser ()
+  errs (Right e1 :<| next@(Right e2 :<| _)) = do
     Core.reportError
-      o2
       "MissingSeparator"
       ( PP.hsep
           [ "There's a missing"
@@ -173,9 +173,8 @@ separated allowTrailing sep inner = do
       ]
       []
     errs next
-  errs ((_, Left s1) :<| next@((o2, Left s2) :<| _)) = do
+  errs (Left s1 :<| next@(Left s2 :<| _)) = do
     Core.reportError
-      o2
       "MissingElement"
       ( PP.hsep
           [ "There's a missing"
@@ -191,10 +190,9 @@ separated allowTrailing sep inner = do
       ]
       []
     errs next
-  errs ((o, Left s) :<| Seq.Empty)
+  errs ((Left s) :<| Seq.Empty)
     | not allowTrailing =
         Core.reportError
-          o
           "TraillingSeparator"
           ( PP.hsep
               [ "Trailing"
@@ -210,7 +208,11 @@ separated allowTrailing sep inner = do
 -- | Wrapper around @'delimited' and @'separated'.
 delimitedList
   ∷ ∀ a sep
-   . (Base.HasSpan a, Base.HasSpan sep)
+   . ( Base.HasSpan a
+     , Base.HasSpan sep
+     , Base.HasTrivia sep
+     , Base.HasTrivia a
+     )
   ⇒ Core.LabelledParser Base.Token'
   → Core.LabelledParser Base.Token'
   → Core.LabelledParser sep
@@ -227,44 +229,36 @@ delimitedList open close sep inner = do
   let defaultStart = Base.Separated f mempty
   pure $ fmap (fromMaybe $ defaultStart) res
 
+-- | Keep running a parser until it returns a "Maybe"
+many' ∷ ∀ a. Core.Parser (Maybe a) → Core.Parser (Seq a)
+many' inner = go mempty
+ where
+  go acc = do
+    mbInner ← inner
+    case mbInner of
+      Just i → go (acc |> i)
+      Nothing → pure acc
+
 manyTill
   ∷ ∀ a stop
-   . Core.LabelledParser a
+   . (Base.HasTrivia stop, Base.HasTrivia a)
+  ⇒ Core.LabelledParser a
   → Core.LabelledParser stop
   → Core.Parser (Seq a, Maybe stop)
 manyTill inner stop = go mempty
  where
   go acc = do
-    mbStop ← M.optional $ snd stop
-    case mbStop of
-      Just s → pure (acc, Just s)
-      Nothing → do
-        mbInner ← Core.alsoStopOnPre (snd stop) $ Core.tryJunkTill False inner
-        -- _ ← Core.alsoStopOnPre (snd stop) $ M.optional $ M.lookAhead $ snd inner
-        -- mbInner ← Core.alsoStopOnPre (snd stop) $ M.optional $ snd inner
-        case mbInner of
-          Just i → go (acc |> i)
-          Nothing → do
-            offset ← M.getOffset
-            pos ← M.getSourcePos
-            Core.reportError
-              offset
-              "NoEnd"
-              ( PP.hsep
-                  [ "I was expecting to find a"
-                  , PP.pretty $ fst stop
-                  , "after all these"
-                  , PP.pretty $ fst inner
-                  , "."
-                  ]
-              )
-              [
-                ( Base.mkMegaparsecSpan' pos
-                , DG.This "I managed to get this far looking for one."
-                )
-              ]
-              []
-            pure (acc, Nothing)
+    result ←
+      Core.tryJunkTill
+        . (fst inner,)
+        . M.choice
+        $ [ Left <$> snd stop
+          , Right <$> snd inner
+          ]
+    case result of
+      Just (Right i) → go (acc |> i)
+      Just (Left s) → pure (acc, Just s)
+      Nothing → pure (acc, Nothing)
 
 string ∷ Text → Core.LabelledParser Base.Token'
 string s = Core.label s . Core.token . MC.string $ s
@@ -275,6 +269,7 @@ name = Core.token $ M.try do
   let chunk = M.takeWhile1P (Just "character") \c → Char.isAlphaNum c
   let sep = MC.string "."
   offset ← M.getOffset
+  -- TODO: restructure this to have actual error messages (for instance, for trailing dots)
   (s, result) ← Core.spanned $ Text.intercalate "." <$> M.sepBy1 chunk sep
   when (elem result illegal) $ do
     Core.throwError

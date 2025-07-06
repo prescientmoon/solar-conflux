@@ -38,6 +38,8 @@ instance PP.Pretty Module where
         , PP.pretty <$> name
         , PP.pretty <$> exports
         , PP.pretty <$> where'
+        , guard (not $ null decls) $> Base.prettyTree "declarations" do
+            PP.pretty <$> toList decls
         , Just $ PP.pretty eof
         ]
 
@@ -49,8 +51,29 @@ data Declaration
   | DeclValue Value
   deriving (Generic, Show)
 
+instance PP.Pretty Declaration where
+  pretty (DeclIndLike i) = PP.pretty i
+  pretty (DeclTypeAlias i) = PP.pretty i
+  pretty (DeclForeignType i) = PP.pretty i
+  pretty (DeclForeignValue i) = PP.pretty i
+  pretty (DeclValue i) = PP.pretty i
+
+instance Base.HasTrivia Declaration where
+  attachTrivia _ _ = Nothing
+
+-- attachTrivia t (DeclIndLike i) = DeclIndLike <$> Base.attachTrivia t i
+-- attachTrivia t (DeclTypeAlias i) = DeclTypeAlias <$> Base.attachTrivia t i
+-- attachTrivia t (DeclForeignType i) = DeclForeignType <$> Base.attachTrivia t i
+-- attachTrivia t (DeclForeignValue i) = DeclForeignValue <$> Base.attachTrivia t i
+-- attachTrivia t (DeclValue i) = DeclValue <$> Base.attachTrivia t i
+
 data IndLikeKind = Inductive | Coinductive | Trait
   deriving (Generic, Show)
+
+instance PP.Pretty IndLikeKind where
+  pretty Inductive = "inductive"
+  pretty Coinductive = "coinductive"
+  pretty Trait = "trait"
 
 data IndLike
   = IndLike
@@ -62,6 +85,18 @@ data IndLike
   }
   deriving (Generic, Show)
 
+instance PP.Pretty IndLike where
+  pretty (IndLike{..}) =
+    Base.prettyTree (PP.pretty kind) $
+      catMaybes
+        [ PP.pretty <$> name
+        , guard (not $ null args) $> Base.prettyTree "arguments" do
+            PP.pretty <$> args
+        , PP.pretty <$> where'
+        , guard (not $ null fields) $> Base.prettyTree "fields" do
+            PP.pretty <$> fields
+        ]
+
 data Field
   = Field
   { name ∷ Maybe Base.Name
@@ -69,6 +104,14 @@ data Field
   , ty ∷ Maybe Type.Type'
   }
   deriving (Generic, Show)
+
+instance PP.Pretty Field where
+  pretty (Field{..}) =
+    Base.prettyTree "field" . catMaybes $
+      [ PP.pretty <$> name
+      , PP.pretty <$> colon
+      , PP.pretty <$> ty
+      ]
 
 data TypeAlias
   = TypeAlias
@@ -80,6 +123,17 @@ data TypeAlias
   }
   deriving (Generic, Show)
 
+instance PP.Pretty TypeAlias where
+  pretty (TypeAlias{..}) =
+    Base.prettyTree "type alias" . catMaybes $
+      [ Just $ PP.pretty ty
+      , PP.pretty <$> name
+      , guard (not $ null args) $> Base.prettyTree "arguments" do
+          PP.pretty <$> args
+      , PP.pretty <$> eq
+      , PP.pretty <$> body
+      ]
+
 data ForeignType
   = ForeignType
   { foreign' ∷ Base.Token'
@@ -88,6 +142,16 @@ data ForeignType
   , args ∷ [Base.Name]
   }
   deriving (Generic, Show)
+
+instance PP.Pretty ForeignType where
+  pretty (ForeignType{..}) =
+    Base.prettyTree "foreign type" . catMaybes $
+      [ Just $ PP.pretty foreign'
+      , Just $ PP.pretty ty
+      , PP.pretty <$> name
+      , guard (not $ null args) $> Base.prettyTree "arguments" do
+          PP.pretty <$> args
+      ]
 
 data ForeignValue
   = ForeignValue
@@ -98,6 +162,15 @@ data ForeignValue
   }
   deriving (Generic, Show)
 
+instance PP.Pretty ForeignValue where
+  pretty (ForeignValue{..}) =
+    Base.prettyTree "foreign value" . catMaybes $
+      [ Just $ PP.pretty foreign'
+      , PP.pretty <$> name
+      , PP.pretty <$> colon
+      , PP.pretty <$> ty
+      ]
+
 data Value
   = Value
   { name ∷ Maybe Base.Name
@@ -107,6 +180,16 @@ data Value
   }
   deriving (Generic, Show)
 
+instance PP.Pretty Value where
+  pretty (Value{..}) =
+    Base.prettyTree "value" . catMaybes $
+      [ PP.pretty <$> name
+      , PP.pretty <$> colon
+      , PP.pretty <$> ty
+      , guard (not $ null branches) $> Base.prettyTree "branches" do
+          PP.pretty <$> branches
+      ]
+
 data ValueEquation = ValueEquation
   { name ∷ Base.Name
   , args ∷ [Expr.Pattern]
@@ -114,3 +197,13 @@ data ValueEquation = ValueEquation
   , expr ∷ Maybe Expr.Expr
   }
   deriving (Generic, Show)
+
+instance PP.Pretty ValueEquation where
+  pretty (ValueEquation{..}) =
+    Base.prettyTree "value equation" . catMaybes $
+      [ Just $ PP.pretty name
+      , guard (not $ null args) $> Base.prettyTree "arguments" do
+          PP.pretty <$> args
+      , PP.pretty <$> eq
+      , PP.pretty <$> expr
+      ]

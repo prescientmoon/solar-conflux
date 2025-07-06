@@ -2,7 +2,6 @@ module Nihil.Parser.Module (module') where
 
 import Relude
 
-import Data.Set qualified as Set
 import Error.Diagnose qualified as DG
 import Nihil.Cst.Base qualified as Base
 import Nihil.Cst.Module
@@ -12,16 +11,12 @@ import Nihil.Parser.Notation qualified as Core
 import Text.Megaparsec qualified as M
 
 module' ∷ Core.Parser Module
-module' = Core.exactlyIndented do
-  block ← Core.blockLike
-  offset ← M.getOffset
+module' = do
   pos ← M.getSourcePos
-  mbModule' ← Core.mkBlock block $ M.optional $ M.try $ snd $ Core.string "module"
-  -- (name, exports, where') ← pure (Nothing, Nothing, Nothing)
+  mbModule' ← Core.unindented $ M.optional $ snd $ Core.string "module"
   (name, exports, where') ← case mbModule' of
     Nothing → do
       Core.reportError
-        offset
         "NoModuleHeader"
         "No module header found."
         [(Base.mkMegaparsecSpan' pos, DG.This "This is where I thought the module header might be.")]
@@ -40,14 +35,19 @@ module' = Core.exactlyIndented do
       where' ← Core.pre $ Core.step $ Core.string "where"
       Core.pure (name, exports', where')
 
-  -- let (decls, mbEof) = (mempty, Nothing)
   (decls, mbEof) ←
-    Core.manyTill
-      (Core.label "declaration" $ Core.mkBlock block decl)
-      (second (fmap void) $ Core.string "struct")
+    Core.anyIndentation $
+      Core.manyTill
+        (Core.label "declaration" . Core.unindented $ decl)
+        (Core.label "end of file" . Core.anyIndentation $ Core.token M.eof)
+
   eof ← case mbEof of
-    Nothing → Core.resetStopOn $ Core.junkTill ("end of file", Core.token M.eof)
     Just e → pure e
+    Nothing →
+      Core.anyIndentation
+        . Core.junkTill
+        . Core.label "end of file"
+        $ Core.token M.eof
 
   pure $
     Module
@@ -61,7 +61,8 @@ module' = Core.exactlyIndented do
 
 decl ∷ Core.Parser Declaration
 decl = do
-  void
-    . Core.separated False (Core.string ",")
-    $ Core.label "name" Core.name
-  pure $ DeclValue $ Value Nothing Nothing Nothing []
+  tok ← snd $ Core.string "hi"
+  -- void
+  --   . Core.separated False (Core.string ",")
+  --   $ Core.label "name" Core.name
+  pure $ DeclValue $ Value (Just tok) Nothing Nothing []
