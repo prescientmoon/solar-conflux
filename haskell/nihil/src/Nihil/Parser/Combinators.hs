@@ -17,6 +17,7 @@ import Data.Sequence qualified as Seq
 import Data.Text qualified as Text
 import Error.Diagnose qualified as DG
 import Nihil.Cst.Base qualified as Base
+import Nihil.Error qualified as Error
 import Nihil.Parser.Core qualified as Core
 import Nihil.Parser.Notation qualified as Notation
 import Prettyprinter qualified as PP
@@ -63,7 +64,7 @@ delimited open close inner = do
   when (isNothing c) do
     Core.reportError
       "NoClosingDelimiter"
-      (PP.hsep ["Missing closing delimiter."])
+      "Missing closing delimiter."
       ( catMaybes
           [ do
               result ← resultMb
@@ -84,6 +85,30 @@ delimited open close inner = do
               )
           ]
       )
+      []
+
+  when (isNothing resultMb && isJust c) do
+    Core.reportError
+      "MissingDelimitedValue"
+      ( PP.hsep
+          [ "Missing delimited"
+          , PP.pretty $ fst inner
+          , "between"
+          , PP.pretty $ fst open
+          , "and"
+          , PP.pretty (fst close) <> "."
+          ]
+      )
+      [
+        ( maybe id Error.mergeSpans (Base.spanOf <$> c) $ Base.spanOf o
+        , DG.This $
+            PP.hsep
+              [ "I was expecting a"
+              , PP.pretty $ fst inner
+              , "somewhere in this range."
+              ]
+        )
+      ]
       []
 
   pure $ Base.Delimited o resultMb c
