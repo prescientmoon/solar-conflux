@@ -13,6 +13,7 @@ module Nihil.Cst.Base
   , mergeSpans
   , prettyTree
   , tokAttachTrivia
+  , attachTriviaOptically
   ) where
 
 import Relude
@@ -110,9 +111,6 @@ mergeSpans ∷ Span → [Maybe Span] → Span
 mergeSpans s ss = foldl' Error.mergeSpans s (catMaybes ss)
 
 ---------- Trivia attachments
-tokAttachTrivia ∷ Seq Trivia → Token a → Token a
-tokAttachTrivia trivia = O.over #trivia (trivia <>)
-
 class HasTrivia a where
   -- | Attaches a given sequence of trivia pieces before an element.
   --
@@ -122,6 +120,9 @@ class HasTrivia a where
 instance HasTrivia (Token a) where
   attachTrivia t = Just . tokAttachTrivia t
 
+tokAttachTrivia ∷ Seq Trivia → Token a → Token a
+tokAttachTrivia trivia = O.over #trivia (trivia <>)
+
 instance (HasTrivia a, HasTrivia b) ⇒ HasTrivia (Either a b) where
   attachTrivia trivia =
     either
@@ -129,6 +130,7 @@ instance (HasTrivia a, HasTrivia b) ⇒ HasTrivia (Either a b) where
       (fmap Right . attachTrivia trivia)
 
 instance (HasTrivia a) ⇒ HasTrivia (Maybe a) where
+  -- attachTrivia = attachTriviaOptically O._Just
   attachTrivia trivia x = x >>= attachTrivia trivia <&> pure
 
 instance (HasTrivia sep, HasTrivia a) ⇒ HasTrivia (Separated sep a) where
@@ -144,6 +146,16 @@ instance (HasTrivia a) ⇒ HasTrivia (Seq a) where
 
 instance (HasTrivia a) ⇒ HasTrivia (Delimited a) where
   attachTrivia trivia = Just . O.over #open (tokAttachTrivia trivia)
+
+attachTriviaOptically
+  ∷ ∀ a b
+   . (HasTrivia b)
+  ⇒ O.Lens' a b
+  → Seq Trivia
+  → a
+  → Maybe a
+attachTriviaOptically optic trivia whole =
+  O.traverseOf optic (attachTrivia trivia) whole
 
 ---------- Pretty printing
 prettyTree ∷ ∀ a. PP.Doc a → [PP.Doc a] → PP.Doc a
