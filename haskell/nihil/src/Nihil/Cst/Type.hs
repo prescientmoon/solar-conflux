@@ -124,9 +124,9 @@ data App = App
   deriving (Generic, Show)
 
 instance Base.HasTrivia App where
-  attachTrivia t app@(App{..}) =
-    (flip (O.set #f) app <$> (Base.attachTrivia t f))
-      <|> (flip (O.set #a) app <$> (Base.attachTrivia t a))
+  attachTrivia t a =
+    Base.attachTriviaOptically #f t a
+      <|> Base.attachTriviaOptically #a t a
 
 instance PP.Pretty App where
   pretty (App{..}) =

@@ -7,7 +7,7 @@ module Nihil.Cst.Expr
   , MatchKind (..)
   , MatchBranch (..)
   , Pattern (..)
-  , PatternApp (..)
+  , PatternProj (..)
   , With (..)
   , If (..)
   , Block (..)
@@ -21,6 +21,7 @@ import Relude
 
 import Nihil.Cst.Base qualified as Base
 import Nihil.Cst.Type qualified as Type
+import Optics qualified as O
 import Prettyprinter qualified as PP
 
 data Expr
@@ -69,28 +70,66 @@ data MatchKind = Inductive | Coinductive
   deriving (Generic, Show)
 
 data MatchBranch = MatchBranch
-  { patterns ∷ Base.Separated (Base.Token ()) Expr
-  , arrow ∷ Maybe (Base.Token ())
+  { patterns ∷ Base.Separated Base.Token' Pattern
+  , arrow ∷ Maybe Base.Token'
   , body ∷ Maybe Expr
   }
   deriving (Generic, Show)
 
 data Pattern
   = PName Base.Name -- var → ...
-  | PWildcard (Base.Token ()) -- _ → ...
-  | PApp PatternApp
-  | PParens (Base.Delimited Pattern)
+  | PWildcard Base.Token' -- _ → ...
+  | PProj PatternProj -- .Thing a → ...
+  | PParens (Base.Delimited (Maybe Pattern))
   deriving (Generic, Show)
 
 instance PP.Pretty Pattern where
-  pretty _ = "<Pattern>"
+  pretty (PName x) = PP.pretty x
+  pretty (PWildcard x) = PP.pretty x
+  pretty (PProj x) = PP.pretty x
+  pretty (PParens x) = PP.pretty x
 
-data PatternApp = PatternApp
-  { dot ∷ Base.Token ()
+instance Base.HasSpan Pattern where
+  spanOf (PName x) = Base.spanOf x
+  spanOf (PWildcard x) = Base.spanOf x
+  spanOf (PProj x) = Base.spanOf x
+  spanOf (PParens (Base.Delimited{..})) =
+    Base.mergeSpans
+      (Base.spanOf open)
+      [ Base.spanOf <$> inner
+      , Base.spanOf <$> close
+      ]
+
+instance Base.HasTrivia Pattern where
+  attachTrivia t (PName x) = PName <$> Base.attachTrivia t x
+  attachTrivia t (PWildcard x) = PWildcard <$> Base.attachTrivia t x
+  attachTrivia t (PProj x) = PProj <$> Base.attachTrivia t x
+  attachTrivia t (PParens x) = PParens <$> Base.attachTrivia t x
+
+data PatternProj = PatternProj
+  { dot ∷ Base.Token'
   , head ∷ Maybe Base.Name
-  , args ∷ [Pattern]
+  , args ∷ Seq Pattern
   }
   deriving (Generic, Show)
+
+instance PP.Pretty PatternProj where
+  pretty app =
+    Base.prettyTree "PatternProj" $
+      catMaybes
+        [ Just . PP.pretty $ O.view #dot app
+        , PP.pretty <$> O.view #head app
+        ]
+        <> (toList $ PP.pretty <$> O.view #args app)
+
+instance Base.HasSpan PatternProj where
+  spanOf app =
+    Base.mergeSpans (Base.spanOf $ O.view #dot app) $
+      (Base.spanOf <$> O.view #head app)
+        : (toList $ Just . Base.spanOf <$> O.view #args app)
+
+instance Base.HasTrivia PatternProj where
+  attachTrivia t = Just . O.over #dot (Base.tokAttachTrivia t)
 
 data With = With
   { with ∷ Base.Token ()

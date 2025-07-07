@@ -16,7 +16,6 @@ import Nihil.Cst.Type
 import Nihil.Error qualified as Error
 import Nihil.Parser.Combinators qualified as Core
 import Nihil.Parser.Core qualified as Core
-import Optics qualified as O
 import Text.Megaparsec qualified as M
 import Text.Megaparsec.Char qualified as MC
 
@@ -150,22 +149,8 @@ tyVar = do
   pure $ Var{name = name}
 
 tyParens ∷ Core.Parser (Base.Delimited (Maybe Type'))
-tyParens = do
-  res ←
-    Core.delimited
-      (Core.string "(")
-      (Core.string ")")
-      (Core.label "Type" type')
-
-  when (isNothing (O.view #inner res) && isJust (O.view #close res)) do
-    Core.reportError
-      "MissingInnerType"
-      "I found a pair of parenthesis containing no type."
-      [
-        ( Base.spanOf $ TyParens res
-        , DG.This "I was expecting a type within these parenthesis."
-        )
-      ]
-      []
-
-  pure res
+tyParens =
+  Core.delimited
+    (Core.string "(")
+    (Core.string ")")
+    (Core.label "Type" type')
