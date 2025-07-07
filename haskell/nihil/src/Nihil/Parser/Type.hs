@@ -1,4 +1,4 @@
-module Nihil.Parser.Type (type', tyForall) where
+module Nihil.Parser.Type (pType) where
 
 import Relude
 
@@ -19,8 +19,8 @@ import Nihil.Parser.Core qualified as Core
 import Text.Megaparsec qualified as M
 import Text.Megaparsec.Char qualified as MC
 
-type' ∷ Core.Parser Type'
-type' = tyArr
+pType ∷ Core.Parser Type'
+pType = tyArr
 
 tyArr ∷ Core.Parser Type'
 tyArr = do
@@ -47,7 +47,7 @@ tyArr = do
       to ←
         Core.alsoStopOnPost ("arrow", normalArrow <|> traitArrow)
           . Core.tryJunkTill
-          $ Core.label "Type" type'
+          $ Core.label "Type" pType
 
       when (isNothing to) do
         Core.reportError
@@ -119,7 +119,7 @@ tyForall = do
       )
       []
 
-  ty ← Core.tryJunkTill $ Core.label "Type" type'
+  ty ← Core.tryJunkTill $ Core.label "Type" pType
 
   when (isNothing ty) do
     Core.reportError
@@ -153,4 +153,4 @@ tyParens =
   Core.delimited
     (Core.string "(")
     (Core.string ")")
-    (Core.label "Type" type')
+    (Core.label "Type" pType)

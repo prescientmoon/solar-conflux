@@ -291,7 +291,10 @@ string s = Core.label s . Core.token . MC.string $ s
 name ∷ Core.Parser Base.Name
 name = Core.token $ M.try do
   -- TODO: support more chars
-  let chunk = M.takeWhile1P (Just "character") \c → Char.isAlphaNum c
+  let chunk = M.takeWhile1P (Just "character") \c →
+        Char.isAlphaNum c
+          || c == '_'
+
   let sep = MC.string "."
   offset ← M.getOffset
   -- TODO: restructure this to have actual error messages (for instance, for trailing dots)
