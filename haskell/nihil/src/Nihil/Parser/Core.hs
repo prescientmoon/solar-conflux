@@ -5,6 +5,7 @@ module Nihil.Parser.Core
   , ParserContext (..)
   , Parser
   , StopOnTiming (..)
+  , BlockMaker
   , keyedAppend
   , reportError
   , throwError
@@ -20,8 +21,9 @@ module Nihil.Parser.Core
   , exactlyIndented
   , anyIndentation
   , unindented
-  , blockLike
   , mkBlock
+  , tryMkBlock
+  , blockLike
   , badIndent
   , saveTrivia
   , checkIndentation
@@ -450,23 +452,33 @@ newtype BlockMaker = BlockMaker (∀ a. Parser a → Parser a)
 -- - pattern match branches
 -- - statements in some block
 -- - declarations in a module
-blockLike ∷ Parser BlockMaker
-blockLike =
+mkBlock ∷ Parser BlockMaker
+mkBlock =
   checkIndentation True <&> \(_, expected) → BlockMaker \p → do
     O.assign #relation IEQ
     r ← withIndentation expected p
     O.assign #relation IGT
     pure r
 
-mkBlock ∷ ∀ a. BlockMaker → Parser a → Parser a
-mkBlock (BlockMaker f) a = f a
+-- | Similar to @mkBlock@, except returning @Nothing@ on indentation violations.
+tryMkBlock ∷ Parser (Maybe BlockMaker)
+tryMkBlock =
+  checkIndentation False <&> \(s, expected) →
+    guard s $> BlockMaker \p → do
+      O.assign #relation IEQ
+      r ← withIndentation expected p
+      O.assign #relation IGT
+      pure r
+
+blockLike ∷ ∀ a. BlockMaker → Parser a → Parser a
+blockLike (BlockMaker f) a = f a
 
 -- | Turns a parser into one with strict indentation enabled. Check
 -- `ParserState.relation` for details regarding what this means.
 exactlyIndented ∷ ∀ a. Parser a → Parser a
 exactlyIndented p =
   -- TODO: make this not report indentation errors
-  blockLike >>= flip mkBlock p
+  mkBlock >>= flip blockLike p
 
 restoreRelation ∷ ∀ a. Parser a → Parser a
 restoreRelation p = do
