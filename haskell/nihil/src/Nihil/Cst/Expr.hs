@@ -115,7 +115,7 @@ data PatternProj = PatternProj
 
 instance PP.Pretty PatternProj where
   pretty app =
-    Base.prettyTree "PatternProj" $
+    Base.prettyTree "Projection pattern" $
       catMaybes
         [ Just . PP.pretty $ O.view #dot app
         , PP.pretty <$> O.view #head app

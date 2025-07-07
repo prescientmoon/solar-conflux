@@ -1,20 +1,15 @@
-module Nihil.Parser.Expr (pPattern) where
+module Nihil.Parser.Expr (pPattern, pPatternAtom) where
 
 import Relude
 
-import Data.Foldable1 (foldl1)
-import Error.Diagnose qualified as DG
-import Nihil.Cst.Base qualified as Base
 import Nihil.Cst.Expr
   ( Pattern (..)
   , PatternProj (..)
   )
-import Nihil.Error qualified as Error
 import Nihil.Parser.Combinators qualified as Core
 import Nihil.Parser.Core qualified as Core
 import Optics qualified as O
 import Text.Megaparsec qualified as M
-import Text.Megaparsec.Char qualified as MC
 
 pPattern ∷ Core.Parser Pattern
 pPattern = pPatProjApp <|> pPatternAtom

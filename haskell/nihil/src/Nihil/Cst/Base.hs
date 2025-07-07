@@ -123,6 +123,11 @@ instance HasTrivia (Token a) where
 tokAttachTrivia ∷ Seq Trivia → Token a → Token a
 tokAttachTrivia trivia = O.over #trivia (trivia <>)
 
+instance (HasTrivia a, HasTrivia b) ⇒ HasTrivia (a, b) where
+  attachTrivia trivia tup =
+    attachTriviaOptically O._1 trivia tup
+      <|> attachTriviaOptically O._2 trivia tup
+
 instance (HasTrivia a, HasTrivia b) ⇒ HasTrivia (Either a b) where
   attachTrivia trivia =
     either
