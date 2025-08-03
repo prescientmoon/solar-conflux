@@ -24,3 +24,20 @@ textPretty' =
 adjoinMany ∷ ∀ s a. [O.Traversal' s a] → O.Traversal' s a
 adjoinMany (h : t) = O.adjoin h (adjoinMany t)
 adjoinMany [] = O.castOptic @O.A_Traversal $ O.noIx O.ignored
+
+-- | Similar to @`modifying`, except handles the cases where the monadic action
+-- changes the state mid-update gracefully. Only works with affine folds, though.
+modifyingM
+  ∷ ∀ m k is s a
+   . ( O.Is k O.An_AffineFold
+     , O.Is k O.A_Setter
+     , MonadState s m
+     )
+  ⇒ O.Optic' k is s a
+  → (a → m a)
+  → m ()
+modifyingM o f = do
+  r ← gets $ O.preview o
+  for_ r \r' → do
+    r'' ← f r'
+    O.assign o r''

@@ -71,13 +71,13 @@ data Delimited a = Delimited
   , inner ∷ a
   , close ∷ Maybe Token'
   }
-  deriving (Generic, Show, Functor, HasTrivia)
+  deriving (Generic, Show, Functor, Foldable, Traversable, HasTrivia)
 
 data Separated sep a = Separated
-  { start ∷ M.SourcePos -- Required for the @HasSpan@ instance (the seq could be empty)
+  { start ∷ M.SourcePos
   , elements ∷ Seq (Either sep a)
   }
-  deriving (Generic, Show, HasTrivia)
+  deriving (Generic, Show, Functor, Foldable, Traversable, HasTrivia)
 
 ---------- Trivia attachments
 class HasTrivia a where
