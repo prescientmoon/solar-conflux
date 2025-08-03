@@ -57,6 +57,7 @@ executable nihil
         , Nihil.Cst.Type
         , Nihil.Cst.Expr
         , Nihil.Cst.Module
+        , Nihil.Ast.State
         , Nihil.Ast.Type
         , Nihil.Parser.Core
         , Nihil.Parser.Notation

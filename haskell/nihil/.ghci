@@ -1,3 +1,5 @@
+import Prettyprinter qualified as PP
+
 :l Nihil.Parser.Core
 :m +Nihil.Parser.Core
 
@@ -15,3 +17,6 @@
 
 :l Nihil.Server.SemanticTokens
 :m +Nihil.Server.SemanticTokens
+
+:l Nihil.Ast.State
+:m +Nihil.Ast.State
