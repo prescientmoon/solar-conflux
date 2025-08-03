@@ -13,6 +13,7 @@ module Nihil.Parser.Core
   , spanned
   , token
   , parseTest
+  , runParser
   , alsoStopOn
   , alsoStopOnPre
   , alsoStopOnPost
@@ -183,21 +184,10 @@ throwError offset code desc markers hints =
 -- | Attempt to run a parser on some string, reporting the results to stdout.
 -- An error is reported if the parser does not consume the full string it's
 -- given. The parser state at the very end of the parse is also shown.
-parseTest ∷ ∀ a. (PP.Pretty a) ⇒ Parser a → Text → IO ()
+parseTest ∷ ∀ a. (PP.Pretty a) ⇒ Parser a → Text → IO (Maybe a)
 parseTest p input = do
-  let initialCtx =
-        ParserContext
-          (M.mkPos 1)
-          ( KeyedParser mempty empty
-          , KeyedParser mempty empty
-          )
-
-  let initialState = ParserState mempty IAny
-
   let filename = "<test>"
-  let readerResult = runReaderT (resetStopOn $ sc *> p <* M.eof) initialCtx
-  let stateResult = runStateT readerResult initialState
-  let (errs, result) = runParser stateResult filename input
+  let (errs, result) = runParser p filename input
 
   for_ result \(x, finalState) → do
     putTextLn $ textPretty finalState
@@ -208,6 +198,8 @@ parseTest p input = do
       (Error.addReports errs)
       filename
       (Text.unpack input)
+
+  pure $ fst <$> result
 
 -- | Forget every hint collected by megaparsec.
 --
@@ -226,11 +218,29 @@ noHints p = ReaderT \ctx → StateT \s →
 
 runParser
   ∷ ∀ a
+   . Parser a
+  → String
+  → Text
+  → ([Error.Report], Maybe (a, ParserState))
+runParser p filename input = runMParser stateResult filename input
+ where
+  stateResult = runStateT readerResult initialState
+  readerResult = runReaderT (resetStopOn $ sc *> p <* M.eof) initialCtx
+  initialState = ParserState mempty IAny
+  initialCtx =
+    ParserContext
+      (M.mkPos 1)
+      ( KeyedParser mempty empty
+      , KeyedParser mempty empty
+      )
+
+runMParser
+  ∷ ∀ a
    . M.Parsec Error Text a
   → String
   → Text
   → ([Error.Report], Maybe a)
-runParser p s i = runIdentity do
+runMParser p s i = runIdentity do
   (MI.Reply s' _ result) ← MI.runParsecT p (M.initialState s i)
   -- TODO: take custom error spans into account when sorting
   let bundle es = finalizeError =<< sortWith M.errorOffset es
@@ -532,7 +542,7 @@ junkTill (l, p) = do
 
   case nonEmpty chunks of
     Just neChunks → do
-      let chunksSpan = foldl1 Error.mergeSpans $ fst <$> neChunks
+      let chunksSpan = foldl1 (<>) $ fst <$> neChunks
       let piece = Base.TJunk chunksSpan (foldMap snd chunks)
       reportError
         "Junk"

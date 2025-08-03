@@ -14,21 +14,31 @@
           root = ./.;
         };
 
+      # shell =
+      #   pkgs:
+      #   (hpkgs pkgs).developPackage {
+      #     root = ./.;
+      #     modifier =
+      #       drv:
+      #       pkgs.haskell.lib.addBuildTools drv (
+      #         with (hpkgs pkgs);
+      #         [
+      #           cabal-install
+      #           ghcid
+      #           fourmolu
+      #           haskell-language-server
+      #         ]
+      #       );
+      #   };
       shell =
         pkgs:
-        (hpkgs pkgs).developPackage {
-          root = ./.;
-          modifier =
-            drv:
-            pkgs.haskell.lib.addBuildTools drv (
-              with (hpkgs pkgs);
-              [
-                cabal-install
-                ghcid
-                fourmolu
-                haskell-language-server
-              ]
-            );
+        pkgs.mkShell {
+          packages = with (hpkgs pkgs); [
+            cabal-install
+            ghcid
+            fourmolu
+            haskell-language-server
+          ];
         };
     in
     {

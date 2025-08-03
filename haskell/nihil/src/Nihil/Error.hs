@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module Nihil.Error where
 
 import Error.Diagnose qualified as DG
@@ -6,6 +8,7 @@ import Optics qualified as O
 import Prettyprinter qualified as PP
 import Prettyprinter.Render.Terminal qualified as DG
 import Relude
+import Text.Megaparsec qualified as M
 
 data ReportKind = Error | Warning
 type Doc = PP.Doc DG.AnsiStyle
@@ -34,11 +37,13 @@ showDiagnostic =
     . PP.unAnnotate
     . DG.prettyDiagnostic' DG.WithUnicode (DG.TabSize 2)
 
--- | Fills in the role of the non-existent instance for `Semigroup Span`.
-mergeSpans ∷ Span → Span → Span
-mergeSpans a b =
-  DG.Position
-    { file = O.view #file b
-    , begin = min (O.view #begin a) (O.view #begin b)
-    , end = max (O.view #end a) (O.view #end b)
-    }
+instance Semigroup Span where
+  a <> b =
+    DG.Position
+      { file = O.view #file b
+      , begin = min (O.view #begin a) (O.view #begin b)
+      , end = max (O.view #end a) (O.view #end b)
+      }
+
+newtype Pos = Pos M.SourcePos
+  deriving (Show, Generic)
