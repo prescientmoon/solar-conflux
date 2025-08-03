@@ -7,7 +7,7 @@ import Nihil.Cst.Base qualified as Base
 import Nihil.Cst.Module
 import Nihil.Parser.Combinators qualified as Core
 import Nihil.Parser.Core qualified as Core
-import Nihil.Parser.Expr (pPatternAtom)
+import Nihil.Parser.Expr (pExpr, pPatternAtom)
 import Nihil.Parser.Notation qualified as Core
 import Nihil.Parser.Type (pType)
 import Optics qualified as O
@@ -61,7 +61,7 @@ pModule = do
       , exports = exports
       , where' = where'
       , decls = decls
-      , eof = eof
+      , eof = eof $> EOF
       }
 
 pDecl ∷ Core.Parser Declaration
@@ -113,12 +113,14 @@ pValueEquation = do
         (Core.label "pattern" pPatternAtom)
         (Core.string "=")
 
+    expr ← Core.tryJunkTill $ Core.label "expression" pExpr
+
     pure . DeclValueEquation $
       ValueEquation
         { name = name
         , args = patterns
         , eq = eq
-        , expr = Nothing
+        , expr = expr
         }
 
 pForeign ∷ Core.Parser Declaration

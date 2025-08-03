@@ -1,6 +1,5 @@
 module Nihil.Parser.Combinators
-  ( pair
-  , delimited
+  ( delimited
   , separated
   , delimitedList
   , manyTill
@@ -17,38 +16,17 @@ import Data.Sequence qualified as Seq
 import Data.Text qualified as Text
 import Error.Diagnose qualified as DG
 import Nihil.Cst.Base qualified as Base
-import Nihil.Error qualified as Error
 import Nihil.Parser.Core qualified as Core
 import Nihil.Parser.Notation qualified as Notation
 import Prettyprinter qualified as PP
 import Text.Megaparsec qualified as M
 import Text.Megaparsec.Char qualified as MC
 
--- | The base building block for error-tolerant parsing. Attempts to parse two
--- things in sequence, eating away junk input coming our way.
---
--- Due to the way this is implemented, simply wrapping the second parser in
--- 'Text.Megaparsec.optional' will not work as expected. The second parser
--- could succeed right away, thus the first parser would assume to be missing
--- from the input.
-pair
-  ∷ ∀ a b
-   . (Base.HasTrivia a, Base.HasTrivia b)
-  ⇒ Core.LabelledParser a
-  -- ^ The first step to parse
-  → Core.LabelledParser b
-  -- ^ The second step to parse
-  → Core.Parser (Maybe a, Maybe b)
-pair a b = Notation.tighten Notation.do
-  mbA ← Notation.step a
-  mbB ← Notation.step b
-  Notation.return (mbA, mbB)
-
 -- | Parse an expression of the form '(' inner ')', except the delimiters can
 -- be anything (not just parenthesis).
 delimited
   ∷ ∀ a
-   . (Base.HasSpan a, Base.HasTrivia a)
+   . (Base.HasTrivia a)
   ⇒ Core.LabelledParser Base.Token'
   → Core.LabelledParser Base.Token'
   → Core.LabelledParser a
@@ -100,7 +78,7 @@ delimited open close inner = do
           ]
       )
       [
-        ( maybe id Error.mergeSpans (Base.spanOf <$> c) $ Base.spanOf o
+        ( maybe id (<>) (Base.spanOf <$> c) $ Base.spanOf o
         , DG.This $
             PP.hsep
               [ "I was expecting a"
@@ -122,11 +100,10 @@ delimited open close inner = do
 --
 -- Not that this parse will keep consuming input until it reaches the context's
 -- an element that satifies the context's 'stopOn' element
+-- TODO(2025-08-02): add option for allowing leading separators
 separated
   ∷ ∀ sep a
-   . ( Base.HasSpan sep
-     , Base.HasSpan a
-     , Base.HasTrivia sep
+   . ( Base.HasTrivia sep
      , Base.HasTrivia a
      )
   ⇒ Bool
@@ -233,9 +210,7 @@ separated allowTrailing sep inner = do
 -- | Wrapper around @'delimited' and @'separated'.
 delimitedList
   ∷ ∀ a sep
-   . ( Base.HasSpan a
-     , Base.HasSpan sep
-     , Base.HasTrivia sep
+   . ( Base.HasTrivia sep
      , Base.HasTrivia a
      )
   ⇒ Core.LabelledParser Base.Token'
@@ -319,6 +294,7 @@ name = Core.token $ M.try do
     , "type"
     , "struct"
     , "inductive"
+    , "coinductive"
     , "trait"
     , "where"
     , "text"
@@ -326,4 +302,9 @@ name = Core.token $ M.try do
     , "with"
     , "if"
     , "make"
+    , "lam"
+    , "λ"
+    , "intro"
+    , "case"
+    , "of"
     ]

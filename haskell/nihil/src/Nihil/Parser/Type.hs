@@ -13,9 +13,9 @@ import Nihil.Cst.Type
   , Type' (..)
   , Var (..)
   )
-import Nihil.Error qualified as Error
 import Nihil.Parser.Combinators qualified as Core
 import Nihil.Parser.Core qualified as Core
+import Nihil.Parser.Symbols qualified as Symbols
 import Text.Megaparsec qualified as M
 import Text.Megaparsec.Char qualified as MC
 
@@ -45,7 +45,7 @@ tyArr = do
           []
 
       to ←
-        Core.alsoStopOnPost ("arrow", normalArrow <|> traitArrow)
+        Core.alsoStopOnPost ("arrow", arrow)
           . Core.tryJunkTill
           $ Core.label "Type" pType
 
@@ -64,8 +64,8 @@ tyArr = do
           }
  where
   arrow = normalArrow <|> traitArrow
-  normalArrow = Normal <$ (MC.string "->" <|> MC.string "→")
-  traitArrow = Trait <$ (MC.string "=>" <|> MC.string "⇒")
+  normalArrow = Normal <$ Symbols.arrow
+  traitArrow = Trait <$ Symbols.fatArrow
 
 tyApp ∷ Core.Parser Type'
 tyApp = do
@@ -112,7 +112,7 @@ tyForall = do
       ( reverse . catMaybes $
           [ Just (Base.spanOf tForall, DG.Where "I encountered the issue while parsing this universal quantifier.")
           , nonEmpty (toList names) <&> \neNames →
-              ( foldl1 Error.mergeSpans $ Base.spanOf <$> neNames
+              ( foldl1 (<>) $ Base.spanOf <$> neNames
               , DG.This "This is the list of variable names I couldn't find a comma after."
               )
           ]
