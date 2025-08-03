@@ -12,3 +12,6 @@
 
 :l Nihil.Parser.Module
 :m +Nihil.Parser.Module
+
+:l Nihil.Server.SemanticTokens
+:m +Nihil.Server.SemanticTokens

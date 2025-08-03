@@ -6,21 +6,24 @@ module Nihil.Cst.Base
   , Delimited (..)
   , Separated (..)
   , Name
-  , HasSpan (..)
-  , HasTrivia (..)
+  , HasTrivia
+  , attachTrivia
+  , spanOf
+  , allTrivia
   , mkMegaparsecSpan
   , mkMegaparsecSpan'
-  , mergeSpans
   , prettyTree
-  , tokAttachTrivia
-  , attachTriviaOptically
   ) where
 
 import Relude
 
-import Data.Sequence (Seq ((:<|)), (<|))
 import Error.Diagnose qualified as DG
+import GHC.Generics ((:*:) ((:*:)), (:+:))
+import GHC.Generics qualified as Generic
+import GHC.Generics.Optics qualified as O
 import Nihil.Error qualified as Error
+import Nihil.Utils (adjoinMany)
+import Optics ((%))
 import Optics qualified as O
 import Prettyprinter qualified as PP
 import Text.Megaparsec qualified as M
@@ -50,7 +53,7 @@ mkMegaparsecSpan' from = mkMegaparsecSpan from from
 data Trivia
   = TComment Span Text
   | TJunk Span Text
-  deriving (Generic, Show)
+  deriving (Generic, Show, HasTrivia)
 
 data Token a
   = Token
@@ -68,99 +71,105 @@ data Delimited a = Delimited
   , inner ∷ a
   , close ∷ Maybe Token'
   }
-  deriving (Generic, Show, Functor)
+  deriving (Generic, Show, Functor, HasTrivia)
 
 data Separated sep a = Separated
   { start ∷ M.SourcePos -- Required for the @HasSpan@ instance (the seq could be empty)
   , elements ∷ Seq (Either sep a)
   }
-  deriving (Generic, Show)
-
----------- The @HasSpan@ typeclass
-class HasSpan a where
-  spanOf ∷ a → Span
-
-instance HasSpan Span where
-  spanOf = id
-
-instance HasSpan (Token a) where
-  spanOf = O.view #span
-
-instance (HasSpan a, HasSpan b) ⇒ HasSpan (Either a b) where
-  spanOf = either spanOf spanOf
-
-instance (HasSpan a, HasSpan b) ⇒ HasSpan (a, b) where
-  spanOf (a, b) = Error.mergeSpans (spanOf a) (spanOf b)
-
-instance (HasSpan sep, HasSpan a) ⇒ HasSpan (Separated sep a) where
-  spanOf (Separated start elements) =
-    foldl'
-      (\s e → Error.mergeSpans (spanOf e) s)
-      (mkMegaparsecSpan' start)
-      elements
-
-instance (HasSpan a) ⇒ HasSpan (Delimited a) where
-  spanOf (Delimited open inner close) =
-    mergeSpans
-      (spanOf open)
-      [ guard (isNothing close) $> spanOf inner
-      , spanOf <$> close
-      ]
-
-mergeSpans ∷ Span → [Maybe Span] → Span
-mergeSpans s ss = foldl' Error.mergeSpans s (catMaybes ss)
+  deriving (Generic, Show, HasTrivia)
 
 ---------- Trivia attachments
 class HasTrivia a where
-  -- | Attaches a given sequence of trivia pieces before an element.
-  --
-  -- `@Nothing@ is returned when no place to attach the trivia exists.
-  attachTrivia ∷ Seq Trivia → a → Maybe a
+  mbSpanOf ∷ a → Maybe Span
+  default mbSpanOf ∷ (Generic a, GHasTrivia (Generic.Rep a)) ⇒ a → Maybe Span
+  mbSpanOf = gMbSpanOf . Generic.from
+
+  allTrivia ∷ O.Traversal' a (Seq Trivia)
+  default allTrivia ∷ (Generic a, GHasTrivia (Generic.Rep a)) ⇒ O.Traversal' a (Seq Trivia)
+  allTrivia = O.generic % gAllTrivia
+
+spanOf ∷ ∀ a. (HasTrivia a) ⇒ a → Span
+spanOf x = case mbSpanOf x of
+  Just s → s
+  Nothing → error "Used `spanOf` on an empty CST node"
+
+attachTrivia ∷ ∀ a. (HasTrivia a) ⇒ Seq Trivia → a → Maybe a
+attachTrivia t a = case O.preview optic a of
+  Just _ → Just $ O.over optic (t <>) a
+  Nothing → Nothing
+ where
+  optic = O.singular $ allTrivia @a
+
+asTraversal
+  ∷ ∀ k s t a b
+   . (O.Is k O.A_Traversal)
+  ⇒ O.Optic k O.NoIx s t a b
+  → O.Optic O.A_Traversal O.NoIx s t a b
+asTraversal = O.castOptic @O.A_Traversal
+
+instance HasTrivia Span where
+  mbSpanOf = Just
+  allTrivia = O.castOptic @O.A_Traversal $ O.noIx O.ignored
+
+instance HasTrivia M.SourcePos where
+  mbSpanOf = Just . mkMegaparsecSpan'
+  allTrivia = asTraversal $ O.noIx O.ignored
+
+instance HasTrivia Text where
+  mbSpanOf _ = Nothing
+  allTrivia = asTraversal $ O.noIx O.ignored
 
 instance HasTrivia (Token a) where
-  attachTrivia t = Just . tokAttachTrivia t
-
-tokAttachTrivia ∷ Seq Trivia → Token a → Token a
-tokAttachTrivia trivia = O.over #trivia (trivia <>)
-
-instance (HasTrivia a, HasTrivia b) ⇒ HasTrivia (a, b) where
-  attachTrivia trivia tup =
-    attachTriviaOptically O._1 trivia tup
-      <|> attachTriviaOptically O._2 trivia tup
-
-instance (HasTrivia a, HasTrivia b) ⇒ HasTrivia (Either a b) where
-  attachTrivia trivia =
-    either
-      (fmap Left . attachTrivia trivia)
-      (fmap Right . attachTrivia trivia)
-
-instance (HasTrivia a) ⇒ HasTrivia (Maybe a) where
-  -- attachTrivia = attachTriviaOptically O._Just
-  attachTrivia trivia x = x >>= attachTrivia trivia <&> pure
-
-instance (HasTrivia sep, HasTrivia a) ⇒ HasTrivia (Separated sep a) where
-  attachTrivia trivia x = do
-    elems ← attachTrivia trivia (O.view #elements x)
-    pure $ O.set #elements elems x
+  mbSpanOf = Just . O.view #span
+  allTrivia = asTraversal #trivia
 
 instance (HasTrivia a) ⇒ HasTrivia (Seq a) where
-  attachTrivia trivia (h :<| t) = case attachTrivia trivia h of
-    Nothing → (h <|) <$> attachTrivia trivia t
-    Just h' → pure $ h' <| t
-  attachTrivia _ _ = Nothing
+  mbSpanOf = fold . fmap mbSpanOf
+  allTrivia = O.traversed % allTrivia
 
-instance (HasTrivia a) ⇒ HasTrivia (Delimited a) where
-  attachTrivia trivia = Just . O.over #open (tokAttachTrivia trivia)
+deriving instance (HasTrivia a) ⇒ HasTrivia (Maybe a)
+deriving instance (HasTrivia a) ⇒ HasTrivia [a]
+deriving instance (HasTrivia l, HasTrivia r) ⇒ HasTrivia (Either l r)
+deriving instance (HasTrivia l, HasTrivia r) ⇒ HasTrivia (l, r)
+deriving instance (HasTrivia a, HasTrivia b, HasTrivia c) ⇒ HasTrivia (a, b, c)
 
-attachTriviaOptically
-  ∷ ∀ a b
-   . (HasTrivia b)
-  ⇒ O.Lens' a b
-  → Seq Trivia
-  → a
-  → Maybe a
-attachTriviaOptically optic trivia whole =
-  O.traverseOf optic (attachTrivia trivia) whole
+-- Generic deriving
+class GHasTrivia f where
+  gMbSpanOf ∷ ∀ a. f a → Maybe Span
+  gAllTrivia ∷ ∀ a. O.Traversal' (f a) (Seq Trivia)
+
+instance (GHasTrivia f) ⇒ GHasTrivia (Generic.M1 i c f) where
+  gMbSpanOf (Generic.M1 i) = gMbSpanOf i
+
+  gAllTrivia ∷ ∀ a. O.Traversal' (Generic.M1 i c f a) (Seq Trivia)
+  gAllTrivia = O.coerced % gAllTrivia @f @a
+
+instance (HasTrivia c) ⇒ GHasTrivia (Generic.K1 i c) where
+  gMbSpanOf (Generic.K1 i) = mbSpanOf i
+  gAllTrivia = O.coerced % allTrivia @c
+
+instance GHasTrivia Generic.U1 where
+  gMbSpanOf _ = Nothing
+  gAllTrivia = asTraversal $ O.noIx O.ignored
+
+instance (GHasTrivia f, GHasTrivia g) ⇒ GHasTrivia (f :+: g) where
+  gMbSpanOf (Generic.L1 l) = gMbSpanOf l
+  gMbSpanOf (Generic.R1 r) = gMbSpanOf r
+
+  gAllTrivia =
+    adjoinMany
+      [ O._L1 % gAllTrivia
+      , O._R1 % gAllTrivia
+      ]
+
+instance (GHasTrivia f, GHasTrivia g) ⇒ GHasTrivia (f :*: g) where
+  gMbSpanOf (l :*: r) = gMbSpanOf l <> gMbSpanOf r
+  gAllTrivia =
+    adjoinMany
+      [ O.gposition @1 % gAllTrivia
+      , O.gposition @2 % gAllTrivia
+      ]
 
 ---------- Pretty printing
 prettyTree ∷ ∀ a. PP.Doc a → [PP.Doc a] → PP.Doc a

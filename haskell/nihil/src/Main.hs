@@ -1,11 +1,7 @@
 module Main where
 
-import Nihil.Parser.Core (parseTest)
-import Nihil.Parser.Type (pType)
+import Nihil.Server qualified as Server
 import Relude
 
-main ∷ IO ()
-main = do
-  let c = 20
-  parseTest pType $ (fold $ replicate c "forall a,") <> "a"
-  putStrLn "Hello, Haskell :3"
+main ∷ IO Int
+main = Server.run

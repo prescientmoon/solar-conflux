@@ -1,5 +1,6 @@
 module Nihil.Cst.Module
   ( Module (..)
+  , EOF (..)
   , Declaration (..)
   , IndLikeKind (..)
   , IndLike (..)
@@ -27,9 +28,9 @@ data Module
   , exports ∷ Maybe (Base.Delimited (Base.Separated Base.Token' Base.Name))
   , where' ∷ Maybe Base.Token'
   , decls ∷ Seq Declaration
-  , eof ∷ Base.Token ()
+  , eof ∷ Base.Token EOF
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Base.HasTrivia)
 
 instance PP.Pretty Module where
   pretty (Module{..}) =
@@ -45,6 +46,12 @@ instance PP.Pretty Module where
         , Just $ PP.pretty eof
         ]
 
+data EOF = EOF
+  deriving (Generic, Show, Base.HasTrivia)
+
+instance PP.Pretty EOF where
+  pretty EOF = "EOF"
+
 data Declaration
   = DeclIndLike IndLike
   | DeclTypeAlias TypeAlias
@@ -52,7 +59,7 @@ data Declaration
   | DeclForeignValue ForeignValue
   | DeclValueTypeAnn ValueTypeAnnotation
   | DeclValueEquation ValueEquation
-  deriving (Generic, Show)
+  deriving (Generic, Show, Base.HasTrivia)
 
 instance PP.Pretty Declaration where
   pretty (DeclIndLike i) = PP.pretty i
@@ -62,9 +69,6 @@ instance PP.Pretty Declaration where
   pretty (DeclValueTypeAnn i) = PP.pretty i
   pretty (DeclValueEquation i) = PP.pretty i
 
-instance Base.HasTrivia Declaration where
-  attachTrivia _ _ = Nothing
-
 -- attachTrivia t (DeclIndLike i) = DeclIndLike <$> Base.attachTrivia t i
 -- attachTrivia t (DeclTypeAlias i) = DeclTypeAlias <$> Base.attachTrivia t i
 -- attachTrivia t (DeclForeignType i) = DeclForeignType <$> Base.attachTrivia t i
@@ -72,7 +76,7 @@ instance Base.HasTrivia Declaration where
 -- attachTrivia t (DeclValue i) = DeclValue <$> Base.attachTrivia t i
 
 data IndLikeKind = Inductive | Coinductive | Trait
-  deriving (Generic, Show)
+  deriving (Generic, Show, Base.HasTrivia)
 
 instance PP.Pretty IndLikeKind where
   pretty Inductive = "inductive"
@@ -87,7 +91,7 @@ data IndLike
   , where' ∷ Maybe Base.Token'
   , fields ∷ Seq Field
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Base.HasTrivia)
 
 instance PP.Pretty IndLike where
   pretty (IndLike{..}) =
@@ -102,16 +106,6 @@ instance PP.Pretty IndLike where
             toList $ PP.pretty <$> fields
         ]
 
-instance Base.HasSpan IndLike where
-  spanOf (IndLike{..}) =
-    Base.mergeSpans (Base.spanOf kind) $
-      fold
-        [ pure $ Base.spanOf <$> name
-        , pure $ Base.spanOf <$> where'
-        , Just <$> Base.spanOf <$> toList args
-        , Just <$> Base.spanOf <$> toList fields
-        ]
-
 data Field
   = Field
   { start ∷ M.SourcePos
@@ -123,7 +117,7 @@ data Field
   , colon ∷ Maybe Base.Token'
   , ty ∷ Maybe Type.Type'
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Base.HasTrivia)
 
 instance PP.Pretty Field where
   pretty (Field{..}) =
@@ -133,20 +127,6 @@ instance PP.Pretty Field where
       , PP.pretty <$> ty
       ]
 
-instance Base.HasSpan Field where
-  spanOf (Field{..}) =
-    Base.mergeSpans (Base.mkMegaparsecSpan' start) $
-      [ Base.spanOf <$> name
-      , Base.spanOf <$> colon
-      , Base.spanOf <$> ty
-      ]
-
-instance Base.HasTrivia Field where
-  attachTrivia trivia field =
-    Base.attachTriviaOptically #name trivia field
-      <|> Base.attachTriviaOptically #colon trivia field
-      <|> Base.attachTriviaOptically #ty trivia field
-
 data TypeAlias
   = TypeAlias
   { ty ∷ Base.Token'
@@ -155,7 +135,7 @@ data TypeAlias
   , eq ∷ Maybe Base.Token'
   , body ∷ Maybe Type.Type'
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Base.HasTrivia)
 
 instance PP.Pretty TypeAlias where
   pretty (TypeAlias{..}) =
@@ -175,7 +155,7 @@ data ForeignType
   , name ∷ Maybe Base.Name
   , args ∷ Seq Base.Name
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Base.HasTrivia)
 
 instance PP.Pretty ForeignType where
   pretty (ForeignType{..}) =
@@ -194,7 +174,7 @@ data ForeignValue
   , colon ∷ Maybe Base.Token'
   , ty ∷ Maybe Type.Type'
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Base.HasTrivia)
 
 instance PP.Pretty ForeignValue where
   pretty (ForeignValue{..}) =
@@ -211,7 +191,7 @@ data ValueTypeAnnotation
   , colon ∷ Maybe Base.Token'
   , ty ∷ Maybe Type.Type'
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Base.HasTrivia)
 
 instance PP.Pretty ValueTypeAnnotation where
   pretty (ValueTypeAnnotation{..}) =
@@ -227,7 +207,7 @@ data ValueEquation = ValueEquation
   , eq ∷ Maybe Base.Token'
   , expr ∷ Maybe Expr.Expr
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Base.HasTrivia)
 
 instance PP.Pretty ValueEquation where
   pretty (ValueEquation{..}) =
