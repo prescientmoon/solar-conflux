@@ -246,7 +246,8 @@ instance HasSemanticTokens Cst.Expr.Var where
   semanticTokens (Cst.Expr.Var x) = toSemantic "variable" [] x
 
 instance HasSemanticTokens Cst.Expr.App where
-  semanticTokens (Cst.Expr.App{..}) = semanticTokens f <> semanticTokens a
+  semanticTokens (Cst.Expr.App{..}) =
+    semanticTokens f <> semanticTokens a
 
 instance HasSemanticTokens Cst.Expr.Lambda where
   semanticTokens (Cst.Expr.Lambda{..}) =

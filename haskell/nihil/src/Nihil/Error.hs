@@ -3,12 +3,15 @@
 module Nihil.Error where
 
 import Error.Diagnose qualified as DG
+import Language.LSP.Protocol.Types qualified as LSP
 import Nihil.Utils qualified as Utils
 import Optics qualified as O
 import Prettyprinter qualified as PP
 import Prettyprinter.Render.Terminal qualified as DG
 import Relude
 import Text.Megaparsec qualified as M
+
+type Path = LSP.NormalizedUri
 
 data ReportKind = Error | Warning
 type Doc = PP.Doc DG.AnsiStyle
@@ -47,3 +50,9 @@ instance Semigroup Span where
 
 newtype Pos = Pos M.SourcePos
   deriving (Show, Generic)
+
+isSubspan ∷ Span → Span → Bool
+isSubspan small big =
+  small.file == big.file
+    && small.begin >= big.begin
+    && small.end <= big.end

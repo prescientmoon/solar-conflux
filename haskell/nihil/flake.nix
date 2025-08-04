@@ -38,6 +38,7 @@
             ghcid
             fourmolu
             haskell-language-server
+            # hoogle
           ];
         };
     in
