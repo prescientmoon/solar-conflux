@@ -41,3 +41,10 @@ modifyingM o f = do
   for_ r \r' → do
     r'' ← f r'
     O.assign o r''
+
+chooseFirstM ∷ ∀ m a. (Monad m) ⇒ [m (Maybe a)] → m (Maybe a)
+chooseFirstM [] = pure Nothing
+chooseFirstM (h : rest) =
+  h >>= \case
+    Nothing → chooseFirstM rest
+    Just r → pure $ Just r
