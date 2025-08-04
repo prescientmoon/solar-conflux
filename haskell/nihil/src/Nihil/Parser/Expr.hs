@@ -24,7 +24,7 @@ import Text.Megaparsec.Char qualified as MC
 
 -- {{{ Basic expressions
 pExpr ∷ Core.Parser Expr
-pExpr = pLambda <|> pMatch <|> pExprApp
+pExpr = pExprApp
 
 pLambda ∷ Core.Parser Expr
 pLambda = do
@@ -54,7 +54,7 @@ pExprApp = do
   pure $ foldl' (\f a → EApp $ App f a) base args
 
 pExprAtom ∷ Core.Parser Expr
-pExprAtom = pExprVar <|> pExprParens
+pExprAtom = pLambda <|> pMatch <|> pExprVar <|> pExprParens
 
 pExprVar ∷ Core.Parser Expr
 pExprVar = EVar . Var <$> Core.name

@@ -68,6 +68,7 @@ executable nihil
         , Nihil.Parser.Module
         , Nihil.Server.State
         , Nihil.Server.SemanticTokens
+        , Nihil.Server.Name
         , Nihil.Server
 
     build-depends:
