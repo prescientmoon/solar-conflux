@@ -17,7 +17,6 @@ module Nihil.Cst.Base
 
 import Relude
 
-import Error.Diagnose qualified as DG
 import GHC.Generics ((:*:) ((:*:)), (:+:))
 import GHC.Generics qualified as Generic
 import GHC.Generics.Optics qualified as O
@@ -30,24 +29,11 @@ import Text.Megaparsec qualified as M
 
 type Span = Error.Span
 
--- | Converts from Megaparsec's positions, to Diagnose's span representation.
 mkMegaparsecSpan ∷ M.SourcePos → M.SourcePos → Span
-mkMegaparsecSpan from to =
-  DG.Position
-    { begin =
-        ( M.unPos $ M.sourceLine from
-        , M.unPos $ M.sourceColumn from
-        )
-    , end =
-        ( M.unPos $ M.sourceLine to
-        , let p = M.unPos (M.sourceColumn to)
-           in if from == to then p + 1 else p
-        )
-    , file = M.sourceName from
-    }
+mkMegaparsecSpan = coerce Error.mkSpan
 
 mkMegaparsecSpan' ∷ M.SourcePos → Span
-mkMegaparsecSpan' from = mkMegaparsecSpan from from
+mkMegaparsecSpan' = coerce Error.mkSpan'
 
 -- | Auxilliary data attached to a token
 data Trivia

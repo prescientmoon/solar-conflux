@@ -2,103 +2,71 @@ module Nihil.Server.SemanticTokens (handler, semanticTokens) where
 
 import Control.Monad.Error.Class (MonadError (throwError))
 import Data.Sequence qualified as Seq
-import Data.Text qualified as Text
-import Data.Text.Mixed.Rope qualified as Rope
 import Error.Diagnose qualified as DG
 import Language.LSP.Protocol.Lens qualified as LSP
 import Language.LSP.Protocol.Message qualified as LSP
 import Language.LSP.Protocol.Types qualified as LSP
 import Language.LSP.Server qualified as LSP
-import Language.LSP.VFS qualified as VFS
+import Nihil.Ast.State qualified as Ast
 import Nihil.Cst.Base qualified as Cst
 import Nihil.Cst.Expr qualified as Cst.Expr
 import Nihil.Cst.Module qualified as Cst
 import Nihil.Cst.Type qualified as Cst.Type
-import Nihil.Parser.Core qualified as Parser
-import Nihil.Parser.Module qualified as Parser
-import Nihil.Server.State (LspM)
+import Nihil.Server.State qualified as Server
 import Optics ((%))
 import Optics qualified as O
 import Relude
 
 -- {{{ Handler
-handler ∷ LSP.Handlers LspM
+handler ∷ LSP.Handlers Server.LspM
 handler = LSP.requestHandler
   LSP.SMethod_TextDocumentSemanticTokensFull
-  \notif responder → do
-    let
-      respondErr ∷ Text → LspM ()
-      respondErr message =
-        responder . Left $
-          LSP.TResponseError
-            { _xdata = Nothing
-            , _message = message
-            , _code = LSP.InL LSP.LSPErrorCodes_RequestFailed
+  \notif responder → Server.runELspMResponder responder do
+    let path = Server.getPath notif
+    caps ← lift LSP.getClientCapabilities
+    stCaps ← case caps._textDocument >>= (\x → x._semanticTokens) of
+      Nothing → throwError "No semantic token client capability."
+      Just stCaps → pure stCaps
+
+    let legend =
+          LSP.SemanticTokensLegend
+            { _tokenTypes = stCaps._tokenTypes
+            , _tokenModifiers = stCaps._tokenModifiers
             }
 
-    let params = O.view (O.lensVL LSP.params) notif
-    let uri = O.view (#_textDocument % #_uri) params
-    let nUri = LSP.toNormalizedUri uri
+    st ← lift Server.getCompilerState
+    let mbParsed = O.preview (#files % O.ix path % #parsed % O._Just) st
+    module' ← case mbParsed of
+      Nothing → throwError "Failed to parse module..."
+      Just module' → pure module'
 
-    res ← runExceptT do
-      caps ← lift LSP.getClientCapabilities
-      stCaps ← case caps._textDocument >>= (\x → x._semanticTokens) of
-        Nothing → throwError "No semantic token client capability."
-        Just stCaps → pure stCaps
+    let trivia = fold $ O.view (O.partsOf Cst.allTrivia) module'
 
-      let legend =
-            LSP.SemanticTokensLegend
-              { _tokenTypes = stCaps._tokenTypes
-              , _tokenModifiers = stCaps._tokenModifiers
-              }
+    let getPos t =
+          ( O.view (O.lensVL LSP.line) t
+          , O.view (O.lensVL LSP.startChar) t
+          )
 
-      mbContent ← lift $ LSP.getVirtualFile nUri
-      content ← case mbContent of
-        Nothing → throwError "No file content found..."
-        Just content → pure content
+    let hasValidBaseType t =
+          elem
+            (LSP.toEnumBaseType (O.view tokenType t))
+            legend._tokenTypes
 
-      let text = Rope.toText $ O.view (O.lensVL VFS.file_text) content
-      let (_, mbParsed) =
-            Parser.runParser
-              Parser.pModule
-              (Text.unpack $ O.view #getUri uri)
-              text
+    let absoluteToks =
+          sortOn getPos
+            . filter hasValidBaseType
+            . toList
+            $ fold
+              [ semanticTokens module'
+              , trivia >>= triviaToSemantic
+              ]
 
-      module' ← case mbParsed of
-        Nothing → throwError "Failed to parse module..."
-        Just (module', _) → pure module'
-
-      let trivia = fold $ O.view (O.partsOf Cst.allTrivia) module'
-
-      let getPos t =
-            ( O.view (O.lensVL LSP.line) t
-            , O.view (O.lensVL LSP.startChar) t
-            )
-
-      let hasValidBaseType t =
-            elem
-              (LSP.toEnumBaseType (O.view tokenType t))
-              legend._tokenTypes
-
-      let absoluteToks =
-            sortOn getPos
-              . filter hasValidBaseType
-              . toList
-              $ fold
-                [ semanticTokens module'
-                , trivia >>= triviaToSemantic
-                ]
-
-      case LSP.makeSemanticTokens legend absoluteToks of
-        Right toks → lift . responder . Right $ LSP.InL toks
-        Left err →
-          throwError $
-            "An error ocurred while trying to generate the tokens: "
-              <> err
-
-    case res of
-      Right _ → pure ()
-      Left err → respondErr err
+    case LSP.makeSemanticTokens legend absoluteToks of
+      Right toks → lift . responder . Right $ LSP.InL toks
+      Left err →
+        throwError $
+          "An error ocurred while trying to generate the tokens: "
+            <> err
 
 -- }}}
 
@@ -136,7 +104,8 @@ toSemantic ty mods tok =
     ]
 
 triviaToSemantic ∷ Cst.Trivia → Seq LSP.SemanticTokenAbsolute
-triviaToSemantic (Cst.TJunk _ _) = mempty
+triviaToSemantic (Cst.TJunk s _) =
+  mkTokens "comment" ["deprecated"] s
 triviaToSemantic (Cst.TComment s _) =
   mkTokens "comment" [] s
 
@@ -185,9 +154,9 @@ instance HasSemanticTokens Cst.ForeignType where
   semanticTokens (Cst.ForeignType{..}) =
     join . Seq.fromList $
       [ toSemantic "keyword" [] foreign'
-      , toSemantic "keyword" [] ty
-      , fold $ toSemantic "type" [] <$> name
-      , O.set tokenType "typeParameter" <$> semanticTokens args
+      , toSemantic "keyword" [] type'
+      , fold $ toSemantic "type" ["declaration"] <$> name
+      , fold $ semanticTokens <$> ty
       ]
 
 instance HasSemanticTokens Cst.ValueTypeAnnotation where

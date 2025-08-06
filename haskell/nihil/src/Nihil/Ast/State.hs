@@ -1,21 +1,34 @@
 module Nihil.Ast.State
   ( Name (..)
+  , Binder
   , Type' (..)
   , Expr (..)
   , Pattern (..)
-  , AstState (..)
+  , CompilerState (..)
   , ScopeId (..)
   , NodeId (..)
   , FileData (..)
+  , Definition (..)
   , ExprDefinition (..)
   , TypeDefinition (..)
   , Scope (..)
+  , MonadCompile
+  , IsNode
   , genTest
   , nodeId
   , exprAst
   , typeAst
   , moduleAst
   , getSpan
+  , resolveNames
+  , initialCompilerState
+  , getScopedName
+  , getUnscopedName
+  , atTypeInScope
+  , atExprInScope
+  , collectDiagnostics
+  , collectReports
+  , genNodeId
   ) where
 
 import Data.HashMap.Strict qualified as HashMap
@@ -28,25 +41,31 @@ import Language.LSP.Protocol.Types qualified as LSP
 import Nihil.Cst.Base qualified as Base
 import Nihil.Cst.Base qualified as Cst
 import Nihil.Cst.Expr qualified as Cst.Expr
+import Nihil.Cst.Module qualified as Cst
 import Nihil.Cst.Module qualified as Cst.Mod
 import Nihil.Cst.Type qualified as Cst.Type
 import Nihil.Error (Report, Span)
 import Nihil.Error qualified as Error
 import Nihil.Parser.Core qualified as Parser
 import Nihil.Parser.Module qualified as Parser
-import Nihil.Utils (textPretty)
+import Nihil.Utils (Icit, textPretty)
 import Optics ((%))
 import Optics qualified as O
 import Prettyprinter qualified as PP
 import Relude
 
--- {{{ Scopes
+-- {{{ Names & binders
 data Name
-  = Unresolved Text
-  | Resolved ScopeId Text
-  deriving (Show, Generic)
+  = Unresolved NodeId Text
+  | Resolved NodeId ScopeId Text
+  deriving (Show, Generic, Eq, Hashable)
 
 type Binder = Name
+
+nameToText ∷ Name → Text
+nameToText = \case
+  Unresolved _ n → n
+  Resolved _ s n → "[:" <> show s <> "]." <> n
 
 -- | The parser often returns @Maybe Cst.Name@, which this function forcefully
 -- turns into a piece of text.
@@ -61,6 +80,8 @@ forceMaybeUsed ∷ NodeId → Bool → Text → Text
 forceMaybeUsed _ True x = x
 forceMaybeUsed (NodeId i) False x = "__overload" <> show i <> x
 
+-- }}}
+-- {{{ Scopes
 newtype ScopeId = ScopeId Natural
   deriving (Generic, Show, Eq)
   deriving newtype (Hashable, Num, PP.Pretty)
@@ -71,28 +92,25 @@ data TypeDefinition
   | TParam NodeId
   deriving (Show, Generic)
 
-instance IsNode TypeDefinition where
-  nodeId (TForeign i _) = i
-  nodeId (TAlias i _) = i
-  nodeId (TParam i) = i
-
 data ExprDefinition
   = EForeign NodeId Type'
   | EDeclaration NodeId Type' Expr
   | EParam NodeId
   deriving (Show, Generic)
 
-instance IsNode ExprDefinition where
-  nodeId (EForeign i _) = i
-  nodeId (EDeclaration i _ _) = i
-  nodeId (EParam i) = i
+data Definition a
+  = Definition
+  { names ∷ NonEmpty NodeId
+  -- ^ Can be used to get the span of the name at the definition site.
+  , value ∷ a
+  }
+  deriving (Show, Generic)
 
 data Scope = Scope
   { inherits ∷ Seq ScopeId
-  , types ∷ HashMap Text TypeDefinition
-  , exprs ∷ HashMap Text ExprDefinition
+  , types ∷ HashMap Text (Definition TypeDefinition)
+  , exprs ∷ HashMap Text (Definition ExprDefinition)
   , scopes ∷ HashMap Text ScopeId
-  , reports ∷ Seq Report
   }
   deriving (Generic)
 
@@ -103,41 +121,37 @@ instance Semigroup Scope where
       , types = a.types <> b.types
       , exprs = a.exprs <> b.exprs
       , scopes = a.scopes <> b.scopes
-      , reports = a.reports <> b.reports
       }
 
 instance Monoid Scope where
-  mempty = Scope mempty mempty mempty mempty mempty
+  mempty = Scope mempty mempty mempty mempty
 
-genScopeId ∷ ∀ m. (MonadState AstState m) ⇒ m ScopeId
+genScopeId ∷ ∀ m. (MonadState CompilerState m) ⇒ m ScopeId
 genScopeId = do
   res ← O.use #nextScopeId
   O.modifying #nextScopeId (+ 1)
   O.assign (#scopes % O.at res) $ Just mempty
 
-  curr ← O.use #currentFile
-  O.modifying (#files % O.ix curr % #scopes) (|> res)
-
   pure res
 
-scopeInherits ∷ ∀ m. (MonadState AstState m) ⇒ ScopeId → ScopeId → m ()
+scopeInherits ∷ ∀ m. (MonadState CompilerState m) ⇒ ScopeId → ScopeId → m ()
 scopeInherits parent child = do
   O.modifying (#scopes % O.ix child % #inherits) $ (|> parent)
 
-makeChildScope ∷ ∀ m. (MonadState AstState m) ⇒ ScopeId → m ScopeId
+makeChildScope ∷ ∀ m. (MonadState CompilerState m) ⇒ ScopeId → m ScopeId
 makeChildScope parent = do
   child ← genScopeId
   scopeInherits parent child
   pure child
 
-atExprInScope ∷ Text → O.Lens' Scope (Maybe ExprDefinition)
+atExprInScope ∷ Text → O.Lens' Scope (Maybe (Definition ExprDefinition))
 atExprInScope name = #exprs % O.at name
 
-atTypeInScope ∷ Text → O.Lens' Scope (Maybe TypeDefinition)
+atTypeInScope ∷ Text → O.Lens' Scope (Maybe (Definition TypeDefinition))
 atTypeInScope name = #types % O.at name
 
 -- }}}
--- {{{ AST gen state
+-- {{{ Nodes
 newtype NodeId = NodeId Natural
   deriving (Generic, Show, Eq)
   deriving newtype (Hashable, Num, PP.Pretty)
@@ -148,50 +162,117 @@ class IsNode a where
 instance IsNode NodeId where
   nodeId = id
 
+instance IsNode Name where
+  nodeId (Unresolved i _) = i
+  nodeId (Resolved i _ _) = i
+
+instance IsNode Type' where
+  nodeId (TyForall i _ _ _) = i
+  nodeId (TyArrow i _ _ _) = i
+  nodeId (TyApp i _ _) = i
+  nodeId (TyVar i _) = i
+  nodeId (TyLambda i _ _ _) = i
+  nodeId (TyUnknown i) = i
+
+instance IsNode Expr where
+  nodeId (EVar i _) = i
+  nodeId (EApp i _ _) = i
+  nodeId (EMatch i _ _) = i
+  nodeId (EUnknown i) = i
+  nodeId (EPi i _ _ _ _ _) = i
+  nodeId (Eannotation i _ _) = i
+  nodeId (EHole i) = i
+
+instance IsNode Pattern where
+  nodeId (PName i _) = i
+  nodeId (PProj i _ _) = i
+  nodeId (PWildcard i) = i
+
+instance IsNode TypeDefinition where
+  nodeId (TForeign i _) = i
+  nodeId (TAlias i _) = i
+  nodeId (TParam i) = i
+
+instance IsNode ExprDefinition where
+  nodeId (EForeign i _) = i
+  nodeId (EDeclaration i _ _) = i
+  nodeId (EParam i) = i
+
+instance IsNode (Definition a) where
+  nodeId (Definition i _) = head i
+
+-- }}}
+-- {{{ AST gen state
 data FileData = FileData
-  { scopes ∷ Seq ScopeId
+  { source ∷ Maybe Text
+  , parsed ∷ Maybe Cst.Module
+  , parsingReports ∷ Seq Report
+  -- ^ These get invalidated when the file is reparsed.
+  , mainScope ∷ Maybe ScopeId
   }
   deriving (Generic)
 
 instance Semigroup FileData where
-  a <> b = FileData (a.scopes <> b.scopes)
+  a <> b =
+    FileData
+      { source = a.source <|> b.source
+      , parsed = a.parsed <|> b.parsed
+      , parsingReports = a.parsingReports <> b.parsingReports
+      , mainScope = a.mainScope <|> b.mainScope
+      }
 
 instance Monoid FileData where
-  mempty = FileData mempty
+  mempty = FileData Nothing Nothing mempty Nothing
 
-data AstState = AstState
+data CompilerState = CompilerState
   { spans ∷ HashMap NodeId Cst.Span
   , scopes ∷ HashMap ScopeId Scope
   , files ∷ HashMap Error.Path FileData
-  , currentFile ∷ Error.Path
   -- ^ New scopes automatically get added here
+  , reports ∷ Seq Report
+  -- ^ These get invalidated whenever *any* file changes.
+  -- This is not optimal, but it makes reasoning about changes
+  -- much easier.
   , nextNodeId ∷ NodeId
   , nextScopeId ∷ ScopeId
   }
   deriving (Generic)
 
-genNodeId ∷ ∀ m. (MonadState AstState m) ⇒ m NodeId
+initialCompilerState ∷ CompilerState
+initialCompilerState =
+  CompilerState
+    { spans = mempty
+    , scopes = mempty
+    , nextNodeId = 0
+    , nextScopeId = 0
+    , files = mempty
+    , reports = mempty
+    }
+
+type MonadCompile m = (MonadState CompilerState m)
+
+genNodeId ∷ ∀ m. (MonadState CompilerState m) ⇒ m NodeId
 genNodeId = do
   res ← O.use #nextNodeId
   O.modifying #nextNodeId (+ 1)
   pure res
 
-keepNodeAt ∷ ∀ m. (MonadState AstState m) ⇒ NodeId → Cst.Span → m ()
+keepNodeAt ∷ ∀ m. (MonadState CompilerState m) ⇒ NodeId → Cst.Span → m ()
 keepNodeAt i s = O.modifying #spans (HashMap.insert i s)
 
-makeCstNode ∷ ∀ m c. (MonadState AstState m, Cst.HasTrivia c) ⇒ c → m NodeId
+makeCstNode ∷ ∀ m c. (MonadState CompilerState m, Cst.HasTrivia c) ⇒ c → m NodeId
 makeCstNode c = do
   i ← genNodeId
   keepNodeAt i (Cst.spanOf c)
   pure i
 
-getSpan ∷ ∀ m n. (MonadState AstState m, IsNode n) ⇒ n → m (Maybe Error.Span)
+getSpan ∷ ∀ m n. (MonadState CompilerState m, IsNode n) ⇒ n → m (Maybe Error.Span)
 getSpan i = do
   s ← get
   pure $ O.preview (#spans % O.at (nodeId i) % O._Just) s
 
 -- | Like @`getSpan`, but errors out on failure.
-getSpanConfident ∷ ∀ m n. (MonadState AstState m, IsNode n, PP.Pretty n) ⇒ n → m Error.Span
+getSpanConfident ∷ ∀ m n. (MonadState CompilerState m, IsNode n, PP.Pretty n) ⇒ n → m Error.Span
 getSpanConfident a =
   getSpan a <&> \case
     Just b → b
@@ -203,16 +284,38 @@ getSpanConfident a =
 -- | Create a custom error. The offset is there for sorting purposes.
 reportError
   ∷ ∀ m
-   . (MonadState AstState m)
-  ⇒ ScopeId
-  → Text
+   . (MonadState CompilerState m)
+  ⇒ Text
   → Error.Doc
   → [(Error.Span, DG.Marker Error.Doc)]
   → [DG.Note Error.Doc]
   → m ()
-reportError scope code desc markers hints = do
-  O.modifying (#scopes % O.at scope % O._Just % #reports) $
+reportError code desc markers hints = do
+  O.modifying #reports $
     (|> DG.Err (Just . PP.pretty $ "Ast" <> code) desc markers hints)
+
+collectReports ∷ CompilerState → Seq Error.Report
+collectReports st =
+  fold $
+    [ st.reports
+    , O.foldOf (#files % O.folded % #parsingReports) st
+    ]
+
+collectDiagnostics ∷ CompilerState → Error.Diagnostics
+collectDiagnostics st = do
+  let reports = Error.addReports . toList $ collectReports st
+
+  foldl'
+    ( \d (k, file) → case file.source of
+        Nothing → d
+        Just source →
+          DG.addFile
+            d
+            (Error.pathToString k)
+            (Text.unpack source)
+    )
+    reports
+    (HashMap.toList st.files)
 
 -- }}}
 
@@ -227,45 +330,37 @@ data Type'
   | TyUnknown NodeId
   deriving (Generic, Show)
 
-instance IsNode Type' where
-  nodeId (TyForall i _ _ _) = i
-  nodeId (TyArrow i _ _ _) = i
-  nodeId (TyApp i _ _) = i
-  nodeId (TyVar i _) = i
-  nodeId (TyLambda i _ _ _) = i
-  nodeId (TyUnknown i) = i
-
 -- | The type of types
-tyType ∷ ∀ m. (MonadState AstState m) ⇒ m Type'
-tyType = do
-  i ← genNodeId
-  pure $ TyVar i $ Unresolved "Type"
-
-typeMaybeAst ∷ ∀ m. (MonadState AstState m) ⇒ ScopeId → Span → Maybe Cst.Type.Type' → m Type'
+-- tyType ∷ ∀ m. (MonadState CompilerState m) ⇒ m Type'
+-- tyType = do
+--   i ← genNodeId
+--   pure $ TyVar i $ Unresolved "Type"
+typeMaybeAst ∷ ∀ m. (MonadState CompilerState m) ⇒ ScopeId → Span → Maybe Cst.Type.Type' → m Type'
 typeMaybeAst scope _ (Just t) = typeAst scope t
 typeMaybeAst _ s Nothing = do
   i ← genNodeId
   keepNodeAt i s
   pure $ TyUnknown i
 
-keepType ∷ ∀ m cst. (MonadState AstState m, Cst.HasTrivia cst) ⇒ cst → Type' → m Type'
+keepType ∷ ∀ m cst. (MonadState CompilerState m, Cst.HasTrivia cst) ⇒ cst → Type' → m Type'
 keepType c t = keepNodeAt (nodeId t) (Cst.spanOf c) $> t
 
-typeAst ∷ ∀ m. (MonadState AstState m) ⇒ ScopeId → Cst.Type.Type' → m Type'
+typeAst ∷ ∀ m. (MonadState CompilerState m) ⇒ ScopeId → Cst.Type.Type' → m Type'
 typeAst _ cst@(Cst.Type.TyVar (Cst.Type.Var{..})) = do
-  i ← genNodeId
-  keepType cst $ TyVar i $ Unresolved $ O.view #value name
+  i ← makeCstNode cst
+  ni ← makeCstNode name
+  pure $ TyVar i $ Unresolved ni $ O.view #value name
 typeAst scope cst@(Cst.Type.TyApp (Cst.Type.App{..})) = do
-  i ← genNodeId
+  i ← makeCstNode cst
   f' ← typeAst scope f
   a' ← typeAst scope a
-  keepType cst $ TyApp i f' a'
+  pure $ TyApp i f' a'
 typeAst scope cst@(Cst.Type.TyArrow (Cst.Type.Arrow{..})) = do
   let s = Cst.spanOf cst
-  i ← genNodeId
+  i ← makeCstNode cst
   from' ← typeMaybeAst scope s from
   to' ← typeMaybeAst scope s to
-  keepType cst $ TyArrow i (O.view #value kind) from' to'
+  pure $ TyArrow i (O.view #value kind) from' to'
 typeAst scope cst@(Cst.Type.TyForall (Cst.Type.Forall{..})) = do
   child ← makeChildScope scope
   inner ← typeMaybeAst child (Cst.spanOf cst) ty
@@ -273,11 +368,13 @@ typeAst scope cst@(Cst.Type.TyForall (Cst.Type.Forall{..})) = do
   let go inside name = do
         let textName = O.view #value name
 
-        pId ← genNodeId
-        addToScope atTypeInScope child textName name $ TParam pId
+        ni ← makeCstNode name
+        addToScope atTypeInScope child textName name
+          . Definition (pure ni)
+          $ TParam ni
 
-        i ← genNodeId
-        keepType cst $ TyForall i child (Unresolved textName) inside
+        i ← makeCstNode cst
+        pure $ TyForall i child (Unresolved ni textName) inside
   foldlM go inner (Seq.reverse names)
 typeAst scope cst@(Cst.Type.TyParens (Cst.Delimited{inner})) = do
   typeMaybeAst scope (Cst.spanOf cst) inner
@@ -287,35 +384,25 @@ typeAst scope cst@(Cst.Type.TyParens (Cst.Delimited{inner})) = do
 data Expr
   = EVar NodeId Name
   | EApp NodeId Expr Expr
-  | EMatch NodeId (Seq Expr) (Seq (Seq Pattern, Expr))
-  | EScope NodeId ScopeId Expr
+  | EMatch NodeId (Seq Expr) (Seq (Seq Pattern, ScopeId, Expr))
   | EUnknown NodeId
+  | EPi NodeId ScopeId Icit Binder Expr Expr
+  | Eannotation NodeId Expr Expr
+  | EHole NodeId
   deriving (Generic, Show)
 
-instance IsNode Expr where
-  nodeId (EVar i _) = i
-  nodeId (EApp i _ _) = i
-  nodeId (EMatch i _ _) = i
-  nodeId (EScope i _ _) = i
-  nodeId (EUnknown i) = i
-
 data Pattern
-  = PName NodeId Text
+  = PName NodeId Binder
   | PProj NodeId Name (Seq Pattern) -- (Thing a b) → ...
   | PWildcard NodeId -- _ → ...
   deriving (Generic, Show)
 
-instance IsNode Pattern where
-  nodeId (PName i _) = i
-  nodeId (PProj i _ _) = i
-  nodeId (PWildcard i) = i
-
-keepExpr ∷ ∀ m. (MonadState AstState m) ⇒ Cst.Expr.Expr → Expr → m Expr
+keepExpr ∷ ∀ m. (MonadState CompilerState m) ⇒ Cst.Expr.Expr → Expr → m Expr
 keepExpr c e = keepNodeAt (nodeId e) (Cst.spanOf c) $> e
 
 exprMaybeAst
   ∷ ∀ m
-   . (MonadState AstState m)
+   . (MonadState CompilerState m)
   ⇒ ScopeId
   → Span
   → Maybe Cst.Expr.Expr
@@ -326,29 +413,30 @@ exprMaybeAst _ s Nothing = do
   keepNodeAt i s
   pure $ EUnknown i
 
-exprScopeBranch
+-- | Adds the binders found in a list of patterns to a given scope.
+genPatternBinders
   ∷ ∀ m
-   . (MonadState AstState m)
+   . (MonadState CompilerState m)
   ⇒ ScopeId
   → Seq Pattern
-  → Expr
-  → m Expr
-exprScopeBranch scope patterns e = do
-  go patterns
-  pure $ EScope (nodeId e) scope e
+  → m ()
+genPatternBinders scope patterns = go patterns
  where
   go Seq.Empty = pure ()
   go (PWildcard _ :<| rest) = go rest
   go (PProj _ _ args :<| rest) = go (args <> rest)
   go (PName i name :<| rest) = do
     s ← getSpanConfident i
-    addToScope atExprInScope scope name s $ EParam i
+    addToScope atExprInScope scope (nameToText name) s
+      . Definition (pure i)
+      $ EParam i
     go rest
 
-exprAst ∷ ∀ m. (MonadState AstState m) ⇒ ScopeId → Cst.Expr.Expr → m Expr
+exprAst ∷ ∀ m. (MonadState CompilerState m) ⇒ ScopeId → Cst.Expr.Expr → m Expr
 exprAst _ cst@(Cst.Expr.EVar (Cst.Expr.Var{..})) = do
-  i ← genNodeId
-  keepExpr cst $ EVar i $ Unresolved name.value
+  i ← makeCstNode cst
+  ni ← makeCstNode name
+  pure $ EVar i $ Unresolved ni name.value
 exprAst scope cst@(Cst.Expr.EApp (Cst.Expr.App{..})) = do
   i ← genNodeId
   f' ← exprAst scope f
@@ -360,9 +448,9 @@ exprAst scope cst@(Cst.Expr.ELambda (Cst.Expr.Lambda{..})) = do
 
   child ← makeChildScope scope
   body' ← exprMaybeAst child (Cst.spanOf cst) body
-  body'' ← exprScopeBranch child patterns' body'
+  genPatternBinders child patterns'
 
-  keepExpr cst $ EMatch i mempty $ pure (patterns', body'')
+  keepExpr cst $ EMatch i mempty $ pure (patterns', child, body')
 exprAst scope cst@(Cst.Expr.EMatch (Cst.Expr.Match{..})) = do
   i ← genNodeId
   exprs' ←
@@ -376,13 +464,18 @@ exprAst scope cst@(Cst.Expr.EMatch (Cst.Expr.Match{..})) = do
 
     child ← makeChildScope scope
     body' ← exprMaybeAst child (Cst.spanOf cst) body
-    body'' ← exprScopeBranch child patterns' body'
 
-    pure $ (patterns', body'')
+    genPatternBinders child patterns'
+    pure $ (patterns', child, body')
   keepExpr cst $ EMatch i exprs' branches'
-exprAst _ _ = error "Unimplemented"
+exprAst scope cst@(Cst.Expr.EParens (Cst.Delimited{inner})) =
+  exprMaybeAst
+    scope
+    (Cst.spanOf cst)
+    inner
+exprAst _ e = error $ "Unimplemented `exprAst` for " <> textPretty e
 
-exprPattern ∷ ∀ m. (MonadState AstState m) ⇒ Cst.Expr.Pattern → m Pattern
+exprPattern ∷ ∀ m. (MonadState CompilerState m) ⇒ Cst.Expr.Pattern → m Pattern
 exprPattern cst@(Cst.Expr.PParens (Cst.Delimited{inner = Nothing})) = do
   i ← makeCstNode cst
   pure $ PWildcard i
@@ -392,18 +485,21 @@ exprPattern cst@(Cst.Expr.PWildcard _) = do
   pure $ PWildcard i
 exprPattern cst@(Cst.Expr.PName name) = do
   i ← makeCstNode cst
-  pure $ PName i name.value
+  pure $ PName i $ Unresolved i name.value
 exprPattern cst@(Cst.Expr.PProj (Cst.Expr.PatternProj{head = head', args})) = do
   i ← makeCstNode cst
   args' ← traverse exprPattern args
-  let fallback = Unresolved $ "__no_name" <> show i
-  pure $ PProj i (maybe fallback (Unresolved . O.view #value) head') args'
+  let fallback = forceMaybeName i head'
+  ni ← case head' of
+    Just h → makeCstNode h
+    Nothing → pure i -- Does this ever come up?
+  pure $ PProj i (Unresolved ni fallback) args'
 
 -- }}}
 -- {{{ Modules
 addToScope
   ∷ ∀ m cst a k is
-   . ( MonadState AstState m
+   . ( MonadState CompilerState m
      , IsNode a
      , Cst.HasTrivia cst
      , O.Is k O.A_Lens
@@ -422,7 +518,7 @@ addToScope at scope name cst val = do
 
 ensureUnusedName
   ∷ ∀ m cst a k is
-   . ( MonadState AstState m
+   . ( MonadState CompilerState m
      , IsNode a
      , Cst.HasTrivia cst
      , O.Is k O.An_AffineFold
@@ -440,7 +536,6 @@ ensureUnusedName at scope name cst = do
     Just existing → do
       existingSpan ← getSpan existing
       reportError
-        scope
         "DuplicateDeclaration"
         "Duplicate declaration."
         ( catMaybes
@@ -464,12 +559,24 @@ ensureUnusedName at scope name cst = do
 type ModuleAcc = HashMap Text ModuleAccElem
 data ModuleAccElem = ModuleAccElem
   { span ∷ Maybe Span
+  , names ∷ Seq NodeId
   , types ∷ Seq (NodeId, Type')
-  , branches ∷ Seq (NodeId, Seq Pattern, Expr)
+  , branches ∷ Seq (Seq Pattern, ScopeId, Expr)
   }
   deriving (Generic, Show)
 
-moduleAst ∷ ∀ m. (MonadState AstState m) ⇒ Cst.Mod.Module → m ScopeId
+instance Semigroup ModuleAccElem where
+  a <> b =
+    ModuleAccElem
+      (a.span <> b.span)
+      (a.names <> b.names)
+      (a.types <> b.types)
+      (a.branches <> b.branches)
+
+instance Monoid ModuleAccElem where
+  mempty = ModuleAccElem mempty mempty mempty mempty
+
+moduleAst ∷ ∀ m. (MonadState CompilerState m) ⇒ Cst.Mod.Module → m ScopeId
 moduleAst (Cst.Mod.Module{..}) = do
   scope ← genScopeId
   acc ← foldlM (go scope) mempty decls
@@ -484,7 +591,6 @@ moduleAst (Cst.Mod.Module{..}) = do
           for_ more \(idOther, _) →
             getSpan idOther >>= traverse_ \secondSpan →
               reportError
-                scope
                 "DuplicateTypeAnnotation"
                 ("Multiple type annotations found for `" <> PP.pretty name' <> "`.")
                 [ (firstSpan, DG.Where $ "Name `" <> PP.pretty name' <> "` is already defined here.")
@@ -497,10 +603,15 @@ moduleAst (Cst.Mod.Module{..}) = do
     i ← genNodeId
     keepNodeAt i s
 
-    let branches = elem'.branches <&> \(_, patterns, body) → (patterns, body)
+    let nameNodes =
+          fromMaybe (error "impossible")
+            . nonEmpty
+            $ toList elem'.names
+
     addToScope atExprInScope scope name' s
+      . Definition nameNodes
       . EDeclaration i ty
-      $ EMatch i mempty branches
+      $ EMatch i mempty elem'.branches
 
   pure scope
  where
@@ -515,23 +626,30 @@ moduleAst (Cst.Mod.Module{..}) = do
       let addArg inside name' = do
             let textName = O.view #value name'
 
-            pId ← genNodeId
-            addToScope atTypeInScope child textName name $ TParam pId
+            ni ← makeCstNode name'
+            addToScope atTypeInScope child textName name
+              . Definition (pure ni)
+              $ TParam ni
 
-            i' ← genNodeId
-            keepType cst $ TyLambda i' child (Unresolved textName) inside
+            keepType cst $ TyLambda i child (Unresolved ni textName) inside
       body'' ← foldlM addArg body (Seq.reverse cst.args)
 
       let textName = forceMaybeName i cst.name
-      addToScope atTypeInScope scope textName cst $ TAlias i body''
+      ni ← maybe (pure i) makeCstNode cst.name
+      addToScope atTypeInScope scope textName cst
+        . Definition (pure ni)
+        $ TAlias i body''
       pure acc
     Cst.Mod.DeclForeignType cst → do
       i ← makeCstNode cst
 
-      t ← tyType
+      ty ← typeMaybeAst scope (Cst.spanOf cst) cst.ty
       let textName = forceMaybeName i cst.name
 
-      addToScope atTypeInScope scope textName cst $ TForeign i t
+      ni ← maybe (pure i) makeCstNode cst.name
+      addToScope atTypeInScope scope textName cst
+        . Definition (pure ni)
+        $ TForeign i ty
       pure acc
     Cst.Mod.DeclForeignValue cst → do
       i ← makeCstNode cst
@@ -539,67 +657,94 @@ moduleAst (Cst.Mod.Module{..}) = do
       ty ← typeMaybeAst scope (Cst.spanOf cst) cst.ty
       let name' = forceMaybeName i cst.name
 
-      addToScope atExprInScope scope name' cst $ EForeign i ty
+      ni ← maybe (pure i) makeCstNode cst.name
+      addToScope atExprInScope scope name' cst
+        . Definition (pure ni)
+        $ EForeign i ty
       pure acc
     Cst.Mod.DeclValueTypeAnn cst → do
       i ← makeCstNode cst
-
       ty ← typeMaybeAst scope (Cst.spanOf cst) cst.ty
+
       let name' = cst.name.value
+      ni ← makeCstNode cst.name
+      let piece =
+            ModuleAccElem
+              { span = Just $ Cst.spanOf cst
+              , names = pure ni
+              , types = pure (i, ty)
+              , branches = mempty
+              }
 
       pure
-        . HashMap.update (Just . O.over #span ((<>) . Just $ Cst.spanOf cst)) name'
-        . HashMap.update (Just . O.over #types (|> (i, ty))) name'
+        . HashMap.update (Just . (<> piece)) name'
         $ if HashMap.member name' acc
           then acc
-          else HashMap.insert name' (ModuleAccElem mempty mempty mempty) acc
+          else HashMap.insert name' mempty acc
     Cst.Mod.DeclValueEquation cst → do
-      i ← makeCstNode cst
-
       patterns ← traverse exprPattern cst.args
 
       child ← makeChildScope scope
       body ← exprMaybeAst child (Cst.spanOf cst) cst.expr
-      body' ← exprScopeBranch child patterns body
+      genPatternBinders child patterns
 
       let name' = cst.name.value
+      ni ← makeCstNode cst.name
+      let piece =
+            ModuleAccElem
+              { span = Just $ Cst.spanOf cst
+              , names = pure ni
+              , types = mempty
+              , branches = pure (patterns, child, body)
+              }
 
       pure
-        . HashMap.update (Just . O.over #span ((<>) . Just $ Cst.spanOf cst)) name'
-        . HashMap.update (Just . O.over #branches (|> (i, patterns, body'))) name'
+        . HashMap.update (Just . (<> piece)) name'
         $ if HashMap.member name' acc
           then acc
-          else HashMap.insert name' (ModuleAccElem mempty mempty mempty) acc
+          else HashMap.insert name' mempty acc
     _ → error "Unimplemented"
 
 -- }}}
-
 -- {{{ Name resolution
+getUnscopedName
+  ∷ ∀ m a k is
+   . ( O.Is k O.An_AffineFold
+     , MonadCompile m
+     )
+  ⇒ (Text → O.Optic' k is Scope (Maybe a))
+  → Name
+  → m (Maybe a)
+getUnscopedName at resolved@(Resolved _ scope _) = do
+  res ← getScopedName at scope resolved
+  pure $ snd <$> res
+getUnscopedName _ _ = pure Nothing
+
 getScopedName
   ∷ ∀ m a k is
    . ( O.Is k O.An_AffineFold
-     , MonadState AstState m
+     , MonadState CompilerState m
      )
   ⇒ (Text → O.Optic' k is Scope (Maybe a))
   → ScopeId
   → Name
   → m (Maybe (Name, a))
-getScopedName at _ resolved@(Resolved scope name) = do
+getScopedName at _ resolved@(Resolved _ scope name) = do
   let at' = O.castOptic @O.An_AffineFold $ at name
   v ← gets $ O.preview (#scopes % O.ix scope % at' % O._Just)
   pure $ (resolved,) <$> v
-getScopedName at i (Unresolved name) = do
+getScopedName at si (Unresolved ni name) = do
   let at' = O.castOptic @O.An_AffineFold $ at name
-  mbScope ← gets $ O.preview (#scopes % O.ix i)
+  mbScope ← gets $ O.preview (#scopes % O.ix si)
   case mbScope of
     Nothing → pure Nothing
     Just scope → case O.preview (at' % O._Just) scope of
-      Just thing → pure $ Just (Resolved i name, thing)
+      Just thing → pure $ Just (Resolved ni si name, thing)
       Nothing → go scope.inherits
        where
         go Seq.Empty = pure Nothing
         go (rest :|> last') = do
-          attempt ← getScopedName at last' $ Unresolved name
+          attempt ← getScopedName at last' $ Unresolved ni name
           case attempt of
             Nothing → go rest
             Just res → pure $ Just res
@@ -607,7 +752,7 @@ getScopedName at i (Unresolved name) = do
 resolveName
   ∷ ∀ m a k is node
    . ( O.Is k O.An_AffineFold
-     , MonadState AstState m
+     , MonadState CompilerState m
      , IsNode node
      )
   ⇒ (Text → O.Optic' k is Scope (Maybe a))
@@ -620,36 +765,48 @@ resolveName at scope node name =
     >>= \case
       Just (n', _) → pure n'
       Nothing → do
+        let name' = nameToText name
         getSpan node >>= traverse \span' →
           reportError
-            scope
             "MissingName"
             "Name not in scope."
-            [(span', DG.This $ "Name `" <> PP.pretty name <> "` not in scope.")]
+            [(span', DG.This $ "Name `" <> PP.pretty name' <> "` not in scope.")]
             []
         pure name
 
-exprResolveNames ∷ ∀ m. (MonadState AstState m) ⇒ ScopeId → Expr → m Expr
+exprResolveNames ∷ ∀ m. (MonadState CompilerState m) ⇒ ScopeId → Expr → m Expr
 exprResolveNames scope (EVar i n) =
-  resolveName atExprInScope scope i n <&> EVar i
+  resolveName atExprInScope scope i n <&> \case
+    r@(Resolved _ _ _) → EVar i r
+    (Unresolved i' _) → EUnknown i'
 exprResolveNames scope (EApp i f a) = do
   f' ← exprResolveNames scope f
   a' ← exprResolveNames scope a
   pure $ EApp i f' a'
 exprResolveNames scope (EMatch i exprs branches) = do
   exprs' ← traverse (exprResolveNames scope) exprs
-  branches' ← for branches \(pats, e) → do
-    e' ← exprResolveNames scope e
-    pure (pats, e')
+  branches' ← for branches \(pats, scope', e) → do
+    pats' ← traverse (patternResolveNames scope') pats
+    e' ← exprResolveNames scope' e
+    pure (pats', scope', e')
   pure $ EMatch i exprs' branches'
-exprResolveNames _ (EScope i scope e) = do
-  e' ← exprResolveNames scope e
-  pure $ EScope i scope e'
 exprResolveNames _ e@(EUnknown _) = pure e
+exprResolveNames _ _ = error "Unimplemented"
 
-typeResolveNames ∷ ∀ m. (MonadState AstState m) ⇒ ScopeId → Type' → m Type'
+patternResolveNames ∷ ∀ m. (MonadState CompilerState m) ⇒ ScopeId → Pattern → m Pattern
+patternResolveNames _ w@(PWildcard _) = pure w
+patternResolveNames scope (PName i name) =
+  resolveName atExprInScope scope i name <&> PName i
+patternResolveNames scope (PProj i name args) =
+  -- NOTE: we delay the resolution of constructor names
+  PProj i name
+    <$> traverse (patternResolveNames scope) args
+
+typeResolveNames ∷ ∀ m. (MonadState CompilerState m) ⇒ ScopeId → Type' → m Type'
 typeResolveNames scope (TyVar i n) =
-  resolveName atTypeInScope scope i n <&> TyVar i
+  resolveName atTypeInScope scope i n <&> \case
+    r@(Resolved _ _ _) → TyVar i r
+    (Unresolved i' _) → TyUnknown i'
 typeResolveNames scope (TyApp i f a) = do
   f' ← typeResolveNames scope f
   a' ← typeResolveNames scope a
@@ -670,7 +827,7 @@ typeResolveNames _ t@(TyUnknown _) = pure t
 
 exprDefinitionResolveNames
   ∷ ∀ m
-   . (MonadState AstState m)
+   . (MonadState CompilerState m)
   ⇒ ScopeId
   → ExprDefinition
   → m ExprDefinition
@@ -685,7 +842,7 @@ exprDefinitionResolveNames scope (EDeclaration i ty e) = do
 
 typeDefinitionResolveNames
   ∷ ∀ m
-   . (MonadState AstState m)
+   . (MonadState CompilerState m)
   ⇒ ScopeId
   → TypeDefinition
   → m TypeDefinition
@@ -697,18 +854,18 @@ typeDefinitionResolveNames scope (TAlias i ty) = do
   ty' ← typeResolveNames scope ty
   pure $ TAlias i ty'
 
-scopeResolveNames ∷ ∀ m. (MonadState AstState m) ⇒ ScopeId → m ()
+scopeResolveNames ∷ ∀ m. (MonadState CompilerState m) ⇒ ScopeId → m ()
 scopeResolveNames i = do
   mbScope ← gets $ O.preview (#scopes % O.ix i)
   for_ mbScope \scope → do
-    for_ (HashMap.toList scope.types) \(k, v) → do
+    for_ (HashMap.toList scope.types) \(k, (Definition ni v)) → do
       v' ← typeDefinitionResolveNames i v
-      O.assign (#scopes % O.ix i % #types % O.ix k) v'
-    for_ (HashMap.toList scope.exprs) \(k, v) → do
+      O.assign (#scopes % O.ix i % #types % O.ix k) $ Definition ni v'
+    for_ (HashMap.toList scope.exprs) \(k, (Definition ni v)) → do
       v' ← exprDefinitionResolveNames i v
-      O.assign (#scopes % O.ix i % #exprs % O.ix k) v'
+      O.assign (#scopes % O.ix i % #exprs % O.ix k) $ Definition ni v'
 
-resolveNames ∷ ∀ m. (MonadState AstState m) ⇒ m ()
+resolveNames ∷ ∀ m. (MonadState CompilerState m) ⇒ m ()
 resolveNames = do
   scopes ← gets $ O.view #scopes
   for_ (HashMap.keys scopes) \scope → do
@@ -724,47 +881,45 @@ genTest source = do
   case parsed of
     Nothing → pure ()
     Just m → do
-      let astState = execState (moduleAst m) initialState
+      let (_, astState) = runState (moduleAst m) initialState
       putTextLn "========= AST gen"
       putTextLn $ textPretty astState
-      printErrors astState
       putTextLn "========= Name resolution"
       -- let astState' = execState resolveNames $ clearErrors astState
       let astState' = execState resolveNames astState
       putTextLn $ textPretty astState'
       printErrors astState'
  where
-  printErrors astState =
-    for_ astState.scopes \s → do
-      Error.printDiagnostic $
-        DG.addFile
-          (Error.addReports $ toList s.reports)
-          "<test>"
-          (Text.unpack source)
+  printErrors = Error.printDiagnostic . collectDiagnostics
 
   initialState =
-    AstState
-      { spans = mempty
-      , scopes = mempty
-      , nextNodeId = 0
-      , nextScopeId = 0
-      , currentFile = initialFile
-      , files = HashMap.singleton initialFile mempty
+    initialCompilerState
+      { files = HashMap.singleton initialFile mempty
       }
 
-  initialFile = LSP.toNormalizedUri $ LSP.Uri "<test>"
-
-clearErrors ∷ AstState → AstState
-clearErrors = O.set (#scopes % O.traversed % #reports) mempty
+  initialFile = LSP.toNormalizedUri $ LSP.Uri "ethereal://test.waow"
 
 -- }}}
 -- {{{ Pretty instances
 instance PP.Pretty Name where
-  pretty (Unresolved t) = "[?]." <> PP.pretty t
-  pretty (Resolved s t) = "[" <> PP.pretty s <> "]." <> PP.pretty t
+  pretty (Unresolved i t) = "[" <> PP.pretty i <> "][?]." <> PP.pretty t
+  pretty (Resolved i s t) =
+    fold
+      [ "["
+      , PP.pretty i
+      , "][:"
+      , PP.pretty s
+      , "]."
+      , PP.pretty t
+      ]
 
 instance PP.Pretty TypeDefinition where
-  pretty (TForeign i ty) = PP.hsep ["[" <> PP.pretty i <> "]foreign", "::", PP.pretty ty]
+  pretty (TForeign i ty) =
+    PP.hsep
+      [ "[" <> PP.pretty i <> "]foreign"
+      , "::"
+      , PP.pretty ty
+      ]
   pretty (TAlias i ty) = PP.hsep ["[" <> PP.pretty i <> "]alias", PP.pretty ty]
   pretty (TParam i) = "[" <> PP.pretty i <> "]Param"
 
@@ -783,10 +938,10 @@ instance PP.Pretty Scope where
             pure $ fold ["[", PP.pretty k, "]", PP.pretty v]
         ]
 
-instance PP.Pretty AstState where
-  pretty (AstState{..}) =
+instance PP.Pretty CompilerState where
+  pretty (CompilerState{..}) =
     Cst.prettyTree
-      "AstState"
+      "CompilerState"
       $ catMaybes
         [ guard (not $ null scopes) $> Base.prettyTree "scopes" do
             (k, v) ← HashMap.toList scopes
@@ -815,7 +970,7 @@ instance PP.Pretty Type' where
       , PP.pretty i
       , "]∀"
       , PP.pretty name
-      , ",["
+      , ",[:"
       , PP.pretty scope
       , "] "
       , PP.pretty ty
@@ -826,7 +981,7 @@ instance PP.Pretty Type' where
       , PP.pretty i
       , "]λ"
       , PP.pretty name
-      , ",["
+      , ",[:"
       , PP.pretty scope
       , "] "
       , PP.pretty ty
@@ -868,10 +1023,6 @@ instance PP.Pretty Type' where
 instance PP.Pretty Expr where
   pretty (EUnknown i) = "[" <> PP.pretty i <> "]???"
   pretty (EVar i name) = "[" <> PP.pretty i <> "]" <> PP.pretty name
-  pretty (EScope i scope expr) =
-    Cst.prettyTree
-      ("[" <> PP.pretty i <> "]Scoped[" <> PP.pretty scope <> "]")
-      [PP.pretty expr]
   pretty (EMatch i exprs branches) =
     Cst.prettyTree
       ("[" <> PP.pretty i <> "]Match")
@@ -879,8 +1030,8 @@ instance PP.Pretty Expr where
         [ guard (not $ null exprs) $> Base.prettyTree "exprs" do
             PP.pretty <$> toList exprs
         , guard (not $ null branches) *> do
-            (patterns, expr) ← toList branches
-            pure . Cst.prettyTree "Branch" . catMaybes $
+            (patterns, scope, expr) ← toList branches
+            pure . Cst.prettyTree ("Branch[:" <> PP.pretty scope <> "]") . catMaybes $
               [ guard (not $ null patterns) $> Base.prettyTree "patterns" do
                   PP.pretty <$> toList patterns
               , pure $ PP.pretty expr
@@ -892,6 +1043,7 @@ instance PP.Pretty Expr where
       [ PP.pretty f
       , PP.pretty a
       ]
+  pretty _ = error "Unimplemented"
 
 instance PP.Pretty Pattern where
   pretty (PWildcard i) = "[" <> PP.pretty i <> "]_"
@@ -908,5 +1060,13 @@ instance PP.Pretty Pattern where
           , fold $ intersperse " " $ PP.pretty <$> toList args
           , ")"
           ]
+instance (PP.Pretty a) ⇒ PP.Pretty (Definition a) where
+  pretty (Definition i inner) =
+    fold
+      [ "["
+      , PP.pretty i
+      , "]"
+      , PP.pretty inner
+      ]
 
 -- }}}
