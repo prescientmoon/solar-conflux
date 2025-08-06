@@ -46,6 +46,7 @@ import Data.Set qualified as Set
 import Data.Text qualified as Text
 import Error.Diagnose qualified as DG
 import Nihil.Cst.Base qualified as Base
+import Nihil.Error (pathToString)
 import Nihil.Error qualified as Error
 import Nihil.Utils (textPretty)
 import Optics ((%))
@@ -195,8 +196,8 @@ parseTest p input = do
 
   Error.printDiagnostic $
     DG.addFile
-      (Error.addReports errs)
-      filename
+      (Error.addReports $ toList errs)
+      (pathToString filename)
       (Text.unpack input)
 
   pure $ fst <$> result
@@ -219,10 +220,11 @@ noHints p = ReaderT \ctx → StateT \s →
 runParser
   ∷ ∀ a
    . Parser a
-  → String
+  → Error.Path
   → Text
-  → ([Error.Report], Maybe (a, ParserState))
-runParser p filename input = runMParser stateResult filename input
+  → (Seq Error.Report, Maybe (a, ParserState))
+runParser p filename input =
+  runMParser stateResult (pathToString filename) input
  where
   stateResult = runStateT readerResult initialState
   readerResult = runReaderT (resetStopOn $ sc *> p <* M.eof) initialCtx
@@ -239,11 +241,15 @@ runMParser
    . M.Parsec Error Text a
   → String
   → Text
-  → ([Error.Report], Maybe a)
+  → (Seq Error.Report, Maybe a)
 runMParser p s i = runIdentity do
   (MI.Reply s' _ result) ← MI.runParsecT p (M.initialState s i)
+
   -- TODO: take custom error spans into account when sorting
-  let bundle es = finalizeError =<< sortWith M.errorOffset es
+  let bundle es = Seq.fromList do
+        e ← sortWith M.errorOffset es
+        finalizeError e
+
   pure $ case result of
     MI.OK _ x → (bundle (M.stateParseErrors s'), Just x)
     MI.Error e → (bundle $ e : M.stateParseErrors s', Nothing)

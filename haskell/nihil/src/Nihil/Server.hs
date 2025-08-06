@@ -4,15 +4,24 @@ import Language.LSP.Protocol.Message qualified as LSP
 import Language.LSP.Protocol.Types qualified as LSP
 import Language.LSP.Server (Options (..), ServerDefinition (..), defaultOptions)
 import Language.LSP.Server qualified as LSP
+import Nihil.Ast.State (initialCompilerState)
+import Nihil.Server.Lifecycle qualified as Lifecycle
+import Nihil.Server.Name qualified as Names
 import Nihil.Server.SemanticTokens qualified as SemanticTokens
 import Nihil.Server.State (ServerConfig)
+import Nihil.Server.State qualified as Server
 import Relude
 
 run ∷ IO Int
-run = LSP.runServer serverDefinition
+run = do
+  s ← newIORef initialCompilerState
+  LSP.runServer . serverDefinition $
+    Server.Context
+      { state = s
+      }
 
-serverDefinition ∷ ServerDefinition ServerConfig
-serverDefinition =
+serverDefinition ∷ Server.Context → ServerDefinition ServerConfig
+serverDefinition ctx =
   ServerDefinition
     { defaultConfig = ()
     , configSection = "nihil"
@@ -20,7 +29,10 @@ serverDefinition =
     , onConfigChange = \_ → pure ()
     , doInitialize = \env _ → pure $ Right env
     , options = options
-    , interpretHandler = \env → LSP.Iso (LSP.runLspT env) liftIO
+    , interpretHandler = \env →
+        LSP.Iso
+          (LSP.runLspT env . flip runReaderT ctx)
+          liftIO
     , staticHandlers = \_caps → handlers
     }
  where
@@ -38,16 +50,15 @@ serverDefinition =
               }
       }
 
-handlers ∷ LSP.Handlers (LSP.LspM ())
+handlers ∷ LSP.Handlers Server.LspM
 handlers =
   fold
     [ LSP.notificationHandler LSP.SMethod_Initialized $ \_not → do
         pure ()
-    , LSP.notificationHandler LSP.SMethod_TextDocumentDidOpen $ \_notif → do
-        pure ()
-    , LSP.notificationHandler LSP.SMethod_TextDocumentDidChange $ \_notif → do
-        pure ()
     , LSP.notificationHandler LSP.SMethod_TextDocumentDidSave $ \_notif → do
         pure ()
+    , Lifecycle.onChangeHandler
+    , Lifecycle.onOpenHandler
     , SemanticTokens.handler
+    , Names.gotoHandler
     ]
