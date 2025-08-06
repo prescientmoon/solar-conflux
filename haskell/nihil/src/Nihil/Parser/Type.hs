@@ -98,7 +98,7 @@ tyForall = do
       "EmptyForall"
       "Universal quantifiers must bind at least one variable."
       ( reverse . catMaybes $
-          [ Just (Base.spanOf tForall, DG.This "This one binds none.")
+          [ Just (Base.spanOf tForall, DG.This "This quantifier binds no variables.")
           , comma <&> \c →
               (Base.spanOf c, DG.Where "I got this far while looking for type variables.")
           ]

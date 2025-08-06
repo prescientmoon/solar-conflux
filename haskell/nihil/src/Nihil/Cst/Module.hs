@@ -151,9 +151,10 @@ instance PP.Pretty TypeAlias where
 data ForeignType
   = ForeignType
   { foreign' ∷ Base.Token'
-  , ty ∷ Base.Token'
+  , type' ∷ Base.Token'
   , name ∷ Maybe Base.Name
-  , args ∷ Seq Base.Name
+  , colon ∷ Maybe Base.Token'
+  , ty ∷ Maybe Type.Type'
   }
   deriving (Generic, Show, Base.HasTrivia)
 
@@ -161,10 +162,10 @@ instance PP.Pretty ForeignType where
   pretty (ForeignType{..}) =
     Base.prettyTree "Foreign type" . catMaybes $
       [ Just $ PP.pretty foreign'
-      , Just $ PP.pretty ty
+      , Just $ PP.pretty type'
       , PP.pretty <$> name
-      , guard (not $ null args) $> Base.prettyTree "arguments" do
-          toList $ PP.pretty <$> args
+      , PP.pretty <$> colon
+      , PP.pretty <$> ty
       ]
 
 data ForeignValue

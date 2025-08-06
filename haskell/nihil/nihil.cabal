@@ -58,7 +58,8 @@ executable nihil
         , Nihil.Cst.Expr
         , Nihil.Cst.Module
         , Nihil.Ast.State
-        , Nihil.Ast.Type
+        , Nihil.Ast.Term
+        , Nihil.Ast.Lifecycle
         , Nihil.Parser.Core
         , Nihil.Parser.Notation
         , Nihil.Parser.Combinators
@@ -67,8 +68,10 @@ executable nihil
         , Nihil.Parser.Expr
         , Nihil.Parser.Module
         , Nihil.Server.State
+        , Nihil.Server.Lifecycle
         , Nihil.Server.SemanticTokens
         , Nihil.Server.Name
+        , Nihil.Server.Diagnostics
         , Nihil.Server
 
     build-depends:

@@ -153,15 +153,17 @@ pForeign = do
           , colon = colon
           , ty = ty
           }
-    Just (Left tTy) → do
+    Just (Left type') → do
       name ← Core.tryJunkTill $ Core.label "type name" Core.name
-      args ← Core.many' $ Core.tryJunkTill $ Core.label "argument name" Core.name
+      colon ← Core.tryJunkTill $ Core.string ":"
+      ty ← Core.tryJunkTill $ Core.label "Type" pType
       pure . DeclForeignType $
         ForeignType
           { foreign' = foreign'
-          , ty = tTy
+          , type' = type'
           , name = name
-          , args = args
+          , colon = colon
+          , ty = ty
           }
 
 pTypeAlias ∷ Core.Parser Declaration

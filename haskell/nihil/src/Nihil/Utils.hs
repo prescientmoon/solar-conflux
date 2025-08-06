@@ -42,9 +42,21 @@ modifyingM o f = do
     r'' ← f r'
     O.assign o r''
 
+chooseFirst ∷ ∀ a. [Maybe a] → Maybe a
+chooseFirst [] = Nothing
+chooseFirst (Nothing : rest) = chooseFirst rest
+chooseFirst (Just r : _) = Just r
+
 chooseFirstM ∷ ∀ m a. (Monad m) ⇒ [m (Maybe a)] → m (Maybe a)
 chooseFirstM [] = pure Nothing
 chooseFirstM (h : rest) =
   h >>= \case
     Nothing → chooseFirstM rest
     Just r → pure $ Just r
+
+-- | Implicitness annotation
+data Icit
+  = Implicit
+  | Auto
+  | Explicit
+  deriving (Eq, Ord, Generic, Show)
