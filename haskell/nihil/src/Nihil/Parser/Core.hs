@@ -45,8 +45,8 @@ import Data.Sequence qualified as Seq
 import Data.Set qualified as Set
 import Data.Text qualified as Text
 import Error.Diagnose qualified as DG
+import Language.LSP.Protocol.Types qualified as LSP
 import Nihil.Cst.Base qualified as Base
-import Nihil.Error (pathToString)
 import Nihil.Error qualified as Error
 import Nihil.Utils (textPretty)
 import Optics ((%))
@@ -185,10 +185,9 @@ throwError offset code desc markers hints =
 -- | Attempt to run a parser on some string, reporting the results to stdout.
 -- An error is reported if the parser does not consume the full string it's
 -- given. The parser state at the very end of the parse is also shown.
-parseTest ∷ ∀ a. (PP.Pretty a) ⇒ Parser a → Text → IO (Maybe a)
-parseTest p input = do
-  let filename = "<test>"
-  let (errs, result) = runParser p filename input
+parseTest ∷ ∀ a. (PP.Pretty a) ⇒ Parser a → Error.Path → Text → IO (Maybe a)
+parseTest p path input = do
+  let (errs, result) = runParser p path input
 
   for_ result \(x, finalState) → do
     putTextLn $ textPretty finalState
@@ -197,7 +196,7 @@ parseTest p input = do
   Error.printDiagnostic $
     DG.addFile
       (Error.addReports $ toList errs)
-      (pathToString filename)
+      (fromMaybe "ethereal.waow" $ LSP.uriToFilePath $ LSP.fromNormalizedUri path)
       (Text.unpack input)
 
   pure $ fst <$> result
@@ -224,7 +223,10 @@ runParser
   → Text
   → (Seq Error.Report, Maybe (a, ParserState))
 runParser p filename input =
-  runMParser stateResult (pathToString filename) input
+  runMParser
+    stateResult
+    (fromMaybe "ethereal.waow" $ LSP.uriToFilePath $ LSP.fromNormalizedUri filename)
+    input
  where
   stateResult = runStateT readerResult initialState
   readerResult = runReaderT (resetStopOn $ sc *> p <* M.eof) initialCtx

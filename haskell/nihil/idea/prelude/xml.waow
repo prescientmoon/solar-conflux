@@ -1,0 +1,56 @@
+module Prelude.Xml
+  ( Xml
+  , Xml.attr
+  , Xml.tag
+  , Xml.gen
+  , Xml.write
+  , XmlAttr
+  ) where
+
+struct Xml where
+  out :   Text
+  attrs : List XmlAttr
+
+struct XmlAttr where
+  name:  Text
+  value: Text
+
+Xml.gen : Xml -> Endo Text
+Xml.gen inner = text
+  <?xml ⟨Xml.gen_attrs inner.attrs⟩?>
+  ⟨inner.out⟩
+
+Xml.attr : Text -> Text -> Endo (List XmlAttr)
+Xml.attr name inner = List.append (XmlAttr name inner)
+
+Xml.gen_attrs : List XmlAttr -> Endo Text
+Xml.gen_attrs attrs = List.forl attrs text
+  ⋄ ⟨attr.name⟩ = ⟨Text.escape ⟨"⟩ attr.value⟩
+
+Xml.has_text : HasText Xml
+Xml.has_text .write self = Text.write self.out
+
+Xml.text_lit : TextLiteral Xml
+Xml.text_lit .write = Text.mk_text_lit Xml.out
+
+trait HasXml t where
+  tag  : Text -> t -> Endo t
+  leaf : Text -> List XmlAttr -> Endo t
+  attr : Text -> Text -> Endo t
+
+Xml.has_xml : HasXml Xml
+Xml.has_xml = intro _ where
+  .tag name inner -> text
+    <⟨name⟩ ⟨Xml.gen_attrs inner.attrs⟩>
+      ⟨inner.out⟩
+    </⟨name⟩>
+  .leaf name attrs -> text
+    <⟨name⟩ ⟨Xml.gen_attrs attrs⟩/>
+  .attr name value ->
+    Xml.attrs (Xml.attr name value)
+
+Xml.mk_has_xml : ∀a b. HasXml a => Getter b a -> HasXml b
+Xml.mk_has_xml !xml l = intro _ where
+  .tag  name inner x -> over l (xml.tag name (view l inner))
+  .leaf self name attrs -> over l (xml.leaf name attrs)
+  .attr self name value -> over l (xml.attr name value)

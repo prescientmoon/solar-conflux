@@ -1,0 +1,43 @@
+module Prelude.Text
+  ( Text
+  , Text.default
+  , escape
+
+  , HasText
+  , Text.has_text
+  , Text.endo_has_text
+  , Text.write
+
+  , TextLiteral
+  , from_text
+  , Text.text_lit
+  , Text.mk_text_lit
+  ) where
+
+foreign type Text
+foreign write : Text -> Endo Text
+foreign escape : Text -> Endo Text
+
+Text.default : Default Text
+Text.default .default = ⟨⟩
+
+-- trait HasText t where
+--   write : Text -> Endo t
+
+-- alias HasText.write Text.write
+
+Text.has_text : HasText Text
+Text.has_text .write = write
+
+Text.endo_has_text : HasText (Endo Text)
+Text.endo_has_text .write f = f
+
+-- alias TextLiteral.from_text from_text
+-- trait TextLiteral t where
+--   from_text : Text -> t
+
+Text.text_lit : TextLiteral Text
+Text.text_lit .from_text x = x
+
+Text.mk_text_lit : ∀a b, TextLiteral a => Review b a -> TextLiteral b
+Text.mk_text_lit .from_text r t = review (TextLiteral.from_text t)

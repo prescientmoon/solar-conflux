@@ -1,0 +1,11 @@
+module Prelude.Bool (Bool, false, true, Bool.default) where
+
+inductive Bool where
+  False : Bool
+  True  : Bool
+
+alias Bool.False false
+alias Bool.True true
+
+Bool.default : Default Bool
+Bool.default .default = false

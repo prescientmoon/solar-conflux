@@ -1,8 +1,10 @@
-module Nihil.Ast.Lifecycle (onChange) where
+-- | Handle file changes in regards to the compiler state.
+module Nihil.Compiler.Lifecycle (onChange) where
 
 import Data.HashMap.Strict qualified as HashMap
-import Nihil.Ast.State (MonadCompile)
-import Nihil.Ast.State qualified as Ast
+import Nihil.Compiler.Gen qualified as Compiler
+import Nihil.Compiler.Monad (CompilerState (..), FileData (..), MonadCompile)
+import Nihil.Compiler.Resolve qualified as Compiler
 import Nihil.Error qualified as Error
 import Nihil.Parser.Core qualified as Parser
 import Nihil.Parser.Module qualified as Parser
@@ -42,7 +44,7 @@ onChange p content = do
   files' ← O.use #files
   for_ (HashMap.toList files') \(key, file) → do
     for_ file.parsed \module' → do
-      scope ← Ast.moduleAst module'
+      scope ← Compiler.moduleAst module'
       O.assign (#files % O.ix key % #mainScope) $ Just scope
 
-  Ast.resolveNames
+  Compiler.resolveNames

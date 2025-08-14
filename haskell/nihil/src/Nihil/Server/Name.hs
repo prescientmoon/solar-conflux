@@ -3,12 +3,14 @@ module Nihil.Server.Name where
 
 import Control.Monad.Cont (MonadCont (callCC), evalContT)
 import Data.HashMap.Strict qualified as HashMap
-import Data.Text qualified as Text
 import Error.Diagnose qualified as DG
 import Language.LSP.Protocol.Message qualified as LSP
 import Language.LSP.Protocol.Types qualified as LSP
 import Language.LSP.Server qualified as LSP
-import Nihil.Ast.State qualified as Ast
+import Nihil.Compiler.Ast qualified as Ast
+import Nihil.Compiler.Monad (defaultCompilerContext)
+import Nihil.Compiler.Monad qualified as Compiler
+import Nihil.Compiler.Resolve qualified as Resolve
 import Nihil.Error qualified as Error
 import Nihil.Server.State (LspM)
 import Nihil.Server.State qualified as Server
@@ -29,7 +31,7 @@ data BinderLink = BinderLink
 -- {{{ Name
 nameFindBinder
   ∷ ∀ m k is a
-   . ( Ast.MonadCompile m
+   . ( Compiler.MonadCompile m
      , Ast.IsNode a
      , O.Is k O.An_AffineFold
      )
@@ -38,9 +40,9 @@ nameFindBinder
   → Ast.Name
   → m (Maybe BinderLink)
 nameFindBinder at pos name = do
-  Ast.getSpan (Ast.nodeId name) >>= \case
+  Compiler.getSpan (Ast.nodeId name) >>= \case
     Just s | pos `Error.isSubspan` s → do
-      mbDecl ← Ast.getUnscopedName at name
+      mbDecl ← Resolve.getUnscopedName at name
       case mbDecl of
         Nothing → pure Nothing
         Just (Ast.Definition names inner) →
@@ -61,7 +63,7 @@ nameFindBinder at pos name = do
 -- signs were already there that this would be pointless.
 typeFindBinder
   ∷ ∀ m
-   . (Ast.MonadCompile m)
+   . (Compiler.MonadCompile m)
   ⇒ Error.Span
   → Ast.Type'
   → m (Maybe BinderLink)
@@ -93,7 +95,7 @@ typeFindBinder _ (Ast.TyUnknown _) = pure Nothing
 -- {{{ Expression
 exprFindBinder
   ∷ ∀ m
-   . (Ast.MonadCompile m)
+   . (Compiler.MonadCompile m)
   ⇒ Error.Span
   → Ast.Expr
   → m (Maybe BinderLink)
@@ -120,10 +122,11 @@ exprFindBinder pos (Ast.EApp _ f a) =
     , exprFindBinder pos a
     ]
 exprFindBinder _ (Ast.EUnknown _) = pure Nothing
+exprFindBinder _ _ = error "unimplemented"
 
 patternFindBinder
   ∷ ∀ m
-   . (Ast.MonadCompile m)
+   . (Compiler.MonadCompile m)
   ⇒ Error.Span
   → Ast.Pattern
   → m (Maybe BinderLink)
@@ -137,7 +140,7 @@ patternFindBinder pos (Ast.PProj _ _ args) =
 -- {{{ Definition
 exprDefinitionFindBinder
   ∷ ∀ m
-   . (Ast.MonadCompile m)
+   . (Compiler.MonadCompile m)
   ⇒ Error.Span
   → Ast.ExprDefinition
   → m (Maybe BinderLink)
@@ -151,7 +154,7 @@ exprDefinitionFindBinder pos (Ast.EDeclaration _ ty expr) =
 
 typeDefinitionFindBinder
   ∷ ∀ m
-   . (Ast.MonadCompile m)
+   . (Compiler.MonadCompile m)
   ⇒ Error.Span
   → Ast.TypeDefinition
   → m (Maybe BinderLink)
@@ -165,35 +168,39 @@ typeDefinitionFindBinder pos (Ast.TAlias _ value) =
 findBinder
   ∷ Error.Path
   → Error.Span
-  → Ast.CompilerState
+  → Compiler.CompilerState
   → Maybe BinderLink
-findBinder path pos = evalState $ evalContT $ callCC \escape → do
-  O.preuse (#files % O.ix path % #mainScope % O._Just) >>= traverse_ \mainScope →
-    O.preuse (#scopes % O.ix mainScope) >>= traverse_ \scope → do
-      for_ (HashMap.toList scope.types) \(name, (Ast.Definition nis ty)) → do
-        chooseFirstM
-          [ typeDefinitionFindBinder pos ty
-          , chooseFirstM $
-              ( \ni →
-                  nameFindBinder Ast.atTypeInScope pos $
-                    Ast.Resolved ni mainScope name
-              )
-                <$> toList nis
-          ]
-          >>= traverse_ \res → escape $ Just res
-      for_ (HashMap.toList scope.exprs) \(name, (Ast.Definition nis expr)) → do
-        chooseFirstM
-          [ exprDefinitionFindBinder pos expr
-          , chooseFirstM $
-              ( \ni →
-                  nameFindBinder Ast.atExprInScope pos $
-                    Ast.Resolved ni mainScope name
-              )
-                <$> toList nis
-          ]
-          >>= traverse_ \res → escape $ Just res
+findBinder path pos st = flip evalState st
+  . flip runReaderT defaultCompilerContext
+  . evalContT
+  $ callCC \escape → do
+    O.preuse (#files % O.ix path % #mainScope % O._Just) >>= traverse_ \mainScope →
+      O.preuse (#scopes % O.ix mainScope) >>= traverse_ \scope → do
+        for_ (HashMap.toList scope.types) \(name, (Ast.Definition nis ty)) → do
+          chooseFirstM
+            [ typeDefinitionFindBinder pos ty
+            , chooseFirstM $
+                ( \ni →
+                    nameFindBinder Ast.atTypeInScope pos $
+                      Ast.Resolved ni mainScope name
+                )
+                  <$> toList nis
+            ]
+            >>= traverse_ \res → escape $ Just res
 
-  pure Nothing
+        for_ (HashMap.toList scope.exprs) \(name, (Ast.Definition nis expr)) → do
+          chooseFirstM
+            [ exprDefinitionFindBinder pos expr
+            , chooseFirstM $
+                ( \ni →
+                    nameFindBinder Ast.atExprInScope pos $
+                      Ast.Resolved ni mainScope name
+                )
+                  <$> toList nis
+            ]
+            >>= traverse_ \res → escape $ Just res
+
+    pure Nothing
 
 -- }}}
 
@@ -209,9 +216,9 @@ gotoHandler = LSP.requestHandler
     let pos = Server.getPosition notif
     case findBinder path pos cs of
       Just binder
-        | Just sFrom ← evalState (Ast.getSpan binder.from) cs
-        , Just sDecl ← evalState (Ast.getSpan binder.decl) cs
-        , Just sName ← evalState (Ast.getSpan binder.nameDef) cs → do
+        | Just sFrom ← evalState (Compiler.getSpan binder.from) cs
+        , Just sDecl ← evalState (Compiler.getSpan binder.decl) cs
+        , Just sName ← evalState (Compiler.getSpan binder.nameDef) cs → do
             lift
               . responder
               . Right
@@ -222,7 +229,7 @@ gotoHandler = LSP.requestHandler
               $ LSP.LocationLink
                 { _originSelectionRange =
                     Just $ Error.spanToLspRange sFrom
-                , _targetUri = LSP.Uri $ Text.pack sDecl.file
+                , _targetUri = LSP.filePathToUri sDecl.file
                 , _targetRange = Error.spanToLspRange sDecl
                 , _targetSelectionRange = Error.spanToLspRange sName
                 }

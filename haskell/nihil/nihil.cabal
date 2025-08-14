@@ -57,9 +57,13 @@ executable nihil
         , Nihil.Cst.Type
         , Nihil.Cst.Expr
         , Nihil.Cst.Module
-        , Nihil.Ast.State
-        , Nihil.Ast.Term
-        , Nihil.Ast.Lifecycle
+        , Nihil.Compiler.Ast
+        , Nihil.Compiler.Term
+        , Nihil.Compiler.Monad
+        , Nihil.Compiler.Gen
+        , Nihil.Compiler.Resolve
+        , Nihil.Compiler.Elab
+        , Nihil.Compiler.Lifecycle
         , Nihil.Parser.Core
         , Nihil.Parser.Notation
         , Nihil.Parser.Combinators

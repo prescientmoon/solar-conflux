@@ -1,0 +1,7 @@
+module Test () where
+
+-- id = λx -> x
+-- const = λx -> λy -> x
+-- id_id = (λy -> y) (λx -> x)
+-- const_id = (λy -> λz -> y) (λx -> x)
+-- broken = λf -> λx -> λy -> f x y

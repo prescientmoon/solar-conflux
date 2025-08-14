@@ -1,0 +1,35 @@
+module Prelude.Html
+  ( Html
+  , Html.tag
+  , Html.attr
+  , Html.write
+  , Html.is_content
+  ) where
+
+struct Html where
+  out : Xml
+
+Html.has_xml : HasXml Html
+Html.has_xml = Xml.mk_has_xml Html.out
+
+Html.has_text : HasText Xml
+Html.has_text .write self = Text.write self.out
+
+Html.from_text : HasText Xml
+Html.from_text .write self = Text.write self.out
+
+Html.is_content :: IsContent Document.PrePass Html
+Html.is_content = intro _ where 
+  .img img content ->
+    Html.tag ⟨img⟩ make
+      Html.attr ⟨src⟩ img.src
+      Html.attr ⟨alt⟩ img.alt
+
+  .link pre link inner ->
+    Html.tag ⟨a⟩ with inner do
+      Html.attr ⟨href⟩ (Map.get pre.links name)
+
+def Html.gen(self: &Text, inner: Html): Unit = do
+  text ⟨<!doctype html>⟩
+  Xml.gen make
+    Html.tag ⟨html⟩ inner

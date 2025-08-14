@@ -1,0 +1,17 @@
+module Prelude.List (List.**) where
+
+-- inductive List a where
+--   Nil : List a
+--   Cons : a -> List a -> List a
+
+foreign type Type : Type
+foreign type List : Type -> Type
+foreign List.Nil :  ∀a, List a
+foreign List.Cons : ∀a, a -> List a -> List a
+
+List.forl : ∀a b f, Category f => List a -> (a -> Endo f b) -> Endo f b
+List.forl .List.Nil _ = id
+List.forl (.List.Cons h t) f = compose (List.for t f) f
+
+List.default : ∀a, Default (List a)
+List.default .default = List.Nil
