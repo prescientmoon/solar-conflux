@@ -122,15 +122,13 @@ draw_line :: proc {
 // }}}
 
 // {{{ Uniforms
-UBO :: u32
-
 UBO_ID :: enum {
 	Globals,
 	JFA,
 }
 
 @(rodata)
-UBO_ID_BINDING: [UBO_ID]u32 = {
+UBO_ID_BINDING: [UBO_ID]GL_BINDING = {
 	.Globals = 0,
 	.JFA     = 1,
 }
@@ -163,7 +161,7 @@ Instance_Param_Buf :: enum {
 }
 
 @(rodata)
-INSTANCE_PARAM_LOCATIONS: [Instance_Param_Buf]u32 = {
+INSTANCE_PARAM_LOCATIONS: [Instance_Param_Buf]GL_LOC = {
 	.Fill         = 1,
 	.Stroke       = 2,
 	.Stroke_Width = 3,
@@ -206,15 +204,15 @@ INSTANCE_PARAM_DIMS: [Instance_Param_Buf][2]i32 = { 	// (rows, cols)
 
 // Contains geometry data a shader can run on
 Mesh :: struct {
-	vertex_ind_buffer: u32,
-	vertex_pos_buffer: u32,
+	vertex_ind_buffer: GL_BUF,
+	vertex_pos_buffer: GL_BUF,
 	index_count:       ℕ,
 }
 
 // Contains data required to run a GPU program on some mesh
 Program :: struct {
-	program: u32,
-	vao:     u32,
+	program: GL_PROGRAM,
+	vao:     GL_VAO,
 }
 // }}}
 // {{{ Meshes
@@ -232,9 +230,9 @@ create_mesh :: proc(vertices: []ℝ², indices: []u32) -> (out: Mesh) {
 // }}}
 // {{{ Frame-buffers
 FBO :: struct {
-	fbo:               u32,
-	tex_color:         u32,
-	tex_depth_stencil: u32,
+	fbo:               GL_FBO,
+	tex_color:         GL_TEX,
+	tex_depth_stencil: GL_TEX,
 }
 
 Framebuffer_ID :: enum {
@@ -308,7 +306,7 @@ create_framebuffer :: proc(dims: ℝ²) -> (out: FBO) {
 }
 
 destroy_framebuffer :: proc(fbo: FBO) {
-	textures: []u32 = {fbo.tex_color, fbo.tex_depth_stencil}
+	textures: []GL_TEX = {fbo.tex_color, fbo.tex_depth_stencil}
 	OpenGL.DeleteTextures(2, raw_data(textures))
 
 	fbo := fbo.fbo
