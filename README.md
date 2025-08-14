@@ -20,6 +20,7 @@ The experiments are currently organized based on the language they use:
 - [Dart](./dart/)
 - [Elm](./elm/)
 - [F#](./fsharp/)
+- [Haskell](./haskell/)
 - [Idris](./idris/)
 - [Javascript](./javascript/)
 - [Lean](./lean/)
