@@ -6,6 +6,7 @@ import "core:log"
 import "core:reflect"
 import "vendor:OpenGL"
 
+// {{{ GL types
 GL_Buffer_Usage :: enum u32 {
 	Static  = OpenGL.STATIC_DRAW,
 	Dynamic = OpenGL.DYNAMIC_DRAW,
@@ -21,6 +22,15 @@ GL_Base_Type :: enum {
 	Float,
 }
 
+GL_UBO :: u32
+GL_FBO :: u32
+GL_TEX :: u32
+GL_VAO :: u32
+GL_BUF :: u32
+GL_LOC :: u32
+GL_BINDING :: u32
+GL_PROGRAM :: u32
+// }}}
 // {{{ Set array buffer
 gen_buffer :: proc() -> (out: u32) {
 	OpenGL.GenBuffers(1, &out)

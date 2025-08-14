@@ -2,12 +2,12 @@
 
 # Ensure three arguments are provided
 if [ "$#" -ne 3 ]; then
-    echo "Usage: $0 <language> <repo-name> <project-name>"
+    echo "Usage: $0 <language> <repo> <project-name>"
     exit 1
 fi
 
 language=$1
-repo="https://github.com/prescientmoon/$2"
+repo=$2
 name=$3
 
 # Ensure project with that name doesn't exist
