@@ -1,0 +1,22 @@
+import Prettyprinter qualified as PP
+
+:l Nihil.Parser.Core
+:m +Nihil.Parser.Core
+
+:l Nihil.Parser.Combinators
+:m +Nihil.Parser.Combinators
+
+:l Nihil.Parser.Type
+:m +Nihil.Parser.Type
+
+:l Nihil.Parser.Expr
+:m +Nihil.Parser.Expr
+
+:l Nihil.Parser.Module
+:m +Nihil.Parser.Module
+
+:l Nihil.Server.SemanticTokens
+:m +Nihil.Server.SemanticTokens
+
+:l Nihil.Ast.State
+:m +Nihil.Ast.State
