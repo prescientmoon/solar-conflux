@@ -1,0 +1,17 @@
+module Prelude.FS
+  ( DirEntry.**
+  , Dir.**
+  ) where
+
+inductive DirEntry where
+  File: Text -> DirEntry
+  Copy: Text -> DirEntry
+  Dir:  Dir  -> DirEntry
+
+struct Dir
+  entries: Map Text DirEntry
+
+fn Dir.at(text: Text): Lens Dir DirEntry =
+  Dir.entries ∘ Map.at Text DirEntry name
+
+lift Dir.at DirEntry.* FS.

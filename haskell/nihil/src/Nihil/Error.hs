@@ -2,7 +2,6 @@
 
 module Nihil.Error where
 
-import Data.Text qualified as Text
 import Error.Diagnose qualified as DG
 import Language.LSP.Protocol.Types qualified as LSP
 import Nihil.Utils (chooseFirst)
@@ -17,13 +16,10 @@ import Text.Megaparsec qualified as M
 type Path = LSP.NormalizedUri
 
 instance IsString LSP.NormalizedUri where
-  fromString = LSP.toNormalizedUri . LSP.Uri . Text.pack
+  fromString = LSP.toNormalizedUri . LSP.filePathToUri
 
 instance IsString LSP.Uri where
-  fromString = LSP.Uri . Text.pack
-
-pathToString ∷ Path → String
-pathToString (LSP.NormalizedUri _ s) = Text.unpack s
+  fromString = LSP.filePathToUri
 
 -- }}}
 -- {{{ Reports & Errors
@@ -63,8 +59,8 @@ reportFile r =
   reportMainMarker r
     <&> \(s, _) →
       LSP.toNormalizedUri
-        . LSP.Uri
-        $ Text.pack s.file
+        . LSP.filePathToUri
+        $ s.file
 
 reportMarkers ∷ Report → [(Span, DG.Marker Doc)]
 reportMarkers (DG.Warn _ _ markers _) = markers
@@ -107,7 +103,10 @@ lspPosToPos ∷ Path → LSP.Position → Pos
 lspPosToPos source pos =
   Pos $
     M.SourcePos
-      { sourceName = pathToString source
+      { sourceName =
+          fromMaybe "ethereal.waow"
+            . LSP.uriToFilePath
+            $ LSP.fromNormalizedUri source
       , sourceLine = M.mkPos $ fromIntegral $ pos._line + 1
       , sourceColumn = M.mkPos $ fromIntegral $ pos._character + 1
       }

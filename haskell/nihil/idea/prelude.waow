@@ -1,0 +1,10 @@
+module Prelude (*) where
+
+import Prelude.Document
+import Prelude.FS
+import Prelude.Xml
+import Prelude.Html
+import Prelude.Sitemap
+import Prelude.Text
+import Prelude.Scope
+import Prelude.Panic

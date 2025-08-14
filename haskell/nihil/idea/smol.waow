@@ -1,0 +1,29 @@
+module Test () where
+
+foreign type Type : Type
+foreign type Text : Type
+foreign type List : Type -> Type
+foreign type Pair : Type -> Type -> Type
+foreign type Endo : Type -> Type
+
+foreign write : Text -> Endo Text
+foreign escape : Text -> Endo Text
+
+foreign thing : Text
+
+something : forall y, TextList Text
+something a .b = thing a
+
+other : forall y, y => Pair y TextList
+other y = lam x -> x y case thing of 
+  f, g -> f f
+
+type TextList a = List Text
+type TextList2 a = List (Pair a Text)
+
+foreign first : Text
+foreign second : Text
+
+main = (λa -> λb -> a) (λx -> x)
+
+-- foreign something : Text

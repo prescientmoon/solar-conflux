@@ -1,0 +1,93 @@
+\link := struct {
+  url: text,
+  description: text
+}
+
+\heading := struct {
+  content: text,
+  id:      text,
+  level:   ℕ,
+}
+
+html_tag("div")
+  Hello there
+  attr("class", "important")
+end
+
+\img := fn(src: text, alt: text): html {
+  html_tag(⟨img⟩) {
+    attr(⟨src⟩, src)
+    attr(⟨alt⟩, src)
+  }
+}
+
+@html_list: content-type(struct {
+  items: list(html)
+})
+
+@item := block[html_list, html]() {
+  append(output, content)
+}
+
+@olist := block[html, html_list]() {
+  html_tag(⟨ol⟩) {
+    for item in content() {
+      html_tag(⟨li⟩) {
+        text(item)
+      }
+    }
+  }
+}
+
+@ulist := block[html, html_list]() {
+  html_tag(⟨ul⟩)!
+  for item in content!
+  html_tag(⟨li⟩)!
+  text(item)
+}
+
+@bold := block[html, html]() {
+  html_tag(⟨b⟩)!
+  text(content)
+}
+
+@heading(1, ⟨Hello there!⟩, ⟨hi⟩)
+
+@link := block[html -> html](name: text, in document) {
+  html_tag(⟨a⟩)!
+  attr(⟨href⟩, lookup(document.links, content).url)
+}
+
+@deflink := block[html -> text](name: text, url: text, in document) {
+  set(document.links, link(url, content))
+}
+
+@heading := block[html -> text](level: ℕ, in document) {
+  ???
+}
+
+\code(⟨rust⟩, load(⟨lib.rs⟩))
+
+\aside(⟨lagrange⟩) ⟨
+Hi, I'm typing this inside the <aside> block :3
+⟩
+
+\deflink(
+  name = ⟨alpeh0⟩
+  url  = ⟨https://youtube.com/clip/UgkxY9g3nlFz8ZnPDTcn4yIofGdrFIxP3mYz?si=yI6Vs-_qpztONwtu" ⟩
+  desc = ⟨A clip of @gba553 PMing ℵ~0~⟩
+)
+
+\deflink ⟨
+  name ⟨alpeh0⟩
+  url  ⟨https://youtube.com/clip/UgkxY9g3nlFz8ZnPDTcn4yIofGdrFIxP3mYz?si=yI6Vs-_qpztONwtu" ⟩
+
+  A clip of @gba553 PMing ℵ~0~
+⟩
+
+\description⟨
+  Let the glass shimmer.
+⟩
+\embed_description
+
+\comment⟨Hi there, wassup??⟩

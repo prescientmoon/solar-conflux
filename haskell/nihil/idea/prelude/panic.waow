@@ -1,0 +1,6 @@
+module Prelude.Panic (panic, todo) where
+
+foreign def panic {t} (msg: Text): t
+
+def todo {t} (msg: Text): t =
+  panic(⟨TODO: ⟨msg⟩⟩)

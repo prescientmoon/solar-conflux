@@ -1,0 +1,14 @@
+module Prelude.Scope
+  ( Scope
+  , Scope.query
+  , Scope.QueryResult.**,
+  ) where
+
+struct Scope.QueryResult t where
+  value: t
+
+  file_path:   Text
+  module_path: List Text
+
+foreign type Scope
+foreign def Scope.query {t: T} (glob: Text): List (Scope.QueryResult t)

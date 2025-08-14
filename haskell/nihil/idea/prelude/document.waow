@@ -1,0 +1,41 @@
+module Prelude.Document
+  ( Link.**
+  , Document.**
+  , IsContent.**
+  ) where
+
+struct Img where
+  alt: Text
+  url: Text
+
+struct Link where
+  label: Text
+  url:   Text
+
+trait IsContent pre t where
+  img: Img -> Endo t
+  img _ x = x
+
+  link: pre => Text -> t -> Endo t
+  link _ _ _ x = x
+
+  def_link: Text -> Link -> Endo t
+  def_link _ _ x = x
+
+struct Document where
+  content : ∀pre t, pre => IsContent pre t => t
+
+  hidden : Bool
+  created_at : Text
+
+  sitemap_exclude : Bool
+  sitemap_priorty : Maybe ℝ
+  sitemap_changefreq : Maybe Text
+
+struct Document.PrePass where
+  links: Map Text Link
+
+Document.PrePass.is_content :: IsContent Unit Document.PrePass
+Document.PrePass.is_content = intro _ where
+  .def_link name link -> 
+    set (Document.PrePass.links ∘ Map.at name) link

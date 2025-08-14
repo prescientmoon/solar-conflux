@@ -4,7 +4,7 @@ import Language.LSP.Protocol.Message qualified as LSP
 import Language.LSP.Protocol.Types qualified as LSP
 import Language.LSP.Server (Options (..), ServerDefinition (..), defaultOptions)
 import Language.LSP.Server qualified as LSP
-import Nihil.Ast.State (initialCompilerState)
+import Nihil.Compiler.Monad (initialCompilerState)
 import Nihil.Server.Lifecycle qualified as Lifecycle
 import Nihil.Server.Name qualified as Names
 import Nihil.Server.SemanticTokens qualified as SemanticTokens
