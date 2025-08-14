@@ -1,0 +1,45 @@
+base_url: Text = ⟨https://moonythm.dev⟩
+last_modified: Map Text Text = todo ⟨read last modified file⟩
+
+def main(): Directory = make
+  FS.directory ⟨web⟩ do
+    modules: List (Scope.QueryResult Post) = Scope.query ⟨Post.**.main⟩
+    posts: &(List Post) = &[]
+
+    for result in posts do
+      dir := todo ⟨Generate path⟩
+      post := Post
+        { source   = result.file_path
+        , out_path = dir
+        , document = document
+        }
+
+      List.append posts post
+
+    -- Generate html files
+    for post in posts do
+      FS.directory post.out_path!
+      FS.file ⟨index.html⟩ do
+        todo ⟨Generate post content⟩
+
+    -- Copy assets
+    for path in glob ⟨content/**/*.{png,jpg,webp,ico,txt}⟩ do
+      FS.directory (basename path)!
+      FS.copy (filename path) path
+
+    -- ▷ and … and ⤵
+    -- Generate sitemap
+    FS.file ⟨sitemap.xml⟩ do
+      Sitemap.sitemap do!
+      Sitemap.base_url base_url
+
+      for post in posts do
+        if ¬post.doc.sitemap_exclude ⤵
+        if ¬post.doc.hidden ⤵
+
+        Sitemap.item ⤵
+        Sitemap.Item.path out_path
+
+        Sitemap.Item.last_modified (Map.lookup last_modified post.source)
+        Sitemap.Item.priority post.sitemap_priority
+        Sitemap.Item.changefreq post.sitemap_changefreq

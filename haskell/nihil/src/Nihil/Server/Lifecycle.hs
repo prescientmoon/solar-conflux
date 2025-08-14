@@ -10,8 +10,8 @@ import Error.Diagnose qualified as DG
 import Language.LSP.Protocol.Message qualified as LSP
 import Language.LSP.Protocol.Types qualified as LSP
 import Language.LSP.Server qualified as LSP
-import Nihil.Ast.Lifecycle qualified as Lifecycle
-import Nihil.Ast.State qualified as Ast
+import Nihil.Compiler.Lifecycle qualified as Lifecycle
+import Nihil.Compiler.Monad qualified as Compiler
 import Nihil.Error qualified as Error
 import Nihil.Server.State qualified as Server
 import Nihil.Utils qualified as Utils
@@ -22,10 +22,7 @@ onChangeHandler = LSP.notificationHandler LSP.SMethod_TextDocumentDidChange $
   \notif → Server.runELspM do
     let path = Server.getPath notif
     text ← Server.getSource notif
-
-    cs ← lift Server.getCompilerState
-    let cs' = flip execState cs $ Lifecycle.onChange path text
-    lift $ Server.putCompilerState cs'
+    lift . Server.runCompilerM $ Lifecycle.onChange path text
     sendDiagnostics
 
 onOpenHandler ∷ LSP.Handlers Server.LspM
@@ -33,17 +30,14 @@ onOpenHandler = LSP.notificationHandler LSP.SMethod_TextDocumentDidOpen $
   \notif → Server.runELspM do
     let path = Server.getPath notif
     text ← Server.getSource notif
-
-    cs ← lift Server.getCompilerState
-    let cs' = flip execState cs $ Lifecycle.onChange path text
-    lift $ Server.putCompilerState cs'
+    lift . Server.runCompilerM $ Lifecycle.onChange path text
     sendDiagnostics
 
 sendDiagnostics ∷ Server.ELspM ()
 sendDiagnostics = do
   cs ← lift Server.getCompilerState
   let reportMap =
-        splitReports (Ast.collectReports cs) $
+        splitReports (Compiler.collectReports cs) $
           mempty <$ cs.files
 
   -- caps ← lift LSP.getClientCapabilities
@@ -93,8 +87,7 @@ sendDiagnostics = do
                       , _data_ = Nothing
                       }
             , _version = Nothing
-            , _uri = case path of
-                LSP.NormalizedUri _ t → LSP.Uri t
+            , _uri = LSP.fromNormalizedUri path
             }
 
     -- lift $

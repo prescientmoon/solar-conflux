@@ -1,0 +1,42 @@
+module -- wth
+ Test 
+  ( {- comment here! -} Text {- and here :O -}
+  , write
+  , escape ) {- this too -} where
+
+foreign type Text
+foreign write : Text -> Endo Text
+foreign escape : Text -> Endo Text
+
+type TextList a = List (Pair Text a)
+
+something : Text
+something = ({- heyo -}({-var-}wut {-closing-})) arg another (arg) {-end-} 
+something .one another _ huhh = λa ({-weird-}(b)) c -> lam 
+  another → {- will return now -} hey
+
+ind hey = λa -> case a, λx -> x, (a) of
+coind hey = λa -> intro a, λx -> x, (a) where
+  l -> lam lam -> lam  ->
+  first, second, last 
+  -> second
+  _, _, _ ->
+  huh, other, me -> Nothing
+
+inductive Directory where
+  File: Text -> DirEntry
+  Copy: Text -> DirEntry
+  Dir:  Dir  -> DirEntry
+
+trait Default d where
+  default : d
+
+struct Document where
+  content : ∀pre t, pre => IsContent pre t => t
+
+  hidden : Bool
+  created_at : Text
+
+  sitemap_exclude : Bool
+  sitemap_priorty : Maybe ℝ
+  sitemap_changefreq : Maybe Text

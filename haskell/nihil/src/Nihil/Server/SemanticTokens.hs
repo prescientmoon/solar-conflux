@@ -7,7 +7,7 @@ import Language.LSP.Protocol.Lens qualified as LSP
 import Language.LSP.Protocol.Message qualified as LSP
 import Language.LSP.Protocol.Types qualified as LSP
 import Language.LSP.Server qualified as LSP
-import Nihil.Ast.State qualified as Ast
+import Nihil.Compiler.Monad (CompilerState (..), FileData (..))
 import Nihil.Cst.Base qualified as Cst
 import Nihil.Cst.Expr qualified as Cst.Expr
 import Nihil.Cst.Module qualified as Cst

@@ -1,0 +1,42 @@
+module Prelude.Sitemap
+  ( Sitemap only .
+  , Sitemap.base_url
+  , Sitemap.item
+  , Sitemap.sitemap
+  , Sitemap.Item
+  )
+  where
+
+struct Sitemap
+  base_url: Text
+  out:      Xml
+
+lift Sitemap.out Xml.* Sitemap
+
+Sitemap.has_xml : HasXml Sitemap
+Sitemap.has_xml = Xml.mk_has_xml λs. s.out
+
+struct Sitemap.Item
+  path:          Text
+  last_modified: Text
+
+  priority:   ℝ
+  changefreq: Text
+
+Sitemap.item(self: &Sitemap, inner: Sitemap.Item): Unit = do
+  Xml.tag ⟨url⟩ make ⤵
+
+  -- TODO: empty checks
+  Xml.tag ⟨lastmod⟩    ⟨⟨inner.last_modified⟩⟩
+  Xml.tag ⟨priority⟩   ⟨⟨inner.priority⟩⟩
+  Xml.tag ⟨changefreq⟩ ⟨⟨inner.changefreq⟩⟩
+
+Sitemap.sitemap(self: &Text, inner: Sitemap): Unit = do
+  Sitemap.gen make ⤵
+
+  Sitemap.attr ⟨version⟩    ⟨1.0⟩
+  Sitemap.attr ⟨encodng⟩    ⟨UTF-8⟩
+  Sitemap.attr ⟨standalone⟩ ⟨yes⟩
+
+  Sitemap.tag ⟨urlset⟩ with inner.out do
+    Sitemap.attr ⟨xmlns⟩ ⟨http://www.sitemaps.org/schemas/sitemap/0.9⟩

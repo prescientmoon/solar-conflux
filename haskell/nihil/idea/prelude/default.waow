@@ -1,0 +1,5 @@
+module Prelude.Default (Default, default) where
+
+alias Default.default default
+trait Default a where
+  default : a

@@ -12,6 +12,7 @@ module Nihil.Server.State
   , runELspM
   , getCompilerState
   , putCompilerState
+  , runCompilerM
   ) where
 
 import Control.Monad.Error.Class (MonadError (throwError))
@@ -21,7 +22,7 @@ import Language.LSP.Protocol.Message qualified as LSP
 import Language.LSP.Protocol.Types qualified as LSP
 import Language.LSP.Server qualified as LSP
 import Language.LSP.VFS qualified as VFS
-import Nihil.Ast.State (CompilerState)
+import Nihil.Compiler.Monad (CompilerContext, CompilerState, defaultCompilerContext)
 import Nihil.Error qualified as Error
 import Optics ((%))
 import Optics qualified as O
@@ -50,6 +51,16 @@ putCompilerState ∷ ∀ m. (MonadLsp m) ⇒ CompilerState → m ()
 putCompilerState cs = do
   st ← asks $ O.view #state
   writeIORef st cs
+
+-- | A concrete instantiation of the @`MonadCompile` class.
+type ConcreteCompilerM m = StateT CompilerState (ReaderT CompilerContext m)
+
+runCompilerM ∷ ∀ m a. (MonadLsp m) ⇒ ConcreteCompilerM m a → m a
+runCompilerM action = do
+  st ← getCompilerState
+  (res, st') ← flip runReaderT defaultCompilerContext $ runStateT action st
+  putCompilerState st'
+  pure res
 
 -- }}}
 -- {{{ Communicating with the client
