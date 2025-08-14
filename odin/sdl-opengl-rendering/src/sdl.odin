@@ -27,9 +27,9 @@ State :: struct {
 
 	// GPU data
 	rect_mesh:            Mesh,
-	ubos:                 [UBO_ID]UBO,
+	ubos:                 [UBO_ID]GL_UBO,
 	framebuffers:         [Framebuffer_ID]FBO,
-	instance_buffers:     [Instance_Param_Buf]u32,
+	instance_buffers:     [Instance_Param_Buf]GL_BUF,
 
 	// Programs
 	rect_program:         Program,
@@ -168,10 +168,10 @@ sdl_init :: proc() -> (ok: bool) {
 	// }}}
 	// {{{ Initialize GPU buffers & programs
 	// Initialize instance buffers
-	OpenGL.GenBuffers(len(state.instance_buffers), ([^]u32)(&state.instance_buffers))
+	OpenGL.GenBuffers(len(state.instance_buffers), ([^]GL_BUF)(&state.instance_buffers))
 
 	// Initialize UBOs
-	OpenGL.GenBuffers(len(state.ubos), ([^]u32)(&state.ubos))
+	OpenGL.GenBuffers(len(state.ubos), ([^]GL_UBO)(&state.ubos))
 	for ubo, i in state.ubos {
 		OpenGL.BindBufferBase(OpenGL.UNIFORM_BUFFER, UBO_ID_BINDING[i], ubo)
 	}
@@ -233,7 +233,7 @@ sdl_init :: proc() -> (ok: bool) {
 sdl_close :: proc() {
 	state := g_renderer_state()
 
-	// TODO: perhaps perform some cleanup here?
+	// TODO: perform full cleanup here
 
 	for fb in state.framebuffers {
 		destroy_framebuffer(fb)
