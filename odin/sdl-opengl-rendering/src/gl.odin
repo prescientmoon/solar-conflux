@@ -32,17 +32,17 @@ GL_BINDING :: u32
 GL_PROGRAM :: u32
 // }}}
 // {{{ Set array buffer
-gen_buffer :: proc() -> (out: u32) {
+gen_buffer :: proc() -> (out: GL_BUF) {
 	OpenGL.GenBuffers(1, &out)
 	return out
 }
 
-bind_buffer :: proc(id: u32, buffer: GL_Buffer_Kind = .Array) {
+bind_buffer :: proc(id: GL_BUF, buffer: GL_Buffer_Kind = .Array) {
 	OpenGL.BindBuffer(u32(buffer), id)
 }
 
 set_buffer :: proc(
-	id: u32,
+	id: GL_BUF,
 	data: $T,
 	buffer: GL_Buffer_Kind = .Array,
 	usage: GL_Buffer_Usage = .Dynamic,
@@ -69,7 +69,7 @@ set_buffer :: proc(
 // }}}
 // {{{ VBO setup
 setup_vbo :: proc(
-	id: u32,
+	id: GL_BUF,
 	location: u32,
 	ty: GL_Base_Type = .Float,
 	rows: i32 = 1,
