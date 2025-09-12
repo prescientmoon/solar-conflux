@@ -16,41 +16,34 @@ Render_Pass :: enum {
 }
 
 State :: struct {
-	window:               ^sdl3.Window,
+	window:           ^sdl3.Window,
 
 	// TODO: do not use dynamic arrays here
 	// Render queues
-	q_rects:              [dynamic]Shape(□),
-	q_circles:            [dynamic]Shape(Circle2),
-	q_lines:              [dynamic]Shape(Line),
-	q_rounded_lines:      [dynamic]Shape(Rounded_Line),
+	q_rects:          [dynamic]Shape(□),
+	q_circles:        [dynamic]Shape(Circle2),
+	q_lines:          [dynamic]Shape(Line),
+	q_rounded_lines:  [dynamic]Shape(Rounded_Line),
 
 	// GPU data
-	rect_mesh:            Mesh,
-	ubos:                 [UBO_ID]GL_UBO,
-	framebuffers:         [Framebuffer_ID]FBO,
-	instance_buffers:     [Instance_Param_Buf]GL_BUF,
-
-	// Programs
-	rect_program:         Program,
-	circle_program:       Program,
-	line_program:         Program,
-	rounded_line_program: Program,
-	jfa_program:          Program,
-	jfa_seed_program:     Program,
+	rect_mesh:        Mesh,
+	ubos:             [UBO_ID]GL_UBO,
+	framebuffers:     [Framebuffer_ID]FBO,
+	instance_buffers: [Instance_Param_Buf]GL_BUF,
+	programs:         [Program_Id]Program,
 
 	// Instance buffers (CPU)
-	buf_matrices:         [INSTANCES]Affine2,
-	buf_colors:           [INSTANCES]Color,
-	buf_lines:            [INSTANCES][2]ℝ²,
-	buf_floats:           [INSTANCES]ℝ,
-	buf_vecs:             [INSTANCES]ℝ²,
+	buf_matrices:     [INSTANCES]Affine2,
+	buf_colors:       [INSTANCES]Color,
+	buf_lines:        [INSTANCES][2]ℝ²,
+	buf_floats:       [INSTANCES]ℝ,
+	buf_vecs:         [INSTANCES]ℝ²,
 
 	// Flags
-	tick:                 u32,
-	wireframe:            bool,
-	pass:                 Render_Pass,
-	globals:              Global_Uniforms,
+	tick:             u32,
+	wireframe:        bool,
+	pass:             Render_Pass,
+	globals:          Global_Uniforms,
 }
 
 // {{{ Screen dimensions
@@ -180,7 +173,7 @@ sdl_init :: proc() -> (ok: bool) {
 	state.rect_mesh = create_mesh({{0, 0}, {1, 0}, {1, 1}, {0, 1}}, {0, 1, 2, 3})
 
 	// Initialize programs
-	state.rect_program = gen_program(
+	state.programs[.Rect] = gen_program(
 		{
 			template = .SDF,
 			sdf_name = "sdf_rect",
@@ -189,7 +182,7 @@ sdl_init :: proc() -> (ok: bool) {
 		},
 	) or_return
 
-	state.circle_program = gen_program(
+	state.programs[.Circle] = gen_program(
 		{
 			template = .SDF,
 			sdf_name = "sdf_circle",
@@ -198,7 +191,7 @@ sdl_init :: proc() -> (ok: bool) {
 		},
 	) or_return
 
-	state.rounded_line_program = gen_program(
+	state.programs[.Line] = gen_program(
 		{
 			template = .SDF,
 			sdf_name = "sdf_line",
@@ -207,7 +200,7 @@ sdl_init :: proc() -> (ok: bool) {
 		},
 	) or_return
 
-	state.rounded_line_program = gen_program(
+	state.programs[.Rounded_Line] = gen_program(
 		{
 			template = .SDF,
 			sdf_name = "sdf_rounded_line",
@@ -216,8 +209,8 @@ sdl_init :: proc() -> (ok: bool) {
 		},
 	) or_return
 
-	state.jfa_seed_program = gen_program({template = .JFA_Seed}) or_return
-	state.jfa_program = gen_program({template = .JFA}) or_return
+	state.programs[.Jfa_Seed] = gen_program({template = .JFA_Seed}) or_return
+	state.programs[.Jfa] = gen_program({template = .JFA}) or_return
 	// }}}
 
 	state.q_rects = make([dynamic]Shape(□))

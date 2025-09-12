@@ -214,6 +214,15 @@ Program :: struct {
 	program: GL_PROGRAM,
 	vao:     GL_VAO,
 }
+
+Program_Id :: enum {
+	Rect,
+	Circle,
+	Line,
+	Rounded_Line,
+	Jfa,
+	Jfa_Seed,
+}
 // }}}
 // {{{ Meshes
 create_mesh :: proc(vertices: []ℝ², indices: []u32) -> (out: Mesh) {
@@ -528,13 +537,18 @@ gen_program :: proc(opts: Shader_Opts) -> (out: Program, ok: bool) {
 
 	return out, true
 }
+
+use_program :: proc(id: Program_Id) {
+	program := g_renderer_state().programs[id]
+	OpenGL.UseProgram(program.program)
+	OpenGL.BindVertexArray(program.vao)
+}
 // }}}
 
 // {{{ Render the entire queue
 @(private = "file")
-render_instanced :: proc(program: Program, mesh: Mesh, shapes: ^[dynamic]Shape($T)) {
-	OpenGL.UseProgram(program.program)
-	OpenGL.BindVertexArray(program.vao)
+render_instanced :: proc(program_id: Program_Id, mesh: Mesh, shapes: ^[dynamic]Shape($T)) {
+	use_program(program_id)
 
 	state := g_renderer_state()
 	steps := len(shapes) / INSTANCES
@@ -609,10 +623,10 @@ render_queue :: proc() {
 	// Toggle the wireframe
 	OpenGL.PolygonMode(OpenGL.FRONT_AND_BACK, state.wireframe ? OpenGL.LINE : OpenGL.FILL)
 
-	render_instanced(state.rect_program, state.rect_mesh, &state.q_rects)
-	render_instanced(state.circle_program, state.rect_mesh, &state.q_circles)
-	render_instanced(state.line_program, state.rect_mesh, &state.q_lines)
-	render_instanced(state.rounded_line_program, state.rect_mesh, &state.q_rounded_lines)
+	render_instanced(.Rect, state.rect_mesh, &state.q_rects)
+	render_instanced(.Circle, state.rect_mesh, &state.q_circles)
+	render_instanced(.Line, state.rect_mesh, &state.q_lines)
+	render_instanced(.Rounded_Line, state.rect_mesh, &state.q_rounded_lines)
 
 	OpenGL.UseProgram(0)
 }
@@ -633,11 +647,13 @@ jfa :: proc() {
 	OpenGL.BindFramebuffer(OpenGL.FRAMEBUFFER, state.pass == .JFA_Seed ? 0 : jfa2.fbo)
 	clear_screen()
 
-	OpenGL.UseProgram(state.jfa_seed_program.program)
-	OpenGL.BindVertexArray(state.jfa_seed_program.vao)
+	use_program(.Jfa_Seed)
 	OpenGL.ActiveTexture(OpenGL.TEXTURE0)
 	OpenGL.BindTexture(OpenGL.TEXTURE_2D, jfa1.tex_color)
-	OpenGL.Uniform1i(OpenGL.GetUniformLocation(state.jfa_seed_program.program, "input_texture"), 0)
+	OpenGL.Uniform1i(
+		OpenGL.GetUniformLocation(state.programs[.Jfa_Seed].program, "input_texture"),
+		0,
+	)
 	OpenGL.DrawElements(
 		OpenGL.TRIANGLE_FAN,
 		i32(state.rect_mesh.index_count),
@@ -646,10 +662,9 @@ jfa :: proc() {
 	)
 	if state.pass == .JFA_Seed do return
 
-	OpenGL.UseProgram(state.jfa_program.program)
-	OpenGL.BindVertexArray(state.jfa_program.vao)
+	use_program(.Jfa)
 	OpenGL.ActiveTexture(OpenGL.TEXTURE0)
-	OpenGL.Uniform1i(OpenGL.GetUniformLocation(state.jfa_program.program, "input_texture"), 0)
+	OpenGL.Uniform1i(OpenGL.GetUniformLocation(state.programs[.Jfa].program, "input_texture"), 0)
 
 	input_fbo := jfa2
 	output_fbo := jfa1
