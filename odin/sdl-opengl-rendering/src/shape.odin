@@ -4,6 +4,7 @@ import "core:fmt"
 import "core:log"
 import "core:math"
 import "core:math/linalg"
+import "core:math/linalg/glsl"
 import "core:slice"
 import "core:strings"
 import "vendor:OpenGL"
@@ -368,6 +369,72 @@ Shader_Opts :: struct {
 	sdf_args: []string,
 }
 
+gen_program_bin :: proc(
+	id: Program_Id,
+	instance_params: []Instance_Param_Gen = {},
+) -> (
+	out: Program,
+	ok: bool,
+) {
+	@(static)
+	@(rodata)
+	VERT_TEMPLATE: [Program_Id]string = {
+		.Rect         = "nope",
+		.Line         = "nope",
+		.Circle       = "nope",
+		.Rounded_Line = "nope",
+		.Jfa          = #load("../build/shaders/jfa.vert.glsl"),
+		.Jfa_Seed     = #load("../build/shaders/jfa-seed.vert.glsl"),
+	}
+
+	@(static)
+	@(rodata)
+	FRAG_TEMPLATE: [Program_Id]string = {
+		.Rect         = "nope",
+		.Line         = "nope",
+		.Circle       = "nope",
+		.Rounded_Line = "nope",
+		.Jfa          = #load("../build/shaders/jfa.frag.glsl"),
+		.Jfa_Seed     = #load("../build/shaders/jfa-seed.frag.glsl"),
+	}
+
+	v_shader := VERT_TEMPLATE[id]
+	f_shader := FRAG_TEMPLATE[id]
+
+	out.program = OpenGL.load_shaders_source(v_shader, f_shader) or_return
+
+	// {{{ Set up VAO
+	// Create VAO
+	OpenGL.GenVertexArrays(1, &out.vao)
+	OpenGL.BindVertexArray(out.vao)
+	defer OpenGL.BindVertexArray(0)
+
+	for param in instance_params {
+		buf_id := g_renderer_state().instance_buffers[param.buf]
+		log.assertf(buf_id > 0, "Buffer %v not initialized", param.buf)
+		bind_buffer(buf_id, .Array)
+
+		shape := INSTANCE_PARAM_DIMS[param.buf]
+		setup_vbo(
+			buf_id,
+			INSTANCE_PARAM_LOCATIONS[param.buf],
+			rows = shape[0],
+			cols = shape[1],
+			divisor = 1,
+		)
+	}
+
+	mesh := g_renderer_state().rect_mesh
+
+	// Bind geometry data
+	bind_buffer(mesh.vertex_pos_buffer, .Array)
+	setup_vbo(mesh.vertex_pos_buffer, VERTEX_POS_LOCATION, ty = .Float, rows = 2)
+	bind_buffer(mesh.vertex_ind_buffer, .Element_Array)
+	// }}}
+
+	return out, true
+}
+
 gen_program :: proc(opts: Shader_Opts) -> (out: Program, ok: bool) {
 	// File ID to display in GLSL error messages
 	@(static) next_shader_id := 0
@@ -378,16 +445,16 @@ gen_program :: proc(opts: Shader_Opts) -> (out: Program, ok: bool) {
 	@(rodata)
 	VERT_TEMPLATE: [Program_Template]string = {
 		.SDF      = #load("./shaders/sdf.vert.glsl"),
-		.JFA      = #load("./shaders/jfa.vert.glsl"),
-		.JFA_Seed = #load("./shaders/jfa.vert.glsl"),
+		.JFA      = "nope",
+		.JFA_Seed = "nope",
 	}
 
 	@(static)
 	@(rodata)
 	FRAG_TEMPLATE: [Program_Template]string = {
 		.SDF      = #load("./shaders/sdf.frag.glsl"),
-		.JFA      = #load("./shaders/jfa.frag.glsl"),
-		.JFA_Seed = #load("./shaders/jfa-seed.frag.glsl"),
+		.JFA      = "nope",
+		.JFA_Seed = "nope",
 	}
 
 	// Instance parameters passed to every shape
@@ -632,6 +699,8 @@ render_queue :: proc() {
 }
 // }}}
 // {{{ JFA
+INPUT_TEXTURE_LOCATION :: 0
+
 jfa :: proc() {
 	state := g_renderer_state()
 	dims := screen_dimensions()
@@ -650,10 +719,7 @@ jfa :: proc() {
 	use_program(.Jfa_Seed)
 	OpenGL.ActiveTexture(OpenGL.TEXTURE0)
 	OpenGL.BindTexture(OpenGL.TEXTURE_2D, jfa1.tex_color)
-	OpenGL.Uniform1i(
-		OpenGL.GetUniformLocation(state.programs[.Jfa_Seed].program, "input_texture"),
-		0,
-	)
+	OpenGL.Uniform1i(INPUT_TEXTURE_LOCATION, 0)
 	OpenGL.DrawElements(
 		OpenGL.TRIANGLE_FAN,
 		i32(state.rect_mesh.index_count),
@@ -664,7 +730,11 @@ jfa :: proc() {
 
 	use_program(.Jfa)
 	OpenGL.ActiveTexture(OpenGL.TEXTURE0)
-	OpenGL.Uniform1i(OpenGL.GetUniformLocation(state.programs[.Jfa].program, "input_texture"), 0)
+	OpenGL.Uniform1i(INPUT_TEXTURE_LOCATION, 0)
+
+	mat22: matrix[2, 2]f32
+	OpenGL.Uniform2fv(INPUT_TEXTURE_LOCATION, 2, transmute([^]f32)&mat22)
+	OpenGL.UniformMatrix2x4fv(INPUT_TEXTURE_LOCATION, 2, transmute([^]f32)&mat22)
 
 	input_fbo := jfa2
 	output_fbo := jfa1

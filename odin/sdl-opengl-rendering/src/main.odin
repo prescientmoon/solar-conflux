@@ -96,10 +96,10 @@ render :: proc() {
 	//
 	// render_queue()
 
-	draw_rect(ℝ²{100, 100}, ℝ²{100, 100}, Shape_Options{fill = {1, 0, 0, 1}})
+	draw_rect(ℝ²{100, 100}, ℝ²{100, 100}, Shape_Options{fill = {0, 1, 0, 1}})
 	draw_rect(ℝ²{100, 400}, ℝ²{100, 100}, Shape_Options{fill = {1, 0, 0, 1}})
 	draw_rect(ℝ²{400, 100}, ℝ²{100, 100}, Shape_Options{fill = {1, 0, 0, 1}})
-	draw_circle(ℝ²{1200, 350}, 200, Shape_Options{fill = {1, 0, 0, 1}})
+	draw_rect(ℝ²{1200, 350}, 200, Shape_Options{fill = {1, 0, 0, 1}})
 	draw_line(ℝ²{400, 400}, ℝ²{800, 900}, 10, Shape_Options{fill = {1, 0, 0, 1}})
 	jfa()
 }
