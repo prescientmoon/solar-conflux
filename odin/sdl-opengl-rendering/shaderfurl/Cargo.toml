@@ -1,0 +1,9 @@
+[package]
+name = "shaderfurl"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.99"
+convert_case = "0.8.0"
+glsl = "7.0.0"

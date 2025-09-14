@@ -32,7 +32,7 @@ float sdf_rounded_line(vec2[2] line, float thickness, vec2 p) {
 #toplevelExtra
 
 void main() {
-  // This function gets auto-generated to call the right sdf
+  // This function gets auto-generated to call the right SDF
   float dist = sdf(v_pos);
   float alpha = smoothstep(u_aa_width, -u_aa_width, dist);
   float s_alpha = smoothstep(u_aa_width, -u_aa_width, abs(dist) - v_stroke_width);

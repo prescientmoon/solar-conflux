@@ -77,7 +77,7 @@ unset_clip_rect :: proc() {
 // {{{ Initialization
 sdl_init :: proc() -> (ok: bool) {
 	GL_MAJOR :: 4
-	GL_MINOR :: 2
+	GL_MINOR :: 6
 
 	// {{{ Configure logging
 	@(static) g_ctx: runtime.Context
@@ -209,8 +209,8 @@ sdl_init :: proc() -> (ok: bool) {
 		},
 	) or_return
 
-	state.programs[.Jfa_Seed] = gen_program({template = .JFA_Seed}) or_return
-	state.programs[.Jfa] = gen_program({template = .JFA}) or_return
+	state.programs[.Jfa_Seed] = gen_program_bin(.Jfa_Seed) or_return
+	state.programs[.Jfa] = gen_program_bin(.Jfa) or_return
 	// }}}
 
 	state.q_rects = make([dynamic]Shape(□))

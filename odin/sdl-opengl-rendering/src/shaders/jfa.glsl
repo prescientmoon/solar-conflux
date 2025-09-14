@@ -1,14 +1,23 @@
-#header
+#include "common"
 
-out vec4 FragColor;
-in vec2 v_uv;
-
-uniform sampler2D input_texture;
 layout(std140, binding = 1) uniform Jfa {
   float u_offset;
   vec2 u_resolution;
 };
 
+layout(location = 0) uniform sampler2D input_texture;
+
+VARYING(0, vec2, v_uv)
+VIN(0, vec2, a_pos)
+FOUT(0, vec4, FragColor)
+
+#ifdef VERT
+void main() {
+  v_uv = a_pos;
+  gl_Position = vec4(a_pos * 2 - 1, 0, 1);
+}
+#endif
+#ifdef FRAG
 void main() {
   vec4 nearest_seed = vec4(-2.0);
   float nearest_dist = 999999999.9;
@@ -37,3 +46,4 @@ void main() {
 
   FragColor = nearest_seed;
 }
+#endif
