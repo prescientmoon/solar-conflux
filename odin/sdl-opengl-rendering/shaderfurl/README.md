@@ -1,39 +1,18 @@
-Methods to convert in order to swap the raylib wrapper my game uses for this custom renderer:
-
-- [x] set_rendering_camera
-- [x] screen_dimensions
-- [x] set_clip_rect
-- [x] unset_clip_rect
-- [x] clear_background
-- [x] draw_rectangle
-- [x] draw_rectangle_lines
-- [x] draw_circle
-- [x] draw_circle_lines
-- [x] draw_line
-- [ ] draw_triangle
-- [ ] draw_circle_arc_lines
-- [ ] is_key_pressed
-- [ ] is_shift_down
-- [ ] is_ctrl_down
-- [ ] mouse_position
-- [ ] mouse_position_screen
-- [ ] mouse_delta
-- [ ] measure_text
-- [ ] draw_text (ouch)
-
 # GLSL transpiler idea
 
 - Takes in a bunch .glsl files
-- Step 0: stage collection
-  - enumerate the currently declared stages (deduced by their corresponding
-    functions, i.e. `vert` and `frag`)
+- [x] Step 0: stage collection
+  - [x] enumerate the currently declared stages (deduced by their corresponding
+        functions, i.e. `vert` and `frag`)
 - Step 1: external layout allocation
-  - for each `in`, `uniform`, `buffer`, etc, assign
+  - for each `in` etc, assign
     layout locations / bindings. The locations exist on a
     per-program basis. That is, if a file is imported by
     5 different programs, then it must allocate one location for each one.
-  - each UBO (maybe SSBOs as well?) gets a global binding (the other inputs
-    get local ones)
+  - [x] uniforms get locations allocated to them
+  - [x] attribs get locations allocated to them
+  - [x] each UBO (maybe SSBOs as well?) gets a global binding (the other inputs
+        get local ones)
 - Step 2: external layout Odin codegen
   - for each outer facing struct/block, generate a corresponding odin type.
 - Step 3: varying generation
@@ -54,9 +33,9 @@ Methods to convert in order to swap the raylib wrapper my game uses for this cus
     respective stages into a single program.
   - for each program, generate an Odin function that generates a VAO
     given buffers for each toplevel `in`
-  - for each uniform, generate an Odin function that sets it, by taking a
-    program id (out of an enum with only the program IDs that use that uniform)
-    and the corresponding odin type.
-  - for each UBO, generate an Odin function that sets it (doesn't require a
-    program ID, since UBO bindings are global)
+  - [x] for each uniform, generate an Odin function that sets it,
+        and the corresponding odin type. In the future, this could get
+        optimized to work with arrays without looping, but this is not
+        a priority.
+  - [x] generate data tables for UBOs
   - something for textures, idk what though

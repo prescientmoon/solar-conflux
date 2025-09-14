@@ -43,17 +43,34 @@
         # {{{ Shell
         devShell = pkgs.mkShell rec {
           nativeBuildInputs = [
-            pkgs.pkg-config
+            # Odin tooling
             pkgs.odin # Compiler
-            pkgs.mold # Linker
             pkgs.ols # Language server
+
+            # Generic tooling
+            pkgs.pkg-config
+            pkgs.mold # Linker
             pkgs.just # Script runner
             pkgs.samply # Profiler
             pkgs.gdb # Debugger
             pkgs.seer # Debugger GUI
             pkgs.valgrind # Detect memory leaks
-            pkgs.renderdoc # Graphics debugger
+
+            # Python tooling
+            pkgs.python3 # For script running
+            pkgs.ruff # Python formatter
+
+            # Rust tooling
+            pkgs.rustc
+            pkgs.cargo
+            pkgs.rustfmt
+            pkgs.clippy
+            pkgs.rust-analyzer
+
+            # Shader/GPU tooling
             glsl_analyzer # GLSL language server
+            pkgs.renderdoc # Graphics debugger
+            pkgs.glslang # GLSL linter / compiler
           ];
 
           buildInputs = [
