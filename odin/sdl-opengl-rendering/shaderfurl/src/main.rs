@@ -56,6 +56,10 @@ fn parse_glsl_files(files: &[PathBuf]) -> anyhow::Result<Vec<GlslFile>> {
 			declared_attribs: Vec::new(),
 			declared_uniforms: Vec::new(),
 			used_uniforms: Vec::new(),
+			declared_varyings: Vec::new(),
+			used_varyings: Vec::new(),
+			declared_functions: Vec::new(),
+			used_functions: Vec::new(),
 		});
 	}
 
@@ -87,12 +91,16 @@ fn main() -> anyhow::Result<()> {
 	state.detect_stages();
 	state.find_ubos()?;
 	state.find_inputs()?;
+	state.find_references();
 	state.alloc_inputs()?;
 
 	let mut out = String::new();
 	state.gen_module(&mut out)?;
 	println!("{out}");
 	// println!("{:?}", state.files[1].syntax);
+	// for v in state.files {
+	// 	println!("{:?}", v.syntax)
+	// }
 
 	Ok(())
 }

@@ -213,6 +213,7 @@ impl State {
 		writeln!(out, "}}")?;
 		for ubo in &self.ubos {
 			let name = ada_case(&format!("U_{}", ubo.decl.name.0));
+			// TODO: use the correct layout here!
 			self.codegen_block_to_struct(ubo.at.file, &name, &ubo.decl, out)?;
 		}
 		Ok(())

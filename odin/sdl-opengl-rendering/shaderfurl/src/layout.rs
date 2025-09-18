@@ -43,44 +43,96 @@ impl State {
 		for f in &cloned.files {
 			for (ix, decl) in (&f.syntax).into_iter().enumerate() {
 				use glsl::syntax::{Declaration::*, ExternalDeclaration::*};
-				if let Declaration(InitDeclaratorList(block)) = decl {
-					if block.head.ty.qualifier.is_none() {
-						continue;
-					}
-
-					ensure_only_one_name(block)?;
-
-					let mut decl = block.head.clone();
-					decl.ty.ty.array_specifier =
-						concat_array_specifiers(&decl.array_specifier, &decl.ty.ty.array_specifier);
-					decl.array_specifier = None;
-
-					let storage = ensure_only_storage(block.head.ty.qualifier.as_ref().unwrap())?;
-					if storage == glsl::syntax::StorageQualifier::Uniform {
-						let id = GlslUniformId::new(f.id, self[f.id].declared_uniforms.len());
-						self[f.id].declared_uniforms.push(GlslUniformDecl {
+				match decl {
+					Preprocessor(_) => {}       // already handled one pass ahead
+					Declaration(Block(_)) => {} // covered by other passes
+					FunctionDefinition(def) => {
+						let id = GlslFunctionId::new(f.id, self[f.id].declared_functions.len());
+						self[f.id].declared_functions.push(GlslFunctionDecl {
 							at: GlslDeclId::new(f.id, ix),
-							decl,
+							def: def.clone(),
 							id,
+							references_functions: Vec::new(),
+							references_varyings: Vec::new(),
+							references_uniforms: Vec::new(),
+							references_attribs: Vec::new(),
 						});
 
 						for downstream in f.included_by.iter().chain(once(&f.id)) {
 							self[*downstream]
-								.used_uniforms
-								.push(GlslUsedUniform { location: 0, id });
+								.used_functions
+								.push(GlslUsedFunction { id });
 						}
-					} else if storage == glsl::syntax::StorageQualifier::In {
-						let id = GlslAttribId::new(f.id, self[f.id].declared_attribs.len());
-						self[f.id].declared_attribs.push(GlslAttribDecl {
-							at: GlslDeclId::new(f.id, ix),
-							decl,
-							id,
-						});
+					}
+					Declaration(Precision(_, _)) => {
+						bail!("Precision qualifiers are not supported")
+					}
+					Declaration(FunctionPrototype(_)) => {
+						bail!("Function prototypes are not supported")
+					}
+					Declaration(Global(_, _)) => {
+						bail!("Globals are not supported")
+					}
+					Declaration(InitDeclaratorList(block)) => {
+						if block.head.ty.qualifier.is_none() {
+							continue;
+						}
 
-						for downstream in f.included_by.iter().chain(once(&f.id)) {
-							self[*downstream]
-								.used_attribs
-								.push(GlslUsedAttrib { location: 0, id });
+						ensure_only_one_name(block)?;
+
+						let mut decl = block.head.clone();
+						decl.ty.ty.array_specifier = concat_array_specifiers(
+							&decl.array_specifier,
+							&decl.ty.ty.array_specifier,
+						);
+						decl.array_specifier = None;
+
+						let storage =
+							ensure_only_storage(block.head.ty.qualifier.as_ref().unwrap())?;
+						if storage == glsl::syntax::StorageQualifier::Uniform {
+							let id = GlslUniformId::new(f.id, self[f.id].declared_uniforms.len());
+							self[f.id].declared_uniforms.push(GlslUniformDecl {
+								at: GlslDeclId::new(f.id, ix),
+								decl,
+								id,
+							});
+
+							for downstream in f.included_by.iter().chain(once(&f.id)) {
+								self[*downstream]
+									.used_uniforms
+									.push(GlslUsedUniform { location: 0, id });
+							}
+						} else if storage == glsl::syntax::StorageQualifier::In {
+							let id = GlslAttribId::new(f.id, self[f.id].declared_attribs.len());
+							self[f.id].declared_attribs.push(GlslAttribDecl {
+								at: GlslDeclId::new(f.id, ix),
+								decl,
+								id,
+							});
+
+							for downstream in f.included_by.iter().chain(once(&f.id)) {
+								self[*downstream]
+									.used_attribs
+									.push(GlslUsedAttrib { location: 0, id });
+							}
+						} else if storage == glsl::syntax::StorageQualifier::Varying {
+							let id = GlslVaryingId::new(f.id, self[f.id].declared_varyings.len());
+							self[f.id].declared_varyings.push(GlslVaryingDecl {
+								at: GlslDeclId::new(f.id, ix),
+								decl,
+								id,
+							});
+
+							for downstream in f.included_by.iter().chain(once(&f.id)) {
+								self[*downstream].used_varyings.push(GlslUsedVarying {
+									location: 0,
+									id,
+									frag_referenced: false,
+									vert_referenced: false,
+								});
+							}
+						} else {
+							bail!("Storage qualifier {storage:?} not supported")
 						}
 					}
 				}

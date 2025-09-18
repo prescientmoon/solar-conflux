@@ -126,3 +126,123 @@ impl State {
 	}
 }
 // }}}
+
+// {{{ Propagate references
+#[derive(Default)]
+struct IdentifierVisitor {
+	identifiers: Vec<glsl::syntax::Identifier>,
+}
+
+impl glsl::visitor::Visitor for IdentifierVisitor {
+	fn visit_identifier(&mut self, identifier: &glsl::syntax::Identifier) -> glsl::visitor::Visit {
+		self.identifiers.push(identifier.clone());
+		glsl::visitor::Visit::Parent
+	}
+}
+
+enum Identifier {
+	Function(GlslFunctionId),
+	Uniform(GlslUniformId),
+	Attrib(GlslAttribId),
+	Varying(GlslVaryingId),
+}
+
+impl State {
+	pub fn find_references(&mut self) {
+		let all_functions: Vec<_> = self
+			.files
+			.iter()
+			.flat_map(|file| file.declared_functions.iter().map(|f| f.id))
+			.collect();
+
+		for id in all_functions {
+			let mut visitor = IdentifierVisitor::default();
+			self[id].def.statement.visit(&mut visitor);
+
+			for identifier in &visitor.identifiers {
+				if let Some(uniform) = self[id.0]
+					.used_uniforms
+					.iter()
+					.find(|u| self[u.id].decl.name.as_ref().unwrap() == identifier)
+					.map(|u| u.id)
+				{
+					if !self[id].references_uniforms.contains(&uniform) {
+						self[id].references_uniforms.push(uniform);
+					}
+				} else if let Some(attrib) = self[id.0]
+					.used_attribs
+					.iter()
+					.find(|u| self[u.id].decl.name.as_ref().unwrap() == identifier)
+					.map(|u| u.id)
+				{
+					if !self[id].references_attribs.contains(&attrib) {
+						self[id].references_attribs.push(attrib);
+					}
+				} else if let Some(varying) = self[id.0]
+					.used_varyings
+					.iter()
+					.find(|u| self[u.id].decl.name.as_ref().unwrap() == identifier)
+					.map(|u| u.id)
+				{
+					if !self[id].references_varyings.contains(&varying) {
+						self[id].references_varyings.push(varying);
+					}
+				} else if let Some(func) = self[id.0]
+					.used_functions
+					.iter()
+					.find(|u| self[u.id].def.prototype.name == *identifier)
+					.map(|u| u.id)
+				{
+					if !self[id].references_functions.contains(&func) {
+						self[id].references_functions.push(func);
+					}
+				} else {
+					// Variable not found, continue. Likely a local.
+					continue;
+				}
+			}
+		}
+
+		// Propagate references until no more changes are seen.
+		// This is an inefficient implementation, but I do not care.
+		let mut keep_going = true;
+		while keep_going {
+			keep_going = false;
+			let cloned = self.clone();
+			for file in &cloned.files {
+				for func in &file.declared_functions {
+					for &other_func in &func.references_functions {
+						for &other_dep in &cloned[other_func].references_functions {
+							if !func.references_functions.contains(&other_dep) {
+								self[func.id].references_functions.push(other_dep);
+								keep_going = true;
+							}
+						}
+
+						for &other_dep in &cloned[other_func].references_varyings {
+							if !func.references_varyings.contains(&other_dep) {
+								self[func.id].references_varyings.push(other_dep);
+								keep_going = true;
+							}
+						}
+
+						for &other_dep in &cloned[other_func].references_attribs {
+							if !func.references_attribs.contains(&other_dep) {
+								self[func.id].references_attribs.push(other_dep);
+								keep_going = true;
+							}
+						}
+
+						for &other_dep in &cloned[other_func].references_uniforms {
+							if !func.references_uniforms.contains(&other_dep) {
+								self[func.id].references_uniforms.push(other_dep);
+								keep_going = true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+// }}}
