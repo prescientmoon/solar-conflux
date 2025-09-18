@@ -23,6 +23,10 @@ pub struct GlslFile {
 	pub used_uniforms: Vec<GlslUsedUniform>,
 	pub declared_attribs: Vec<GlslAttribDecl>,
 	pub used_attribs: Vec<GlslUsedAttrib>,
+	pub declared_varyings: Vec<GlslVaryingDecl>,
+	pub used_varyings: Vec<GlslUsedVarying>,
+	pub declared_functions: Vec<GlslFunctionDecl>,
+	pub used_functions: Vec<GlslUsedFunction>,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -51,7 +55,7 @@ pub struct GlslUniformDecl {
 	pub decl: glsl::syntax::SingleDeclaration,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct GlslUniformId(GlslFileId, usize);
 
 impl GlslUniformId {
@@ -74,10 +78,61 @@ pub struct GlslAttribDecl {
 	pub decl: glsl::syntax::SingleDeclaration,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct GlslAttribId(GlslFileId, usize);
 
 impl GlslAttribId {
+	pub fn new(glsl_file_id: GlslFileId, ix: usize) -> Self {
+		Self(glsl_file_id, ix)
+	}
+}
+// }}}
+// {{{ Varying-s
+#[derive(Clone, Debug)]
+pub struct GlslUsedVarying {
+	pub location: usize,
+	pub id: GlslVaryingId,
+	pub frag_referenced: bool,
+	pub vert_referenced: bool,
+}
+
+#[derive(Clone, Debug)]
+pub struct GlslVaryingDecl {
+	pub id: GlslVaryingId,
+	pub at: GlslDeclId,
+	pub decl: glsl::syntax::SingleDeclaration,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct GlslVaryingId(GlslFileId, usize);
+
+impl GlslVaryingId {
+	pub fn new(glsl_file_id: GlslFileId, ix: usize) -> Self {
+		Self(glsl_file_id, ix)
+	}
+}
+// }}}
+// {{{ Functions
+#[derive(Clone, Debug)]
+pub struct GlslUsedFunction {
+	pub id: GlslFunctionId,
+}
+
+#[derive(Clone, Debug)]
+pub struct GlslFunctionDecl {
+	pub id: GlslFunctionId,
+	pub at: GlslDeclId,
+	pub def: glsl::syntax::FunctionDefinition,
+	pub references_functions: Vec<GlslFunctionId>,
+	pub references_varyings: Vec<GlslVaryingId>,
+	pub references_uniforms: Vec<GlslUniformId>,
+	pub references_attribs: Vec<GlslAttribId>,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct GlslFunctionId(pub GlslFileId, usize);
+
+impl GlslFunctionId {
 	pub fn new(glsl_file_id: GlslFileId, ix: usize) -> Self {
 		Self(glsl_file_id, ix)
 	}
@@ -124,6 +179,26 @@ impl Index<GlslAttribId> for State {
 	type Output = GlslAttribDecl;
 	fn index(&self, index: GlslAttribId) -> &Self::Output {
 		&self[index.0].declared_attribs[index.1]
+	}
+}
+
+impl Index<GlslVaryingId> for State {
+	type Output = GlslVaryingDecl;
+	fn index(&self, index: GlslVaryingId) -> &Self::Output {
+		&self[index.0].declared_varyings[index.1]
+	}
+}
+
+impl Index<GlslFunctionId> for State {
+	type Output = GlslFunctionDecl;
+	fn index(&self, index: GlslFunctionId) -> &Self::Output {
+		&self[index.0].declared_functions[index.1]
+	}
+}
+
+impl IndexMut<GlslFunctionId> for State {
+	fn index_mut(&mut self, index: GlslFunctionId) -> &mut Self::Output {
+		&mut self[index.0].declared_functions[index.1]
 	}
 }
 
