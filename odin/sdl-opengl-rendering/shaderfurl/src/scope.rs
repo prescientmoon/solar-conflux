@@ -33,6 +33,7 @@ impl IncludeVisitor<'_> {
 			.find_map(|f| if f.path == overall { Some(f.id) } else { None })
 			.ok_or_else(|| anyhow!("Cannot find file matching path {:?}", overall))?;
 		self.state[self.id].includes.push(referenced);
+		self.state[referenced].included_by.push(self.id);
 		Ok(())
 	}
 }
