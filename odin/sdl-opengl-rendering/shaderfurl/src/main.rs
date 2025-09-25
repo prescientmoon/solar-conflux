@@ -6,13 +6,16 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 
-mod codegen;
+mod glslgen;
 mod layout;
+mod odingen;
 mod scope;
 mod syntax;
 mod types;
 
 use types::*;
+
+use crate::glslgen::ShaderStage;
 
 // Input handling
 // {{{ Find glsl files
@@ -96,11 +99,20 @@ fn main() -> anyhow::Result<()> {
 
 	let mut out = String::new();
 	state.gen_module(&mut out)?;
+	println!("---------- Odin");
 	println!("{out}");
 	// println!("{:?}", state.files[1].syntax);
-	// for v in state.files {
-	// 	println!("{:?}", v.syntax)
-	// }
+	for f in &state.files {
+		let mut out = String::new();
+		state.gen_glsl_shader(f.id, ShaderStage::Vert, &mut out)?;
+		println!("---------- Vert: {:?}", &f.short_path);
+		println!("{}", out);
+
+		let mut out = String::new();
+		state.gen_glsl_shader(f.id, ShaderStage::Frag, &mut out)?;
+		println!("---------- Frag: {:?}", &f.short_path);
+		println!("{}", out);
+	}
 
 	Ok(())
 }
