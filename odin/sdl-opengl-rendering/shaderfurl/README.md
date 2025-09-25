@@ -12,6 +12,7 @@ These will not necessarily be checked, and invalidating them leads to undefined 
 - do not use preprocessor macros outside #include
 - no explicit location/binding/layout annotations (these will be generated automatically)
 - do not declare recursive functions
+- do not use interface blocks for varyings
 
 The reason these rules apply is because implementing the proper behaviour would take additional effort which I have no reason to put in, considering I am the only one who is going to use this tool.
 

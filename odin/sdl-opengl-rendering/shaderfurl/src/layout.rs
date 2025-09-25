@@ -131,6 +131,8 @@ impl State {
 									vert_referenced: false,
 								});
 							}
+						} else if storage == glsl::syntax::StorageQualifier::Out {
+							// TODO
 						} else {
 							bail!("Storage qualifier {storage:?} not supported")
 						}
@@ -200,6 +202,12 @@ impl State {
 			for attrib in f.used_attribs.iter_mut() {
 				attrib.location = loc;
 				loc += cloned.input_count(f.id, &cloned[attrib.id].decl.ty.ty)?;
+			}
+
+			loc = 0;
+			for varying in f.used_varyings.iter_mut() {
+				varying.location = loc;
+				loc += cloned.input_count(f.id, &cloned[varying.id].decl.ty.ty)?;
 			}
 		}
 
