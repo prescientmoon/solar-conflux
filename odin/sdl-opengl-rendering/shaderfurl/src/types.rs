@@ -15,8 +15,8 @@ pub struct GlslFile {
 	pub included_by: Vec<GlslFileId>,
 
 	// Stages
-	pub has_vert: bool,
-	pub has_frag: bool,
+	pub vert_main: Option<GlslUsedFunctionId>,
+	pub frag_main: Option<GlslUsedFunctionId>,
 
 	// Declarations
 	pub declared_uniforms: Vec<GlslUniformDecl>,
@@ -115,7 +115,8 @@ impl GlslVaryingId {
 // {{{ Functions
 #[derive(Clone, Debug)]
 pub struct GlslUsedFunction {
-	pub id: GlslFunctionId,
+	pub decl_id: GlslFunctionId,
+	pub id: GlslUsedFunctionId,
 }
 
 #[derive(Clone, Debug)]
@@ -133,6 +134,15 @@ pub struct GlslFunctionDecl {
 pub struct GlslFunctionId(pub GlslFileId, usize);
 
 impl GlslFunctionId {
+	pub fn new(glsl_file_id: GlslFileId, ix: usize) -> Self {
+		Self(glsl_file_id, ix)
+	}
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct GlslUsedFunctionId(pub GlslFileId, usize);
+
+impl GlslUsedFunctionId {
 	pub fn new(glsl_file_id: GlslFileId, ix: usize) -> Self {
 		Self(glsl_file_id, ix)
 	}
@@ -199,6 +209,13 @@ impl Index<GlslFunctionId> for State {
 impl IndexMut<GlslFunctionId> for State {
 	fn index_mut(&mut self, index: GlslFunctionId) -> &mut Self::Output {
 		&mut self[index.0].declared_functions[index.1]
+	}
+}
+
+impl Index<GlslUsedFunctionId> for State {
+	type Output = GlslUsedFunction;
+	fn index(&self, index: GlslUsedFunctionId) -> &Self::Output {
+		&self[index.0].used_functions[index.1]
 	}
 }
 
