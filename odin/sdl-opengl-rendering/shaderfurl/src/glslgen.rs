@@ -1,5 +1,7 @@
 use std::fmt::Write;
 
+use anyhow::anyhow;
+
 use crate::types::*;
 
 // {{{ Codegen
@@ -19,6 +21,7 @@ impl State {
 
 		writeln!(out, "#version 430")?;
 
+		// {{{ Uniforms
 		if !file.used_uniforms.is_empty() {
 			writeln!(out)?;
 			writeln!(out, "// Uniforms")?;
@@ -42,7 +45,8 @@ impl State {
 
 			glsl::transpiler::glsl::show_declaration(out, &decl);
 		}
-
+		// }}}
+		// {{{ Attributes
 		if !file.used_attribs.is_empty() {
 			writeln!(out)?;
 			writeln!(out, "// Attributes")?;
@@ -67,6 +71,8 @@ impl State {
 			glsl::transpiler::glsl::show_declaration(out, &decl);
 		}
 
+		// }}}
+		// {{{ Varyings
 		if !file.used_varyings.is_empty() {
 			writeln!(out)?;
 			writeln!(out, "// Varyings")?;
@@ -96,12 +102,42 @@ impl State {
 
 			glsl::transpiler::glsl::show_declaration(out, &decl);
 		}
+		// }}}
+
+		// Functions
+		writeln!(out)?;
+		writeln!(out, "// Main")?;
+		match stage {
+			ShaderStage::Vert => self.gen_function(
+				"main",
+				file.vert_main.ok_or_else(|| {
+					anyhow!("Cannot generate vertex shader without a `vert` function")
+				})?,
+				out,
+			),
+			ShaderStage::Frag => self.gen_function(
+				"main",
+				file.frag_main.ok_or_else(|| {
+					anyhow!("Cannot generate fragment shader without a `frag` function")
+				})?,
+				out,
+			),
+		}
 
 		Ok(())
+	}
+
+	fn gen_function(&self, name: &str, id: GlslUsedFunctionId, out: &mut String) {
+		let f = &self[id];
+		let f_def = &self[f.decl_id];
+		let mut def = f_def.def.clone();
+		def.prototype.name.0 = name.to_string();
+		glsl::transpiler::glsl::show_function_definition(out, &def);
 	}
 }
 // }}}
 
+// {{{ Helpers
 fn mk_pos_qualifier(location: usize) -> glsl::syntax::LayoutQualifier {
 	glsl::syntax::LayoutQualifier {
 		ids: glsl::syntax::NonEmpty::from_non_empty_iter(std::iter::once(
@@ -113,3 +149,4 @@ fn mk_pos_qualifier(location: usize) -> glsl::syntax::LayoutQualifier {
 		.unwrap(),
 	}
 }
+// }}}

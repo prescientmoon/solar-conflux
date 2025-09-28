@@ -53,8 +53,8 @@ fn parse_glsl_files(files: &[PathBuf]) -> anyhow::Result<Vec<GlslFile>> {
 			syntax,
 			includes: Vec::new(),
 			included_by: Vec::new(),
-			has_vert: false,
-			has_frag: false,
+			vert_main: None,
+			frag_main: None,
 			used_attribs: Vec::new(),
 			declared_attribs: Vec::new(),
 			declared_uniforms: Vec::new(),
@@ -91,9 +91,9 @@ fn main() -> anyhow::Result<()> {
 	};
 
 	state.resolve_includes()?;
-	state.detect_stages();
 	state.find_ubos()?;
 	state.find_inputs()?;
+	state.detect_stages();
 	state.find_references();
 	state.alloc_inputs()?;
 
@@ -103,6 +103,10 @@ fn main() -> anyhow::Result<()> {
 	println!("{out}");
 	// println!("{:?}", state.files[1].syntax);
 	for f in &state.files {
+		if f.vert_main.is_none() || f.frag_main.is_none() {
+			continue;
+		}
+
 		let mut out = String::new();
 		state.gen_glsl_shader(f.id, ShaderStage::Vert, &mut out)?;
 		println!("---------- Vert: {:?}", &f.short_path);
