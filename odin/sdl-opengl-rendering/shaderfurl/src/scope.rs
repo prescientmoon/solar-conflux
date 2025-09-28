@@ -97,31 +97,32 @@ impl State {
 // }}}
 // {{{ Check whether a file declares some function
 impl State {
-	pub fn declares_function_shallow(&self, id: GlslFileId, name: &str) -> bool {
-		for v in &self[id].syntax {
-			if let glsl::syntax::ExternalDeclaration::FunctionDefinition(fn_def) = v
-				&& fn_def.prototype.name.0 == name
-			{
-				return true;
+	pub fn declares_function_shallow(
+		&self,
+		id: GlslFileId,
+		name: &str,
+	) -> Option<GlslUsedFunctionId> {
+		for f in &self[id].used_functions {
+			if self[f.decl_id].def.prototype.name.0 == name {
+				return Some(f.id);
 			}
 		}
 
-		false
+		None
 	}
 
-	pub fn declares_function(&self, id: GlslFileId, name: &str) -> bool {
-		self.declares_function_shallow(id, name)
-			|| self[id]
-				.includes
-				.iter()
-				.any(|f| self.declares_function_shallow(*f, name))
+	pub fn declares_function(&self, id: GlslFileId, name: &str) -> Option<GlslUsedFunctionId> {
+		self.declares_function_shallow(id, name).or(self[id]
+			.includes
+			.iter()
+			.find_map(|f| self.declares_function_shallow(*f, name)))
 	}
 
 	pub fn detect_stages(&mut self) {
 		let cloned = self.clone();
 		for f in &mut self.files {
-			f.has_vert = cloned.declares_function(f.id, "vert");
-			f.has_frag = cloned.declares_function(f.id, "frag");
+			f.vert_main = cloned.declares_function(f.id, "vert");
+			f.frag_main = cloned.declares_function(f.id, "frag");
 		}
 	}
 }
@@ -190,8 +191,8 @@ impl State {
 				} else if let Some(func) = self[id.0]
 					.used_functions
 					.iter()
-					.find(|u| self[u.id].def.prototype.name == *identifier)
-					.map(|u| u.id)
+					.find(|u| self[u.decl_id].def.prototype.name == *identifier)
+					.map(|u| u.decl_id)
 				{
 					if !self[id].references_functions.contains(&func) {
 						self[id].references_functions.push(func);

@@ -66,7 +66,7 @@ impl State {
 		writeln!(out, "// ========== File: {filename}")?;
 		self.gen_types(f, out)?;
 
-		if !f.has_vert || !f.has_frag {
+		if f.vert_main.is_none() || f.frag_main.is_none() {
 			return Ok(());
 		}
 

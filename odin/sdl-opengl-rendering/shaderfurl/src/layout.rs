@@ -59,9 +59,11 @@ impl State {
 						});
 
 						for downstream in f.included_by.iter().chain(once(&f.id)) {
-							self[*downstream]
-								.used_functions
-								.push(GlslUsedFunction { id });
+							let ix = self[*downstream].used_functions.len();
+							self[*downstream].used_functions.push(GlslUsedFunction {
+								decl_id: id,
+								id: GlslUsedFunctionId::new(f.id, ix),
+							});
 						}
 					}
 					Declaration(Precision(_, _)) => {
