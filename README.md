@@ -28,5 +28,6 @@ The experiments are currently organized based on the language they use:
 - [Odin](./odin/)
 - [Purescript](./purescript/)
 - [Python](./python/)
+- [Rust](./rust/)
 - [Typescript](./typescript/)
 - [Typst](./typst/)
