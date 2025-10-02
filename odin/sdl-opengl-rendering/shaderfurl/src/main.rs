@@ -11,6 +11,7 @@ mod layout;
 mod odingen;
 mod scope;
 mod syntax;
+mod topsort;
 mod types;
 
 use types::*;
