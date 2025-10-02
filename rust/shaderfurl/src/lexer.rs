@@ -1,4 +1,121 @@
-#[derive(Debug, Clone, Copy)]
+use std::{cmp, path::Path, rc::Rc};
+
+use ariadne::Span;
+
+// {{{ Source positions
+#[derive(Clone, Copy, Eq)]
+pub struct SourcePos {
+	pub index: usize,
+	pub line: usize,
+	pub col: usize,
+}
+
+impl std::fmt::Debug for SourcePos {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{}:{}", self.line, self.col)
+	}
+}
+
+impl SourcePos {
+	pub fn new(index: usize, line: usize, col: usize) -> Self {
+		Self { index, line, col }
+	}
+}
+
+impl PartialEq for SourcePos {
+	fn eq(&self, other: &Self) -> bool {
+		self.index == other.index
+	}
+}
+
+impl PartialOrd for SourcePos {
+	fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+		Some(self.cmp(other))
+	}
+}
+
+impl Ord for SourcePos {
+	fn cmp(&self, other: &Self) -> cmp::Ordering {
+		self.index.cmp(&other.index)
+	}
+}
+// }}}
+// {{{ File IDs
+// TODO: change this to whatever the LSP uses
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FileId(Rc<Path>);
+
+impl FileId {
+	pub fn new(path: Rc<Path>) -> Self {
+		Self(path)
+	}
+}
+
+impl std::fmt::Display for FileId {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{:?}", self.0)
+	}
+}
+// }}}
+// {{{ Source spans
+#[derive(Clone)]
+pub struct SourceSpan {
+	pub path: FileId,
+	pub from: SourcePos,
+	pub length: usize,
+}
+
+impl std::fmt::Debug for SourceSpan {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{}:{:?}-{}", self.path, self.from, self.length)
+	}
+}
+
+impl SourceSpan {
+	pub fn new(path: FileId, from: SourcePos, length: usize) -> Self {
+		Self { from, length, path }
+	}
+
+	pub fn between(path: FileId, from: SourcePos, to: SourcePos) -> Self {
+		Self::new(path, from, to.index - from.index)
+	}
+
+	pub fn merge(&self, other: &Self) -> Self {
+		assert_eq!(self.path, other.path);
+		let start = self.from.min(other.from);
+		let end = self.end().max(other.end());
+		Self::new(self.path.clone(), start, end - start.index)
+	}
+
+	pub fn merge_options(first: Option<Self>, second: Option<Self>) -> Option<Self> {
+		match (first, second) {
+			(None, None) => None,
+			(Some(a), None) => Some(a),
+			(None, Some(b)) => Some(b),
+			(Some(a), Some(b)) => Some(a.merge(&b)),
+		}
+	}
+}
+
+impl ariadne::Span for SourceSpan {
+	type SourceId = FileId;
+
+	fn source(&self) -> &Self::SourceId {
+		&self.path
+	}
+
+	fn start(&self) -> usize {
+		self.from.index
+	}
+
+	fn end(&self) -> usize {
+		self.start() + self.length
+	}
+}
+// }}}
+
+// {{{ Tokens
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TokenKind {
 	// Keywords
 	Module,
@@ -62,58 +179,41 @@ pub enum TokenKind {
 	Eof,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct SourcePos {
-	pub index: usize,
-	pub line: usize,
-	pub col: usize,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct SourceSpan {
-	pub from: SourcePos,
-	pub length: usize,
-}
-
-impl SourceSpan {
-	pub fn new(from: SourcePos, length: usize) -> Self {
-		Self { from, length }
-	}
-}
-
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone)]
 pub struct Token {
 	pub kind: TokenKind,
 	pub span: SourceSpan,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct LexerState {
+impl std::fmt::Debug for Token {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{:?}({:?})", self.kind, self.span)
+	}
+}
+// }}}
+// {{{ Lexing
+#[derive(Debug, Clone)]
+pub struct Lexer<'a> {
+	path: FileId,
+	source: &'a str,
+
 	pos: SourcePos,
 	curr: char,
 	next_index: usize,
 }
 
-#[derive(Debug, Clone)]
-pub struct Lexer {
-	pub source: String,
-	state: LexerState,
-}
-
-impl Lexer {
-	#[allow(unused)]
-	pub fn new(source: String) -> Self {
+impl<'a> Lexer<'a> {
+	pub fn new(path: FileId, source: &'a str) -> Self {
 		let mut lexer = Lexer {
+			path,
 			source,
-			state: LexerState {
-				pos: SourcePos {
-					index: 0,
-					line: 1,
-					col: 0, // This will get bumped by the following .advance()
-				},
-				curr: '\0', // Will be set by initial advance
-				next_index: 0,
+			pos: SourcePos {
+				index: 0,
+				line: 1,
+				col: 0, // This will get bumped by the following .advance()
 			},
+			curr: '\0', // Will be set by initial advance
+			next_index: 0,
 		};
 
 		lexer.advance(); // Initialize curr and pos
@@ -121,62 +221,60 @@ impl Lexer {
 	}
 
 	fn advance(&mut self) {
-		if self.state.next_index < self.source.len() {
-			self.state.pos.index = self.state.next_index;
-			if self.state.curr == '\n' {
-				self.state.pos.col = 1;
-				self.state.pos.line += 1;
+		if self.next_index < self.source.len() {
+			self.pos.index = self.next_index;
+			if self.curr == '\n' {
+				self.pos.col = 1;
+				self.pos.line += 1;
 			} else {
-				self.state.pos.col += 1;
+				self.pos.col += 1;
 			}
 
-			let ch = self.source[self.state.next_index..].chars().next().unwrap();
-			self.state.curr = ch;
-			self.state.next_index += ch.len_utf8();
+			let ch = self.source[self.next_index..].chars().next().unwrap();
+			self.curr = ch;
+			self.next_index += ch.len_utf8();
 		} else {
-			self.state.pos.index = self.source.len();
+			self.pos.index = self.source.len();
 
-			if self.state.curr == '\n' {
-				self.state.pos.line += 1;
-				self.state.pos.col = 1;
+			if self.curr == '\n' {
+				self.pos.line += 1;
+				self.pos.col = 1;
 			}
 
-			self.state.next_index = usize::MAX;
-			self.state.curr = '\0';
+			self.next_index = usize::MAX;
+			self.curr = '\0';
 		}
 	}
 
-	fn peek(&mut self) -> LexerState {
-		let initial_state = self.state;
-		self.advance();
-		let state = self.state;
-		self.state = initial_state;
-		state
+	fn peek_char(&self) -> char {
+		let mut copy = self.clone();
+		copy.advance();
+		copy.curr
 	}
 
 	#[allow(unused)]
-	pub fn pull(&mut self) -> Token {
-		while matches!(self.state.curr, ' ' | '\r' | '\t' | '\n') {
+	pub fn next(&mut self) -> Token {
+		while matches!(self.curr, ' ' | '\r' | '\t' | '\n') {
 			self.advance();
 		}
 
 		let mut tok = Token {
 			kind: TokenKind::Eof,
-			span: SourceSpan::new(self.state.pos, 0),
+			span: SourceSpan::new(self.path.clone(), self.pos, 0),
 		};
 
 		let mut end_offset = 0;
-		let nch = self.peek().curr;
+		let nch = self.peek_char();
 
-		match self.state.curr {
+		match self.curr {
 			'\0' => tok.kind = TokenKind::Eof,
 			// {{{ Identifiers / keywords
 			ch if ch.is_alphabetic() => {
-				while self.state.curr.is_alphanumeric() {
+				while self.curr.is_alphanumeric() {
 					self.advance();
 				}
 
-				let lit = &self.source[tok.span.from.index..self.state.pos.index];
+				let lit = &self.source[tok.span.from.index..self.pos.index];
 				tok.kind = TokenKind::Identifier;
 
 				match lit {
@@ -204,7 +302,7 @@ impl Lexer {
 			// {{{ Properties
 			'.' if nch.is_alphabetic() => {
 				self.advance();
-				while self.state.curr.is_alphanumeric() {
+				while self.curr.is_alphanumeric() {
 					self.advance();
 				}
 
@@ -213,14 +311,14 @@ impl Lexer {
 			// }}}
 			// {{{ Numbers
 			ch if ch.is_ascii_digit() => {
-				while self.state.curr.is_ascii_digit() {
+				while self.curr.is_ascii_digit() {
 					self.advance();
 				}
 
 				// Handle floats
-				if self.state.curr == '.' {
+				if self.curr == '.' {
 					self.advance();
-					while self.state.curr.is_ascii_digit() {
+					while self.curr.is_ascii_digit() {
 						self.advance();
 					}
 					tok.kind = TokenKind::Float;
@@ -230,7 +328,7 @@ impl Lexer {
 			}
 			'.' if nch.is_ascii_digit() => {
 				self.advance();
-				while self.state.curr.is_ascii_digit() {
+				while self.curr.is_ascii_digit() {
 					self.advance();
 				}
 
@@ -242,12 +340,12 @@ impl Lexer {
 				self.advance();
 				self.advance();
 
-				while self.state.curr != '\n' && self.state.curr != '\0' {
+				while self.curr != '\n' && self.curr != '\0' {
 					self.advance();
 				}
 
 				// Strip CR from line comments
-				while self.source[self.state.pos.index - end_offset - 1..].starts_with('\r') {
+				while self.source[self.pos.index - end_offset - 1..].starts_with('\r') {
 					end_offset += 1
 				}
 
@@ -258,7 +356,7 @@ impl Lexer {
 			'"' => {
 				self.advance();
 
-				while self.state.curr != '"' && self.state.curr != '\0' {
+				while self.curr != '"' && self.curr != '\0' {
 					self.advance();
 				}
 
@@ -315,7 +413,7 @@ impl Lexer {
 
 					// Junk! (eat it all 😋)
 					_ => {
-						while !matches!(self.state.curr, ' ' | '\r' | '\t' | '\n' | '\0') {
+						while !matches!(self.curr, ' ' | '\r' | '\t' | '\n' | '\0') {
 							self.advance();
 						}
 
@@ -325,7 +423,17 @@ impl Lexer {
 			} // }}}
 		}
 
-		tok.span.length = self.state.pos.index - tok.span.from.index - end_offset;
+		tok.span.length = self.pos.index - tok.span.from.index - end_offset;
 		tok
 	}
+
+	// Returns the piece of text a token spans
+	pub fn source_span(&self, span: &SourceSpan) -> &str {
+		&self.source[span.start()..span.end()]
+	}
+
+	pub fn path(&self) -> FileId {
+		self.path.clone()
+	}
 }
+// }}}
