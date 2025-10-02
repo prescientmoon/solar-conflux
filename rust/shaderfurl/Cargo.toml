@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-ariadne = "0.5.1"
+ariadne = { version="0.5.1", features=["auto-color"] }
 salsa = "0.23.0"
