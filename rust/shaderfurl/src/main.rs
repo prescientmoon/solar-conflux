@@ -2,9 +2,11 @@ use std::io;
 
 use crate::lexer::{Lexer, TokenKind};
 
+mod ast;
 mod cst;
 mod database;
 mod lexer;
+mod parser;
 
 fn main() {
 	let mut buffer = String::new();

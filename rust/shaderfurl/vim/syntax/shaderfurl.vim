@@ -6,7 +6,7 @@ syn clear
 
 syn keyword furlKeyword import module frag vert
 syn keyword furlKeyword return discard continue break if then else for do proc
-syn keyword furlKeyword struct attribute buffer uniform varying matrix
+syn keyword furlKeyword struct attribute buffer uniform varying
 hi link furlKeyword Keyword
 
 syn match furlIdentifier /\v\h\w*/
