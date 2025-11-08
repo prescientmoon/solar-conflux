@@ -1,4 +1,4 @@
-use std::{io, path::PathBuf, rc::Rc, str::FromStr};
+use std::{path::PathBuf, rc::Rc, str::FromStr};
 
 use ariadne::Source;
 
@@ -14,13 +14,12 @@ mod lexer;
 mod parser;
 
 fn main() {
-	let mut buffer = String::new();
-	let stdin = io::stdin();
-	stdin.read_line(&mut buffer).unwrap();
+	let buffer = include_str!("../shaders-idea/example.furl").to_string();
 
 	let file_id = FileId::new(Rc::from(PathBuf::from_str("repl").unwrap().as_path()));
 	let mut lexer = Lexer::new(file_id.clone(), &buffer);
 
+	println!("========== Lexing");
 	loop {
 		let token = lexer.next();
 
@@ -32,9 +31,13 @@ fn main() {
 	}
 
 	let mut parser = Parser::new(file_id.clone(), &buffer);
-	let expr = parser.parse_expr_call();
 
-	println!("Parse result: {:?}", expr);
+	let stm = parser.parse_statement();
+	if let Some(stm) = stm {
+		println!("========== Parsing");
+		println!("{:#?}", stm);
+		println!("{:?}", parser.stop_on_stack);
+	}
 
 	for report in parser.reports() {
 		report

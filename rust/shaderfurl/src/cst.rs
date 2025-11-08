@@ -1,16 +1,27 @@
 #![allow(unused)]
 #![allow(clippy::large_enum_variant)]
-use crate::lexer::{self, SourcePos, SourceSpan};
+use ariadne::Source;
+
+use crate::lexer::{self, SourcePos, SourceSpan, TokenKind};
 
 // {{{ Building blocks
 #[derive(Debug, Clone)]
 pub struct Token<T = ()> {
+	// TODO(2025-10-22): Document whether this includes the trivia's span
 	pub span: SourceSpan,
+	/// A range of token indices for the trivia associated with the token.
+	pub trivia: (usize, usize),
 	pub value: T,
+}
 
-	// This is inefficient af, although it'll only allocate if trivia
-	// is actually attached, so it's not the end of the world...
-	pub trivia: Vec<lexer::Token>,
+impl<T> Token<T> {
+	pub fn set<O>(self, other: O) -> Token<O> {
+		Token {
+			span: self.span,
+			trivia: self.trivia,
+			value: other,
+		}
+	}
 }
 
 #[derive(Debug, Clone)]
@@ -114,88 +125,72 @@ pub struct ProcArg {
 #[derive(Debug, Clone)]
 pub enum ProcBody {
 	Native(Option<Token<String>>),
-	Implemented(Token, Option<ExprBlock>), // do ...
+	Implemented(Token, Option<StatementBlock>), // do ...
 }
 // }}}
 // {{{ Statements
-#[derive(Debug, Clone)]
-pub struct ExprBlock {
-	statements: Vec<Statement>,
+#[derive(Debug, Clone, Default)]
+pub struct StatementBlock {
+	pub statements: Vec<Statement>,
 }
 
 #[derive(Debug, Clone)]
 pub enum Statement {
 	Expression(Expr),
-	Assignment(Assignment),
+	Assignment(Option<Expr>, Token, Option<Expr>),
 	Declaration(LocalDeclaration),
 	If(If),
 	For(For),
-	Discard,
-	Break,
-	Continue,
-	Return,
-}
-
-#[derive(Debug, Clone)]
-pub struct Assignment {
-	variable: Option<Expr>,
-	equals: Token,
-	value: Option<Expr>,
+	Discard(Token),
+	Break(Token),
+	Continue(Token),
+	Return(Token),
 }
 
 #[derive(Debug, Clone)]
 pub struct LocalDeclaration {
-	variable: Option<String>,
-	colon: Token,
-	ty: Option<Type>,
-	equals: Token,
-	value: Option<Expr>,
+	// This is very loose, might change later. It's currently set up
+	// this way so the parser doesn't have to ever backtrack.
+	pub variable: Option<Expr>,
+	pub colon: Token,
+	pub ty: Option<Type>,
+	pub equals: Option<Token>,
+	pub value: Option<Expr>,
 }
 
 #[derive(Debug, Clone)]
 pub struct If {
-	tok_if: Token,
-	condition: Option<Expr>,
-	tok_then: Option<Token>,
-	block: Option<ExprBlock>,
-	else_if_branches: Vec<ElseIf>,
-	else_branch: Option<Else>,
+	pub branches: Vec<CondBranch>,
 }
 
 #[derive(Debug, Clone)]
-pub struct ElseIf {
-	tok_else: Token,
-	tok_if: Token,
-	condition: Option<Expr>,
-	tok_then: Option<Token>,
-	block: Option<ExprBlock>,
-}
-
-#[derive(Debug, Clone)]
-pub struct Else {
-	tok_else: Token,
-	block: Option<ExprBlock>,
+pub struct CondBranch {
+	pub tok_leading: Token,      // if/elif/else
+	pub condition: Option<Expr>, // absent for `else` branches
+	pub tok_then: Option<Token>, // absent for `else` branches
+	pub block: Option<StatementBlock>,
 }
 
 #[derive(Debug, Clone)]
 pub struct For {
-	tok_for: Token,
-	steps: Separated<Statement>,
-	tok_do: Option<Token>,
-	block: Option<ExprBlock>,
+	pub tok_for: Token,
+	pub steps: Separated<Statement>,
+	pub tok_do: Option<Token>,
+	pub block: Option<StatementBlock>,
 }
 // }}}
 // {{{ Expressions
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum Expr {
 	Int(Token<i64>),
 	Float(Token<f64>),
 	Variable(Token<String>),
 	Property(Option<Box<Expr>>, Token<String>),
-	Call(Call),
-	Unary(UnaryOperator, Option<Box<Expr>>),
-	Binary(Option<Box<Expr>>, BinaryOperator, Option<Box<Expr>>),
+	Call(Box<Expr>, Vec<Expr>),
+	Unary(Token<UnaryOperator>, Option<Box<Expr>>),
+	Binary(Option<Box<Expr>>, Token<BinaryOperator>, Option<Box<Expr>>),
 	Ternary(
+		// At least one argument must be present!
 		Option<Box<Expr>>, // condition
 		Option<Token>,     // ?
 		Option<Box<Expr>>, // if_true
@@ -203,15 +198,10 @@ pub enum Expr {
 		Option<Box<Expr>>, // if_false
 	), // condition ? if_true : if_false
 	Wrapped(Delimited<Option<Box<Expr>>>), // ( expression )
+	Error(Token),
 }
 
-#[derive(Debug, Clone)]
-pub struct Call {
-	pub callee: Box<Expr>,
-	pub arguments: Delimited<Separated<Expr>>,
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum UnaryOperator {
 	Plus,       // +
 	Minus,      // -
@@ -219,7 +209,19 @@ pub enum UnaryOperator {
 	BitwiseNot, // ~
 }
 
-#[derive(Debug, Clone)]
+impl UnaryOperator {
+	pub fn from_token_kind(kind: TokenKind) -> Option<Self> {
+		match kind {
+			TokenKind::Plus => Some(Self::Plus),
+			TokenKind::Minus => Some(Self::Minus),
+			TokenKind::Not => Some(Self::Not),
+			TokenKind::BitwiseNot => Some(Self::BitwiseNot),
+			_ => None,
+		}
+	}
+}
+
+#[derive(Debug, Clone, Copy)]
 pub enum BinaryOperator {
 	DoubleEqual,    // ==
 	Plus,           // +
@@ -238,11 +240,35 @@ pub enum BinaryOperator {
 	GreaterOrEqual, // >=
 	LesserOrEqual,  // <=
 }
+
+impl BinaryOperator {
+	pub fn from_token_kind(kind: TokenKind) -> Option<Self> {
+		match kind {
+			TokenKind::DoubleEqual => Some(Self::DoubleEqual),
+			TokenKind::Plus => Some(Self::Plus),
+			TokenKind::Minus => Some(Self::Minus),
+			TokenKind::Multiply => Some(Self::Multiply),
+			TokenKind::Divide => Some(Self::Divide),
+			TokenKind::And => Some(Self::And),
+			TokenKind::Or => Some(Self::Or),
+			TokenKind::Xor => Some(Self::Xor),
+			TokenKind::Meet => Some(Self::Meet),
+			TokenKind::Join => Some(Self::Join),
+			TokenKind::LeftShift => Some(Self::LeftShift),
+			TokenKind::RightShift => Some(Self::RightShift),
+			TokenKind::GreaterThan => Some(Self::GreaterThan),
+			TokenKind::LesserThan => Some(Self::LesserThan),
+			TokenKind::GreaterOrEqual => Some(Self::GreaterOrEqual),
+			TokenKind::LesserOrEqual => Some(Self::LesserOrEqual),
+			_ => None,
+		}
+	}
+}
+
 // }}}
 // {{{ Types
 #[derive(Debug, Clone)]
 pub enum Type {
-	// TODO: perhaps allow qualified names here?
 	Named(Token<String>),
 	Struct(Struct),
 	Array(Array),
@@ -250,66 +276,195 @@ pub enum Type {
 
 #[derive(Debug, Clone)]
 pub struct Struct {
-	fields: Vec<StructField>,
+	pub fields: Vec<StructField>,
 }
 
 #[derive(Debug, Clone)]
 pub struct StructField {
-	name: Option<Token<String>>,
-	colon: Option<Token>,
-	ty: Option<Type>,
+	pub name: Option<Token<String>>,
+	pub colon: Option<Token>,
+	pub ty: Option<Type>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Array {
-	dimensions: Delimited<Option<ArrayDimensions>>,
-	ty: Option<Box<Type>>,
+	pub dimensions: Delimited<Option<ArrayDimensions>>,
+	pub ty: Option<Box<Type>>,
 }
 
 #[derive(Debug, Clone)]
 pub struct ArrayDimensions {
-	first: Token<usize>,
-	comma: Option<Token>,
-	second: Option<Token<usize>>,
+	pub first: Token<usize>,
+	pub comma: Option<Token>,
+	pub second: Option<Token<usize>>,
 }
 // }}}
-
-// {{{ The HasTrivia trait
-pub trait HasTrivia {
-	fn try_span_of(&self) -> Option<SourceSpan>;
-	fn span_of(&self) -> SourceSpan {
-		self.try_span_of().unwrap()
-	}
-
-	/// Attempts to attach a token as trivia. Returns the token on failure.
-	fn try_attach_trivia(&mut self, trivia: lexer::Token) -> Option<lexer::Token>;
-}
-
-impl<T: HasTrivia> HasTrivia for Option<T> {
-	fn try_span_of(&self) -> Option<SourceSpan> {
-		self.as_ref()?.try_span_of()
-	}
-
-	fn try_attach_trivia(&mut self, trivia: lexer::Token) -> Option<lexer::Token> {
-		if let Some(s) = self.as_mut() {
-			s.try_attach_trivia(trivia)
-		} else {
-			Some(trivia)
+// {{{ Pretty printing
+impl std::fmt::Display for UnaryOperator {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Self::Plus => write!(f, "+"),
+			Self::Minus => write!(f, "-"),
+			Self::Not => write!(f, "!"),
+			Self::BitwiseNot => write!(f, "~"),
 		}
 	}
 }
 
-impl<T: HasTrivia> HasTrivia for Box<T> {
-	fn try_span_of(&self) -> Option<SourceSpan> {
-		self.as_ref().try_span_of()
-	}
-
-	fn try_attach_trivia(&mut self, trivia: lexer::Token) -> Option<lexer::Token> {
-		self.as_mut().try_attach_trivia(trivia)
+impl std::fmt::Display for BinaryOperator {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Self::DoubleEqual => write!(f, "=="),
+			Self::Plus => write!(f, "+"),
+			Self::Minus => write!(f, "-"),
+			Self::Multiply => write!(f, "*"),
+			Self::Divide => write!(f, "/"),
+			Self::And => write!(f, "&"),
+			Self::Or => write!(f, "|"),
+			Self::Xor => write!(f, "^"),
+			Self::Meet => write!(f, "/\\"),
+			Self::Join => write!(f, "\\/"),
+			Self::LeftShift => write!(f, "<<"),
+			Self::RightShift => write!(f, ">>"),
+			Self::GreaterThan => write!(f, ">"),
+			Self::LesserThan => write!(f, "<"),
+			Self::GreaterOrEqual => write!(f, ">="),
+			Self::LesserOrEqual => write!(f, "<="),
+		}
 	}
 }
 
-impl<T: HasTrivia> HasTrivia for Vec<T> {
+impl std::fmt::Display for Expr {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Self::Error(_) => write!(f, "<error>"),
+			Self::Int(tok) => write!(f, "{}", tok.value),
+			Self::Float(tok) => write!(f, "{}", tok.value),
+			Self::Variable(tok) => write!(f, "{}", tok.value),
+			Self::Property(None, tok) => write!(f, "<expr>.{}", tok.value),
+			Self::Property(Some(e), tok) => write!(f, "{e}.{}", tok.value),
+			Self::Call(callee, args) => {
+				write!(f, "{callee}")?;
+				for arg in args {
+					write!(f, " {arg}")?;
+				}
+				Ok(())
+			}
+			Self::Unary(op, expr) => {
+				write!(f, "(")?;
+				write!(f, "{}", op.value)?;
+
+				if let Some(expr) = expr {
+					write!(f, "{expr}")?;
+				} else {
+					write!(f, "<expr>")?;
+				}
+				write!(f, ")")?;
+
+				Ok(())
+			}
+			Self::Binary(lhs, op, rhs) => {
+				write!(f, "(")?;
+				if let Some(lhs) = lhs {
+					write!(f, "{lhs}")?;
+				} else {
+					write!(f, "<expr>")?;
+				}
+
+				write!(f, " {} ", op.value)?;
+
+				if let Some(rhs) = rhs {
+					write!(f, "{rhs}")?;
+				} else {
+					write!(f, "<expr>")?;
+				}
+				write!(f, ")")?;
+
+				Ok(())
+			}
+			Self::Ternary(lhs, qm, ihs, colon, rhs) => {
+				write!(f, "(")?;
+				if let Some(lhs) = lhs {
+					write!(f, "{lhs}")?;
+				} else {
+					write!(f, "<expr>")?;
+				}
+
+				if qm.is_some() {
+					write!(f, " ? ");
+				} else {
+					write!(f, " <?> ");
+				}
+
+				if let Some(ihs) = ihs {
+					write!(f, "{ihs}")?;
+				} else {
+					write!(f, "<expr>")?;
+				}
+
+				if colon.is_some() {
+					write!(f, " : ");
+				} else {
+					write!(f, " <:> ");
+				}
+
+				if let Some(rhs) = rhs {
+					write!(f, "{rhs}")?;
+				} else {
+					write!(f, "<expr>")?;
+				}
+				write!(f, ")")?;
+
+				Ok(())
+			}
+			Self::Wrapped(Delimited { open, inner, close }) => {
+				write!(f, "(")?;
+				if let Some(inner) = inner {
+					write!(f, "{inner}")?;
+				} else {
+					write!(f, "<expr>")?;
+				}
+
+				if close.is_some() {
+					write!(f, ")")?;
+				} else {
+					write!(f, "<)>");
+				}
+
+				Ok(())
+			}
+		}
+	}
+}
+// }}}
+
+// // {{{ The HasSpan trait
+pub trait HasSpan {
+	fn try_span_of(&self) -> Option<SourceSpan>;
+	fn span_of(&self) -> SourceSpan {
+		self.try_span_of().unwrap()
+	}
+}
+
+impl HasSpan for SourceSpan {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		Some(self.clone())
+	}
+}
+
+impl<T: HasSpan> HasSpan for Option<T> {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		self.as_ref()?.try_span_of()
+	}
+}
+
+impl<T: HasSpan> HasSpan for Box<T> {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		self.as_ref().try_span_of()
+	}
+}
+
+impl<T: HasSpan> HasSpan for Vec<T> {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		let mut result = None;
 
@@ -319,127 +474,189 @@ impl<T: HasTrivia> HasTrivia for Vec<T> {
 
 		result
 	}
-
-	fn try_attach_trivia(&mut self, mut trivia: lexer::Token) -> Option<lexer::Token> {
-		for element in self {
-			if let Some(still_there) = element.try_attach_trivia(trivia) {
-				trivia = still_there;
-			} else {
-				return None;
-			}
-		}
-
-		Some(trivia)
-	}
 }
 
 /// NOTE: this implementation doesn't look at the inner value, hence why the
-/// inner type is not required to implement [HasTrivia] as well.
-impl<T> HasTrivia for Token<T> {
+/// inner type is not required to implement [HasSpan] as well.
+impl<T> HasSpan for Token<T> {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		Some(self.span.clone())
 	}
-
-	fn try_attach_trivia(&mut self, trivia: lexer::Token) -> Option<lexer::Token> {
-		self.trivia.push(trivia);
-		None
-	}
 }
 
-impl HasTrivia for lexer::Token {
+impl HasSpan for lexer::Token {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		Some(self.span.clone())
 	}
-
-	fn try_attach_trivia(&mut self, trivia: lexer::Token) -> Option<lexer::Token> {
-		Some(trivia)
-	}
 }
 
-impl<T: HasTrivia> HasTrivia for SeparatedStep<T> {
+impl<T: HasSpan> HasSpan for SeparatedStep<T> {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		match self {
 			Self::Separator(v) => v.try_span_of(),
 			Self::Element(v) => v.try_span_of(),
 		}
 	}
-
-	fn try_attach_trivia(&mut self, trivia: lexer::Token) -> Option<lexer::Token> {
-		match self {
-			Self::Separator(v) => v.try_attach_trivia(trivia),
-			Self::Element(v) => v.try_attach_trivia(trivia),
-		}
-	}
 }
 
-impl<T: HasTrivia> HasTrivia for Separated<T> {
+impl<T: HasSpan> HasSpan for Separated<T> {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		self.elements.try_span_of()
 	}
-
-	fn try_attach_trivia(&mut self, mut trivia: lexer::Token) -> Option<lexer::Token> {
-		self.elements.try_attach_trivia(trivia)
-	}
 }
 
-impl<T: HasTrivia> HasTrivia for Delimited<T> {
+impl<T: HasSpan> HasSpan for Delimited<T> {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		SourceSpan::merge_options(
 			self.open.try_span_of(),
 			SourceSpan::merge_options(self.inner.try_span_of(), self.close.try_span_of()),
 		)
 	}
-
-	fn try_attach_trivia(&mut self, mut trivia: lexer::Token) -> Option<lexer::Token> {
-		let trivia = self.open.try_attach_trivia(trivia)?;
-		let trivia = self.inner.try_attach_trivia(trivia)?;
-		self.close.try_attach_trivia(trivia)
-	}
 }
 
-impl HasTrivia for Expr {
+impl HasSpan for Expr {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		match self {
 			Expr::Int(token) => token.try_span_of(),
 			Expr::Float(token) => token.try_span_of(),
 			Expr::Variable(token) => token.try_span_of(),
 			Expr::Property(expr, token) => {
-				SourceSpan::merge_options(token.try_span_of(), token.try_span_of())
+				SourceSpan::merge_options(expr.try_span_of(), token.try_span_of())
 			}
-			Expr::Call(call) => call.try_span_of(),
-			Expr::Unary(unary_operator, expr) => todo!(),
-			Expr::Binary(expr, binary_operator, expr1) => todo!(),
-			Expr::Ternary(expr, token, expr1, token1, expr2) => todo!(),
-			Expr::Wrapped(delimited) => todo!(),
-		}
-	}
-
-	fn try_attach_trivia(&mut self, trivia: lexer::Token) -> Option<lexer::Token> {
-		match self {
-			Expr::Int(token) => token.try_attach_trivia(trivia),
-			Expr::Float(token) => token.try_attach_trivia(trivia),
-			Expr::Variable(token) => token.try_attach_trivia(trivia),
-			Expr::Property(expr, token) => {
-				let trivia = expr.try_attach_trivia(trivia)?;
-				token.try_attach_trivia(trivia)
+			Expr::Call(f, args) => SourceSpan::merge_options(f.try_span_of(), args.try_span_of()),
+			Expr::Unary(unary_operator, expr) => {
+				SourceSpan::merge_options(unary_operator.try_span_of(), expr.try_span_of())
 			}
-			Expr::Call(call) => call.try_attach_trivia(trivia),
-			Expr::Unary(unary_operator, expr) => todo!(),
-			Expr::Binary(expr, binary_operator, expr1) => todo!(),
-			Expr::Ternary(expr, token, expr1, token1, expr2) => todo!(),
-			Expr::Wrapped(delimited) => todo!(),
+			Expr::Binary(lhs, binary_operator, rhs) => SourceSpan::merge_options(
+				SourceSpan::merge_options(lhs.try_span_of(), binary_operator.try_span_of()),
+				rhs.try_span_of(),
+			),
+			Expr::Ternary(lhs, qm, ihs, colon, rhs) => SourceSpan::merge_options(
+				SourceSpan::merge_options(
+					SourceSpan::merge_options(lhs.try_span_of(), qm.try_span_of()),
+					SourceSpan::merge_options(ihs.try_span_of(), colon.try_span_of()),
+				),
+				rhs.try_span_of(),
+			),
+			Expr::Wrapped(delimited) => delimited.try_span_of(),
+			Expr::Error(i) => i.try_span_of(),
 		}
 	}
 }
 
-impl HasTrivia for Call {
+impl HasSpan for Statement {
 	fn try_span_of(&self) -> Option<SourceSpan> {
-		SourceSpan::merge_options(self.callee.try_span_of(), self.arguments.try_span_of())
-	}
-
-	fn try_attach_trivia(&mut self, trivia: lexer::Token) -> Option<lexer::Token> {
-		let trivia = self.callee.try_attach_trivia(trivia)?;
-		self.arguments.try_attach_trivia(trivia)
+		match self {
+			Statement::Expression(expr) => expr.try_span_of(),
+			Statement::Assignment(lhs, eq, rhs) => SourceSpan::merge_options(
+				SourceSpan::merge_options(lhs.try_span_of(), eq.try_span_of()),
+				rhs.try_span_of(),
+			),
+			Statement::Declaration(decl) => decl.try_span_of(),
+			Statement::If(if_) => if_.try_span_of(),
+			Statement::For(for_) => for_.try_span_of(),
+			Statement::Discard(token) => token.try_span_of(),
+			Statement::Break(token) => token.try_span_of(),
+			Statement::Continue(token) => token.try_span_of(),
+			Statement::Return(token) => token.try_span_of(),
+		}
 	}
 }
-// }}}
+
+impl HasSpan for LocalDeclaration {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		SourceSpan::merge_options(
+			SourceSpan::merge_options(
+				SourceSpan::merge_options(self.variable.try_span_of(), self.colon.try_span_of()),
+				SourceSpan::merge_options(self.ty.try_span_of(), self.equals.try_span_of()),
+			),
+			self.value.try_span_of(),
+		)
+	}
+}
+
+impl HasSpan for If {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		self.branches.try_span_of()
+	}
+}
+
+impl HasSpan for StatementBlock {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		self.statements.try_span_of()
+	}
+}
+
+impl HasSpan for CondBranch {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		SourceSpan::merge_options(
+			SourceSpan::merge_options(self.tok_leading.try_span_of(), self.condition.try_span_of()),
+			SourceSpan::merge_options(self.tok_then.try_span_of(), self.block.try_span_of()),
+		)
+	}
+}
+
+impl HasSpan for For {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		SourceSpan::merge_options(
+			SourceSpan::merge_options(self.tok_for.try_span_of(), self.steps.try_span_of()),
+			SourceSpan::merge_options(self.tok_do.try_span_of(), self.block.try_span_of()),
+		)
+	}
+}
+
+impl HasSpan for Type {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		match self {
+			Type::Named(token) => token.try_span_of(),
+			Type::Array(array) => array.try_span_of(),
+			Type::Struct(s) => s.try_span_of(),
+		}
+	}
+}
+
+impl HasSpan for Struct {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		self.fields.try_span_of()
+	}
+}
+
+impl HasSpan for StructField {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		(&self.name, &self.colon, &self.ty).try_span_of()
+	}
+}
+
+impl HasSpan for Array {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		(&self.dimensions, &self.ty).try_span_of()
+	}
+}
+
+impl HasSpan for ArrayDimensions {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		(&self.first, &self.comma, &self.second).try_span_of()
+	}
+}
+
+impl<A: HasSpan, B: HasSpan> HasSpan for (A, B) {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		SourceSpan::merge_options(self.0.try_span_of(), self.1.try_span_of())
+	}
+}
+
+impl<A: HasSpan, B: HasSpan, C: HasSpan> HasSpan for (A, B, C) {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		SourceSpan::merge_options(
+			SourceSpan::merge_options(self.0.try_span_of(), self.1.try_span_of()),
+			self.2.try_span_of(),
+		)
+	}
+}
+
+impl<A: HasSpan> HasSpan for &A {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		(*self).try_span_of()
+	}
+}
+// // }}}
