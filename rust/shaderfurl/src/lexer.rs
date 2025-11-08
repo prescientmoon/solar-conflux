@@ -1,6 +1,7 @@
 use std::{cmp, path::Path, rc::Rc};
 
 use ariadne::Span;
+use enumset::EnumSetType;
 
 // {{{ Source positions
 #[derive(Clone, Copy, Eq)]
@@ -115,7 +116,7 @@ impl ariadne::Span for SourceSpan {
 // }}}
 
 // {{{ Tokens
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, EnumSetType)]
 pub enum TokenKind {
 	// Keywords
 	Module,
@@ -133,6 +134,7 @@ pub enum TokenKind {
 	If,
 	Then,
 	Else,
+	Elif,
 	For,
 	Do,
 
@@ -177,6 +179,7 @@ pub enum TokenKind {
 	Comment,    // // foo
 	Junk,
 	Eof,
+	Sof, // Start of file:
 }
 
 #[derive(Clone)]
@@ -192,6 +195,7 @@ impl std::fmt::Debug for Token {
 }
 // }}}
 // {{{ Lexing
+// NOTE: cloning this is very cheap
 #[derive(Debug, Clone)]
 pub struct Lexer<'a> {
 	path: FileId,
@@ -293,6 +297,7 @@ impl<'a> Lexer<'a> {
 					"if" => tok.kind = TokenKind::If,
 					"then" => tok.kind = TokenKind::Then,
 					"else" => tok.kind = TokenKind::Else,
+					"elif" => tok.kind = TokenKind::Elif,
 					"for" => tok.kind = TokenKind::For,
 					"do" => tok.kind = TokenKind::Do,
 					_ => {}
@@ -430,10 +435,6 @@ impl<'a> Lexer<'a> {
 	// Returns the piece of text a token spans
 	pub fn source_span(&self, span: &SourceSpan) -> &str {
 		&self.source[span.start()..span.end()]
-	}
-
-	pub fn path(&self) -> FileId {
-		self.path.clone()
 	}
 }
 // }}}

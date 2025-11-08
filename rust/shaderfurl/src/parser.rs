@@ -1,27 +1,77 @@
 #![allow(unused)]
 
 use std::mem;
+use std::str::FromStr;
 
 use ariadne::{ColorGenerator, Label, Report};
+use enumset::{EnumSet, enum_set, enum_set_union};
 
-use crate::{
-	cst::{self, HasTrivia, SeparatedStep, Token},
-	lexer::{self, FileId, Lexer, SourcePos, SourceSpan, TokenKind},
-};
+use crate::cst::{self, CondBranch, HasSpan, SeparatedStep, Token};
+use crate::lexer::{self, FileId, Lexer, SourcePos, SourceSpan, TokenKind};
+
+// {{{ Error reporting macros
+/// Helper for creating a report via ariadne
+#[macro_export]
+macro_rules! report {
+    (
+        $self:expr,
+        $code:expr,
+        $span: expr,
+        ($($msg:tt)+),
+        $(($lspan: expr, $($lmsg:tt)+),)*
+    ) => {{
+        use ariadne::{Report, ReportKind, Label};
+
+        let mut report = Report::build(ReportKind::Error, $span.span_of())
+            .with_code($code)
+            .with_message(format!($($msg)+));
+
+        $(
+            report = report.with_label(
+                Label::new($lspan.span_of()).with_message(format!($($lmsg)+))
+            );
+        )*
+
+        $self.reports.push(report.finish());
+    }};
+}
+
+/// A report where the source spans are all identical.
+#[macro_export]
+macro_rules! compact_report {
+    (
+        ($self:expr, $code:expr, $span: expr),
+        ($($msg:tt)+),
+        $(($($lmsg:tt)+),)*
+    ) => {{
+        report!(
+            $self, $code, $span, ($($msg)+),
+            $(($span,$($lmsg)+),)*
+        )
+    }};
+}
+// }}}
+// {{{ Parsing types
+pub type TokenSet = EnumSet<TokenKind>;
+
+#[derive(Debug, Clone, Copy)]
+pub struct Block(usize);
 
 #[derive(Debug)]
 pub struct Parser<'a> {
 	lexer: Lexer<'a>,
 	token: lexer::Token,
+
+	/// We've consumed nothing but junk/comments since this index
+	trivia_range_start: usize,
+
 	relation: IndentationRelation,
 	indentation: usize,
 
-	// TODO: these should be bitfields
-	stop_on_pre: Vec<lexer::TokenKind>,
-	stop_on_post: Vec<lexer::TokenKind>,
-
-	trivia: Vec<crate::lexer::Token>,
+	// TODO: make this private after finishing with debugging
+	pub stop_on_stack: Vec<TokenSet>,
 	reports: Vec<ariadne::Report<'a, SourceSpan>>,
+	tokens: Vec<lexer::Token>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -29,29 +79,37 @@ pub enum IndentationRelation {
 	Gt,  // >
 	Gte, // >=
 	Eq,  // =
-	Any,
+	Any, // ⊤
 }
+
+#[derive(Default)]
+struct StopOnStackKey();
+
+impl Drop for StopOnStackKey {
+	fn drop(&mut self) {
+		panic!("stop_on_stack keys cannot be dropped")
+	}
+}
+// }}}
 
 impl<'a> Parser<'a> {
 	// {{{ Basic constructors / getters / etc
 	pub fn new(path: lexer::FileId, source: &'a str) -> Self {
+		let mut lexer = Lexer::new(path.clone(), source);
+		let token = lexer.next();
+
 		let mut result = Self {
-			lexer: Lexer::new(path.clone(), source),
-			indentation: 0,
+			lexer,
+			token,
+			indentation: 1,
 			relation: IndentationRelation::Any,
 			reports: Vec::new(),
-			trivia: Vec::new(),
-			stop_on_pre: Vec::new(),
-			stop_on_post: Vec::new(),
-
-			// NOTE: this is a dummy value that will immediately get replaced by the follow-up
-			// .advance call.
-			token: lexer::Token {
-				span: SourceSpan::new(path, SourcePos::new(0, 1, 1), 0),
-				kind: TokenKind::Eof,
-			},
+			trivia_range_start: 0,
+			stop_on_stack: Vec::new(),
+			tokens: Vec::new(),
 		};
-		result.advance();
+
+		mem::forget(result.stop_on_push(TokenKind::Eof.into()));
 		result
 	}
 
@@ -59,331 +117,967 @@ impl<'a> Parser<'a> {
 		&self.reports
 	}
 	// }}}
+	// {{{ stop_on stack
+	fn stop_on(&self) -> TokenSet {
+		self.stop_on_stack.last().copied().unwrap_or_default()
+	}
+
+	#[must_use]
+	fn stop_on_push(&mut self, s: TokenSet) -> StopOnStackKey {
+		self.stop_on_stack.push(self.stop_on() | s);
+		StopOnStackKey::default()
+	}
+
+	fn stop_on_pop(&mut self, key: StopOnStackKey) {
+		self.stop_on_stack
+			.pop()
+			.expect("Attempted to pop empty stop_on stack");
+		mem::forget(key);
+	}
+
+	fn with_stopper<T>(&mut self, s: TokenSet, mut parser: impl FnMut(&mut Self) -> T) -> T {
+		let key = self.stop_on_push(s);
+		let result = parser(self);
+		self.stop_on_pop(key);
+		result
+	}
+	// }}}
+
 	// {{{ Basic combinators
-	fn advance(&mut self) -> lexer::Token {
-		mem::replace(&mut self.token, self.lexer.next())
+	fn advance(&mut self) {
+		let token = mem::replace(&mut self.token, self.lexer.next());
+		self.tokens.push(token);
 	}
 
-	fn expect(&mut self, kind: TokenKind) -> Option<cst::Token> {
-		if self.token.kind == kind {
-			self.mk_token(|p| {
-				p.advance();
-				Some(())
-			})
-		} else {
-			None
-		}
-	}
+	fn check_indentation(&mut self, should_report: bool) -> (bool, usize) {
+		let col = self.token.span.from.col;
+		let ok = match self.relation {
+			IndentationRelation::Eq => col == self.indentation,
+			IndentationRelation::Gt => col > self.indentation,
+			IndentationRelation::Gte => col >= self.indentation,
+			IndentationRelation::Any => true,
+		};
 
-	fn spanned<T>(
-		&mut self,
-		parser: impl FnOnce(&mut Self) -> Option<T>,
-	) -> Option<(SourceSpan, T)> {
-		let start = self.token.span.from;
-		let res = parser(self)?;
-		let end = self.token.span.from;
-		Some((SourceSpan::between(self.lexer.path(), start, end), res))
-	}
-
-	fn mk_token<T>(
-		&mut self,
-		parser: impl FnOnce(&mut Self) -> Option<T>,
-	) -> Option<cst::Token<T>> {
-		// TODO: check indentation here
-		// self.check_indentation(true)
-
-		let (span, value) = self.spanned(parser)?;
-
-		self.relation = IndentationRelation::Gt;
-		let mut trivia = mem::take(&mut self.trivia);
-		trivia.reverse();
-
-		while matches!(self.token.kind, TokenKind::Junk | TokenKind::Comment) {
-			let prev_tok = self.advance();
-			self.trivia.push(prev_tok);
+		if should_report && !ok {
+			report!(
+				self,
+				"IllegalIndentation",
+				self.token,
+				(
+					"Expected an indentation level of {} {}. Got {col} instead.",
+					match self.relation {
+						IndentationRelation::Eq => "precisely",
+						IndentationRelation::Gt => "more than",
+						IndentationRelation::Gte => "at least",
+						IndentationRelation::Any => unreachable!(),
+					},
+					self.indentation
+				),
+				(self.token, "Actual indentation"),
+			);
 		}
 
-		Some(cst::Token {
-			trivia,
-			span,
-			value,
-		})
-	}
-
-	fn parse_many<T>(&mut self, mut parser: impl Fn(&mut Self) -> Option<T>) -> Vec<T> {
-		let mut res = Vec::new();
-		while let Some(elem) = parser(self) {
-			res.push(elem);
-		}
-
-		res
+		(ok, col)
 	}
 	// }}}
 	// {{{ Error recovery building blocks
-	fn parse_junk_till<T: HasTrivia>(
-		&mut self,
-		term: Term,
-		mut parser: impl Fn(&mut Self) -> Option<T>,
-	) -> T {
-		let trivia_amount = self.trivia.len();
-		let mut junk = Vec::new();
-		let mut res = loop {
-			if let Some(res) = parser(self) {
-				break res;
-			} else {
-				junk.push(self.advance());
+	// TODO: allow passing in a flag / set of tokens which report indentation mismatches but keep
+	// reading. Useful for things like the "do" keyword for a for-loop.
+	fn expect_tolerant(&mut self, kinds: TokenSet) -> Option<Token<lexer::TokenKind>> {
+		loop {
+			let (ok, _) = self.check_indentation(false);
+			if !ok {
+				return None;
 			}
-		};
 
-		if !junk.is_empty() {
-			let mut insert_at = trivia_amount;
+			if kinds.contains(self.token.kind) {
+				// Steal the current token
+				let tok = self.token.clone();
+				self.advance();
 
-			self.reports.push(
-				Report::build(ariadne::ReportKind::Error, junk.span_of())
-					.with_code("Junk")
-					.with_message(format!(
-						"I was looking for {} when I came across a bunch of unexpected characters.",
-						term.articulated
-					))
-					.with_label(
-						Label::new(junk.span_of())
-							.with_message("I have no idea what this is supposed to mean..."),
-					)
-					.finish(),
-			);
+				// Reset the indentation relation to the default
+				self.relation = IndentationRelation::Gt;
 
-			for piece in junk {
-				if let Some(piece) = res.try_attach_trivia(piece) {
-					self.trivia.insert(insert_at, piece);
-					insert_at += 1;
+				// Save the currently accumulated trivia
+				let trivia_range = (self.trivia_range_start, self.tokens.len());
+
+				// Find consecutive ranges of junk input and report them
+				let mut span_acc: Option<lexer::SourceSpan> = None;
+				for ix in trivia_range.0..trivia_range.1 {
+					let tok = &self.tokens[ix];
+
+					if let Some(prev_span_acc) = mem::take(&mut span_acc) {
+						if tok.kind == TokenKind::Junk {
+							span_acc = Some(prev_span_acc.merge(&tok.span));
+						}
+
+						// If we no longer have junk OR this is the end, report the error
+						if tok.kind != TokenKind::Junk || ix == trivia_range.1 - 1 {
+							let span = span_acc.as_ref().unwrap_or(&prev_span_acc);
+							compact_report!(
+								(self, "JunkInput", span),
+								("Encountered junk input"),
+								("I have no idea what this is supposed to mean"),
+							);
+						}
+					} else if tok.kind == TokenKind::Junk {
+						span_acc = Some(tok.span_of());
+					}
 				}
+
+				// Consume follow-up trivia
+				self.trivia_range_start = self.tokens.len();
+				while matches!(self.token.kind, TokenKind::Junk | TokenKind::Comment) {
+					self.advance();
+				}
+
+				return Some(cst::Token {
+					trivia: trivia_range,
+					span: tok.span,
+					value: tok.kind,
+				});
+			}
+
+			// Stoppers automatically stop the parser
+			if self.stop_on().contains(self.token.kind) {
+				return None;
+			}
+
+			// Otherwise, just mark the current token as junk and keep going
+			self.advance();
+			let kind = &mut self.tokens.last_mut().unwrap().kind;
+			if *kind != TokenKind::Comment {
+				*kind = TokenKind::Junk;
+			}
+		}
+	}
+	// }}}
+	// {{{ Blocks
+	pub fn parse_block<T>(&mut self, mut parser: impl FnMut(&mut Self) -> Option<T>) -> Vec<T> {
+		let (valid, col) = self.check_indentation(false);
+		if !valid {
+			return Vec::new();
+		}
+
+		let original_indentation = mem::take(&mut self.indentation);
+		let mut result = Vec::new();
+
+		loop {
+			self.relation = IndentationRelation::Eq;
+			mem::replace(&mut self.indentation, col);
+			if let Some(t) = parser(self) {
+				result.push(t);
+			} else {
+				break;
 			}
 		}
 
-		res
+		self.relation = IndentationRelation::Gt;
+		self.indentation = original_indentation;
+
+		result
+	}
+	// }}}
+	// {{{ Literal helpers
+	fn parse_integer_literal<I: FromStr>(&mut self, tok: &Token<TokenKind>) -> Option<I> {
+		let source = self.lexer.source_span(&tok.span);
+		let result = str::parse(source).ok();
+		if let Some(result) = result {
+			Some(result)
+		} else {
+			compact_report!(
+				(self, "InvalidInteger", tok),
+				("'{source}' is not a valid integer literal"),
+				("This is not a valid integer"),
+			);
+			None
+		}
+	}
+	// }}}
+
+	// {{{ Expression parsing
+	const ATOM_EXPR_MARKER: TokenSet = enum_set!(
+		TokenKind::Integer | TokenKind::Float | TokenKind::Identifier | TokenKind::LeftParen
+	);
+
+	// Parses an atom expression
+	fn parse_expr_atom(&mut self) -> Option<cst::Expr> {
+		let tok = self.expect_tolerant(Self::ATOM_EXPR_MARKER)?;
+
+		let source = self.lexer.source_span(&tok.span);
+		match tok.value {
+			TokenKind::Integer => {
+				let result = self.parse_integer_literal(&tok);
+				if let Some(result) = result {
+					Some(cst::Expr::Int(tok.set(result)))
+				} else {
+					Some(cst::Expr::Error(tok.set(())))
+				}
+			}
+			TokenKind::Float => {
+				let result = str::parse(source).ok();
+				if let Some(result) = result {
+					Some(cst::Expr::Float(tok.set(result)))
+				} else {
+					compact_report!(
+						(self, "InvalidFloat", tok),
+						("'{source}' is not a valid floating point literal"),
+						("This is not a valid floating point number"),
+					);
+					Some(cst::Expr::Error(tok.set(())))
+				}
+			}
+			TokenKind::Identifier => Some(cst::Expr::Variable(tok.set(source.to_string()))),
+			TokenKind::LeftParen => {
+				let inner =
+					self.with_stopper(TokenKind::RightParen.into(), |parser| parser.parse_expr());
+
+				let close = self.expect_tolerant(TokenKind::RightParen.into());
+
+				if close.is_none() {
+					self.reports.push(
+						Report::build(ariadne::ReportKind::Error, tok.span_of())
+							.with_code("MissingClosingParenthesis")
+							.with_message("Expected )")
+							.with_labels(inner.as_ref().map(|i| {
+								Label::new(i.span_of())
+									.with_message("This is the expression being wrapped")
+									.with_order(0)
+							}))
+							.with_label(
+								Label::new(tok.span_of())
+									.with_message("This parenthesis is never closed")
+									.with_order(1),
+							)
+							.finish(),
+					);
+				}
+
+				let inner_exists = inner.is_some();
+				let right_paren_exists = close.is_some();
+				let expr = cst::Expr::Wrapped(cst::Delimited {
+					open: tok.set(()),
+					inner: inner.map(Box::new),
+					close: close.map(|c| c.set(())),
+				});
+
+				if !inner_exists && right_paren_exists {
+					compact_report!(
+						(self, "MissingExpression", expr),
+						("Expected parenthesis to wrap expression"),
+						("I was expecting an expression to lie here"),
+					);
+				}
+
+				Some(expr)
+			}
+			_ => unreachable!(),
+		}
 	}
 
-	fn try_junk_till<T: HasTrivia>(
-		&mut self,
-		term: Term,
-		mut parser: impl Fn(&mut Self) -> Option<T>,
-	) -> Option<T> {
-		self.parse_junk_till(term, |p| {
-			if p.stop_on_pre.contains(&p.token.kind) {
-				Some(None)
-			} else if let Some(res) = parser(p) {
-				Some(Some(res))
-			} else if p.token.kind == TokenKind::Eof || p.stop_on_post.contains(&p.token.kind) {
-				Some(None)
+	const PROP_EXPR_MARKER: TokenSet = enum_set!(Self::ATOM_EXPR_MARKER | TokenKind::Property);
+
+	fn parse_prop_access(&mut self) -> Option<cst::Expr> {
+		let mut expr = self.with_stopper(TokenKind::Property.into(), |parser| {
+			parser.parse_expr_atom()
+		});
+
+		loop {
+			let prop = self.expect_tolerant(TokenKind::Property.into());
+
+			if let Some(prop) = prop {
+				let source = self.lexer.source_span(&prop.span);
+
+				if expr.is_none() {
+					compact_report!(
+						(self, "MissingExpression", expr),
+						("Attempting to access a property of a missing expression"),
+						("I was expecting an expression before this property access"),
+					);
+				}
+
+				expr = Some(cst::Expr::Property(
+					expr.map(Box::new),
+					prop.set(source[1..].to_string()),
+				));
+			} else {
+				return expr;
+			}
+		}
+	}
+
+	fn parse_call(&mut self) -> Option<cst::Expr> {
+		self.with_stopper(Self::ATOM_EXPR_MARKER, |parser| {
+			let base = parser.parse_prop_access();
+			if let Some(base) = base {
+				let mut args = Vec::new();
+
+				while let Some(expr) = parser.parse_prop_access() {
+					args.push(expr);
+				}
+
+				if args.is_empty() {
+					Some(base)
+				} else {
+					Some(cst::Expr::Call(Box::new(base), args))
+				}
 			} else {
 				None
 			}
 		})
 	}
-	// }}}
-	// {{{ Repetition combinators
-	/// Parse an expression of the form '(' inner ')', where the delimiters can be
-	/// any given token.
-	fn delimited<T: HasTrivia>(
-		&mut self,
-		left: TokenKind,
-		right: TokenKind,
-		inner_term: Term,
-		mut parser: impl Fn(&mut Self) -> Option<T>,
-	) -> Option<cst::Delimited<Option<T>>> {
-		let res_left = self.expect(left)?;
-		self.stop_on_post.push(right);
-		let res = self.try_junk_till(inner_term, parser);
-		self.stop_on_post.pop();
-		let res_right = self.try_junk_till(inner_term, |p| p.expect(right));
 
-		Some(cst::Delimited {
-			open: res_left,
-			close: res_right,
-			inner: res,
-		})
-	}
+	const UNARY_OP_MARKER: TokenSet =
+		enum_set!(TokenKind::Plus | TokenKind::Minus | TokenKind::Not | TokenKind::BitwiseNot);
+	const UNARY_EXPR_MARKER: TokenSet = enum_set!(Self::UNARY_OP_MARKER | Self::PROP_EXPR_MARKER);
 
-	/// Parse a list of "things" separated by some other separator.
-	///
-	/// Not that this parse will keep consuming input until it reaches
-	/// an element that satifies the context's Self::stop_on_* conditions.
-	fn separated<T: HasTrivia>(
-		&mut self,
-		sep_term: Term,
-		sep: TokenKind,
-		inner_term: Term,
-		mut parser: impl Fn(&mut Self) -> Option<T>,
-	) -> cst::Separated<T> {
-		let mut elements = Vec::new();
+	fn parse_unary(&mut self) -> Option<cst::Expr> {
+		let mut ops = Vec::new();
 
-		while let Some(step) = self.try_junk_till(Term::LIST_ITEM, |p| {
-			parser(p)
-				.map(SeparatedStep::Element)
-				.or_else(|| p.expect(sep).map(SeparatedStep::Separator))
-		}) {
-			elements.push(step);
-		}
+		self.with_stopper(Self::PROP_EXPR_MARKER, |parser| {
+			while let Some(op) = parser.expect_tolerant(Self::UNARY_OP_MARKER) {
+				let unary = cst::UnaryOperator::from_token_kind(op.value).unwrap();
+				ops.push(op.set(unary));
+			}
+		});
 
-		if let Some(SeparatedStep::Separator(sep)) = elements.first() {
-			self.reports.push(
-				Report::build(ariadne::ReportKind::Error, sep.span_of())
-					.with_code("LeadingSeparator")
-					.with_message(format!("Leading {} are not allowed.", sep_term.plural))
-					.with_label(Label::new(sep.span_of()).with_message(format!(
-						"I was expecting to find {} before this {}.",
-						inner_term.articulated, sep_term.singular
-					)))
-					.finish(),
+		let mut expr = self.parse_call();
+		if let Some(last_op) = ops.last().as_ref()
+			&& expr.is_none()
+		{
+			compact_report!(
+				(self, "MissingExpression", last_op),
+				("Unary operator {} found without expression", last_op.value),
+				("I was expecting this operator to precede an expression"),
 			);
 		}
 
-		for win in elements.windows(2) {
-			match win {
-				[
-					SeparatedStep::Element(first),
-					SeparatedStep::Element(second),
-				] => {
-					self.reports.push(
-						Report::build(ariadne::ReportKind::Error, first.span_of())
-							.with_code("MissingSeparator")
-							.with_message(format!(
-								"There's a missing {} between two consecutive {}.",
-								sep_term.singular, inner_term.plural
-							))
-							.with_label(
-								Label::new(first.span_of())
-									.with_message(format!("First {}", inner_term.singular))
-									.with_order(1),
-							)
-							.with_label(
-								Label::new(second.span_of())
-									.with_message(format!("Second {}", inner_term.singular))
-									.with_order(0),
-							)
-							.finish(),
-					);
-				}
-				[
-					SeparatedStep::Separator(first),
-					SeparatedStep::Separator(second),
-				] => {
-					self.reports.push(
-						Report::build(ariadne::ReportKind::Error, first.span_of())
-							.with_code("MissingElements")
-							.with_message(format!(
-								"There's a missing {} between two consecutive {}.",
-								inner_term.singular, sep_term.plural
-							))
-							.with_label(
-								Label::new(first.span_of())
-									.with_message(format!("First {}", sep_term.singular))
-									.with_order(1),
-							)
-							.with_label(
-								Label::new(second.span_of())
-									.with_message(format!("Second {}", sep_term.singular))
-									.with_order(0),
-							)
-							.finish(),
-					);
-				}
-				_ => continue,
+		while let Some(op) = ops.pop() {
+			expr = Some(cst::Expr::Unary(op, expr.map(Box::new)))
+		}
+
+		expr
+	}
+
+	// Operator precedences!
+	//
+	// Higher power means the operator binds tighter. For example, multiplication
+	// has a higher power than addition.
+	const BIN_OP_POWERS: &'static [(TokenKind, usize)] = &[
+		// Multiplicative
+		(TokenKind::Multiply, 1000),
+		(TokenKind::Divide, 1000),
+		// Additive
+		(TokenKind::Plus, 900),
+		(TokenKind::Minus, 900),
+		// Min/max
+		(TokenKind::Meet, 850),
+		(TokenKind::Join, 800),
+		// Bitwise
+		(TokenKind::LeftShift, 700),
+		(TokenKind::RightShift, 700),
+		// Comparison
+		(TokenKind::DoubleEqual, 600),
+		(TokenKind::GreaterThan, 600),
+		(TokenKind::LesserThan, 600),
+		(TokenKind::GreaterOrEqual, 600),
+		(TokenKind::LesserOrEqual, 600),
+		// Logical
+		(TokenKind::And, 550),
+		(TokenKind::Or, 500),
+		(TokenKind::Xor, 500),
+	];
+
+	const BIN_OP_MARKERS: TokenSet = enum_set!(
+		TokenKind::Multiply
+			| TokenKind::Divide
+			| TokenKind::Plus
+			| TokenKind::Minus
+			| TokenKind::Meet
+			| TokenKind::Join
+			| TokenKind::LeftShift
+			| TokenKind::RightShift
+			| TokenKind::DoubleEqual
+			| TokenKind::GreaterThan
+			| TokenKind::LesserThan
+			| TokenKind::GreaterOrEqual
+			| TokenKind::LesserOrEqual
+			| TokenKind::And
+			| TokenKind::Or
+			| TokenKind::Xor
+	);
+
+	const BIN_EXPR_MARKER: TokenSet = enum_set!(Self::BIN_OP_MARKERS | Self::UNARY_EXPR_MARKER);
+
+	fn parse_binary(&mut self, lower_power_bound: usize) -> Option<cst::Expr> {
+		let mut marker = TokenSet::default();
+
+		for (op, power) in Self::BIN_OP_POWERS {
+			if *power > lower_power_bound {
+				marker.insert(*op);
 			}
 		}
 
-		cst::Separated { elements }
-	}
+		self.with_stopper(marker, |parser| {
+			let mut lhs = parser.parse_unary();
 
-	/// Wrapper around [Self::delimited] and [Self::separated].
-	fn delimited_list<T: HasTrivia>(
-		&mut self,
-		left: TokenKind,
-		right: TokenKind,
-		sep_term: Term,
-		sep: TokenKind,
-		inner_term: Term,
-		parser: impl Fn(&mut Self) -> Option<T>,
-	) -> Option<cst::Delimited<cst::Separated<T>>> {
-		let res = self.delimited(left, right, inner_term, |p| {
-			Some(p.separated(sep_term, sep, inner_term, &parser))
-		})?;
-		Some(cst::Delimited {
-			open: res.open,
-			inner: res.inner.unwrap_or_else(|| cst::Separated {
-				elements: Vec::new(),
-			}),
-			close: res.close,
+			// The marker guarantees that we respect the given lower bound
+			while let Some(op_tok) = parser.expect_tolerant(marker) {
+				let bin_op = cst::BinaryOperator::from_token_kind(op_tok.value).unwrap();
+				let power = Self::BIN_OP_POWERS
+					.iter()
+					.find(|(k, _)| *k == op_tok.value)
+					.unwrap()
+					.1;
+
+				if lhs.is_none() {
+					compact_report!(
+						(parser, "MissingExpression", op_tok),
+						("Binary operator {bin_op} has no left hand side"),
+						("I was expecting this operator to follow an expression"),
+					);
+				}
+
+				let rhs = parser.parse_binary(power);
+
+				if rhs.is_none() {
+					compact_report!(
+						(parser, "MissingExpression", op_tok),
+						("Binary operator {bin_op} has no right hand side"),
+						("I was expecting this operator to precede an expression"),
+					);
+				}
+
+				lhs = Some(cst::Expr::Binary(
+					lhs.map(Box::new),
+					op_tok.set(bin_op),
+					rhs.map(Box::new),
+				));
+			}
+
+			lhs
 		})
 	}
-	// }}}
-	// {{{ Expression parsing
-	fn parse_int(&mut self) -> Option<i64> {
-		if self.token.kind == TokenKind::Integer {
-			let tok = self.lexer.source_span(&self.token.span);
-			let result = str::parse(tok).ok()?;
-			self.advance();
-			Some(result)
+
+	const TERNARY_OP_MARKER: TokenSet = enum_set!(TokenKind::QuestionMark);
+	const TERNARY_EXPR_MARKER: TokenSet =
+		enum_set!(Self::TERNARY_OP_MARKER | Self::BIN_EXPR_MARKER);
+	fn parse_ternary(&mut self) -> Option<cst::Expr> {
+		let lhs = self.with_stopper(Self::TERNARY_OP_MARKER, |parser| parser.parse_binary(0));
+		let (qm, ihs) = self.with_stopper(TokenKind::Colon.into(), |parser| {
+			let qm = parser.expect_tolerant(TokenKind::QuestionMark.into());
+			let ihs = if qm.is_some() {
+				parser.parse_ternary()
+			} else {
+				None
+			};
+
+			(qm, ihs)
+		});
+
+		let colon = if qm.is_some() {
+			self.expect_tolerant(TokenKind::Colon.into())
 		} else {
 			None
+		};
+
+		let rhs = if colon.is_some() {
+			self.parse_ternary()
+		} else {
+			None
+		};
+
+		if qm.is_some() && lhs.is_none() {
+			compact_report!(
+				(self, "MissingExpression", qm),
+				("Ternary operator is missing condition"),
+				("I was expecting an expression before this question mark"),
+			);
+		}
+
+		if qm.is_some() && ihs.is_none() {
+			compact_report!(
+				(self, "MissingExpression", qm),
+				("Ternary operator is missing <then> branch"),
+				("I was expecting an expression after this question mark"),
+			);
+		}
+
+		if colon.is_some() && rhs.is_none() {
+			compact_report!(
+				(self, "MissingExpression", colon),
+				("Ternary operator is missing <else> branch"),
+				("I was expecting an expression after this colon"),
+			);
+		}
+
+		if qm.is_some() && colon.is_none() {
+			compact_report!(
+				(self, "MissingPunctuation", qm),
+				("Ternary operator is missing colon"),
+				("I was expecting an associated : to this ?"),
+			);
+		}
+
+		if qm.is_some() || colon.is_some() {
+			Some(cst::Expr::Ternary(
+				lhs.map(Box::new),
+				qm.map(|v| v.set(())),
+				ihs.map(Box::new),
+				colon.map(|v| v.set(())),
+				rhs.map(Box::new),
+			))
+		} else {
+			lhs
 		}
 	}
 
-	fn parse_name(&mut self) -> Option<String> {
-		let tok = self.expect(TokenKind::Identifier)?;
-		Some(self.lexer.source_span(&tok.span).to_string())
+	const EXPR_MARKER: TokenSet = Self::TERNARY_EXPR_MARKER;
+	pub fn parse_expr(&mut self) -> Option<cst::Expr> {
+		self.parse_ternary()
+	}
+	// }}}
+	// {{{ Expression parsing
+	const TYPE_MARKER: TokenSet =
+		enum_set!(TokenKind::LeftBracket | TokenKind::Identifier | TokenKind::Struct);
+
+	fn parse_type(&mut self) -> Option<cst::Type> {
+		let tok = self.expect_tolerant(Self::TYPE_MARKER)?;
+
+		let source = self.lexer.source_span(&tok.span);
+		match tok.value {
+			TokenKind::Identifier => {
+				let source = self.lexer.source_span(&tok.span);
+				Some(cst::Type::Named(tok.set(source.to_string())))
+			}
+			TokenKind::LeftBracket => {
+				let (dims, close) = self.with_stopper(Self::TYPE_MARKER, |parser| {
+					let dims = parser.with_stopper(TokenKind::RightBracket.into(), |parser| {
+						let first = parser.with_stopper(TokenKind::Comma.into(), |parser| {
+							let tok = parser.expect_tolerant(TokenKind::Integer.into())?;
+							let inner = parser.parse_integer_literal(&tok)?;
+							Some(tok.set(inner))
+						})?;
+
+						let comma = parser.expect_tolerant(TokenKind::Comma.into());
+						let second =
+							parser
+								.expect_tolerant(TokenKind::Integer.into())
+								.and_then(|tok| {
+									parser
+										.parse_integer_literal(&tok)
+										.map(|inner| tok.set(inner))
+								});
+
+						if comma.is_none() && second.is_some() {
+							compact_report!(
+								(parser, "MissingComma", (&first, &second)),
+								("Missing comma between array dimensions"),
+								("The given dimensions must be separated by a comma"),
+							);
+						} else if comma.is_some() && second.is_none() {
+							compact_report!(
+								(parser, "MissingDimension", comma),
+								("Expected second array dimension after comma"),
+								("I was expecting a second integer dimension after this comma"),
+							);
+						}
+
+						Some(cst::ArrayDimensions {
+							first,
+							comma: comma.map(|t| t.set(())),
+							second,
+						})
+					});
+
+					let close = parser.expect_tolerant(TokenKind::RightBracket.into());
+
+					if dims.is_some() && close.is_none() {
+						compact_report!(
+							(parser, "MissingClosingBracket", dims),
+							("Missing closing bracket for array dimensions"),
+							("I was expecting a ']' after the list of array dimensions"),
+						);
+					} else if dims.is_none() && close.is_some() {
+						compact_report!(
+							(parser, "MissingArrayDimensions", (&tok, &close)),
+							("Array type is missing dimensions"),
+							("I was expecting array-dimensions to be specified between these brackets"),
+						);
+					}
+
+					(dims, close)
+				});
+
+				let inner = self.parse_type();
+				if inner.is_none() {
+					compact_report!(
+						(self, "MissingType", (&tok, &dims, &close)),
+						("Array element type is missing"),
+						("These array dimensions are missing an inner type"),
+					);
+				}
+
+				Some(cst::Type::Array(cst::Array {
+					dimensions: cst::Delimited {
+						open: tok.set(()),
+						inner: dims,
+						close: close.map(|c| c.set(())),
+					},
+					ty: inner.map(Box::new),
+				}))
+			}
+			TokenKind::Struct => {
+				let fields = self.parse_block(|parser| {
+					let name = parser
+						.with_stopper(Self::TYPE_MARKER | TokenKind::Colon, |parser| {
+							parser.expect_tolerant(TokenKind::Identifier.into())
+						});
+					let colon = parser.with_stopper(Self::TYPE_MARKER, |parser| {
+						parser.expect_tolerant(TokenKind::Colon.into())
+					});
+					let ty = parser.parse_type();
+
+					if name.is_none() && colon.is_none() && ty.is_none() {
+						return None;
+					}
+
+					if name.is_none() {
+						compact_report!(
+							(parser, "MissingName", (&colon, &ty)),
+							("Missing struct field name"),
+							("I was expecting a struct field's name here"),
+						);
+					} else if colon.is_none() {
+						compact_report!(
+							(parser, "MissingColon", &name),
+							("Missing colon"),
+							("I was expecting a colon for the given struct field"),
+						);
+					} else if ty.is_none() {
+						compact_report!(
+							(parser, "MissingType", (&name, &colon)),
+							("Missing type"),
+							("I was expecting a type for the given struct field"),
+						);
+					}
+
+					Some(cst::StructField {
+						name: name.map(|t| {
+							let source = parser.lexer.source_span(&tok.span);
+							t.set(source.to_string())
+						}),
+						colon: colon.map(|t| t.set(())),
+						ty,
+					})
+				});
+
+				if fields.is_empty() {
+					compact_report!(
+						(self, "MissingFields", (&tok)),
+						("Empty structs are not supported"),
+						("I was expecting a list of fields"),
+					);
+				}
+
+				Some(cst::Type::Struct(cst::Struct { fields }))
+			}
+			_ => unreachable!(),
+		}
 	}
 
-	fn parse_int_expr(&mut self) -> Option<cst::Expr> {
-		let int = self.mk_token(Self::parse_int)?;
-		Some(cst::Expr::Int(int))
+	// }}}
+	// {{{ Statement parsing
+	const NON_EXPR_STATEMENT_MARKER: TokenSet = enum_set!(
+		TokenKind::Break
+			| TokenKind::Discard
+			| TokenKind::Continue
+			| TokenKind::Return
+			| TokenKind::For
+			| TokenKind::If
+	);
+
+	const STATEMENT_MARKER: TokenSet = enum_set!(
+		Self::NON_EXPR_STATEMENT_MARKER
+			| Self::TERNARY_EXPR_MARKER
+			| TokenKind::SingleEqual
+			| TokenKind::Colon
+	);
+
+	pub fn parse_statement(&mut self) -> Option<cst::Statement> {
+		let non_expr_marker_key = self.stop_on_push(Self::NON_EXPR_STATEMENT_MARKER);
+
+		let expr = self.with_stopper(TokenKind::SingleEqual | TokenKind::Colon, |parser| {
+			parser.parse_expr()
+		});
+
+		let result =
+			if let Some(op_tok) = self.expect_tolerant(TokenKind::SingleEqual | TokenKind::Colon) {
+				match op_tok.value {
+					TokenKind::SingleEqual => {
+						if expr.is_none() {
+							self.reports.push(
+								Report::build(ariadne::ReportKind::Error, op_tok.span_of())
+									.with_code("MissingExpression")
+									.with_message("Assignment has no left hand side")
+									.with_label(Label::new(op_tok.span_of()).with_message(
+										"I was expecting an expression before this =",
+									))
+									.finish(),
+							);
+						}
+
+						let rhs = self.parse_expr();
+						if rhs.is_none() {
+							self.reports.push(
+								Report::build(ariadne::ReportKind::Error, op_tok.span_of())
+									.with_code("MissingExpression")
+									.with_message("Assignment has no right hand side")
+									.with_label(
+										Label::new(op_tok.span_of()).with_message(
+											"I was expecting an expression after this =",
+										),
+									)
+									.finish(),
+							);
+						}
+
+						Some(cst::Statement::Assignment(expr, op_tok.set(()), rhs))
+					}
+					TokenKind::Colon => {
+						// The fact we allow full-blown expressions here is bad
+						// (as in, we might be able to get better results by
+						// being error-tolerant), although it is the simplest solution
+						// for now. Implementing this "properly" requires backtracking,
+						// which can be arbitrarily expensive because our context contains
+						// vecs of arbitrary length.
+						if !matches!(&expr, Some(cst::Expr::Variable(name))) {
+							self.reports.push(
+								Report::build(ariadne::ReportKind::Error, op_tok.span_of())
+									.with_code("InvalidDeclarationName")
+									.with_message(
+										"Expected name on the left hand side of a declaration",
+									)
+									.with_label(
+										Label::new(op_tok.span_of())
+											.with_message("I was expecting a name before this :"),
+									)
+									.finish(),
+							)
+						}
+
+						let ty = self
+							.with_stopper(TokenKind::SingleEqual | Self::EXPR_MARKER, |parser| {
+								parser.parse_type()
+							});
+
+						let eq_tok = self.with_stopper(Self::EXPR_MARKER, |parser| {
+							parser.expect_tolerant(TokenKind::SingleEqual.into())
+						});
+
+						let rhs = self.parse_expr();
+						if eq_tok.is_some() && rhs.is_none() {
+							self.reports.push(
+								Report::build(
+									ariadne::ReportKind::Error,
+									(&expr, &op_tok, &eq_tok).span_of(),
+								)
+								.with_code("MissingExpression")
+								.with_message("Declaration has no right hand side")
+								.with_label(Label::new(op_tok.span_of()).with_message(
+									"I was expecting an expression after this declaration",
+								))
+								.finish(),
+							);
+						}
+
+						Some(cst::Statement::Declaration(cst::LocalDeclaration {
+							variable: expr,
+							colon: op_tok.set(()),
+							ty,
+							equals: eq_tok.map(|v| v.set(())),
+							value: rhs,
+						}))
+					}
+					_ => unreachable!(),
+				}
+			} else {
+				expr.map(cst::Statement::Expression)
+			};
+
+		self.stop_on_pop(non_expr_marker_key);
+		if result.is_some() {
+			return result;
+		}
+
+		// We're done looking for expression-like statements!
+		let tok = self.expect_tolerant(Self::NON_EXPR_STATEMENT_MARKER)?;
+		match tok.value {
+			TokenKind::Discard => Some(cst::Statement::Discard(tok.set(()))),
+			TokenKind::Return => Some(cst::Statement::Return(tok.set(()))),
+			TokenKind::Break => Some(cst::Statement::Break(tok.set(()))),
+			TokenKind::Continue => Some(cst::Statement::Continue(tok.set(()))),
+			TokenKind::For => {
+				let steps = self.with_stopper(TokenKind::Do.into(), |parser| {
+					let mut steps = cst::Separated {
+						elements: Vec::new(),
+					};
+
+					for i in 0..3 {
+						let statement = parser
+							.with_stopper(TokenKind::Semicolon.into(), |parser| {
+								parser.parse_statement()
+							});
+
+						let statement_span = statement.try_span_of();
+						if let Some(statement) = statement {
+							steps.elements.push(cst::SeparatedStep::Element(statement));
+						}
+
+						// No semicolon required at the end!
+						if i == 2 {
+							break;
+						}
+
+						let semicolon = parser.with_stopper(Self::STATEMENT_MARKER, |parser| {
+							parser.expect_tolerant(TokenKind::Semicolon.into())
+						});
+
+						if let Some(semicolon) = semicolon {
+							steps
+								.elements
+								.push(cst::SeparatedStep::Separator(semicolon.set(())));
+						} else if let Some(span) = statement_span {
+							compact_report!(
+								(parser, "MissingSemicolon", span),
+								("Expected for loop steps to be separated by semicolons"),
+								("I was expecting a semicolon after this statement"),
+							);
+						} else {
+							compact_report!(
+								(parser, "MissingForSteps", (&tok.span, &steps)),
+								("For-loop header contains less than three statements"),
+								("I was expecting three semicolon-separated statements here"),
+							);
+							break;
+						}
+					}
+
+					steps
+				});
+
+				let tok_do = self.expect_tolerant(TokenKind::Do.into());
+				let mut block = None;
+
+				if tok_do.is_none() {
+					compact_report!(
+						(self, "MissingKeyword", (&tok, &steps)),
+						("Missing 'do' after loop header"),
+						("I was expecting a 'do' after this section"),
+					);
+				} else {
+					let result = self.parse_statement_block();
+					if result.statements.is_empty() {
+						compact_report!(
+							(self, "EmptyBlock", (&tok, &steps, &tok_do)),
+							("Encountered empty for-loop body"),
+							("This for-loop has an empty body"),
+						);
+					}
+					block = Some(result);
+				}
+
+				Some(cst::Statement::For(cst::For {
+					tok_for: tok.set(()),
+					steps,
+					tok_do: tok_do.map(|v| v.set(())),
+					block,
+				}))
+			}
+			TokenKind::If => {
+				let mut branches = Vec::new();
+				loop {
+					let leading = if branches.is_empty() {
+						// first iteration
+						tok.clone()
+					} else if let Some(tok) =
+						self.expect_tolerant(TokenKind::Elif | TokenKind::Else)
+					{
+						tok
+					} else {
+						break;
+					};
+
+					let is_else = leading.value == TokenKind::Else;
+
+					let (cond, tok_then) = if is_else {
+						(None, None)
+					} else {
+						let cond = self.with_stopper(
+							TokenKind::Then | TokenKind::Elif | TokenKind::Else,
+							|parser| parser.parse_expr(),
+						);
+						let tok_then = self
+							.with_stopper(TokenKind::Elif | TokenKind::Else, |parser| {
+								parser.expect_tolerant(TokenKind::Then.into())
+							});
+						(cond, tok_then)
+					};
+
+					if !is_else && cond.is_none() {
+						compact_report!(
+							(self, "MissingCondition", &leading),
+							("Missing condition for branch"),
+							("I was expecting a condition after this token"),
+						);
+					}
+
+					let block = if !is_else && tok_then.is_none() {
+						compact_report!(
+							(self, "MissingKeyword", (&leading, &cond)),
+							("Missing 'then' after conditional branch"),
+							("I was expecting a 'then' after this section"),
+						);
+
+						None
+					} else {
+						let result = self
+							.with_stopper(TokenKind::Elif | TokenKind::Else, |parser| {
+								parser.parse_statement_block()
+							});
+
+						if result.statements.is_empty() {
+							compact_report!(
+								(self, "EmptyBlock", (&leading, &cond, &tok_then)),
+								("Encountered empty conditional branch body"),
+								("This branch has no body"),
+							);
+						}
+
+						Some(result)
+					};
+
+					branches.push(CondBranch {
+						tok_leading: leading.set(()),
+						condition: cond,
+						tok_then: tok_then.map(|t| t.set(())),
+						block,
+					});
+
+					if is_else {
+						break;
+					}
+				}
+
+				Some(cst::Statement::If(cst::If { branches }))
+			}
+			_ => unreachable!(),
+		}
 	}
 
-	fn parse_var_expr(&mut self) -> Option<cst::Expr> {
-		let name = self.mk_token(Self::parse_name)?;
-		Some(cst::Expr::Variable(name))
-	}
-
-	fn parse_wrapped_expr(&mut self) -> Option<cst::Expr> {
-		let result = self.delimited(
-			TokenKind::LeftParen,
-			TokenKind::RightParen,
-			Term::EXPR,
-			|p| p.parse_expr().map(Box::new),
-		)?;
-		Some(cst::Expr::Wrapped(result))
-	}
-
-	// Parses a base expression
-	fn parse_expr_atom(&mut self) -> Option<cst::Expr> {
-		self.parse_var_expr()
-			.or_else(|| self.parse_int_expr())
-			.or_else(|| self.parse_wrapped_expr())
-	}
-
-	pub fn parse_expr_call(&mut self) -> Option<cst::Expr> {
-		let callee = self.parse_expr_atom()?;
-		let arguments = self.delimited_list(
-			TokenKind::LeftParen,
-			TokenKind::RightParen,
-			Term::COMMA,
-			TokenKind::Comma,
-			Term::EXPR,
-			Self::parse_expr,
-		);
-
-		Some(if let Some(arguments) = arguments {
-			cst::Expr::Call(cst::Call {
-				callee: Box::new(callee),
-				arguments,
-			})
-		} else {
-			callee
-		})
-	}
-
-	fn parse_expr(&mut self) -> Option<cst::Expr> {
-		self.parse_expr_call()
+	pub fn parse_statement_block(&mut self) -> cst::StatementBlock {
+		let statements = self.parse_block(|parser| parser.parse_statement());
+		cst::StatementBlock { statements }
 	}
 	// }}}
 }
