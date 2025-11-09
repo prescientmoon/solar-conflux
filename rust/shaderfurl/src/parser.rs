@@ -1379,30 +1379,3 @@ impl<'a> Parser<'a> {
 	}
 	// }}}
 }
-
-// {{{ Error reporting
-#[derive(Debug, Clone, Copy)]
-pub struct Term {
-	singular: &'static str,    // train
-	plural: &'static str,      // trains
-	articulated: &'static str, // a train
-}
-
-impl Term {
-	pub const fn new(
-		singular: &'static str,
-		plural: &'static str,
-		articulated: &'static str,
-	) -> Self {
-		Self {
-			singular,
-			plural,
-			articulated,
-		}
-	}
-
-	pub const COMMA: Self = Self::new("comma", "commas", "a comma");
-	pub const EXPR: Self = Self::new("expression", "expressions", "an expression");
-	pub const LIST_ITEM: Self = Self::new("list item", "list items", "a list item");
-}
-// }}}

@@ -1,7 +1,6 @@
-#![allow(unused)]
 #![allow(clippy::large_enum_variant)]
+#![allow(dead_code)]
 use crate::cst::{BinaryOperator, Token, UnaryOperator};
-use crate::lexer;
 
 pub type Name = Option<Token<String>>;
 
