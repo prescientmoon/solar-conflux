@@ -1,8 +1,6 @@
-#![allow(unused)]
 #![allow(clippy::large_enum_variant)]
-use ariadne::Source;
-
-use crate::lexer::{self, SourcePos, SourceSpan, TokenKind};
+#![allow(dead_code)]
+use crate::lexer::{self, SourceSpan, TokenKind};
 
 // {{{ Building blocks
 #[derive(Debug, Clone)]
@@ -395,9 +393,9 @@ impl std::fmt::Display for Expr {
 				}
 
 				if qm.is_some() {
-					write!(f, " ? ");
+					write!(f, " ? ")?;
 				} else {
-					write!(f, " <?> ");
+					write!(f, " <?> ")?;
 				}
 
 				if let Some(ihs) = ihs {
@@ -407,9 +405,9 @@ impl std::fmt::Display for Expr {
 				}
 
 				if colon.is_some() {
-					write!(f, " : ");
+					write!(f, " : ")?;
 				} else {
-					write!(f, " <:> ");
+					write!(f, " <:> ")?;
 				}
 
 				if let Some(rhs) = rhs {
@@ -421,7 +419,11 @@ impl std::fmt::Display for Expr {
 
 				Ok(())
 			}
-			Self::Wrapped(Delimited { open, inner, close }) => {
+			Self::Wrapped(Delimited {
+				open: _,
+				inner,
+				close,
+			}) => {
 				write!(f, "(")?;
 				if let Some(inner) = inner {
 					write!(f, "{inner}")?;
@@ -432,7 +434,7 @@ impl std::fmt::Display for Expr {
 				if close.is_some() {
 					write!(f, ")")?;
 				} else {
-					write!(f, "<)>");
+					write!(f, "<)>")?;
 				}
 
 				Ok(())
