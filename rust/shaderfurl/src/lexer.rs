@@ -142,6 +142,7 @@ pub enum TokenKind {
 	Colon,          // :
 	Semicolon,      // ;
 	SingleEqual,    // =
+	NotEqual,       // !=
 	DoubleEqual,    // ==
 	Comma,          // ,
 	Arrow,          // ->
@@ -169,6 +170,10 @@ pub enum TokenKind {
 	GreaterOrEqual, // >=
 	LesserOrEqual,  // <=
 	QuestionMark,   // ?
+	PlusEqual,      // +=
+	MinusEqual,     // -=
+	MultiplyEqual,  // *=
+	DivideEqual,    // /=
 
 	// Other
 	Integer,    // 0
@@ -273,8 +278,8 @@ impl<'a> Lexer<'a> {
 		match self.curr {
 			'\0' => tok.kind = TokenKind::Eof,
 			// {{{ Identifiers / keywords
-			ch if ch.is_alphabetic() => {
-				while self.curr.is_alphanumeric() {
+			ch if ch.is_alphabetic() || ch == '_' => {
+				while self.curr.is_alphanumeric() || self.curr == '_' {
 					self.advance();
 				}
 
@@ -385,11 +390,8 @@ impl<'a> Lexer<'a> {
 					(']', _) => tok.kind = RightBracket,
 					('{', _) => tok.kind = LeftCurly,
 					('}', _) => tok.kind = RightCurly,
-					('+', _) => tok.kind = Plus,
-					('*', _) => tok.kind = Multiply,
 					('?', _) => tok.kind = QuestionMark,
 					('^', _) => tok.kind = Xor,
-					('!', _) => tok.kind = Not,
 					('~', _) => tok.kind = BitwiseNot,
 					('|', _) => tok.kind = Or,
 					('&', _) => tok.kind = And,
@@ -406,15 +408,28 @@ impl<'a> Lexer<'a> {
 					#[rustfmt::skip]
 					('<', '=')  => { tok.kind = LesserOrEqual; self.advance(); }
 					#[rustfmt::skip]
-					('=', '=')  => { tok.kind = DoubleEqual; self.advance(); }
+					('=', '=') => { tok.kind = DoubleEqual; self.advance(); }
+					#[rustfmt::skip]
+					('!', '=')  => { tok.kind = NotEqual; self.advance(); }
 					#[rustfmt::skip]
 					('-', '>')  => { tok.kind = Arrow; self.advance(); }
+					#[rustfmt::skip]
+					('+', '=') => { tok.kind = PlusEqual; self.advance(); }
+					#[rustfmt::skip]
+					('-', '=') => { tok.kind = MinusEqual; self.advance(); }
+					#[rustfmt::skip]
+					('*', '=') => { tok.kind = MultiplyEqual; self.advance(); }
+					#[rustfmt::skip]
+					('/', '=') => { tok.kind = DivideEqual; self.advance(); }
 
 					('>', _) => tok.kind = GreaterThan,
 					('<', _) => tok.kind = LesserThan,
 					('=', _) => tok.kind = SingleEqual,
 					('-', _) => tok.kind = Minus,
 					('/', _) => tok.kind = Divide,
+					('!', _) => tok.kind = Not,
+					('+', _) => tok.kind = Plus,
+					('*', _) => tok.kind = Multiply,
 
 					// Junk! (eat it all 😋)
 					_ => {
