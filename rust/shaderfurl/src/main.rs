@@ -14,7 +14,7 @@ mod lexer;
 mod parser;
 
 fn main() {
-	let buffer = include_str!("../shaders-idea/example.furl").to_string();
+	let buffer = include_str!("../shaders-idea/prelude.furl").to_string();
 
 	let file_id = FileId::new(Rc::from(PathBuf::from_str("repl").unwrap().as_path()));
 	let mut lexer = Lexer::new(file_id.clone(), &buffer);
@@ -32,12 +32,10 @@ fn main() {
 
 	let mut parser = Parser::new(file_id.clone(), &buffer);
 
-	let stm = parser.parse_statement();
-	if let Some(stm) = stm {
-		println!("========== Parsing");
-		println!("{:#?}", stm);
-		println!("{:?}", parser.stop_on_stack);
-	}
+	let _file = parser.parse_file();
+	println!("========== Parsing");
+	// println!("{:#?}", file);
+	println!("{:?}", parser.stop_on_stack);
 
 	for report in parser.reports() {
 		report
