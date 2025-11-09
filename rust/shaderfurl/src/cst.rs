@@ -54,14 +54,14 @@ impl<T> SeparatedStep<T> {
 // {{{ Modules
 #[derive(Debug, Clone)]
 pub struct File {
-	entries: Vec<ModuleEntry>,
+	pub entries: Vec<ModuleEntry>,
 
 	// You might be wondering — why am I saving the EOF token out of all things?
 	//
 	// Well, it's because I currently always attach trivia to the following node,
 	// so the EOF token will contain all the trivia saved after the end of the last
 	// successfully parsed expression.
-	eof: Token,
+	pub eof: Token,
 }
 
 #[derive(Debug, Clone)]
@@ -73,24 +73,24 @@ pub enum ModuleEntry {
 
 #[derive(Debug, Clone)]
 pub struct ImportStatement {
-	import: Token,
-	path: Option<Token<String>>,
+	pub import: Token,
+	pub path: Option<Token<String>>,
 }
 
 #[derive(Debug, Clone)]
 pub struct NestedModule {
-	module: Token,
-	name: Option<Token<String>>,
-	entries: Vec<ModuleEntry>,
+	pub module: Token,
+	pub name: Option<Token<String>>,
+	pub entries: Vec<ModuleEntry>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Declaration {
-	name: Option<Token<String>>,
-	first_colon: Option<Token>,
-	ty: Option<Type>,
-	second_colon: Option<Token>,
-	value: Option<DeclValue>,
+	pub name: Token<String>,
+	pub first_colon: Option<Token>,
+	pub ty: Option<Type>,
+	pub second_colon: Option<Token>,
+	pub value: Option<DeclValue>,
 }
 
 #[derive(Debug, Clone)]
@@ -98,34 +98,35 @@ pub enum DeclValue {
 	Proc(Proc),
 	Type(Type),
 	Alias(Token<String>), // We don't yet know what this is aliasing to!
-	Varying,
-	Attribute,
-	Uniform,
-	UniformBuffer, // UBO
-	Buffer,        // SSBO
+	Varying(Token),
+	Attribute(Token),
+	Uniform(Token),
+	UniformBuffer(Token), // UBO
+	Buffer(Token),        // SSBO
 }
 // }}}
 // {{{ Procs
 #[derive(Debug, Clone)]
 pub struct Proc {
-	proc: Token,
-	args: Option<Delimited<Separated<ProcArg>>>,
-	ret: Option<(Token, Type)>,
-	body: ProcBody,
+	pub proc: Token,
+	pub args: Option<Delimited<Separated<ProcArg>>>,
+	pub ret_arrow: Option<Token>,
+	pub ret_type: Option<Type>,
+	pub body: ProcBody,
 }
 
 #[derive(Debug, Clone)]
 pub struct ProcArg {
 	// At least one of these needs to be present!
-	name: Option<Token<String>>,
-	colon: Option<Token>,
-	ty: Option<Type>,
+	pub name: Option<Token<String>>,
+	pub colon: Option<Token>,
+	pub ty: Option<Type>,
 }
 
 #[derive(Debug, Clone)]
 pub enum ProcBody {
-	Native(Option<Token<String>>),
-	Implemented(Token, Option<StatementBlock>), // do ...
+	Native(Token<String>),
+	Implemented(StatementBlock),
 }
 // }}}
 // {{{ Statements
@@ -137,14 +138,14 @@ pub struct StatementBlock {
 #[derive(Debug, Clone)]
 pub enum Statement {
 	Expression(Expr),
-	Assignment(Option<Expr>, Token, Option<Expr>),
+	Assignment(Option<Expr>, Token<Option<BinaryOperator>>, Option<Expr>),
 	Declaration(LocalDeclaration),
 	If(If),
 	For(For),
 	Discard(Token),
 	Break(Token),
 	Continue(Token),
-	Return(Token),
+	Return(Token, Option<Expr>),
 }
 
 #[derive(Debug, Clone)]
@@ -224,6 +225,7 @@ impl UnaryOperator {
 #[derive(Debug, Clone, Copy)]
 pub enum BinaryOperator {
 	DoubleEqual,    // ==
+	NotEqual,       // !=
 	Plus,           // +
 	Minus,          // -
 	Multiply,       // *
@@ -245,6 +247,7 @@ impl BinaryOperator {
 	pub fn from_token_kind(kind: TokenKind) -> Option<Self> {
 		match kind {
 			TokenKind::DoubleEqual => Some(Self::DoubleEqual),
+			TokenKind::NotEqual => Some(Self::NotEqual),
 			TokenKind::Plus => Some(Self::Plus),
 			TokenKind::Minus => Some(Self::Minus),
 			TokenKind::Multiply => Some(Self::Multiply),
@@ -315,6 +318,7 @@ impl std::fmt::Display for BinaryOperator {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
 			Self::DoubleEqual => write!(f, "=="),
+			Self::NotEqual => write!(f, "!="),
 			Self::Plus => write!(f, "+"),
 			Self::Minus => write!(f, "-"),
 			Self::Multiply => write!(f, "*"),
@@ -548,17 +552,14 @@ impl HasSpan for Statement {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		match self {
 			Statement::Expression(expr) => expr.try_span_of(),
-			Statement::Assignment(lhs, eq, rhs) => SourceSpan::merge_options(
-				SourceSpan::merge_options(lhs.try_span_of(), eq.try_span_of()),
-				rhs.try_span_of(),
-			),
+			Statement::Assignment(lhs, eq, rhs) => (&lhs, &eq, &rhs).try_span_of(),
 			Statement::Declaration(decl) => decl.try_span_of(),
 			Statement::If(if_) => if_.try_span_of(),
 			Statement::For(for_) => for_.try_span_of(),
 			Statement::Discard(token) => token.try_span_of(),
 			Statement::Break(token) => token.try_span_of(),
 			Statement::Continue(token) => token.try_span_of(),
-			Statement::Return(token) => token.try_span_of(),
+			Statement::Return(token, value) => (token, value).try_span_of(),
 		}
 	}
 }
@@ -639,6 +640,12 @@ impl HasSpan for ArrayDimensions {
 	}
 }
 
+impl HasSpan for ProcArg {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		(&self.name, &self.colon, &self.ty).try_span_of()
+	}
+}
+
 impl<A: HasSpan, B: HasSpan> HasSpan for (A, B) {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		SourceSpan::merge_options(self.0.try_span_of(), self.1.try_span_of())
@@ -647,10 +654,13 @@ impl<A: HasSpan, B: HasSpan> HasSpan for (A, B) {
 
 impl<A: HasSpan, B: HasSpan, C: HasSpan> HasSpan for (A, B, C) {
 	fn try_span_of(&self) -> Option<SourceSpan> {
-		SourceSpan::merge_options(
-			SourceSpan::merge_options(self.0.try_span_of(), self.1.try_span_of()),
-			self.2.try_span_of(),
-		)
+		((&self.0, &self.1), &self.2).try_span_of()
+	}
+}
+
+impl<A: HasSpan, B: HasSpan, C: HasSpan, D: HasSpan> HasSpan for (A, B, C, D) {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		((&self.0, &self.1), (&self.2, &self.3)).try_span_of()
 	}
 }
 

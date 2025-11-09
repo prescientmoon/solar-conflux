@@ -6,7 +6,7 @@ use std::str::FromStr;
 use ariadne::{ColorGenerator, Label, Report};
 use enumset::{EnumSet, enum_set, enum_set_union};
 
-use crate::cst::{self, CondBranch, HasSpan, SeparatedStep, Token};
+use crate::cst::{self, BinaryOperator, CondBranch, HasSpan, SeparatedStep, Token};
 use crate::lexer::{self, FileId, Lexer, SourcePos, SourceSpan, TokenKind};
 
 // {{{ Error reporting macros
@@ -279,6 +279,11 @@ impl<'a> Parser<'a> {
 	}
 	// }}}
 	// {{{ Literal helpers
+	fn embed_source(&self, tok: Token<TokenKind>) -> Token<String> {
+		let source = self.lexer.source_span(&tok.span);
+		tok.set(source.to_string())
+	}
+
 	fn parse_integer_literal<I: FromStr>(&mut self, tok: &Token<TokenKind>) -> Option<I> {
 		let source = self.lexer.source_span(&tok.span);
 		let result = str::parse(source).ok();
@@ -327,7 +332,7 @@ impl<'a> Parser<'a> {
 					Some(cst::Expr::Error(tok.set(())))
 				}
 			}
-			TokenKind::Identifier => Some(cst::Expr::Variable(tok.set(source.to_string()))),
+			TokenKind::Identifier => Some(cst::Expr::Variable(self.embed_source(tok))),
 			TokenKind::LeftParen => {
 				let inner =
 					self.with_stopper(TokenKind::RightParen.into(), |parser| parser.parse_expr());
@@ -478,6 +483,7 @@ impl<'a> Parser<'a> {
 		(TokenKind::RightShift, 700),
 		// Comparison
 		(TokenKind::DoubleEqual, 600),
+		(TokenKind::NotEqual, 600),
 		(TokenKind::GreaterThan, 600),
 		(TokenKind::LesserThan, 600),
 		(TokenKind::GreaterOrEqual, 600),
@@ -498,6 +504,7 @@ impl<'a> Parser<'a> {
 			| TokenKind::LeftShift
 			| TokenKind::RightShift
 			| TokenKind::DoubleEqual
+			| TokenKind::NotEqual
 			| TokenKind::GreaterThan
 			| TokenKind::LesserThan
 			| TokenKind::GreaterOrEqual
@@ -637,19 +644,15 @@ impl<'a> Parser<'a> {
 		self.parse_ternary()
 	}
 	// }}}
-	// {{{ Expression parsing
+	// {{{ Statement parsing
 	const TYPE_MARKER: TokenSet =
 		enum_set!(TokenKind::LeftBracket | TokenKind::Identifier | TokenKind::Struct);
 
 	fn parse_type(&mut self) -> Option<cst::Type> {
 		let tok = self.expect_tolerant(Self::TYPE_MARKER)?;
 
-		let source = self.lexer.source_span(&tok.span);
 		match tok.value {
-			TokenKind::Identifier => {
-				let source = self.lexer.source_span(&tok.span);
-				Some(cst::Type::Named(tok.set(source.to_string())))
-			}
+			TokenKind::Identifier => Some(cst::Type::Named(self.embed_source(tok))),
 			TokenKind::LeftBracket => {
 				let (dims, close) = self.with_stopper(Self::TYPE_MARKER, |parser| {
 					let dims = parser.with_stopper(TokenKind::RightBracket.into(), |parser| {
@@ -763,10 +766,7 @@ impl<'a> Parser<'a> {
 					}
 
 					Some(cst::StructField {
-						name: name.map(|t| {
-							let source = parser.lexer.source_span(&tok.span);
-							t.set(source.to_string())
-						}),
+						name: name.map(|tok| parser.embed_source(tok)),
 						colon: colon.map(|t| t.set(())),
 						ty,
 					})
@@ -785,7 +785,6 @@ impl<'a> Parser<'a> {
 			_ => unreachable!(),
 		}
 	}
-
 	// }}}
 	// {{{ Statement parsing
 	const NON_EXPR_STATEMENT_MARKER: TokenSet = enum_set!(
@@ -797,113 +796,120 @@ impl<'a> Parser<'a> {
 			| TokenKind::If
 	);
 
+	const ASSIGNMENT_MARKER: TokenSet = enum_set!(
+		TokenKind::SingleEqual
+			| TokenKind::PlusEqual
+			| TokenKind::MinusEqual
+			| TokenKind::MultiplyEqual
+			| TokenKind::DivideEqual
+	);
+
 	const STATEMENT_MARKER: TokenSet = enum_set!(
 		Self::NON_EXPR_STATEMENT_MARKER
 			| Self::TERNARY_EXPR_MARKER
-			| TokenKind::SingleEqual
+			| Self::ASSIGNMENT_MARKER
 			| TokenKind::Colon
 	);
 
 	pub fn parse_statement(&mut self) -> Option<cst::Statement> {
 		let non_expr_marker_key = self.stop_on_push(Self::NON_EXPR_STATEMENT_MARKER);
 
-		let expr = self.with_stopper(TokenKind::SingleEqual | TokenKind::Colon, |parser| {
+		let expr = self.with_stopper(TokenKind::Colon | Self::ASSIGNMENT_MARKER, |parser| {
 			parser.parse_expr()
 		});
 
-		let result =
-			if let Some(op_tok) = self.expect_tolerant(TokenKind::SingleEqual | TokenKind::Colon) {
-				match op_tok.value {
-					TokenKind::SingleEqual => {
-						if expr.is_none() {
-							self.reports.push(
-								Report::build(ariadne::ReportKind::Error, op_tok.span_of())
-									.with_code("MissingExpression")
-									.with_message("Assignment has no left hand side")
-									.with_label(Label::new(op_tok.span_of()).with_message(
-										"I was expecting an expression before this =",
-									))
-									.finish(),
-							);
-						}
-
-						let rhs = self.parse_expr();
-						if rhs.is_none() {
-							self.reports.push(
-								Report::build(ariadne::ReportKind::Error, op_tok.span_of())
-									.with_code("MissingExpression")
-									.with_message("Assignment has no right hand side")
-									.with_label(
-										Label::new(op_tok.span_of()).with_message(
-											"I was expecting an expression after this =",
-										),
-									)
-									.finish(),
-							);
-						}
-
-						Some(cst::Statement::Assignment(expr, op_tok.set(()), rhs))
+		let result = if let Some(op_tok) =
+			self.expect_tolerant(TokenKind::Colon | Self::ASSIGNMENT_MARKER)
+		{
+			match op_tok.value {
+				TokenKind::Colon => {
+					// The fact we allow full-blown expressions here is bad
+					// (as in, we might be able to get better results by
+					// being error-tolerant), although it is the simplest solution
+					// for now. Implementing this "properly" requires backtracking,
+					// which can be arbitrarily expensive because our context contains
+					// vecs of arbitrary length.
+					if !matches!(&expr, Some(cst::Expr::Variable(name))) {
+						self.reports.push(
+							Report::build(ariadne::ReportKind::Error, op_tok.span_of())
+								.with_code("InvalidDeclarationName")
+								.with_message(
+									"Expected name on the left hand side of a declaration",
+								)
+								.with_label(
+									Label::new(op_tok.span_of())
+										.with_message("I was expecting a name before this :"),
+								)
+								.finish(),
+						)
 					}
-					TokenKind::Colon => {
-						// The fact we allow full-blown expressions here is bad
-						// (as in, we might be able to get better results by
-						// being error-tolerant), although it is the simplest solution
-						// for now. Implementing this "properly" requires backtracking,
-						// which can be arbitrarily expensive because our context contains
-						// vecs of arbitrary length.
-						if !matches!(&expr, Some(cst::Expr::Variable(name))) {
-							self.reports.push(
-								Report::build(ariadne::ReportKind::Error, op_tok.span_of())
-									.with_code("InvalidDeclarationName")
-									.with_message(
-										"Expected name on the left hand side of a declaration",
-									)
-									.with_label(
-										Label::new(op_tok.span_of())
-											.with_message("I was expecting a name before this :"),
-									)
-									.finish(),
-							)
-						}
 
-						let ty = self
-							.with_stopper(TokenKind::SingleEqual | Self::EXPR_MARKER, |parser| {
-								parser.parse_type()
-							});
-
-						let eq_tok = self.with_stopper(Self::EXPR_MARKER, |parser| {
-							parser.expect_tolerant(TokenKind::SingleEqual.into())
+					let ty = self
+						.with_stopper(TokenKind::SingleEqual | Self::EXPR_MARKER, |parser| {
+							parser.parse_type()
 						});
 
-						let rhs = self.parse_expr();
-						if eq_tok.is_some() && rhs.is_none() {
-							self.reports.push(
-								Report::build(
-									ariadne::ReportKind::Error,
-									(&expr, &op_tok, &eq_tok).span_of(),
-								)
-								.with_code("MissingExpression")
-								.with_message("Declaration has no right hand side")
-								.with_label(Label::new(op_tok.span_of()).with_message(
-									"I was expecting an expression after this declaration",
-								))
-								.finish(),
-							);
-						}
+					let eq_tok = self.with_stopper(Self::EXPR_MARKER, |parser| {
+						parser.expect_tolerant(TokenKind::SingleEqual.into())
+					});
 
-						Some(cst::Statement::Declaration(cst::LocalDeclaration {
-							variable: expr,
-							colon: op_tok.set(()),
-							ty,
-							equals: eq_tok.map(|v| v.set(())),
-							value: rhs,
-						}))
+					let rhs = self.parse_expr();
+					if eq_tok.is_some() && rhs.is_none() {
+						self.reports.push(
+							Report::build(
+								ariadne::ReportKind::Error,
+								(&expr, &op_tok, &eq_tok).span_of(),
+							)
+							.with_code("MissingExpression")
+							.with_message("Declaration has no right hand side")
+							.with_label(Label::new(op_tok.span_of()).with_message(
+								"I was expecting an expression after this declaration",
+							))
+							.finish(),
+						);
 					}
-					_ => unreachable!(),
+
+					Some(cst::Statement::Declaration(cst::LocalDeclaration {
+						variable: expr,
+						colon: op_tok.set(()),
+						ty,
+						equals: eq_tok.map(|v| v.set(())),
+						value: rhs,
+					}))
 				}
-			} else {
-				expr.map(cst::Statement::Expression)
-			};
+				other => {
+					let bin_op = match other {
+						TokenKind::SingleEqual => None,
+						TokenKind::PlusEqual => Some(BinaryOperator::Plus),
+						TokenKind::MinusEqual => Some(BinaryOperator::Minus),
+						TokenKind::MultiplyEqual => Some(BinaryOperator::Multiply),
+						TokenKind::DivideEqual => Some(BinaryOperator::Divide),
+						_ => unreachable!(),
+					};
+
+					if expr.is_none() {
+						compact_report!(
+							(self, "MissingSemicolon", &op_tok),
+							("Assignment has no left hand side"),
+							("I was expecting an expression before this ="),
+						);
+					}
+
+					let rhs = self.parse_expr();
+					if rhs.is_none() {
+						compact_report!(
+							(self, "MissingSemicolon", &op_tok),
+							("Assignment has no left hand side"),
+							("I was expecting an expression after this ="),
+						);
+					}
+
+					Some(cst::Statement::Assignment(expr, op_tok.set(bin_op), rhs))
+				}
+			}
+		} else {
+			expr.map(cst::Statement::Expression)
+		};
 
 		self.stop_on_pop(non_expr_marker_key);
 		if result.is_some() {
@@ -914,9 +920,12 @@ impl<'a> Parser<'a> {
 		let tok = self.expect_tolerant(Self::NON_EXPR_STATEMENT_MARKER)?;
 		match tok.value {
 			TokenKind::Discard => Some(cst::Statement::Discard(tok.set(()))),
-			TokenKind::Return => Some(cst::Statement::Return(tok.set(()))),
 			TokenKind::Break => Some(cst::Statement::Break(tok.set(()))),
 			TokenKind::Continue => Some(cst::Statement::Continue(tok.set(()))),
+			TokenKind::Return => {
+				let expr = self.parse_expr();
+				Some(cst::Statement::Return(tok.set(()), expr))
+			}
 			TokenKind::For => {
 				let steps = self.with_stopper(TokenKind::Do.into(), |parser| {
 					let mut steps = cst::Separated {
@@ -1078,6 +1087,295 @@ impl<'a> Parser<'a> {
 	pub fn parse_statement_block(&mut self) -> cst::StatementBlock {
 		let statements = self.parse_block(|parser| parser.parse_statement());
 		cst::StatementBlock { statements }
+	}
+	// }}}
+	// {{{ Module parsing
+	const MODULE_ENTRY_MARKER: TokenSet =
+		enum_set!(TokenKind::Import | TokenKind::Module | TokenKind::Identifier);
+
+	fn parse_module_entry(&mut self) -> Option<cst::ModuleEntry> {
+		let tok = self.expect_tolerant(Self::MODULE_ENTRY_MARKER)?;
+
+		match tok.value {
+			TokenKind::Import => {
+				let path = self.expect_tolerant(TokenKind::String.into());
+				if path.is_none() {
+					compact_report!(
+						(self, "MissingPath", &tok),
+						("Missing import path"),
+						("This import statement is missing a path to import code from"),
+					);
+				}
+
+				Some(cst::ModuleEntry::Import(cst::ImportStatement {
+					import: tok.set(()),
+					path: path.map(|tok| self.embed_source(tok)),
+				}))
+			}
+			TokenKind::Module => {
+				let name = self.with_stopper(Self::MODULE_ENTRY_MARKER, |parser| {
+					parser.expect_tolerant(TokenKind::String.into())
+				});
+
+				if name.is_none() {
+					compact_report!(
+						(self, "MissingName", &tok),
+						("Missing module name"),
+						("I was expecting a name for this nested module"),
+					);
+				}
+
+				let entries = self.parse_block(|parser| parser.parse_module_entry());
+
+				Some(cst::ModuleEntry::Module(cst::NestedModule {
+					module: tok.set(()),
+					name: name.map(|tok| self.embed_source(tok)),
+					entries,
+				}))
+			}
+			TokenKind::Identifier => {
+				let (first_colon, ty, second_colon) =
+					self.with_stopper(Self::DECL_VALUE_MARKER, |parser| {
+						let first_colon = parser.expect_tolerant(TokenKind::Colon.into());
+						let ty = parser
+							.with_stopper(TokenKind::Colon.into(), |parser| parser.parse_type());
+						let second_colon = parser.expect_tolerant(TokenKind::Colon.into());
+
+						if first_colon.is_none() {
+							compact_report!(
+								(parser, "MisingColon", &tok),
+								("Declaration names must be followed by colons"),
+								("I was expecting a colon here"),
+							);
+						} else if second_colon.is_none() {
+							compact_report!(
+								(parser, "MisingColon", (&tok, &first_colon, &ty)),
+								("Declaration values must be preceded by a colon"),
+								("I was expecting a second colon here"),
+							);
+						}
+
+						(first_colon, ty, second_colon)
+					});
+
+				let value = self.parse_decl_value();
+				if value.is_none() {
+					compact_report!(
+						(
+							self,
+							"MissingValue",
+							(&tok, &first_colon, &ty, &second_colon)
+						),
+						("Module declarations must contain a concrete value"),
+						("I was expecting a value here"),
+					);
+				}
+
+				Some(cst::ModuleEntry::Declaration(cst::Declaration {
+					name: self.embed_source(tok),
+					first_colon: first_colon.map(|t| t.set(())),
+					ty,
+					second_colon: second_colon.map(|t| t.set(())),
+					value,
+				}))
+			}
+			_ => unreachable!(),
+		}
+	}
+
+	const NON_TYPE_DECL_VALUE_MARKER: TokenSet = enum_set!(
+		TokenKind::Proc
+			| TokenKind::Varying
+			| TokenKind::Attribute
+			| TokenKind::Uniform
+			| TokenKind::Buffer
+			| TokenKind::Identifier
+	);
+
+	const DECL_VALUE_MARKER: TokenSet =
+		enum_set!(Self::NON_TYPE_DECL_VALUE_MARKER | Self::TYPE_MARKER);
+
+	fn parse_decl_value(&mut self) -> Option<cst::DeclValue> {
+		if let Some(tok) = self.with_stopper(Self::TYPE_MARKER, |parser| {
+			parser.expect_tolerant(Self::NON_TYPE_DECL_VALUE_MARKER)
+		}) {
+			match tok.value {
+				TokenKind::Varying => Some(cst::DeclValue::Varying(tok.set(()))),
+				TokenKind::Attribute => Some(cst::DeclValue::Attribute(tok.set(()))),
+				TokenKind::Buffer => Some(cst::DeclValue::Buffer(tok.set(()))),
+				TokenKind::Uniform => {
+					if self.expect_tolerant(TokenKind::Buffer.into()).is_some() {
+						Some(cst::DeclValue::UniformBuffer(tok.set(())))
+					} else {
+						Some(cst::DeclValue::Uniform(tok.set(())))
+					}
+				}
+				TokenKind::Identifier => Some(cst::DeclValue::Alias(self.embed_source(tok))),
+				TokenKind::Proc => {
+					let args = if let Some(args_open) =
+						self.expect_tolerant(TokenKind::LeftParen.into())
+					{
+						let mut elements = Vec::new();
+						self.with_stopper(TokenKind::RightParen | TokenKind::Arrow, |parser| {
+							let stoppers =
+								TokenKind::Identifier | TokenKind::Colon | Self::TYPE_MARKER;
+							loop {
+								if let Some(comma) = parser.with_stopper(stoppers, |parser| {
+									parser.expect_tolerant(TokenKind::Comma.into())
+								}) {
+									elements.push(cst::SeparatedStep::Separator(comma.set(())));
+									continue;
+								};
+
+								let (name, colon, ty) =
+									parser.with_stopper(TokenKind::Comma.into(), |parser| {
+										let name = parser.with_stopper(
+											TokenKind::Colon | Self::TYPE_MARKER,
+											|parser| {
+												parser.expect_tolerant(TokenKind::Identifier.into())
+											},
+										);
+										let colon =
+											parser.with_stopper(Self::TYPE_MARKER, |parser| {
+												parser.expect_tolerant(TokenKind::Colon.into())
+											});
+										let ty = parser.parse_type();
+										(name, colon, ty)
+									});
+
+								if name.is_some() || colon.is_some() || ty.is_some() {
+									if name.is_none() {
+										compact_report!(
+											(parser, "MissingName", (&colon, &ty)),
+											("Missing argument name"),
+											("I was expecting this argument to have a name"),
+										);
+									} else if colon.is_none() && ty.is_some() {
+										compact_report!(
+											(parser, "MissingColon", (&name, &ty)),
+											("Missing colon"),
+											("I was expecting the argument name and its type to be separated by a colon"),
+										);
+									} else if colon.is_some() && ty.is_none() {
+										compact_report!(
+											(parser, "MissingType", (&name, &colon)),
+											("Missing type"),
+											("I was expecting this argument to be followed by a type"),
+										);
+									}
+
+									elements.push(cst::SeparatedStep::Element(cst::ProcArg {
+										name: name.map(|tok| parser.embed_source(tok)),
+										colon: colon.map(|tok| tok.set(())),
+										ty,
+									}));
+									continue;
+								}
+
+								break;
+							}
+						});
+						let args_close = self.with_stopper(TokenKind::Arrow.into(), |parser| {
+							parser.expect_tolerant(TokenKind::RightParen.into())
+						});
+
+						// Detect bad separator orders
+						for i in 0..elements.len().saturating_sub(1) {
+							let a = &elements[i];
+							let b = &elements[i + 1];
+							if a.is_separator() && b.is_separator() {
+								compact_report!(
+									(self, "MissingArgument", (&a, &b)),
+									("Missing argument"),
+									("I was expecting there to be an argument between these commas"),
+								);
+							} else if !a.is_separator() && !b.is_separator() {
+								compact_report!(
+									(self, "MissingComma", (&a, &b)),
+									("Missing comma"),
+									("I was expecting these two arguments to be separated by a comma"),
+								);
+							}
+						}
+
+						Some(cst::Delimited {
+							open: args_open.set(()),
+							inner: cst::Separated { elements },
+							close: args_close.map(|t| t.set(())),
+						})
+					} else {
+						None
+					};
+
+					let ret_arrow = self
+						.with_stopper(Self::STATEMENT_MARKER | TokenKind::String, |parser| {
+							parser.expect_tolerant(TokenKind::Arrow.into())
+						});
+					let ret_type = if ret_arrow.is_some() {
+						let ty = self
+							.with_stopper(Self::STATEMENT_MARKER | TokenKind::String, |parser| {
+								parser.parse_type()
+							});
+						if ty.is_none() {
+							compact_report!(
+								(self, "MissingType", &ret_arrow),
+								("Missing return type"),
+								("I was expecting this arrow to be followed by the proc's return type"),
+							);
+						}
+						ty
+					} else {
+						None
+					};
+
+					let native_name = self.with_stopper(Self::STATEMENT_MARKER, |parser| {
+						parser.expect_tolerant(TokenKind::String.into())
+					});
+					let body = if let Some(name) = native_name {
+						cst::ProcBody::Native(self.embed_source(name))
+					} else {
+						let body = self.parse_statement_block();
+
+						if body.statements.is_empty() {
+							compact_report!(
+								(self, "EmptyProcBody", (&tok, &args, &ret_arrow, &ret_type)),
+								("Empty procedure body"),
+								("I was expecting at least one statement inside this procedure"),
+							);
+						}
+
+						cst::ProcBody::Implemented(body)
+					};
+
+					Some(cst::DeclValue::Proc(cst::Proc {
+						proc: tok.set(()),
+						args,
+						ret_arrow: ret_arrow.map(|tok| tok.set(())),
+						ret_type,
+						body,
+					}))
+				}
+				_ => unreachable!(),
+			}
+		} else {
+			let ty = self.parse_type()?;
+			Some(cst::DeclValue::Type(ty))
+		}
+	}
+
+	pub fn parse_file(&mut self) -> cst::File {
+		self.relation = IndentationRelation::Eq;
+		self.indentation = 1;
+		let entries = self.parse_block(|parser| parser.parse_module_entry());
+		self.relation = IndentationRelation::Any;
+		let eof = self
+			.expect_tolerant(TokenKind::Eof.into())
+			.expect("Failed to find an end of file token");
+
+		cst::File {
+			entries,
+			eof: eof.set(()),
+		}
 	}
 	// }}}
 }
