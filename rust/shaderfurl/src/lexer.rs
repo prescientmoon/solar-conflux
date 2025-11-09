@@ -17,12 +17,6 @@ impl std::fmt::Debug for SourcePos {
 	}
 }
 
-impl SourcePos {
-	pub fn new(index: usize, line: usize, col: usize) -> Self {
-		Self { index, line, col }
-	}
-}
-
 impl PartialEq for SourcePos {
 	fn eq(&self, other: &Self) -> bool {
 		self.index == other.index
@@ -75,10 +69,6 @@ impl std::fmt::Debug for SourceSpan {
 impl SourceSpan {
 	pub fn new(path: FileId, from: SourcePos, length: usize) -> Self {
 		Self { from, length, path }
-	}
-
-	pub fn between(path: FileId, from: SourcePos, to: SourcePos) -> Self {
-		Self::new(path, from, to.index - from.index)
 	}
 
 	pub fn merge(&self, other: &Self) -> Self {
@@ -261,7 +251,6 @@ impl<'a> Lexer<'a> {
 		copy.curr
 	}
 
-	#[allow(unused)]
 	pub fn next(&mut self) -> Token {
 		while matches!(self.curr, ' ' | '\r' | '\t' | '\n') {
 			self.advance();
