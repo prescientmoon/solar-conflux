@@ -1,0 +1,31 @@
+v_uv : [2]f32 : attribute
+
+vert :: proc() -> [4]f32
+  return vec4(v_uv * 2 - 1, 0, 1)
+
+Inputs :: struct
+  offset     : f32
+  resolution : [2]f32
+
+inputs        : Inputs     : uniform
+input_texture : sampler2D  : uniform
+
+frag :: proc() -> Color
+  nearest_seed : f32 = -2
+  nearest_dist := 999999999.9 // squared distance in pixel space
+
+  for y : f32 = -1; y <= 1; y += 1
+    for x : f32 = -1; x <= 1; x += 1
+      sample_uv := v_uv + inputs.offset * vec2(x, y) / inputs.resolution
+      if !uv_in_bounds(sample_uv) { continue }
+
+      sample := input_texture(sample_uv)
+      if sample.xy != 0
+        diff := (sample_value.xy - v_uv) * inputs.resolution
+        dist := dot(diff, diff)
+
+        if dist < nearest_dist
+          nearest_dist = dist
+          nearest_seed = sample_value
+
+  return nearest_seed

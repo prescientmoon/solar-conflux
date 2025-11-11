@@ -1,0 +1,6 @@
+// Global UBO accessible from any shader
+globals : Globals : uniform buffer
+
+Globals :: struct
+  viewport : mat4
+  aa_width : f32

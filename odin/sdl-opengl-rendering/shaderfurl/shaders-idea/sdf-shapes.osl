@@ -1,0 +1,58 @@
+// Module defining shaders for rendering individual shapes
+// using an SDF-based approach.
+module "sdf_shapes"
+
+import "globals"
+
+// ========== Common
+a_pos : [2]f32 : attribute
+v_pos : [2]f32 : varying
+
+// Every instance of a shape allows providing the following properties
+Instance_Opts :: struct
+  fill         : [4]f32
+  stroke       : [4]f32
+  stroke_width : f32
+  z_offset     : f32
+  model_matrix : matrix[2, 3]f32
+
+i_opts : Instance_Opts : attribute
+
+// The vertex stage for the various shape is pretty tame
+shape_vert :: proc() -> [4]f32
+  v_pos := i_opts.model_matrix * vec3(a_pos, 1)
+  pos := u_viewport_matrix * vec4(v_pos, i_opts.z_offset, 1)
+  return vec4(pos.xyz, 1)
+
+// The fragment stage only differs in the specific SDF used, thus we can 
+// abstract it away into a function that takes the signed distance as an 
+// argument.
+shape_frag :: proc(dist: f32) -> Color
+  aa_width := globals.aa_width
+  f_alpha  := smoothstep(aa_width, -aa_width, dist)
+  s_alpha  := smoothstep(aa_width, -aa_width, abs(dist) - i_opts.stroke_width)
+
+  if f_alpha < 0.001 & s_alpha < 0.001 { discard }
+
+  // TODO: do we assume premultiplied colors for the instance params?
+  return premul_blend(
+    s_alpha * premul(i_opts.stroke),
+    f_alpha * premul(i_opts.fill)
+  )
+
+// ========== Individual shapes
+module "rect"
+  i_center     : [2]f32 : attribute
+  i_dimensions : [2]f32 : attribute
+
+  vert :: shape_vert
+  frag :: proc() -> Color 
+    return shape_frag(sdf_rect(i_center, i_dimensions, v_pos))
+
+module "circle"
+  i_center     : [2]f32 : attribute
+  i_dimensions : [2]f32 : attribute
+
+  vert :: shape_vert
+  frag :: proc() -> Color 
+    return shape_frag(sdf_elipse(i_center, i_dimensions, v_pos))
