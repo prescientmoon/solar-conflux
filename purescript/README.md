@@ -6,6 +6,7 @@
 | [bug](./bug/)                                 | Unknown reason of existence                                                                                          |
 | [canopy](./canopy/)                           | Unfinished attempt at writing a [Diplomacy](<https://en.wikipedia.org/wiki/Diplomacy_(game)>) adjudecation engine    |
 | [compose](./compose/)                         | Overload do-notation for function composition and existential types                                                  |
+| [doffy](./doffy/)                             | Unfinished canvas-based rendering framework                                                                          |
 | [ecs](./ecs/)                                 | Purescript-wrapper for [thi.ng/ecs](thi.ng/ecs)                                                                      |
 | [existentials-blog](./existentials-blog)      | Perhaps supposed to turn into a blog about existentials?                                                             |
 | [existentials](./existentials)                | Experiment regarding the Church-encoding of existential types                                                        |
