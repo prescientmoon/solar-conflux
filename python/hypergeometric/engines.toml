@@ -1,0 +1,19 @@
+required = ["base"]
+
+[engines.base]
+space.engine = 16
+space.bricks = 8
+space.extra = 11
+
+[engines.throne]
+requires = ["yubel"]
+space.engine = 3
+
+[engines.fiendsmith]
+space.engine = 4
+space.extra = 2
+
+[engines.yubel]
+requires = ["throne"]
+space.bricks = 2
+space.extra = 1
