@@ -1,0 +1,10 @@
+v_uv : [2]f32 : attribute
+
+vert :: proc() -> [4]f32
+  return vec4(v_uv * 2 - 1, 0, 1)
+
+input_texture : sampler2D : uniform
+
+frag :: proc() -> Color
+  sample := texture(input_texture, v_uv)
+  return vec4(v_uv * sample.a, 0, 1)
