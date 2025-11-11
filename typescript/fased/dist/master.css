@@ -1,0 +1,238 @@
+@font-face{
+    font-family: menu;
+    src: url(assets/menu.ttf);
+}
+
+*{
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    user-drag:none;
+}
+
+.container{
+    position: absolute;
+    top: 0px;
+    left: 25%;
+    width: 50%;
+    height: 100%;
+    display: block;
+    z-index: 2;
+}
+.hidden{
+    display: none;
+}
+.blue{
+    color:blue;
+}
+
+.error{
+    color: red;
+    font-style: italic;
+}
+
+.example,.green{
+    color: green;
+}
+
+#terminal{
+    background-color:#222222;
+    color: white;
+    font-family: fantasy;
+    font-size: 200%;
+    overflow-y: auto;
+    display: block;
+    height: 90%;
+    width: 100%;
+    border: #aaaaaa 1px solid;
+}
+#terminal-input{
+    height: 10%;
+    width:100%;
+    font-size: 250%;
+    display: block;
+    color: white;
+    background-color:#222222;
+    font-family: fantasy;
+    border: #aaaaaa 1px solid;
+}
+
+body,html{
+    padding: 0px;
+    margin: 0px;
+    height: 100%;
+    width: 100%;
+    display: block;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    /* font-size: 250%; */
+}
+
+canvas{
+    height: 100%;
+    width:100%;
+    background-color: chartreuse;
+    display: block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    /* background-attachment: fixed; */
+    background-image: url(assets/axios.png);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;  
+}
+.comment{
+    color: gray;
+}
+#scoreHolder{
+    display: block;
+    top: 0px;
+    right: 0px;
+    font-size: 200%;
+    z-index: 100;
+    color: chartreuse;
+    height: 20%;
+    width: 20%;
+    text-align: right;
+    position:absolute;
+    font-family: "Roboto";
+}
+
+#desc{
+    font-size: 250%;
+    font-style: italic;
+    background-color: rgba(128,128,128,0.5);
+    padding:2%;
+    border-radius: 5%;
+    float: right;
+    padding-right: 10%;
+    color:#ffffff;
+    -webkit-text-stroke: 1px black;
+    font-family: "Roboto";
+    /* position: absolute; */
+    /* right: 0%; */
+    /* width: 45%; */
+    /* right:0px; */
+}
+#apper{
+    width:4%;
+}
+.menu{
+    z-index: 30;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: blue;
+    background-image: url(assets/mars.jpg);
+    background-attachment: fixed;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-blend-mode: luminosity;
+}
+#images{
+    width: 65%;
+    float: right;
+}
+#logo{
+    width: 100%;
+    /* flex-flow: column-reverse; */
+    /* float: right; */
+}
+#tutorial{
+    position: absolute;
+    width:10%;
+    border-radius: 5%;
+    padding: 3%;
+    right:0%;
+    /* bottom: 5%; */
+    margin: 10%;
+    margin-right: 1%;
+    /* z-index: 55; */
+    float:right;
+    background-color: rgba(128,128,128,0.5);
+}
+.buttons{
+    background-color: rgba(128,128,128,0.5);
+    position: absolute;
+    padding: 5%;
+    left:10%;
+    top:10%;
+    width: 10%;
+    border-radius: 5%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    background-blend-mode: darken;
+}
+.button{
+    color: #ffffff;
+    margin:10%;
+    text-decoration: none;
+    background-color: rgba(100,100,256,0);
+    border: 0px;
+    text-align: center;
+    font-size: 200%;
+    font-family: menu;
+    background-blend-mode: lighten;
+    -webkit-text-stroke: 2px black;
+}
+.button:hover{
+    -webkit-animation: glow 1s ease-in-out infinite alternate;
+    -moz-animation: glow 1s ease-in-out infinite alternate;
+    animation: glow 1s ease-in-out infinite alternate;
+}
+@-webkit-keyframes glow {
+    from {
+        text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #e60073, 0 0 40px #e60073, 0 0 50px #e60073, 0 0 60px #e60073, 0 0 70px #e60073;
+    }
+    to {
+        text-shadow: 0 0 20px #fff, 0 0 30px #ff4da6, 0 0 40px #ff4da6, 0 0 50px #ff4da6, 0 0 60px #ff4da6, 0 0 70px #ff4da6, 0 0 80px #ff4da6;
+    }
+}
+@keyframes glow {
+    from {
+        text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #0000ff, 0 0 40px #0000ff, 0 0 50px #0000ff, 0 0 60px #0000ff, 0 0 70px #0000ff;
+    }
+    to {
+        text-shadow: 0 0 20px #fff, 0 0 30px #0000ff, 0 0 40px #ff4da6, 0 0 50px #0000ff, 0 0 60px #0000ff, 0 0 70px #0000ff, 0 0 80px #0000ff;
+    }
+}
+
+#end{
+   position: absolute;
+   display: flex;
+   height: 100%;
+   width: 100%;
+   top:0px;
+   left:0px;
+   z-index: 40;
+   justify-content: center;
+}
+#end-content>#message{
+    font-family: menu;
+    font-size: 300%;
+    text-align: center;
+}
+#end-content{
+    position: absolute;
+    display: flex;
+    justify-content: space-around;
+    flex-direction: column;
+    top: 13%;
+    left:15%;
+    width:60%;
+    padding: 5%;
+    border-radius: 5%;
+    background-color: rgba(128,128,128,0.5)
+}
+#end-buttons{
+    display: flex;
+    justify-content: space-around;
+}

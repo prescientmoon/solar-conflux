@@ -1,0 +1,27 @@
+export = index;
+declare const index: {
+    bates: Function;
+    bernoulli: Function;
+    binomial: Function;
+    bool: Function;
+    boolean: Function;
+    clone: Function;
+    exponential: Function;
+    float: Function;
+    geometric: Function;
+    int: Function;
+    integer: Function;
+    irwinHall: Function;
+    logNormal: Function;
+    next: Function;
+    normal: Function;
+    pareto: Function;
+    patch: Function;
+    poisson: Function;
+    rng: any;
+    uniform: Function;
+    uniformBoolean: Function;
+    uniformInt: Function;
+    unpatch: Function;
+    use: Function;
+};

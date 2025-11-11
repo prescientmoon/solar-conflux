@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="pinterest" content="nopin" />
+    <title>TODO:dtu</title>
+
+    <!-- <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"> -->
+    <link rel="stylesheet" href="master.css">
+</head>
+
+<body oncontextmenu="return false;" ondragstart="return false">
+    <div class="container hidden">
+        <div id="terminal"></div>
+        <input type="text" id="terminal-input">
+    </div>
+
+    <div id="scoreHolder"></div>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="menu">
+        <div class="buttons">
+            <button id="play" class="button">Play</button>
+            <a id="github" class="button" href="https://github.com/Mateiadrielrafael/Fased">Github</a>
+            <a id="rate" class="button" href="https://itch.io/jam/blackthornprodgamejam2/rate/378534">Rate</a>
+            <a id="pewds" class="button" href="https://www.youtube.com/user/PewDiePie">Sub to Pewds</a>
+        </div>
+        <div id="images">
+            <img src="assets/logo.png" alt="logo" id="logo" ondragstart="return false">
+            <div id="desc">
+                <!-- <img src="assets/apperture.png" id="apper" alt=""> -->
+                Protect the earth... With portals
+            </div>
+            <img src="assets/mouse2.png" alt="mouse2" id="tutorial" onmouseup="return false" ondragstart="return false">
+        </div>
+    </div>
+
+    <div id="end" class="hidden">
+        <div id="end-content">
+            <div id="message">You lost!
+                <div id="end-data"></div>
+            </div>
+            <div id="end-buttons">
+                <button class="button" id="again">
+                    Play again
+                </button>
+                <!-- <a href="/" class="button">Home</a> -->
+                <a class="button" href="https://www.youtube.com/user/PewDiePie">
+                    Sub to pewds!
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+</body>
+
+</html>
