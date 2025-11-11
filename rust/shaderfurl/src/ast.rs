@@ -39,7 +39,7 @@ pub enum DeclValue {
 // {{{ Procs
 #[derive(Debug, Clone)]
 pub struct Proc {
-	args: Vec<(Name, Option<Type>)>,
+	args: Vec<(Name, Type)>,
 	ret: Option<Type>,
 	body: ProcBody,
 }
@@ -59,7 +59,7 @@ pub struct ExprBlock {
 #[derive(Debug, Clone)]
 pub enum Statement {
 	Expression(Expr),
-	Assignment(Expr, Expr),
+	Assignment(Expr, Option<BinaryOperator>, Expr),
 	Declaration(Name, Option<Type>, Expr),
 	If(If),
 	For(For),

@@ -644,7 +644,7 @@ impl<'a> Parser<'a> {
 		self.parse_ternary()
 	}
 	// }}}
-	// {{{ Statement parsing
+	// {{{ Type parsing
 	const TYPE_MARKER: TokenSet =
 		enum_set!(TokenKind::LeftBracket | TokenKind::Identifier | TokenKind::Struct);
 
