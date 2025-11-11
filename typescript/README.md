@@ -2,6 +2,7 @@
 
 | Name                                             | Description                                                                                                                     |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| [fased](./fased/)                                | My entry for the second Blackthornprod game jam                                                                                 |
 | [four.js](./fourjs)                              | Tiny 3d rendering I started (and quickly dropped) as a beginner                                                                 |
 | [globalbot](./globalbot)                         | Bot for twitter game a friend was running                                                                                       |
 | [loopover-leaderboards](./loopover-leaderboards) | Incomplete website for [loopover](https://loopover.xyz/) leaderboards                                                           |
@@ -16,5 +17,5 @@
 | [pleix-frontend](./pleix-frontend/)              | No idea what `pleix` was supposed to be, but this was essentially just a bunch of experiments with [lit-html](https://lit.dev/) |
 | [simio-client](./simio-client/)                  | Client for unfinished gravity simulator I was working on                                                                        |
 | [translucid](./translucid)                       | Tiny server lib I wrote as a beginner                                                                                           |
+| [visual-studio-paint](./visual-studio-paint/)    | Paint-like program with ui inspired by visual studio code 🎨                                                                    |
 | [wave38](./wave38/)                              | Remake of [wave37](https://github.com/Mateiadrielrafael/wave37), which I dropped super early into development                   |
-| [fased](./fased/)                                | My entry for the second Blackthornprod game jam                                                                                 |
