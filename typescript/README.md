@@ -16,4 +16,5 @@
 | [pleix-frontend](./pleix-frontend/)              | No idea what `pleix` was supposed to be, but this was essentially just a bunch of experiments with [lit-html](https://lit.dev/) |
 | [simio-client](./simio-client/)                  | Client for unfinished gravity simulator I was working on                                                                        |
 | [translucid](./translucid)                       | Tiny server lib I wrote as a beginner                                                                                           |
-| [wave38](./wave38/)                              | Remake of [wave37](https://github.com/Mateiadrielrafael/wave37) I dropped super early into development.                         |
+| [wave38](./wave38/)                              | Remake of [wave37](https://github.com/Mateiadrielrafael/wave37), which I dropped super early into development                   |
+| [fased](./fased/)                                | My entry for the second Blackthornprod game jam                                                                                 |
