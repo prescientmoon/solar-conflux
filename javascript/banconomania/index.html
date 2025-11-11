@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>Ludum Dare 43</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <!--Jquery-->
+        <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+        <script src="js/jquery.mousewheel.min.js" charset="utf-8"></script>
+        <!--Mainloop.js-->
+        <script src="https://cdn.jsdelivr.net/npm/mainloop.js@latest/build/mainloop.min.js"></script>
+        <script src="js/load.js" charset="utf-8"></script>
+        <script src="js/grid.js" charset="utf-8"></script>
+        <script src="js/victor.min.js" charset="utf-8"></script>
+        <script src="js/cell.js" charset="utf-8"></script>
+        <script src="js/game.js" charset="utf-8"></script>
+        <script src="js/loop.js" charset="utf-8"></script>
+        <script src="js/main.js" charset="utf-8" defer></script>
+        <script src="js/event.js" charset="utf-8" defer></script>
+    </head>
+    <body>
+        <div id="start">
+            <div id="buttons">
+                <button id="b1">Play</button>
+                <button id="b2">Tutorial</button>
+                <button id="b3">Credits</button>
+                <button id="b4">Exit</button>
+            </div>
+        </div>
+        <canvas id="canvas" width="500" height="500"></canvas><br/>
+        <div id="container">
+            <div id="other">
+                Money:
+                <div id="money">0</div>
+                Money per second:
+                <div id="mps">0</div>
+                <select class="DropDown" name="building" id="building">
+                    <option value="0">Air</option>
+                    <option value="1">House</option>
+                    <option value="2">Tower</option>
+                    <option value="3">Factory</option>
+                    <option value="4">Strong factory</option>
+                    <option value="5">School</option>
+                </select><br/>
+                Cost:
+                <span id="cost"></span>
+            </div>
+            <span id="description">The air is useless for making money...<br/>
+             But you can replace other things wwith it:)<br/>
+             You better go and build something XD<br/>
+             You know? You can't get rich without sacrificing some money in the first place :3</span>
+        </div>
+        <audio src="milbona_fast.mp3" id="song" loop></audio>
+    </body>
+</html>
