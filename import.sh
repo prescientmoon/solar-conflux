@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail # Fail on errors and whatnot
 
 # Ensure three arguments are provided
 if [ "$#" -ne 3 ]; then
