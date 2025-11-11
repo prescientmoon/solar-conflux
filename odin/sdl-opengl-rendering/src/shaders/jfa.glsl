@@ -20,7 +20,7 @@ void main() {
 #ifdef FRAG
 void main() {
   vec4 nearest_seed = vec4(-2.0);
-  float nearest_dist = 999999999.9;
+  float nearest_dist = 999999999.9; // squared distance in pixel space
 
   for (float y = -1.0; y <= 1.0; y += 1.0) {
     for (float x = -1.0; x <= 1.0; x += 1.0) {
