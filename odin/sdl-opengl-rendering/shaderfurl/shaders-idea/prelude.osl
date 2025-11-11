@@ -1,0 +1,71 @@
+// ========== Type aliases
+Color :: [4]f32
+mat4  :: matrix[4, 4]f32
+
+// ========== Custom helpers
+uv_in_bounds :: proc(uv: [2]f32) -> bool
+	return uv.x >= 0 & uv.x <= 1 & uv.y >= 0 & uv.y <= 1
+
+sdf_rect :: proc(center, dims, p: [2]f32) -> f32 
+  d := abs(p - center) - dims / 2
+  return len(d /\ 0) + d.x /\ d.y \/ 0
+
+premul :: proc(col: [4]f32) -> Color
+  return vec4(col.a * col.rgb, col.a)
+
+blend_premul :: proc(src, dest: Color) -> Color
+  return src + dest * (1 - src.a)
+
+blend_straight :: proc(src, dest: Color) -> Color
+  alpha := mix(dest.a, 1, src.a)
+  rgb   := mix(dst.rgb * dst.a, src.rgb, src.a)
+  return alpha == 0 ? 0 : vec4(rgb / alpha, alpha)
+
+// ========== Native function bindings
+len :: proc(v: [2]f32) -> f32 "length"
+len :: proc(v: [3]f32) -> f32 "length"
+len :: proc(v: [4]f32) -> f32 "length"
+
+max :: proc(a, b:    f32) ->    f32
+max :: proc(a, b: [2]f32) -> [2]f32
+max :: proc(a, b: [3]f32) -> [3]f32
+max :: proc(a, b: [4]f32) -> [4]f32
+
+min :: proc(a, b:    f32) ->    f32
+min :: proc(a, b: [2]f32) -> [2]f32
+min :: proc(a, b: [3]f32) -> [3]f32
+min :: proc(a, b: [4]f32) -> [4]f32
+
+abs :: proc(v:    f32) ->    f32
+abs :: proc(v: [2]f32) -> [2]f32
+abs :: proc(v: [3]f32) -> [3]f32
+abs :: proc(v: [4]f32) -> [4]f32
+
+smoothstep :: proc(a, b, p: f32) -> f32
+
+mix :: proc(a, b,         c:    f32) ->    f32
+mix :: proc(a, b,         c: [2]f32) -> [2]f32
+mix :: proc(a, b,         c: [3]f32) -> [3]f32
+mix :: proc(a, b,         c: [4]f32) -> [4]f32
+mix :: proc(a, b: [2]f32, c:    f32) -> [2]f32
+mix :: proc(a, b: [3]f32, c:    f32) -> [3]f32
+mix :: proc(a, b: [4]f32, c:    f32) -> [4]f32
+
+dot :: proc(a, b: [2]f32) -> f32
+dot :: proc(a, b: [3]f32) -> f32
+dot :: proc(a, b: [4]f32) -> f32
+
+// It might feel like these would deserve some kind of compiler support, but 
+// there's only a 8 overloads. We know this because each overload is induced by 
+// a unique subset of the commas to keep between the arguments, and there's 
+// precisely 2^3=8 subsets of a set with 3 elements.
+vec4 :: proc(x, y, z, w: f32)        -> [4]f32
+vec4 :: proc(xy: [2]f32, z, w: f32)  -> [4]f32
+vec4 :: proc(x, y: f32, zw: [2]f32)  -> [4]f32
+vec4 :: proc(x, yz: [2]f32, w: f32)  -> [4]f32
+vec4 :: proc(xy: [2]f32, zw: [2]f32) -> [4]f32
+vec4 :: proc(xyz: [3]f32, w: f32)    -> [4]f32
+vec4 :: proc(x: f32, yzw: [3]f32)    -> [4]f32
+vec4 :: proc(xyzw: [4]f32)           -> [4]f32
+
+texture :: proc(tex: sampler2D, pos: [2]f32) -> Color
