@@ -1,0 +1,10 @@
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext("2d");
+const gameGrid = new Grid(5,5);
+console.log(gameGrid);
+const canvasSize = new Victor($("#canvas").width(),$("#canvas").height());
+const game = new Game(gameGrid);
+var cellSize = canvasSize.clone().divide(game.grid.size);
+$("#canvas").attr("width",window.innerWidth);
+$("#canvas").attr("height",window.innerHeight);
+MainLoop.start();
