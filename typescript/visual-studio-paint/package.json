@@ -1,0 +1,53 @@
+{
+  "name": "sapper-client",
+  "version": "0.0.1",
+  "scripts": {
+    "predev": "npm run clean",
+    "dev": "sapper dev",
+    "clean": "rimraf ./src/node_modules/@sapper",
+    "prebuild": "npm run clean",
+    "build": "cross-env NODE_ENV=production sapper build",
+    "export": "cross-env NODE_ENV=production sapper export",
+    "start": "node __sapper__/build"
+  },
+  "dependencies": {
+    "@mdi/js": "^4.4.95",
+    "compression": "^1.7.1",
+    "express": "^4.17.1",
+    "file-saver": "^2.0.2",
+    "knex": "^0.19.5",
+    "regenerator-runtime": "^0.13.3",
+    "rxjs": "^6.5.3",
+    "rxjs-extra": "^2.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-typescript": "^7.3.3",
+    "@smui/button": "^1.0.0-beta.14",
+    "@smui/dialog": "^1.0.0-beta.14",
+    "@smui/list": "^1.0.0-beta.14",
+    "@smui/ripple": "^1.0.0-beta.14",
+    "@smui/switch": "^1.0.0-beta.15",
+    "@types/compression": "^1.0.1",
+    "@types/express": "^4.17.1",
+    "@types/file-saver": "^2.0.1",
+    "babel-loader": "^8.0.6",
+    "cross-env": "^5.2.1",
+    "css-loader": "^3.2.0",
+    "file-loader": "^4.2.0",
+    "mini-css-extract-plugin": "^0.8.0",
+    "node-sass": "^4.13.1",
+    "npm-run-all": "^4.1.5",
+    "optimize-css-assets-webpack-plugin": "^5.0.3",
+    "rimraf": "^3.0.0",
+    "sapper": "^0.27.11",
+    "sass-loader": "^8.0.0",
+    "svelte": "^3.0.0",
+    "svelte-color-picker": "^1.0.6",
+    "svelte-loader": "^2.9.0",
+    "url-loader": "^2.1.0",
+    "webpack": "^4.7.0"
+  }
+}
