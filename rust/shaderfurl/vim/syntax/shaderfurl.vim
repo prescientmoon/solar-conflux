@@ -4,7 +4,7 @@ endif
 
 syn clear
 
-syn keyword furlKeyword import module frag vert
+syn keyword furlKeyword import module where frag vert
 syn keyword furlKeyword return discard continue break if then elif else for do proc
 syn keyword furlKeyword struct attribute buffer uniform varying
 hi link furlKeyword Keyword
