@@ -6,7 +6,9 @@ use std::str::FromStr;
 use ariadne::{ColorGenerator, Label, Report};
 use enumset::{EnumSet, enum_set, enum_set_union};
 
-use crate::cst::{self, BinaryOperator, CondBranch, HasSpan, SeparatedStep, Token};
+use crate::cst::{
+	self, BinaryOperator, CondBranch, HasSpan, SeparatedStep, Token,
+};
 use crate::lexer::{self, FileId, Lexer, SourcePos, SourceSpan, TokenKind};
 
 // {{{ Error reporting macros
@@ -135,7 +137,11 @@ impl<'a> Parser<'a> {
 		mem::forget(key);
 	}
 
-	fn with_stopper<T>(&mut self, s: TokenSet, mut parser: impl FnMut(&mut Self) -> T) -> T {
+	fn with_stopper<T>(
+		&mut self,
+		s: TokenSet,
+		mut parser: impl FnMut(&mut Self) -> T,
+	) -> T {
 		let key = self.stop_on_push(s);
 		let result = parser(self);
 		self.stop_on_pop(key);
@@ -183,7 +189,10 @@ impl<'a> Parser<'a> {
 	// {{{ Error recovery building blocks
 	// TODO: allow passing in a flag / set of tokens which report indentation mismatches but keep
 	// reading. Useful for things like the "do" keyword for a for-loop.
-	fn expect_tolerant(&mut self, kinds: TokenSet) -> Option<Token<lexer::TokenKind>> {
+	fn expect_tolerant(
+		&mut self,
+		kinds: TokenSet,
+	) -> Option<Token<lexer::TokenKind>> {
 		loop {
 			let (ok, _) = self.check_indentation(false);
 			if !ok {
@@ -212,8 +221,11 @@ impl<'a> Parser<'a> {
 						}
 
 						// If we no longer have junk OR this is the end, report the error
-						if tok.kind != TokenKind::Junk || ix == trivia_range.1 - 1 {
-							let span = span_acc.as_ref().unwrap_or(&prev_span_acc);
+						if tok.kind != TokenKind::Junk
+							|| ix == trivia_range.1 - 1
+						{
+							let span =
+								span_acc.as_ref().unwrap_or(&prev_span_acc);
 							compact_report!(
 								(self, "JunkInput", span),
 								("Encountered junk input"),
@@ -227,7 +239,10 @@ impl<'a> Parser<'a> {
 
 				// Consume follow-up trivia
 				self.trivia_range_start = self.tokens.len();
-				while matches!(self.token.kind, TokenKind::Junk | TokenKind::Comment) {
+				while matches!(
+					self.token.kind,
+					TokenKind::Junk | TokenKind::Comment
+				) {
 					self.advance();
 				}
 
@@ -253,7 +268,10 @@ impl<'a> Parser<'a> {
 	}
 	// }}}
 	// {{{ Blocks
-	pub fn parse_block<T>(&mut self, mut parser: impl FnMut(&mut Self) -> Option<T>) -> Vec<T> {
+	pub fn parse_block<T>(
+		&mut self,
+		mut parser: impl FnMut(&mut Self) -> Option<T>,
+	) -> Vec<T> {
 		let (valid, col) = self.check_indentation(false);
 		if !valid {
 			return Vec::new();
@@ -284,7 +302,10 @@ impl<'a> Parser<'a> {
 		tok.set(source.to_string())
 	}
 
-	fn parse_integer_literal<I: FromStr>(&mut self, tok: &Token<TokenKind>) -> Option<I> {
+	fn parse_integer_literal<I: FromStr>(
+		&mut self,
+		tok: &Token<TokenKind>,
+	) -> Option<I> {
 		let source = self.lexer.source_span(&tok.span);
 		let result = str::parse(source).ok();
 		if let Some(result) = result {
@@ -302,7 +323,10 @@ impl<'a> Parser<'a> {
 
 	// {{{ Expression parsing
 	const ATOM_EXPR_MARKER: TokenSet = enum_set!(
-		TokenKind::Integer | TokenKind::Float | TokenKind::Identifier | TokenKind::LeftParen
+		TokenKind::Integer
+			| TokenKind::Float
+			| TokenKind::Identifier
+			| TokenKind::LeftParen
 	);
 
 	// Parses an atom expression
@@ -332,29 +356,40 @@ impl<'a> Parser<'a> {
 					Some(cst::Expr::Error(tok.set(())))
 				}
 			}
-			TokenKind::Identifier => Some(cst::Expr::Variable(self.embed_source(tok))),
+			TokenKind::Identifier => {
+				Some(cst::Expr::Variable(self.embed_source(tok)))
+			}
 			TokenKind::LeftParen => {
-				let inner =
-					self.with_stopper(TokenKind::RightParen.into(), |parser| parser.parse_expr());
+				let inner = self
+					.with_stopper(TokenKind::RightParen.into(), |parser| {
+						parser.parse_expr()
+					});
 
 				let close = self.expect_tolerant(TokenKind::RightParen.into());
 
 				if close.is_none() {
 					self.reports.push(
-						Report::build(ariadne::ReportKind::Error, tok.span_of())
-							.with_code("MissingClosingParenthesis")
-							.with_message("Expected )")
-							.with_labels(inner.as_ref().map(|i| {
-								Label::new(i.span_of())
-									.with_message("This is the expression being wrapped")
-									.with_order(0)
-							}))
-							.with_label(
-								Label::new(tok.span_of())
-									.with_message("This parenthesis is never closed")
-									.with_order(1),
-							)
-							.finish(),
+						Report::build(
+							ariadne::ReportKind::Error,
+							tok.span_of(),
+						)
+						.with_code("MissingClosingParenthesis")
+						.with_message("Expected )")
+						.with_labels(inner.as_ref().map(|i| {
+							Label::new(i.span_of())
+								.with_message(
+									"This is the expression being wrapped",
+								)
+								.with_order(0)
+						}))
+						.with_label(
+							Label::new(tok.span_of())
+								.with_message(
+									"This parenthesis is never closed",
+								)
+								.with_order(1),
+						)
+						.finish(),
 					);
 				}
 
@@ -380,12 +415,14 @@ impl<'a> Parser<'a> {
 		}
 	}
 
-	const PROP_EXPR_MARKER: TokenSet = enum_set!(Self::ATOM_EXPR_MARKER | TokenKind::Property);
+	const PROP_EXPR_MARKER: TokenSet =
+		enum_set!(Self::ATOM_EXPR_MARKER | TokenKind::Property);
 
 	fn parse_prop_access(&mut self) -> Option<cst::Expr> {
-		let mut expr = self.with_stopper(TokenKind::Property.into(), |parser| {
-			parser.parse_expr_atom()
-		});
+		let mut expr = self
+			.with_stopper(TokenKind::Property.into(), |parser| {
+				parser.parse_expr_atom()
+			});
 
 		loop {
 			let prop = self.expect_tolerant(TokenKind::Property.into());
@@ -432,16 +469,22 @@ impl<'a> Parser<'a> {
 		})
 	}
 
-	const UNARY_OP_MARKER: TokenSet =
-		enum_set!(TokenKind::Plus | TokenKind::Minus | TokenKind::Not | TokenKind::BitwiseNot);
-	const UNARY_EXPR_MARKER: TokenSet = enum_set!(Self::UNARY_OP_MARKER | Self::PROP_EXPR_MARKER);
+	const UNARY_OP_MARKER: TokenSet = enum_set!(
+		TokenKind::Plus
+			| TokenKind::Minus
+			| TokenKind::Not
+			| TokenKind::BitwiseNot
+	);
+	const UNARY_EXPR_MARKER: TokenSet =
+		enum_set!(Self::UNARY_OP_MARKER | Self::PROP_EXPR_MARKER);
 
 	fn parse_unary(&mut self) -> Option<cst::Expr> {
 		let mut ops = Vec::new();
 
 		self.with_stopper(Self::PROP_EXPR_MARKER, |parser| {
 			while let Some(op) = parser.expect_tolerant(Self::UNARY_OP_MARKER) {
-				let unary = cst::UnaryOperator::from_token_kind(op.value).unwrap();
+				let unary =
+					cst::UnaryOperator::from_token_kind(op.value).unwrap();
 				ops.push(op.set(unary));
 			}
 		});
@@ -514,7 +557,8 @@ impl<'a> Parser<'a> {
 			| TokenKind::Xor
 	);
 
-	const BIN_EXPR_MARKER: TokenSet = enum_set!(Self::BIN_OP_MARKERS | Self::UNARY_EXPR_MARKER);
+	const BIN_EXPR_MARKER: TokenSet =
+		enum_set!(Self::BIN_OP_MARKERS | Self::UNARY_EXPR_MARKER);
 
 	fn parse_binary(&mut self, lower_power_bound: usize) -> Option<cst::Expr> {
 		let mut marker = TokenSet::default();
@@ -530,7 +574,8 @@ impl<'a> Parser<'a> {
 
 			// The marker guarantees that we respect the given lower bound
 			while let Some(op_tok) = parser.expect_tolerant(marker) {
-				let bin_op = cst::BinaryOperator::from_token_kind(op_tok.value).unwrap();
+				let bin_op =
+					cst::BinaryOperator::from_token_kind(op_tok.value).unwrap();
 				let power = Self::BIN_OP_POWERS
 					.iter()
 					.find(|(k, _)| *k == op_tok.value)
@@ -570,7 +615,9 @@ impl<'a> Parser<'a> {
 	const TERNARY_EXPR_MARKER: TokenSet =
 		enum_set!(Self::TERNARY_OP_MARKER | Self::BIN_EXPR_MARKER);
 	fn parse_ternary(&mut self) -> Option<cst::Expr> {
-		let lhs = self.with_stopper(Self::TERNARY_OP_MARKER, |parser| parser.parse_binary(0));
+		let lhs = self.with_stopper(Self::TERNARY_OP_MARKER, |parser| {
+			parser.parse_binary(0)
+		});
 		let (qm, ihs) = self.with_stopper(TokenKind::Colon.into(), |parser| {
 			let qm = parser.expect_tolerant(TokenKind::QuestionMark.into());
 			let ihs = if qm.is_some() {
@@ -645,14 +692,17 @@ impl<'a> Parser<'a> {
 	}
 	// }}}
 	// {{{ Type parsing
-	const TYPE_MARKER: TokenSet =
-		enum_set!(TokenKind::LeftBracket | TokenKind::Identifier | TokenKind::Struct);
+	const TYPE_MARKER: TokenSet = enum_set!(
+		TokenKind::LeftBracket | TokenKind::Identifier | TokenKind::Struct
+	);
 
 	fn parse_type(&mut self) -> Option<cst::Type> {
 		let tok = self.expect_tolerant(Self::TYPE_MARKER)?;
 
 		match tok.value {
-			TokenKind::Identifier => Some(cst::Type::Named(self.embed_source(tok))),
+			TokenKind::Identifier => {
+				Some(cst::Type::Named(self.embed_source(tok)))
+			}
 			TokenKind::LeftBracket => {
 				let (dims, close) = self.with_stopper(Self::TYPE_MARKER, |parser| {
 					let dims = parser.with_stopper(TokenKind::RightBracket.into(), |parser| {
@@ -732,13 +782,16 @@ impl<'a> Parser<'a> {
 			}
 			TokenKind::Struct => {
 				let fields = self.parse_block(|parser| {
-					let name = parser
-						.with_stopper(Self::TYPE_MARKER | TokenKind::Colon, |parser| {
+					let name = parser.with_stopper(
+						Self::TYPE_MARKER | TokenKind::Colon,
+						|parser| {
 							parser.expect_tolerant(TokenKind::Identifier.into())
+						},
+					);
+					let colon =
+						parser.with_stopper(Self::TYPE_MARKER, |parser| {
+							parser.expect_tolerant(TokenKind::Colon.into())
 						});
-					let colon = parser.with_stopper(Self::TYPE_MARKER, |parser| {
-						parser.expect_tolerant(TokenKind::Colon.into())
-					});
 					let ty = parser.parse_type();
 
 					if name.is_none() && colon.is_none() && ty.is_none() {
@@ -812,11 +865,13 @@ impl<'a> Parser<'a> {
 	);
 
 	pub fn parse_statement(&mut self) -> Option<cst::Statement> {
-		let non_expr_marker_key = self.stop_on_push(Self::NON_EXPR_STATEMENT_MARKER);
+		let non_expr_marker_key =
+			self.stop_on_push(Self::NON_EXPR_STATEMENT_MARKER);
 
-		let expr = self.with_stopper(TokenKind::Colon | Self::ASSIGNMENT_MARKER, |parser| {
-			parser.parse_expr()
-		});
+		let expr = self.with_stopper(
+			TokenKind::Colon | Self::ASSIGNMENT_MARKER,
+			|parser| parser.parse_expr(),
+		);
 
 		let result = if let Some(op_tok) =
 			self.expect_tolerant(TokenKind::Colon | Self::ASSIGNMENT_MARKER)
@@ -831,27 +886,33 @@ impl<'a> Parser<'a> {
 					// vecs of arbitrary length.
 					if !matches!(&expr, Some(cst::Expr::Variable(name))) {
 						self.reports.push(
-							Report::build(ariadne::ReportKind::Error, op_tok.span_of())
-								.with_code("InvalidDeclarationName")
-								.with_message(
-									"Expected name on the left hand side of a declaration",
-								)
-								.with_label(
-									Label::new(op_tok.span_of())
-										.with_message("I was expecting a name before this :"),
-								)
-								.finish(),
+							Report::build(
+								ariadne::ReportKind::Error,
+								op_tok.span_of(),
+							)
+							.with_code("InvalidDeclarationName")
+							.with_message(
+								"Expected name on the left hand side of a declaration",
+							)
+							.with_label(
+								Label::new(op_tok.span_of()).with_message(
+									"I was expecting a name before this :",
+								),
+							)
+							.finish(),
 						)
 					}
 
-					let ty = self
-						.with_stopper(TokenKind::SingleEqual | Self::EXPR_MARKER, |parser| {
-							parser.parse_type()
-						});
+					let ty = self.with_stopper(
+						TokenKind::SingleEqual | Self::EXPR_MARKER,
+						|parser| parser.parse_type(),
+					);
 
-					let eq_tok = self.with_stopper(Self::EXPR_MARKER, |parser| {
-						parser.expect_tolerant(TokenKind::SingleEqual.into())
-					});
+					let eq_tok =
+						self.with_stopper(Self::EXPR_MARKER, |parser| {
+							parser
+								.expect_tolerant(TokenKind::SingleEqual.into())
+						});
 
 					let rhs = self.parse_expr();
 					if eq_tok.is_some() && rhs.is_none() {
@@ -862,9 +923,11 @@ impl<'a> Parser<'a> {
 							)
 							.with_code("MissingExpression")
 							.with_message("Declaration has no right hand side")
-							.with_label(Label::new(op_tok.span_of()).with_message(
-								"I was expecting an expression after this declaration",
-							))
+							.with_label(
+								Label::new(op_tok.span_of()).with_message(
+									"I was expecting an expression after this declaration",
+								),
+							)
 							.finish(),
 						);
 					}
@@ -882,7 +945,9 @@ impl<'a> Parser<'a> {
 						TokenKind::SingleEqual => None,
 						TokenKind::PlusEqual => Some(BinaryOperator::Plus),
 						TokenKind::MinusEqual => Some(BinaryOperator::Minus),
-						TokenKind::MultiplyEqual => Some(BinaryOperator::Multiply),
+						TokenKind::MultiplyEqual => {
+							Some(BinaryOperator::Multiply)
+						}
 						TokenKind::DivideEqual => Some(BinaryOperator::Divide),
 						_ => unreachable!(),
 					};
@@ -904,7 +969,11 @@ impl<'a> Parser<'a> {
 						);
 					}
 
-					Some(cst::Statement::Assignment(expr, op_tok.set(bin_op), rhs))
+					Some(cst::Statement::Assignment(
+						expr,
+						op_tok.set(bin_op),
+						rhs,
+					))
 				}
 			}
 		} else {
@@ -933,14 +1002,16 @@ impl<'a> Parser<'a> {
 					};
 
 					for i in 0..3 {
-						let statement = parser
-							.with_stopper(TokenKind::Semicolon.into(), |parser| {
-								parser.parse_statement()
-							});
+						let statement = parser.with_stopper(
+							TokenKind::Semicolon.into(),
+							|parser| parser.parse_statement(),
+						);
 
 						let statement_span = statement.try_span_of();
 						if let Some(statement) = statement {
-							steps.elements.push(cst::SeparatedStep::Element(statement));
+							steps
+								.elements
+								.push(cst::SeparatedStep::Element(statement));
 						}
 
 						// No semicolon required at the end!
@@ -948,14 +1019,19 @@ impl<'a> Parser<'a> {
 							break;
 						}
 
-						let semicolon = parser.with_stopper(Self::STATEMENT_MARKER, |parser| {
-							parser.expect_tolerant(TokenKind::Semicolon.into())
-						});
+						let semicolon = parser.with_stopper(
+							Self::STATEMENT_MARKER,
+							|parser| {
+								parser.expect_tolerant(
+									TokenKind::Semicolon.into(),
+								)
+							},
+						);
 
 						if let Some(semicolon) = semicolon {
-							steps
-								.elements
-								.push(cst::SeparatedStep::Separator(semicolon.set(())));
+							steps.elements.push(cst::SeparatedStep::Separator(
+								semicolon.set(()),
+							));
 						} else if let Some(span) = statement_span {
 							compact_report!(
 								(parser, "MissingSemicolon", span),
@@ -964,7 +1040,11 @@ impl<'a> Parser<'a> {
 							);
 						} else {
 							compact_report!(
-								(parser, "MissingForSteps", (&tok.span, &steps)),
+								(
+									parser,
+									"MissingForSteps",
+									(&tok.span, &steps)
+								),
 								("For-loop header contains less than three statements"),
 								("I was expecting three semicolon-separated statements here"),
 							);
@@ -1026,10 +1106,12 @@ impl<'a> Parser<'a> {
 							TokenKind::Then | TokenKind::Elif | TokenKind::Else,
 							|parser| parser.parse_expr(),
 						);
-						let tok_then = self
-							.with_stopper(TokenKind::Elif | TokenKind::Else, |parser| {
+						let tok_then = self.with_stopper(
+							TokenKind::Elif | TokenKind::Else,
+							|parser| {
 								parser.expect_tolerant(TokenKind::Then.into())
-							});
+							},
+						);
 						(cond, tok_then)
 					};
 
@@ -1050,14 +1132,18 @@ impl<'a> Parser<'a> {
 
 						None
 					} else {
-						let result = self
-							.with_stopper(TokenKind::Elif | TokenKind::Else, |parser| {
-								parser.parse_statement_block()
-							});
+						let result = self.with_stopper(
+							TokenKind::Elif | TokenKind::Else,
+							|parser| parser.parse_statement_block(),
+						);
 
 						if result.statements.is_empty() {
 							compact_report!(
-								(self, "EmptyBlock", (&leading, &cond, &tok_then)),
+								(
+									self,
+									"EmptyBlock",
+									(&leading, &cond, &tok_then)
+								),
 								("Encountered empty conditional branch body"),
 								("This branch has no body"),
 							);
@@ -1090,16 +1176,20 @@ impl<'a> Parser<'a> {
 	}
 	// }}}
 	// {{{ Module parsing
-	const MODULE_ENTRY_MARKER: TokenSet =
-		enum_set!(TokenKind::Import | TokenKind::Module | TokenKind::Identifier);
+	const MODULE_ENTRY_MARKER: TokenSet = enum_set!(
+		TokenKind::Import
+			| TokenKind::Module
+			| TokenKind::Identifier
+			| TokenKind::Property
+	);
 
 	fn parse_module_entry(&mut self) -> Option<cst::ModuleEntry> {
 		let tok = self.expect_tolerant(Self::MODULE_ENTRY_MARKER)?;
 
 		match tok.value {
 			TokenKind::Import => {
-				let path = self.expect_tolerant(TokenKind::String.into());
-				if path.is_none() {
+				let path = self.parse_qualified_name();
+				if path.0.is_empty() {
 					compact_report!(
 						(self, "MissingPath", &tok),
 						("Missing import path"),
@@ -1109,47 +1199,79 @@ impl<'a> Parser<'a> {
 
 				Some(cst::ModuleEntry::Import(cst::ImportStatement {
 					import: tok.set(()),
-					path: path.map(|tok| self.embed_source(tok)),
+					path: if path.0.is_empty() { None } else { Some(path) },
 				}))
 			}
 			TokenKind::Module => {
-				let name = self.with_stopper(Self::MODULE_ENTRY_MARKER, |parser| {
-					parser.expect_tolerant(TokenKind::String.into())
-				});
+				let path = self.with_stopper(
+					Self::MODULE_ENTRY_MARKER | TokenKind::Where,
+					|parser| parser.parse_qualified_name(),
+				);
 
-				if name.is_none() {
+				if path.0.is_empty() {
 					compact_report!(
-						(self, "MissingName", &tok),
+						(self, "MissingModuleName", &tok),
 						("Missing module name"),
 						("I was expecting a name for this nested module"),
 					);
 				}
 
-				let entries = self.parse_block(|parser| parser.parse_module_entry());
+				let where_ = self
+					.with_stopper(Self::MODULE_ENTRY_MARKER, |parser| {
+						parser.expect_tolerant(TokenKind::Where.into())
+					});
+
+				if !path.0.is_empty() && where_.is_none() {
+					compact_report!(
+						(self, "MissingWhere", &path),
+						("Missing 'where' keyword"),
+						("I was expecting the 'where' keyword after this module path"),
+					);
+				}
+
+				let entries =
+					self.parse_block(|parser| parser.parse_module_entry());
 
 				Some(cst::ModuleEntry::Module(cst::NestedModule {
 					module: tok.set(()),
-					name: name.map(|tok| self.embed_source(tok)),
+					name: if path.0.is_empty() { None } else { Some(path) },
+					where_: where_.map(|tok| tok.set(())),
 					entries,
 				}))
 			}
-			TokenKind::Identifier => {
+			TokenKind::Identifier | TokenKind::Property => {
+				let mut path = self.with_stopper(
+					TokenKind::Colon | Self::DECL_VALUE_MARKER,
+					|parser| {
+						parser
+							.continue_parsing_qualified_name(vec![tok.clone()])
+					},
+				);
+
 				let (first_colon, ty, second_colon) =
 					self.with_stopper(Self::DECL_VALUE_MARKER, |parser| {
-						let first_colon = parser.expect_tolerant(TokenKind::Colon.into());
+						let first_colon =
+							parser.expect_tolerant(TokenKind::Colon.into());
 						let ty = parser
-							.with_stopper(TokenKind::Colon.into(), |parser| parser.parse_type());
-						let second_colon = parser.expect_tolerant(TokenKind::Colon.into());
+							.with_stopper(TokenKind::Colon.into(), |parser| {
+								parser.parse_type()
+							});
+						let second_colon =
+							parser.expect_tolerant(TokenKind::Colon.into());
 
 						if first_colon.is_none() {
 							compact_report!(
-								(parser, "MisingColon", &tok),
+								(parser, "MisingColon", &path),
 								("Declaration names must be followed by colons"),
 								("I was expecting a colon here"),
 							);
 						} else if second_colon.is_none() {
 							compact_report!(
-								(parser, "MisingColon", (&tok, &first_colon, &ty)),
+								(
+									parser,
+									"MisingColon",
+									(&path, &first_colon, &ty)
+								),
 								("Declaration values must be preceded by a colon"),
 								("I was expecting a second colon here"),
 							);
@@ -1164,15 +1286,47 @@ impl<'a> Parser<'a> {
 						(
 							self,
 							"MissingValue",
-							(&tok, &first_colon, &ty, &second_colon)
+							(&path, &first_colon, &ty, &second_colon)
 						),
 						("Module declarations must contain a concrete value"),
 						("I was expecting a value here"),
 					);
 				}
 
+				match value {
+					Some(
+						cst::DeclValue::Varying(_)
+						| cst::DeclValue::Attribute(_)
+						| cst::DeclValue::Uniform(_)
+						| cst::DeclValue::Buffer(_)
+						| cst::DeclValue::UniformBuffer(_),
+					) if ty.is_none() => compact_report!(
+						(
+							self,
+							"MissingType",
+							(&path, &first_colon, &ty, &second_colon)
+						),
+						("Encountered untyped declaration"),
+						("I was expecting a type annotation for this declaration"),
+					),
+					Some(cst::DeclValue::Type(_) | cst::DeclValue::Proc(_))
+						if ty.is_some() =>
+					{
+						compact_report!(
+							(
+								self,
+								"UnexpectedType",
+								(&path, &first_colon, &ty, &second_colon)
+							),
+							("Encountered over-typed declaration"),
+							("I was not expecting a type annotation for this declaration"),
+						)
+					}
+					_ => {}
+				};
+
 				Some(cst::ModuleEntry::Declaration(cst::Declaration {
-					name: self.embed_source(tok),
+					name: path,
 					first_colon: first_colon.map(|t| t.set(())),
 					ty,
 					second_colon: second_colon.map(|t| t.set(())),
@@ -1181,6 +1335,50 @@ impl<'a> Parser<'a> {
 			}
 			_ => unreachable!(),
 		}
+	}
+
+	fn parse_qualified_name(&mut self) -> cst::QualifiedName {
+		self.continue_parsing_qualified_name(Vec::new())
+	}
+
+	fn continue_parsing_qualified_name(
+		&mut self,
+		mut toks: Vec<Token<TokenKind>>,
+	) -> cst::QualifiedName {
+		while let Some(tok) =
+			self.expect_tolerant(TokenKind::Identifier | TokenKind::Property)
+		{
+			toks.push(tok)
+		}
+
+		let mut out = cst::QualifiedName::default();
+		for tok in toks {
+			let kind = tok.value;
+
+			if out.0.is_empty() && kind == TokenKind::Property {
+				compact_report!(
+					(self, "UnexpectedDot", &tok),
+					("Qualified path started with dot"),
+					("I was expecting this path to start without a dot"),
+				);
+			} else if !out.0.is_empty() && kind == TokenKind::Identifier {
+				compact_report!(
+					(self, "MissingDot", &tok),
+					("Qualified path is missing dot"),
+					("I was expecting a dot before this path section"),
+				);
+			}
+
+			let source = self.lexer.source_span(&tok.span);
+
+			out.0.push(tok.set(match kind {
+				TokenKind::Identifier => source.to_string(),
+				TokenKind::Property => source[1..].to_string(),
+				_ => unreachable!(),
+			}));
+		}
+
+		out
 	}
 
 	const NON_TYPE_DECL_VALUE_MARKER: TokenSet = enum_set!(
@@ -1200,17 +1398,24 @@ impl<'a> Parser<'a> {
 			parser.expect_tolerant(Self::NON_TYPE_DECL_VALUE_MARKER)
 		}) {
 			match tok.value {
-				TokenKind::Varying => Some(cst::DeclValue::Varying(tok.set(()))),
-				TokenKind::Attribute => Some(cst::DeclValue::Attribute(tok.set(()))),
+				TokenKind::Varying => {
+					Some(cst::DeclValue::Varying(tok.set(())))
+				}
+				TokenKind::Attribute => {
+					Some(cst::DeclValue::Attribute(tok.set(())))
+				}
 				TokenKind::Buffer => Some(cst::DeclValue::Buffer(tok.set(()))),
 				TokenKind::Uniform => {
-					if self.expect_tolerant(TokenKind::Buffer.into()).is_some() {
+					if self.expect_tolerant(TokenKind::Buffer.into()).is_some()
+					{
 						Some(cst::DeclValue::UniformBuffer(tok.set(())))
 					} else {
 						Some(cst::DeclValue::Uniform(tok.set(())))
 					}
 				}
-				TokenKind::Identifier => Some(cst::DeclValue::Alias(self.embed_source(tok))),
+				TokenKind::Identifier => {
+					Some(cst::DeclValue::Alias(self.embed_source(tok)))
+				}
 				TokenKind::Proc => {
 					let args = if let Some(args_open) =
 						self.expect_tolerant(TokenKind::LeftParen.into())
@@ -1275,9 +1480,14 @@ impl<'a> Parser<'a> {
 								break;
 							}
 						});
-						let args_close = self.with_stopper(TokenKind::Arrow.into(), |parser| {
-							parser.expect_tolerant(TokenKind::RightParen.into())
-						});
+						let args_close = self.with_stopper(
+							TokenKind::Arrow.into(),
+							|parser| {
+								parser.expect_tolerant(
+									TokenKind::RightParen.into(),
+								)
+							},
+						);
 
 						// Detect bad separator orders
 						for i in 0..elements.len().saturating_sub(1) {
@@ -1307,15 +1517,17 @@ impl<'a> Parser<'a> {
 						None
 					};
 
-					let ret_arrow = self
-						.with_stopper(Self::STATEMENT_MARKER | TokenKind::String, |parser| {
+					let ret_arrow = self.with_stopper(
+						Self::STATEMENT_MARKER | TokenKind::String,
+						|parser| {
 							parser.expect_tolerant(TokenKind::Arrow.into())
-						});
+						},
+					);
 					let ret_type = if ret_arrow.is_some() {
-						let ty = self
-							.with_stopper(Self::STATEMENT_MARKER | TokenKind::String, |parser| {
-								parser.parse_type()
-							});
+						let ty = self.with_stopper(
+							Self::STATEMENT_MARKER | TokenKind::String,
+							|parser| parser.parse_type(),
+						);
 						if ty.is_none() {
 							compact_report!(
 								(self, "MissingType", &ret_arrow),
@@ -1328,9 +1540,10 @@ impl<'a> Parser<'a> {
 						None
 					};
 
-					let native_name = self.with_stopper(Self::STATEMENT_MARKER, |parser| {
-						parser.expect_tolerant(TokenKind::String.into())
-					});
+					let native_name =
+						self.with_stopper(Self::STATEMENT_MARKER, |parser| {
+							parser.expect_tolerant(TokenKind::String.into())
+						});
 					let body = if let Some(name) = native_name {
 						cst::ProcBody::Native(self.embed_source(name))
 					} else {
@@ -1338,7 +1551,11 @@ impl<'a> Parser<'a> {
 
 						if body.statements.is_empty() {
 							compact_report!(
-								(self, "EmptyProcBody", (&tok, &args, &ret_arrow, &ret_type)),
+								(
+									self,
+									"EmptyProcBody",
+									(&tok, &args, &ret_arrow, &ret_type)
+								),
 								("Empty procedure body"),
 								("I was expecting at least one statement inside this procedure"),
 							);
