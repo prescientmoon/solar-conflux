@@ -78,7 +78,10 @@ impl SourceSpan {
 		Self::new(self.path.clone(), start, end - start.index)
 	}
 
-	pub fn merge_options(first: Option<Self>, second: Option<Self>) -> Option<Self> {
+	pub fn merge_options(
+		first: Option<Self>,
+		second: Option<Self>,
+	) -> Option<Self> {
 		match (first, second) {
 			(None, None) => None,
 			(Some(a), None) => Some(a),
@@ -127,6 +130,7 @@ pub enum TokenKind {
 	Elif,
 	For,
 	Do,
+	Where,
 
 	// Punctuation
 	Colon,          // :
@@ -276,24 +280,25 @@ impl<'a> Lexer<'a> {
 				tok.kind = TokenKind::Identifier;
 
 				match lit {
-					"module" => tok.kind = TokenKind::Module,
+					"attribute" => tok.kind = TokenKind::Attribute,
+					"break" => tok.kind = TokenKind::Break,
+					"buffer" => tok.kind = TokenKind::Buffer,
+					"continue" => tok.kind = TokenKind::Continue,
+					"discard" => tok.kind = TokenKind::Discard,
+					"do" => tok.kind = TokenKind::Do,
+					"elif" => tok.kind = TokenKind::Elif,
+					"else" => tok.kind = TokenKind::Else,
+					"for" => tok.kind = TokenKind::For,
+					"if" => tok.kind = TokenKind::If,
 					"import" => tok.kind = TokenKind::Import,
+					"module" => tok.kind = TokenKind::Module,
 					"proc" => tok.kind = TokenKind::Proc,
 					"return" => tok.kind = TokenKind::Return,
-					"discard" => tok.kind = TokenKind::Discard,
-					"continue" => tok.kind = TokenKind::Continue,
-					"break" => tok.kind = TokenKind::Break,
 					"struct" => tok.kind = TokenKind::Struct,
-					"uniform" => tok.kind = TokenKind::Uniform,
-					"attribute" => tok.kind = TokenKind::Attribute,
-					"varying" => tok.kind = TokenKind::Varying,
-					"buffer" => tok.kind = TokenKind::Buffer,
-					"if" => tok.kind = TokenKind::If,
 					"then" => tok.kind = TokenKind::Then,
-					"else" => tok.kind = TokenKind::Else,
-					"elif" => tok.kind = TokenKind::Elif,
-					"for" => tok.kind = TokenKind::For,
-					"do" => tok.kind = TokenKind::Do,
+					"uniform" => tok.kind = TokenKind::Uniform,
+					"varying" => tok.kind = TokenKind::Varying,
+					"where" => tok.kind = TokenKind::Where,
 					_ => {}
 				}
 			}
@@ -344,7 +349,9 @@ impl<'a> Lexer<'a> {
 				}
 
 				// Strip CR from line comments
-				while self.source[self.pos.index - end_offset - 1..].starts_with('\r') {
+				while self.source[self.pos.index - end_offset - 1..]
+					.starts_with('\r')
+				{
 					end_offset += 1
 				}
 
@@ -422,7 +429,10 @@ impl<'a> Lexer<'a> {
 
 					// Junk! (eat it all 😋)
 					_ => {
-						while !matches!(self.curr, ' ' | '\r' | '\t' | '\n' | '\0') {
+						while !matches!(
+							self.curr,
+							' ' | '\r' | '\t' | '\n' | '\0'
+						) {
 							self.advance();
 						}
 

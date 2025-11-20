@@ -34,6 +34,12 @@ pub struct Separated<T> {
 	pub elements: Vec<SeparatedStep<T>>,
 }
 
+impl<T> Separated<T> {
+	pub fn iter(&self) -> impl Iterator<Item = &T> {
+		self.elements.iter().filter_map(|s| s.as_element())
+	}
+}
+
 #[derive(Debug, Clone)]
 pub enum SeparatedStep<T> {
 	Separator(Token),
@@ -47,7 +53,17 @@ impl<T> SeparatedStep<T> {
 			Self::Element(_) => false,
 		}
 	}
+
+	pub fn as_element(&self) -> Option<&T> {
+		match self {
+			Self::Separator(_) => None,
+			Self::Element(e) => Some(e),
+		}
+	}
 }
+
+#[derive(Debug, Clone, Default)]
+pub struct QualifiedName(pub Vec<Token<String>>);
 // }}}
 // {{{ Modules
 #[derive(Debug, Clone)]
@@ -72,19 +88,20 @@ pub enum ModuleEntry {
 #[derive(Debug, Clone)]
 pub struct ImportStatement {
 	pub import: Token,
-	pub path: Option<Token<String>>,
+	pub path: Option<QualifiedName>,
 }
 
 #[derive(Debug, Clone)]
 pub struct NestedModule {
 	pub module: Token,
-	pub name: Option<Token<String>>,
+	pub name: Option<QualifiedName>,
+	pub where_: Option<Token>,
 	pub entries: Vec<ModuleEntry>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Declaration {
-	pub name: Token<String>,
+	pub name: QualifiedName,
 	pub first_colon: Option<Token>,
 	pub ty: Option<Type>,
 	pub second_colon: Option<Token>,
@@ -444,7 +461,7 @@ impl std::fmt::Display for Expr {
 }
 // }}}
 
-// // {{{ The HasSpan trait
+// {{{ The HasSpan trait
 pub trait HasSpan {
 	fn try_span_of(&self) -> Option<SourceSpan>;
 	fn span_of(&self) -> SourceSpan {
@@ -515,7 +532,10 @@ impl<T: HasSpan> HasSpan for Delimited<T> {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		SourceSpan::merge_options(
 			self.open.try_span_of(),
-			SourceSpan::merge_options(self.inner.try_span_of(), self.close.try_span_of()),
+			SourceSpan::merge_options(
+				self.inner.try_span_of(),
+				self.close.try_span_of(),
+			),
 		)
 	}
 }
@@ -526,24 +546,41 @@ impl HasSpan for Expr {
 			Expr::Int(token) => token.try_span_of(),
 			Expr::Float(token) => token.try_span_of(),
 			Expr::Variable(token) => token.try_span_of(),
-			Expr::Property(expr, token) => {
-				SourceSpan::merge_options(expr.try_span_of(), token.try_span_of())
-			}
-			Expr::Call(f, args) => SourceSpan::merge_options(f.try_span_of(), args.try_span_of()),
-			Expr::Unary(unary_operator, expr) => {
-				SourceSpan::merge_options(unary_operator.try_span_of(), expr.try_span_of())
-			}
-			Expr::Binary(lhs, binary_operator, rhs) => SourceSpan::merge_options(
-				SourceSpan::merge_options(lhs.try_span_of(), binary_operator.try_span_of()),
-				rhs.try_span_of(),
+			Expr::Property(expr, token) => SourceSpan::merge_options(
+				expr.try_span_of(),
+				token.try_span_of(),
 			),
-			Expr::Ternary(lhs, qm, ihs, colon, rhs) => SourceSpan::merge_options(
+			Expr::Call(f, args) => {
+				SourceSpan::merge_options(f.try_span_of(), args.try_span_of())
+			}
+			Expr::Unary(unary_operator, expr) => SourceSpan::merge_options(
+				unary_operator.try_span_of(),
+				expr.try_span_of(),
+			),
+			Expr::Binary(lhs, binary_operator, rhs) => {
 				SourceSpan::merge_options(
-					SourceSpan::merge_options(lhs.try_span_of(), qm.try_span_of()),
-					SourceSpan::merge_options(ihs.try_span_of(), colon.try_span_of()),
-				),
-				rhs.try_span_of(),
-			),
+					SourceSpan::merge_options(
+						lhs.try_span_of(),
+						binary_operator.try_span_of(),
+					),
+					rhs.try_span_of(),
+				)
+			}
+			Expr::Ternary(lhs, qm, ihs, colon, rhs) => {
+				SourceSpan::merge_options(
+					SourceSpan::merge_options(
+						SourceSpan::merge_options(
+							lhs.try_span_of(),
+							qm.try_span_of(),
+						),
+						SourceSpan::merge_options(
+							ihs.try_span_of(),
+							colon.try_span_of(),
+						),
+					),
+					rhs.try_span_of(),
+				)
+			}
 			Expr::Wrapped(delimited) => delimited.try_span_of(),
 			Expr::Error(i) => i.try_span_of(),
 		}
@@ -554,7 +591,9 @@ impl HasSpan for Statement {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		match self {
 			Statement::Expression(expr) => expr.try_span_of(),
-			Statement::Assignment(lhs, eq, rhs) => (&lhs, &eq, &rhs).try_span_of(),
+			Statement::Assignment(lhs, eq, rhs) => {
+				(&lhs, &eq, &rhs).try_span_of()
+			}
 			Statement::Declaration(decl) => decl.try_span_of(),
 			Statement::If(if_) => if_.try_span_of(),
 			Statement::For(for_) => for_.try_span_of(),
@@ -570,8 +609,14 @@ impl HasSpan for LocalDeclaration {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		SourceSpan::merge_options(
 			SourceSpan::merge_options(
-				SourceSpan::merge_options(self.variable.try_span_of(), self.colon.try_span_of()),
-				SourceSpan::merge_options(self.ty.try_span_of(), self.equals.try_span_of()),
+				SourceSpan::merge_options(
+					self.variable.try_span_of(),
+					self.colon.try_span_of(),
+				),
+				SourceSpan::merge_options(
+					self.ty.try_span_of(),
+					self.equals.try_span_of(),
+				),
 			),
 			self.value.try_span_of(),
 		)
@@ -593,8 +638,14 @@ impl HasSpan for StatementBlock {
 impl HasSpan for CondBranch {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		SourceSpan::merge_options(
-			SourceSpan::merge_options(self.tok_leading.try_span_of(), self.condition.try_span_of()),
-			SourceSpan::merge_options(self.tok_then.try_span_of(), self.block.try_span_of()),
+			SourceSpan::merge_options(
+				self.tok_leading.try_span_of(),
+				self.condition.try_span_of(),
+			),
+			SourceSpan::merge_options(
+				self.tok_then.try_span_of(),
+				self.block.try_span_of(),
+			),
 		)
 	}
 }
@@ -602,8 +653,14 @@ impl HasSpan for CondBranch {
 impl HasSpan for For {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		SourceSpan::merge_options(
-			SourceSpan::merge_options(self.tok_for.try_span_of(), self.steps.try_span_of()),
-			SourceSpan::merge_options(self.tok_do.try_span_of(), self.block.try_span_of()),
+			SourceSpan::merge_options(
+				self.tok_for.try_span_of(),
+				self.steps.try_span_of(),
+			),
+			SourceSpan::merge_options(
+				self.tok_do.try_span_of(),
+				self.block.try_span_of(),
+			),
 		)
 	}
 }
@@ -648,6 +705,12 @@ impl HasSpan for ProcArg {
 	}
 }
 
+impl HasSpan for QualifiedName {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		self.0.try_span_of()
+	}
+}
+
 impl<A: HasSpan, B: HasSpan> HasSpan for (A, B) {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		SourceSpan::merge_options(self.0.try_span_of(), self.1.try_span_of())
@@ -666,9 +729,17 @@ impl<A: HasSpan, B: HasSpan, C: HasSpan, D: HasSpan> HasSpan for (A, B, C, D) {
 	}
 }
 
+impl<A: HasSpan, B: HasSpan, C: HasSpan, D: HasSpan, E: HasSpan> HasSpan
+	for (A, B, C, D, E)
+{
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		((&self.0, &self.1), (&self.2, &self.3), &self.4).try_span_of()
+	}
+}
+
 impl<A: HasSpan> HasSpan for &A {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		(*self).try_span_of()
 	}
 }
-// // }}}
+// }}}
