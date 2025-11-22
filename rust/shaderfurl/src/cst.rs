@@ -63,7 +63,7 @@ impl<T> SeparatedStep<T> {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct QualifiedName(pub Vec<Token<String>>);
+pub struct QualifiedName(pub Box<[Token<String>]>);
 // }}}
 // {{{ Modules
 #[derive(Debug, Clone)]
@@ -108,16 +108,21 @@ pub struct Declaration {
 	pub value: Option<DeclValue>,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum ExternalValue {
+	Uniform,
+	Attribute,
+	Varying,
+	UniformBuffer, // UBO
+	Buffer,        // SSBO
+}
+
 #[derive(Debug, Clone)]
 pub enum DeclValue {
 	Proc(Proc),
 	Type(Type),
-	Alias(Token<String>), // We don't yet know what this is aliasing to!
-	Varying(Token),
-	Attribute(Token),
-	Uniform(Token),
-	UniformBuffer(Token), // UBO
-	Buffer(Token),        // SSBO
+	Alias(QualifiedName), // We don't yet know what this is aliasing to!
+	External(Token<ExternalValue>),
 }
 // }}}
 // {{{ Procs
@@ -147,7 +152,7 @@ pub enum ProcBody {
 // {{{ Statements
 #[derive(Debug, Clone, Default)]
 pub struct StatementBlock {
-	pub statements: Vec<Statement>,
+	pub statements: Box<[Statement]>,
 }
 
 #[derive(Debug, Clone)]
@@ -202,7 +207,7 @@ pub enum Expr {
 	Float(Token<f64>),
 	Variable(Token<String>),
 	Property(Option<Box<Expr>>, Token<String>),
-	Call(Box<Expr>, Vec<Expr>),
+	Call(Box<Expr>, Box<[Expr]>),
 	Unary(Token<UnaryOperator>, Option<Box<Expr>>),
 	Binary(Option<Box<Expr>>, Token<BinaryOperator>, Option<Box<Expr>>),
 	Ternary(
@@ -488,6 +493,18 @@ impl<T: HasSpan> HasSpan for Box<T> {
 }
 
 impl<T: HasSpan> HasSpan for Vec<T> {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		let mut result = None;
+
+		for s in self {
+			result = SourceSpan::merge_options(result, s.try_span_of());
+		}
+
+		result
+	}
+}
+
+impl<T: HasSpan> HasSpan for Box<[T]> {
 	fn try_span_of(&self) -> Option<SourceSpan> {
 		let mut result = None;
 
