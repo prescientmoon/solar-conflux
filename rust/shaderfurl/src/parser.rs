@@ -461,7 +461,10 @@ impl<'a> Parser<'a> {
 				if args.is_empty() {
 					Some(base)
 				} else {
-					Some(cst::Expr::Call(Box::new(base), args))
+					Some(cst::Expr::Call(
+						Box::new(base),
+						args.into_boxed_slice(),
+					))
 				}
 			} else {
 				None
@@ -1171,7 +1174,9 @@ impl<'a> Parser<'a> {
 	}
 
 	pub fn parse_statement_block(&mut self) -> cst::StatementBlock {
-		let statements = self.parse_block(|parser| parser.parse_statement());
+		let statements = self
+			.parse_block(|parser| parser.parse_statement())
+			.into_boxed_slice();
 		cst::StatementBlock { statements }
 	}
 	// }}}
@@ -1294,24 +1299,23 @@ impl<'a> Parser<'a> {
 				}
 
 				match value {
+					Some(cst::DeclValue::External(_)) if ty.is_none() => {
+						compact_report!(
+							(
+								self,
+								"MissingType",
+								(&path, &first_colon, &ty, &second_colon)
+							),
+							("Encountered untyped declaration"),
+							("I was expecting a type annotation for this declaration"),
+						)
+					}
 					Some(
-						cst::DeclValue::Varying(_)
-						| cst::DeclValue::Attribute(_)
-						| cst::DeclValue::Uniform(_)
-						| cst::DeclValue::Buffer(_)
-						| cst::DeclValue::UniformBuffer(_),
-					) if ty.is_none() => compact_report!(
-						(
-							self,
-							"MissingType",
-							(&path, &first_colon, &ty, &second_colon)
-						),
-						("Encountered untyped declaration"),
-						("I was expecting a type annotation for this declaration"),
-					),
-					Some(cst::DeclValue::Type(_) | cst::DeclValue::Proc(_))
-						if ty.is_some() =>
-					{
+						cst::DeclValue::Type(_)
+						| cst::DeclValue::Proc(_)
+						| cst::DeclValue::Type(_)
+						| cst::DeclValue::Alias(_),
+					) if ty.is_some() => {
 						compact_report!(
 							(
 								self,
@@ -1351,17 +1355,17 @@ impl<'a> Parser<'a> {
 			toks.push(tok)
 		}
 
-		let mut out = cst::QualifiedName::default();
+		let mut out = Vec::new();
 		for tok in toks {
 			let kind = tok.value;
 
-			if out.0.is_empty() && kind == TokenKind::Property {
+			if out.is_empty() && kind == TokenKind::Property {
 				compact_report!(
 					(self, "UnexpectedDot", &tok),
 					("Qualified path started with dot"),
 					("I was expecting this path to start without a dot"),
 				);
-			} else if !out.0.is_empty() && kind == TokenKind::Identifier {
+			} else if !out.is_empty() && kind == TokenKind::Identifier {
 				compact_report!(
 					(self, "MissingDot", &tok),
 					("Qualified path is missing dot"),
@@ -1371,14 +1375,14 @@ impl<'a> Parser<'a> {
 
 			let source = self.lexer.source_span(&tok.span);
 
-			out.0.push(tok.set(match kind {
+			out.push(tok.set(match kind {
 				TokenKind::Identifier => source.to_string(),
 				TokenKind::Property => source[1..].to_string(),
 				_ => unreachable!(),
 			}));
 		}
 
-		out
+		cst::QualifiedName(out.into_boxed_slice())
 	}
 
 	const NON_TYPE_DECL_VALUE_MARKER: TokenSet = enum_set!(
@@ -1398,23 +1402,30 @@ impl<'a> Parser<'a> {
 			parser.expect_tolerant(Self::NON_TYPE_DECL_VALUE_MARKER)
 		}) {
 			match tok.value {
-				TokenKind::Varying => {
-					Some(cst::DeclValue::Varying(tok.set(())))
-				}
-				TokenKind::Attribute => {
-					Some(cst::DeclValue::Attribute(tok.set(())))
-				}
-				TokenKind::Buffer => Some(cst::DeclValue::Buffer(tok.set(()))),
+				TokenKind::Varying => Some(cst::DeclValue::External(
+					tok.set(cst::ExternalValue::Varying),
+				)),
+				TokenKind::Attribute => Some(cst::DeclValue::External(
+					tok.set(cst::ExternalValue::Attribute),
+				)),
+				TokenKind::Buffer => Some(cst::DeclValue::External(
+					tok.set(cst::ExternalValue::Buffer),
+				)),
 				TokenKind::Uniform => {
 					if self.expect_tolerant(TokenKind::Buffer.into()).is_some()
 					{
-						Some(cst::DeclValue::UniformBuffer(tok.set(())))
+						Some(cst::DeclValue::External(
+							tok.set(cst::ExternalValue::UniformBuffer),
+						))
 					} else {
-						Some(cst::DeclValue::Uniform(tok.set(())))
+						Some(cst::DeclValue::External(
+							tok.set(cst::ExternalValue::Uniform),
+						))
 					}
 				}
 				TokenKind::Identifier => {
-					Some(cst::DeclValue::Alias(self.embed_source(tok)))
+					let name = self.continue_parsing_qualified_name(vec![tok]);
+					Some(cst::DeclValue::Alias(name))
 				}
 				TokenKind::Proc => {
 					let args = if let Some(args_open) =

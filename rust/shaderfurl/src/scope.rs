@@ -1,106 +1,274 @@
 #![allow(clippy::get_first)]
-use std::rc::Rc;
+#![allow(dead_code)]
+use std::{fmt::Display, ops::Index, rc::Rc};
 
 use crate::cst::{BinaryOperator, UnaryOperator};
 
+// {{{ Structs
+#[derive(Clone, Copy, Debug)]
+pub struct StructId(usize);
+
+#[derive(Clone, Debug)]
+pub struct Struct {
+	pub fields: Box<[(Identifier, Type)]>,
+}
+// }}}
+// {{{ Scoping contexts
+// The context in which this pass runs
+#[derive(Default, Debug)]
+pub struct ScopingContext {
+	structs: Vec<Struct>,
+	// (module, name, parent)
+	pub modules: Vec<(Module, Option<Identifier>, Option<ModuleId>)>,
+}
+
+impl ScopingContext {
+	fn register_struct(&mut self, s: Struct) -> StructId {
+		let id = StructId(self.structs.len());
+		self.structs.push(s);
+		id
+	}
+
+	fn mark_parent(&mut self, module: ModuleId, parent: ModuleId) {
+		self.modules.get_mut(module.0).unwrap().2 = Some(parent);
+	}
+
+	fn mark_label(&mut self, module: ModuleId, label: Identifier) {
+		self.modules.get_mut(module.0).unwrap().1 = Some(label);
+	}
+
+	fn register_module(&mut self, module: Module) -> ModuleId {
+		let id = ModuleId(self.modules.len());
+
+		// Fuck you, borrow checker ;-;
+		self.modules.push((module.clone(), None, None));
+
+		match module.clone() {
+			Module::Toplevel(_) => {}
+			Module::Import(_, inner) => self.mark_parent(inner, id),
+			Module::Fork(inner) => {
+				for (label, member) in inner {
+					self.mark_parent(member, id);
+					self.mark_label(member, label);
+				}
+			}
+		}
+
+		id
+	}
+
+	pub fn module_parent(&self, module: ModuleId) -> Option<ModuleId> {
+		self.modules.get(module.0).unwrap().2
+	}
+
+	pub fn module_label(&self, module: ModuleId) -> Option<&Identifier> {
+		self.modules.get(module.0).unwrap().1.as_ref()
+	}
+
+	// To be used for debugging only
+	pub fn inner_module_by_label(&self, label: &str) -> ModuleId {
+		let id = Identifier::from_str(label);
+		let outer = self
+			.modules
+			.iter()
+			.enumerate()
+			.find(|(_, (_, mod_label, _))| mod_label.as_ref() == Some(&id))
+			.unwrap()
+			.0;
+
+		let mut outer = ModuleId(outer);
+		while let Module::Import(_, inner) = self[outer] {
+			outer = inner;
+		}
+		outer
+	}
+}
+
+impl Index<StructId> for ScopingContext {
+	type Output = Struct;
+	fn index(&self, index: StructId) -> &Self::Output {
+		&self.structs[index.0]
+	}
+}
+
+impl Index<ModuleId> for ScopingContext {
+	type Output = Module;
+	fn index(&self, index: ModuleId) -> &Self::Output {
+		&self.modules[index.0].0
+	}
+}
+// }}}
+// {{{ The `FromCst` trait
+pub trait FromCst<Cst>: Sized {
+	fn from_cst(ctx: &mut ScopingContext, cst: &Cst) -> Self;
+	fn from_cst_option(ctx: &mut ScopingContext, cst: Option<&Cst>) -> Self
+	where
+		Self: Default,
+	{
+		Self::from_cst_option_or(ctx, cst, Self::default())
+	}
+
+	fn from_cst_option_or(
+		ctx: &mut ScopingContext,
+		cst: Option<&Cst>,
+		def: Self,
+	) -> Self {
+		cst.as_ref().map(|v| Self::from_cst(ctx, v)).unwrap_or(def)
+	}
+}
+
+impl<Cst, T: FromCst<Cst> + Default> FromCst<Option<Cst>> for T {
+	fn from_cst(ctx: &mut ScopingContext, cst: &Option<Cst>) -> Self {
+		Self::from_cst_option(ctx, cst.as_ref())
+	}
+}
+
+impl<Cst, T: FromCst<Cst>> FromCst<Box<Cst>> for T {
+	fn from_cst(ctx: &mut ScopingContext, cst: &Box<Cst>) -> Self {
+		Self::from_cst(ctx, cst)
+	}
+}
+
+impl<Cst, T: FromCst<Cst>> FromCst<Vec<Cst>> for Vec<T> {
+	fn from_cst(ctx: &mut ScopingContext, cst: &Vec<Cst>) -> Self {
+		cst.iter().map(|v| T::from_cst(ctx, v)).collect()
+	}
+}
+
+impl<Cst, T: FromCst<Cst>> FromCst<Box<[Cst]>> for Box<[T]> {
+	fn from_cst(ctx: &mut ScopingContext, cst: &Box<[Cst]>) -> Self {
+		cst.iter().map(|v| T::from_cst(ctx, v)).collect()
+	}
+}
+// }}}
+
+// `FromCst` implementation
+// {{{ Names
 // I should probably intern the strings properly, but I'm laaaazy
-#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Name(pub Rc<String>);
+
+impl Name {
+	pub fn from_str(s: &str) -> Self {
+		Self(Rc::new(s.to_string()))
+	}
+}
+
+impl Display for Name {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{}", self.0)
+	}
+}
+
+impl FromCst<crate::cst::Token<String>> for Name {
+	fn from_cst(
+		_: &mut ScopingContext,
+		cst: &crate::cst::Token<String>,
+	) -> Self {
+		Self(Rc::new(cst.value.clone()))
+	}
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub enum Identifier {
 	#[default]
 	Unknown,
-	// The equivalent of a "." inside a directory
-	Here,
-	Name(Rc<String>),
+	Name(Name),
 }
 
 impl Identifier {
-	fn from_cst(cst: &crate::cst::Token<String>) -> Self {
-		Self::Name(Rc::new(cst.value.clone()))
+	pub fn from_str(s: &str) -> Self {
+		Self::Name(Name::from_str(s))
 	}
 
-	fn from_cst_option(cst: &Option<crate::cst::Token<String>>) -> Self {
-		cst.as_ref().map(Self::from_cst).unwrap_or_default()
-	}
-}
-
-#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
-pub struct QualifiedIdentifier(Box<[Identifier]>);
-
-impl QualifiedIdentifier {
-	fn from_cst(cst: &crate::cst::QualifiedName) -> Self {
-		Self(cst.0.iter().map(Identifier::from_cst).collect())
-	}
-
-	fn from_cst_option(cst: &Option<crate::cst::QualifiedName>) -> Self {
-		cst.as_ref().map(Self::from_cst).unwrap_or_default()
+	pub fn to_name(&self) -> Option<&Name> {
+		match self {
+			Self::Unknown => None,
+			Self::Name(name) => Some(name),
+		}
 	}
 }
 
-#[derive(Clone, Debug)]
+impl FromCst<crate::cst::Token<String>> for Identifier {
+	fn from_cst(
+		ctx: &mut ScopingContext,
+		cst: &crate::cst::Token<String>,
+	) -> Self {
+		Self::Name(Name::from_cst(ctx, cst))
+	}
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct QualifiedIdentifier(pub Box<[Name]>);
+
+impl FromCst<crate::cst::QualifiedName> for QualifiedIdentifier {
+	fn from_cst(
+		ctx: &mut ScopingContext,
+		cst: &crate::cst::QualifiedName,
+	) -> Self {
+		Self(FromCst::from_cst(ctx, &cst.0))
+	}
+}
+// }}}
+// {{{ Expressions
+#[derive(Clone, Debug, Default)]
 pub enum Expr {
+	#[default]
+	Unknown,
 	Unit,
 	Bool(bool),
 	Int(i64),
 	Float(f64),
 	Variable(Identifier),
 	Property(Box<Expr>, Identifier),
-	Call(Box<Expr>, Vec<Expr>),
+	Call(Box<Expr>, Box<[Expr]>),
 	Unary(UnaryOperator, Box<Expr>),
 	Binary(Box<(Expr, BinaryOperator, Expr)>),
 	Ternary(Box<(Expr, Expr, Expr)>),
-	Unknown,
 }
 
-impl Expr {
-	fn from_cst_option(cst: &Option<crate::cst::Expr>) -> Self {
-		cst.as_ref().map_or(Self::Unknown, Self::from_cst)
-	}
-
-	fn from_cst_option_box(cst: &Option<Box<crate::cst::Expr>>) -> Self {
-		cst.as_ref().map_or(Self::Unknown, |b| Self::from_cst(b))
-	}
-
-	fn from_cst(cst: &crate::cst::Expr) -> Self {
+impl FromCst<crate::cst::Expr> for Expr {
+	fn from_cst(ctx: &mut ScopingContext, cst: &crate::cst::Expr) -> Self {
 		match cst {
 			crate::cst::Expr::Int(token) => Self::Int(token.value),
 			crate::cst::Expr::Float(token) => Self::Float(token.value),
 			crate::cst::Expr::Variable(token) => {
-				Self::Variable(Identifier::from_cst(token))
+				Self::Variable(Identifier::from_cst(ctx, token))
 			}
 			crate::cst::Expr::Property(expr, token) => Self::Property(
-				Box::new(Self::from_cst_option_box(expr)),
-				Identifier::from_cst(token),
+				Box::new(Self::from_cst(ctx, expr)),
+				Identifier::from_cst(ctx, token),
 			),
 			crate::cst::Expr::Call(f, args) => Self::Call(
-				Box::new(Self::from_cst(f)),
-				args.iter().map(Self::from_cst).collect(),
+				Box::new(Self::from_cst(ctx, f)),
+				FromCst::from_cst(ctx, args),
 			),
-			crate::cst::Expr::Unary(token, expr) => Self::Unary(
-				token.value,
-				Box::new(Self::from_cst_option_box(expr)),
-			),
+			crate::cst::Expr::Unary(token, expr) => {
+				Self::Unary(token.value, Box::new(Self::from_cst(ctx, expr)))
+			}
 			crate::cst::Expr::Binary(left, token, right) => {
 				Self::Binary(Box::new((
-					Self::from_cst_option_box(left),
+					Self::from_cst(ctx, left),
 					token.value,
-					Self::from_cst_option_box(right),
+					Self::from_cst(ctx, right),
 				)))
 			}
 			crate::cst::Expr::Ternary(cond, _, then, _, otherwise) => {
 				Self::Ternary(Box::new((
-					Self::from_cst_option_box(cond),
-					Self::from_cst_option_box(then),
-					Self::from_cst_option_box(otherwise),
+					Self::from_cst(ctx, cond),
+					Self::from_cst(ctx, then),
+					Self::from_cst(ctx, otherwise),
 				)))
 			}
 			crate::cst::Expr::Wrapped(delimited) => {
-				Self::from_cst_option_box(&delimited.inner)
+				Self::from_cst(ctx, &delimited.inner)
 			}
 			crate::cst::Expr::Error(_) => Self::Unknown,
 		}
 	}
 }
-
+// }}}
+// {{{ Types
 #[derive(Debug, Clone, Default)]
 pub enum Type {
 	#[default]
@@ -108,39 +276,36 @@ pub enum Type {
 	Unit,
 	Shared(Rc<Type>),
 	Named(Identifier),
-	Struct(Vec<(Identifier, Type)>),
 	Array((usize, usize), Box<Type>),
+	Struct(StructId),
 }
 
 impl Type {
 	fn shared(self) -> Self {
 		Self::Shared(Rc::new(self))
 	}
+}
 
-	fn from_cst_option(cst: &Option<crate::cst::Type>) -> Self {
-		cst.as_ref().map_or(Self::Unknown, Self::from_cst)
-	}
-
-	fn from_cst_option_box(cst: &Option<Box<crate::cst::Type>>) -> Self {
-		cst.as_ref().map_or(Self::Unknown, |b| Self::from_cst(b))
-	}
-
-	fn from_cst(cst: &crate::cst::Type) -> Self {
+impl FromCst<crate::cst::Type> for Type {
+	fn from_cst(ctx: &mut ScopingContext, cst: &crate::cst::Type) -> Self {
 		match cst {
 			crate::cst::Type::Named(token) => {
-				Self::Named(Identifier::from_cst(token))
+				Self::Named(Identifier::from_cst(ctx, token))
 			}
-			crate::cst::Type::Struct(st) => Self::Struct(
-				st.fields
+			crate::cst::Type::Struct(st) => {
+				let fields = st
+					.fields
 					.iter()
 					.map(|field| {
 						(
-							Identifier::from_cst_option(&field.name),
-							Self::from_cst_option(&field.ty),
+							Identifier::from_cst(ctx, &field.name),
+							Self::from_cst(ctx, &field.ty),
 						)
 					})
-					.collect(),
-			),
+					.collect();
+				let s = Struct { fields };
+				Self::Struct(ctx.register_struct(s))
+			}
 			crate::cst::Type::Array(array) => Self::Array(
 				(
 					array
@@ -152,53 +317,57 @@ impl Type {
 						d.second.as_ref().map_or(1, |s| s.value)
 					}),
 				),
-				Box::new(Self::from_cst_option_box(&array.ty)),
+				Box::new(Self::from_cst(ctx, &array.ty)),
 			),
 		}
 	}
 }
-
-#[derive(Clone, Debug)]
+// }}}
+// {{{ Statements
+#[derive(Clone, Debug, Default)]
 pub enum Statement {
+	#[default]
 	Unknown,
 	Discard,
 	Break,
 	Continue,
 	Return(Expr),
 	Expression(Expr),
-	If(Vec<(Expr, Block)>),
+	If(Box<[(Expr, Block)]>),
 	For(Box<(Statement, Statement, Statement)>, Block),
 	Assignment(Expr, Option<BinaryOperator>, Expr),
 	Declaration(Identifier, Option<Type>, Option<Expr>),
 }
 
-impl Statement {
-	fn from_cst_option(cst: Option<&crate::cst::Statement>) -> Self {
-		cst.map_or(Self::Unknown, Self::from_cst)
-	}
-
-	fn from_cst(cst: &crate::cst::Statement) -> Self {
+impl FromCst<crate::cst::Statement> for Statement {
+	fn from_cst(ctx: &mut ScopingContext, cst: &crate::cst::Statement) -> Self {
 		match cst {
 			crate::cst::Statement::Expression(expr) => {
-				Self::Expression(Expr::from_cst(expr))
+				Self::Expression(Expr::from_cst(ctx, expr))
 			}
 			crate::cst::Statement::Assignment(left, op, right) => {
 				Self::Assignment(
-					Expr::from_cst_option(left),
+					Expr::from_cst_option(ctx, left.as_ref()),
 					op.value,
-					Expr::from_cst_option(right),
+					Expr::from_cst_option(ctx, right.as_ref()),
 				)
 			}
 			crate::cst::Statement::Declaration(local_declaration) => {
 				Self::Declaration(
 					match &local_declaration.variable {
 						Some(crate::cst::Expr::Variable(v)) => {
-							Identifier::from_cst(v)
+							Identifier::from_cst(ctx, v)
 						}
 						_ => Identifier::default(),
 					},
-					local_declaration.ty.as_ref().map(Type::from_cst),
-					local_declaration.value.as_ref().map(Expr::from_cst),
+					local_declaration
+						.ty
+						.as_ref()
+						.map(|t| Type::from_cst(ctx, t)),
+					local_declaration
+						.value
+						.as_ref()
+						.map(|v| Expr::from_cst(ctx, v)),
 				)
 			}
 			crate::cst::Statement::If(branches) => Self::If(
@@ -207,11 +376,12 @@ impl Statement {
 					.iter()
 					.map(|branch| {
 						(
-							branch
-								.condition
-								.as_ref()
-								.map_or(Expr::Bool(true), Expr::from_cst),
-							Block::from_cst_option(&branch.block),
+							Expr::from_cst_option_or(
+								ctx,
+								branch.condition.as_ref(),
+								Expr::Bool(true),
+							),
+							Block::from_cst(ctx, &branch.block),
 						)
 					})
 					.collect(),
@@ -220,37 +390,38 @@ impl Statement {
 				let steps: Vec<_> = for_.steps.iter().take(3).collect();
 				Self::For(
 					Box::new((
-						Statement::from_cst_option(steps.get(0).copied()),
-						Statement::from_cst_option(steps.get(1).copied()),
-						Statement::from_cst_option(steps.get(2).copied()),
+						Self::from_cst_option(ctx, steps.get(0).copied()),
+						Self::from_cst_option(ctx, steps.get(1).copied()),
+						Self::from_cst_option(ctx, steps.get(2).copied()),
 					)),
-					Block::from_cst_option(&for_.block),
+					Block::from_cst(ctx, &for_.block),
 				)
 			}
 			crate::cst::Statement::Discard(_) => Self::Discard,
 			crate::cst::Statement::Break(_) => Self::Break,
 			crate::cst::Statement::Continue(_) => Self::Continue,
-			crate::cst::Statement::Return(_, expr) => {
-				Self::Return(expr.as_ref().map_or(Expr::Unit, Expr::from_cst))
-			}
+			crate::cst::Statement::Return(_, expr) => Self::Return(
+				FromCst::from_cst_option_or(ctx, expr.as_ref(), Expr::Unit),
+			),
 		}
 	}
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct Block(Vec<Statement>);
+pub struct Block(Box<[Statement]>);
 
-impl Block {
-	fn from_cst(cst: &crate::cst::StatementBlock) -> Self {
-		Self(cst.statements.iter().map(Statement::from_cst).collect())
-	}
-
-	fn from_cst_option(cst: &Option<crate::cst::StatementBlock>) -> Self {
-		cst.as_ref().map(Self::from_cst).unwrap_or_default()
+impl FromCst<crate::cst::StatementBlock> for Block {
+	fn from_cst(
+		ctx: &mut ScopingContext,
+		cst: &crate::cst::StatementBlock,
+	) -> Self {
+		Self(FromCst::from_cst(ctx, &cst.statements))
 	}
 }
 
-#[derive(Clone, Debug)]
+// }}}
+// {{{ Procs
+#[derive(Clone, Debug, Default)]
 pub struct Proc {
 	args: Vec<(Identifier, Type)>,
 	ret: Type,
@@ -263,15 +434,21 @@ pub enum ProcBody {
 	Implemented(Block),
 }
 
-impl Proc {
-	fn from_cst(cst: &crate::cst::Proc) -> Self {
+impl Default for ProcBody {
+	fn default() -> Self {
+		Self::Implemented(Block::default())
+	}
+}
+
+impl FromCst<crate::cst::Proc> for Proc {
+	fn from_cst(ctx: &mut ScopingContext, cst: &crate::cst::Proc) -> Self {
 		let mut args = Vec::new();
 		if let Some(d) = &cst.args {
 			let mut untyped = Vec::new();
 			for arg in d.inner.iter() {
-				let id = Identifier::from_cst_option(&arg.name);
+				let id = Identifier::from_cst(ctx, &arg.name);
 				if let Some(ty) = &arg.ty {
-					let ty = Type::shared(Type::from_cst(ty)); // Avoid deep copies
+					let ty = Type::shared(Type::from_cst(ctx, ty)); // Avoid deep copies
 					for old in std::mem::take(&mut untyped) {
 						args.push((old, ty.clone()));
 					}
@@ -287,175 +464,134 @@ impl Proc {
 		}
 		Self {
 			args,
-			ret: cst.ret_type.as_ref().map_or(Type::Unit, Type::from_cst),
+			ret: Type::from_cst_option_or(
+				ctx,
+				cst.ret_type.as_ref(),
+				Type::Unit,
+			),
 			body: match &cst.body {
 				crate::cst::ProcBody::Native(token) => {
 					ProcBody::Native(token.value.clone())
 				}
 				crate::cst::ProcBody::Implemented(block) => {
-					ProcBody::Implemented(Block::from_cst(block))
+					ProcBody::Implemented(Block::from_cst(ctx, block))
 				}
 			},
 		}
 	}
 }
-
-#[derive(Debug, Clone)]
+// }}}
+// {{{ Scopes
+#[derive(Debug, Clone, Default)]
 pub enum ScopeMember {
+	#[default]
 	Unknown,
-	Uniform(Type),
-	UniformBuffer(Type),
-	Buffer(Type),
-	Attribute(Type),
-	Varying(Type),
-	Alias(Identifier, Option<Type>),
+	External(crate::cst::ExternalValue, Type),
+	Alias(QualifiedIdentifier),
 	Type(Type),
 	Proc(Proc),
 }
 
-pub type Module = Scope;
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct ModuleId(pub usize);
 
-#[derive(Debug, Clone, Default)]
-pub struct Scope {
-	imports: Vec<QualifiedIdentifier>,
-	default: Vec<ScopeMember>,
-	/// Module names are allowed to appear more than once!
-	/// [Identifier::Here] is also allowed!
-	nested: Vec<(Identifier, Module)>,
+#[derive(Clone, Debug)]
+pub enum Module {
+	// import ...
+	// ...
+	Import(QualifiedIdentifier, ModuleId),
+	// Contains a single top-level declaration
+	Toplevel(ScopeMember),
+	// Contains a series of modules qualified by a single identifier.
+	// The same name might appear more than once!
+	Fork(Box<[(Identifier, ModuleId)]>),
 }
 
-impl Scope {
-	fn get_nested_mut(&mut self, target: &Identifier) -> &mut Self {
-		match target {
-			Identifier::Here => self,
-			_ => {
-				if !self
-					.nested
-					.iter()
-					.any(|(i, m)| m.imports.is_empty() && i == target)
-				{
-					return self.get_nested_fresh_mut(target);
-				}
+impl ModuleId {
+	fn qualify(
+		self,
+		ctx: &mut ScopingContext,
+		path: QualifiedIdentifier,
+	) -> (Identifier, ModuleId) {
+		let mut path = path.0.into_vec();
+		let mut toplevel = self;
 
-				self.nested
-					.iter_mut()
-					.rev() // In case we've just pushed one
-					.find(|(i, m)| m.imports.is_empty() && i == target)
-					.map(|(_, m)| m)
-					.unwrap()
+		while let Some(last) = path.pop() {
+			if path.is_empty() {
+				return (Identifier::Name(last), toplevel);
+			} else {
+				toplevel = ctx.register_module(Module::Fork(Box::new([(
+					Identifier::Name(last),
+					toplevel,
+				)])))
 			}
 		}
-	}
 
-	fn get_nested_fresh_mut(&mut self, target: &Identifier) -> &mut Self {
-		self.nested.push((target.clone(), Self::default()));
-		&mut self.nested.last_mut().unwrap().1
+		(Identifier::Unknown, toplevel)
 	}
+}
 
-	fn get_hyper_nested_mut(&mut self, path: &[Identifier]) -> &mut Self {
-		match path {
-			[] => self,
-			[head, rest @ ..] => {
-				self.get_nested_mut(head).get_hyper_nested_mut(rest)
-			}
-		}
-	}
-
-	fn get_hyper_nested_fresh_mut(&mut self, path: &[Identifier]) -> &mut Self {
-		match path {
-			[] => self.get_nested_fresh_mut(&Identifier::Here),
-			[head, rest @ ..] => self
-				.get_nested_fresh_mut(head)
-				.get_hyper_nested_fresh_mut(rest),
-		}
-	}
-
-	fn insert(&mut self, at: &Identifier, member: ScopeMember) {
-		self.get_nested_mut(at).default.push(member)
-	}
-
-	fn insert_at(&mut self, path: &[Identifier], member: ScopeMember) {
-		self.get_hyper_nested_mut(path).default.push(member)
-	}
-
-	fn merge(&mut self, mut other: Self) {
-		self.default.append(&mut other.default);
-		for (at, member) in other.nested {
-			self.get_nested_mut(&at).merge(member);
-		}
-	}
-
-	pub fn from_cst(cst: &Vec<crate::cst::ModuleEntry>) -> Self {
-		let mut out = Self::default();
+impl FromCst<Vec<crate::cst::ModuleEntry>> for ModuleId {
+	fn from_cst(
+		ctx: &mut ScopingContext,
+		cst: &Vec<crate::cst::ModuleEntry>,
+	) -> Self {
+		let mut out = Vec::new();
 		for entry in cst {
 			match entry {
-				crate::cst::ModuleEntry::Import(import_statement) => {
-					out.imports.push(QualifiedIdentifier::from_cst_option(
-						&import_statement.path,
-					));
-				}
+				crate::cst::ModuleEntry::Import(_) => {}
 				crate::cst::ModuleEntry::Module(nested_module) => {
-					let path = QualifiedIdentifier::from_cst_option(
-						&nested_module.name,
-					);
+					let path =
+						QualifiedIdentifier::from_cst(ctx, &nested_module.name);
 
-					out.get_hyper_nested_fresh_mut(&path.0)
-						.merge(Self::from_cst(&nested_module.entries));
+					out.push(
+						Self::from_cst(ctx, &nested_module.entries)
+							.qualify(ctx, path),
+					)
 				}
 				crate::cst::ModuleEntry::Declaration(declaration) => {
-					let id = QualifiedIdentifier::from_cst(&declaration.name);
-					let ty = declaration.ty.as_ref().map(Type::from_cst);
-					match &declaration.value {
-						None => out.insert_at(&id.0, ScopeMember::Unknown),
-						Some(crate::cst::DeclValue::Alias(token)) => out
-							.insert_at(
-								&id.0,
-								ScopeMember::Alias(
-									Identifier::from_cst(token),
-									ty,
-								),
-							),
-						Some(crate::cst::DeclValue::Type(ty)) => out.insert_at(
-							&id.0,
-							ScopeMember::Type(Type::from_cst(ty)),
-						),
-						Some(crate::cst::DeclValue::Varying(_)) => out
-							.insert_at(
-								&id.0,
-								ScopeMember::Varying(ty.unwrap_or_default()),
-							),
-						Some(crate::cst::DeclValue::Attribute(_)) => out
-							.insert_at(
-								&id.0,
-								ScopeMember::Attribute(ty.unwrap_or_default()),
-							),
-						Some(crate::cst::DeclValue::Uniform(_)) => out
-							.insert_at(
-								&id.0,
-								ScopeMember::Uniform(ty.unwrap_or_default()),
-							),
-						Some(crate::cst::DeclValue::UniformBuffer(_)) => out
-							.insert_at(
-								&id.0,
-								ScopeMember::UniformBuffer(
-									ty.unwrap_or_default(),
-								),
-							),
-						Some(crate::cst::DeclValue::Buffer(_)) => out
-							.insert_at(
-								&id.0,
-								ScopeMember::Buffer(ty.unwrap_or_default()),
-							),
-						Some(crate::cst::DeclValue::Proc(proc)) => out
-							.insert_at(
-								&id.0,
-								ScopeMember::Proc(Proc::from_cst(proc)),
-							),
+					let id =
+						QualifiedIdentifier::from_cst(ctx, &declaration.name);
+					let ty =
+						declaration.ty.as_ref().map(|v| Type::from_cst(ctx, v));
+
+					let toplevel = match &declaration.value {
+						None => ScopeMember::Unknown,
+						Some(crate::cst::DeclValue::Alias(name)) => {
+							ScopeMember::Alias(QualifiedIdentifier::from_cst(
+								ctx, name,
+							))
+						}
+						Some(crate::cst::DeclValue::Type(ty)) => {
+							ScopeMember::Type(Type::from_cst(ctx, ty))
+						}
+						Some(crate::cst::DeclValue::External(v)) => {
+							ScopeMember::External(
+								v.value,
+								ty.unwrap_or_default(),
+							)
+						}
+						Some(crate::cst::DeclValue::Proc(proc)) => {
+							ScopeMember::Proc(Proc::from_cst(ctx, proc))
+						}
 					};
+
+					out.push(
+						ctx.register_module(Module::Toplevel(toplevel))
+							.qualify(ctx, id),
+					)
 				}
 			};
 		}
 
+		let mut out = ctx.register_module(Module::Fork(out.into_boxed_slice()));
+		for entry in cst.iter().rev() {
+			if let crate::cst::ModuleEntry::Import(import) = entry {
+				let ident = QualifiedIdentifier::from_cst(ctx, &import.path);
+				out = ctx.register_module(Module::Import(ident, out))
+			}
+		}
 		out
 	}
 }
+// }}}
