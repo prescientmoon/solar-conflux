@@ -3,20 +3,22 @@ use std::{path::PathBuf, rc::Rc, str::FromStr};
 use ariadne::Source;
 
 use crate::{
+	elab::ElabContext,
 	lexer::{FileId, Lexer, TokenKind},
 	parser::Parser,
-	scope::Scope,
+	scope::{FromCst, ModuleId, Name, ScopingContext},
 };
 
 mod ast;
 mod cst;
 mod database;
+mod elab;
 mod lexer;
 mod parser;
 mod scope;
 
 fn main() {
-	let buffer = include_str!("../shaders-idea/prelude.furl").to_string();
+	let buffer = include_str!("../shaders-idea/example.furl").to_string();
 
 	let file_id =
 		FileId::new(Rc::from(PathBuf::from_str("repl").unwrap().as_path()));
@@ -36,15 +38,29 @@ fn main() {
 	let mut parser = Parser::new(file_id.clone(), &buffer);
 
 	let file = parser.parse_file();
-	let scope = Scope::from_cst(&file.entries);
 	println!("========== Parsing");
-	// println!("{:#?}", file);
-	println!("{:#?}", scope);
 	println!("{:?}", parser.stop_on_stack);
+	println!("{:#?}", file);
 
 	for report in parser.reports() {
 		report
 			.eprint((file_id.clone(), Source::from(&buffer)))
 			.expect("Failed to print report to console ;-;");
+	}
+
+	let mut ctx = ScopingContext::default();
+	ModuleId::from_cst(&mut ctx, &file.entries);
+	println!("{:#?}", ctx);
+	let ctx = ElabContext::from_scoping(ctx);
+
+	let second_mod = ctx.scoping_context.inner_module_by_label("second");
+	let resolutions = ctx.resolve_path_internally(
+		second_mod,
+		&[Name::from_str("first"), Name::from_str("something")],
+	);
+
+	println!("========== Elaboration");
+	for module in resolutions {
+		println!("> {}", ctx.print_qualified(module))
 	}
 }
