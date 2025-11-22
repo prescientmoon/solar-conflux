@@ -9,9 +9,7 @@ use crate::{
 	scope::{FromCst, ModuleId, Name, ScopingContext},
 };
 
-mod ast;
 mod cst;
-mod database;
 mod elab;
 mod lexer;
 mod parser;
