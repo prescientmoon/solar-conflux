@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-ariadne = { version="0.5.1", features=["auto-color"] }
+ariadne = { version="0.6.0", features=["auto-color"] }
 enumset = "1.1.10"
