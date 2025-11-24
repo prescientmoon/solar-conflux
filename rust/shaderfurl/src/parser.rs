@@ -1,58 +1,18 @@
 #![allow(unused)]
 
+use std::cell::RefCell;
 use std::mem;
 use std::str::FromStr;
 
-use ariadne::{ColorGenerator, Label, Report};
+use ariadne::{ColorGenerator, Label, Report, Span};
 use enumset::{EnumSet, enum_set, enum_set_union};
 
 use crate::cst::{
 	self, BinaryOperator, CondBranch, HasSpan, SeparatedStep, Token,
 };
 use crate::lexer::{self, FileId, Lexer, SourcePos, SourceSpan, TokenKind};
+use crate::{compact_report, report};
 
-// {{{ Error reporting macros
-/// Helper for creating a report via ariadne
-#[macro_export]
-macro_rules! report {
-    (
-        $self:expr,
-        $code:expr,
-        $span: expr,
-        ($($msg:tt)+),
-        $(($lspan: expr, $($lmsg:tt)+),)*
-    ) => {{
-        use ariadne::{Report, ReportKind, Label};
-
-        let mut report = Report::build(ReportKind::Error, $span.span_of())
-            .with_code($code)
-            .with_message(format!($($msg)+));
-
-        $(
-            report = report.with_label(
-                Label::new($lspan.span_of()).with_message(format!($($lmsg)+))
-            );
-        )*
-
-        $self.reports.push(report.finish());
-    }};
-}
-
-/// A report where the source spans are all identical.
-#[macro_export]
-macro_rules! compact_report {
-    (
-        ($self:expr, $code:expr, $span: expr),
-        ($($msg:tt)+),
-        $(($($lmsg:tt)+),)*
-    ) => {{
-        report!(
-            $self, $code, $span, ($($msg)+),
-            $(($span,$($lmsg)+),)*
-        )
-    }};
-}
-// }}}
 // {{{ Parsing types
 pub type TokenSet = EnumSet<TokenKind>;
 
@@ -70,9 +30,8 @@ pub struct Parser<'a> {
 	relation: IndentationRelation,
 	indentation: usize,
 
-	// TODO: make this private after finishing with debugging
-	pub stop_on_stack: Vec<TokenSet>,
-	reports: Vec<ariadne::Report<'a, SourceSpan>>,
+	stop_on_stack: Vec<TokenSet>,
+	reports: RefCell<Vec<ariadne::Report<'a, SourceSpan>>>,
 	tokens: Vec<lexer::Token>,
 }
 
@@ -97,7 +56,7 @@ impl Drop for StopOnStackKey {
 impl<'a> Parser<'a> {
 	// {{{ Basic constructors / getters / etc
 	pub fn new(path: lexer::FileId, source: &'a str) -> Self {
-		let mut lexer = Lexer::new(path.clone(), source);
+		let mut lexer = Lexer::new(path, source);
 		let token = lexer.next();
 
 		let mut result = Self {
@@ -105,7 +64,7 @@ impl<'a> Parser<'a> {
 			token,
 			indentation: 1,
 			relation: IndentationRelation::Any,
-			reports: Vec::new(),
+			reports: Default::default(),
 			trivia_range_start: 0,
 			stop_on_stack: Vec::new(),
 			tokens: Vec::new(),
@@ -115,8 +74,14 @@ impl<'a> Parser<'a> {
 		result
 	}
 
-	pub fn reports(&self) -> &[Report<'a, SourceSpan>] {
-		&self.reports
+	pub fn reports(
+		&self,
+	) -> std::cell::Ref<'_, Vec<ariadne::Report<'a, SourceSpan>>> {
+		self.reports.borrow()
+	}
+
+	fn push_report(&self, report: ariadne::Report<'a, SourceSpan>) {
+		self.reports.borrow_mut().push(report)
 	}
 	// }}}
 	// {{{ stop_on stack
@@ -131,9 +96,7 @@ impl<'a> Parser<'a> {
 	}
 
 	fn stop_on_pop(&mut self, key: StopOnStackKey) {
-		self.stop_on_stack
-			.pop()
-			.expect("Attempted to pop empty stop_on stack");
+		self.stop_on_stack.pop().expect("Attempted to pop empty stop_on stack");
 		mem::forget(key);
 	}
 
@@ -368,7 +331,7 @@ impl<'a> Parser<'a> {
 				let close = self.expect_tolerant(TokenKind::RightParen.into());
 
 				if close.is_none() {
-					self.reports.push(
+					self.push_report(
 						Report::build(
 							ariadne::ReportKind::Error,
 							tok.span_of(),
@@ -623,11 +586,7 @@ impl<'a> Parser<'a> {
 		});
 		let (qm, ihs) = self.with_stopper(TokenKind::Colon.into(), |parser| {
 			let qm = parser.expect_tolerant(TokenKind::QuestionMark.into());
-			let ihs = if qm.is_some() {
-				parser.parse_ternary()
-			} else {
-				None
-			};
+			let ihs = if qm.is_some() { parser.parse_ternary() } else { None };
 
 			(qm, ihs)
 		});
@@ -638,11 +597,7 @@ impl<'a> Parser<'a> {
 			None
 		};
 
-		let rhs = if colon.is_some() {
-			self.parse_ternary()
-		} else {
-			None
-		};
+		let rhs = if colon.is_some() { self.parse_ternary() } else { None };
 
 		if qm.is_some() && lhs.is_none() {
 			compact_report!(
@@ -704,7 +659,9 @@ impl<'a> Parser<'a> {
 
 		match tok.value {
 			TokenKind::Identifier => {
-				Some(cst::Type::Named(self.embed_source(tok)))
+				let path =
+					self.continue_parsing_qualified_name(vec![tok.clone()]);
+				Some(cst::Type::Named(path))
 			}
 			TokenKind::LeftBracket => {
 				let (dims, close) = self.with_stopper(Self::TYPE_MARKER, |parser| {
@@ -888,7 +845,7 @@ impl<'a> Parser<'a> {
 					// which can be arbitrarily expensive because our context contains
 					// vecs of arbitrary length.
 					if !matches!(&expr, Some(cst::Expr::Variable(name))) {
-						self.reports.push(
+						self.push_report(
 							Report::build(
 								ariadne::ReportKind::Error,
 								op_tok.span_of(),
@@ -919,7 +876,7 @@ impl<'a> Parser<'a> {
 
 					let rhs = self.parse_expr();
 					if eq_tok.is_some() && rhs.is_none() {
-						self.reports.push(
+						self.push_report(
 							Report::build(
 								ariadne::ReportKind::Error,
 								(&expr, &op_tok, &eq_tok).span_of(),
@@ -1000,9 +957,7 @@ impl<'a> Parser<'a> {
 			}
 			TokenKind::For => {
 				let steps = self.with_stopper(TokenKind::Do.into(), |parser| {
-					let mut steps = cst::Separated {
-						elements: Vec::new(),
-					};
+					let mut steps = cst::Separated { elements: Vec::new() };
 
 					for i in 0..3 {
 						let statement = parser.with_stopper(
@@ -1356,7 +1311,7 @@ impl<'a> Parser<'a> {
 		}
 
 		let mut out = Vec::new();
-		for tok in toks {
+		for mut tok in toks {
 			let kind = tok.value;
 
 			if out.is_empty() && kind == TokenKind::Property {
@@ -1374,6 +1329,13 @@ impl<'a> Parser<'a> {
 			}
 
 			let source = self.lexer.source_span(&tok.span);
+
+			// Remove the dot
+			if kind == TokenKind::Property {
+				tok.span.from.index += 1;
+				tok.span.from.col += 1;
+				tok.span.length -= 1;
+			}
 
 			out.push(tok.set(match kind {
 				TokenKind::Identifier => source.to_string(),
@@ -1600,10 +1562,7 @@ impl<'a> Parser<'a> {
 			.expect_tolerant(TokenKind::Eof.into())
 			.expect("Failed to find an end of file token");
 
-		cst::File {
-			entries,
-			eof: eof.set(()),
-		}
+		cst::File { entries, eof: eof.set(()) }
 	}
 	// }}}
 }
