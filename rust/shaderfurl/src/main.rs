@@ -10,6 +10,7 @@ use crate::{
 };
 
 mod cst;
+mod digraph;
 mod elab;
 mod errors;
 mod lexer;

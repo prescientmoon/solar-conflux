@@ -301,7 +301,31 @@ impl ElabContext<'_> {
 				crate::lowering::ModuleMember::Type(ty),
 			) = &self.lowering_context[module]
 			{
-				self.elab_type(module, ty, true);
+				self.elab_type_defined_at(module, ty, &mut Vec::new());
+			}
+		}
+	}
+
+	fn elab_type_defined_at(
+		&self,
+		module: ModuleId,
+		ty: &crate::lowering::Type,
+
+		// The types we were checking while we got here
+		telescope: &mut Vec<ModuleId>,
+	) -> Type {
+		if telescope.contains(&module) {
+			self.report_cycle(&telescope);
+			Type::default()
+		} else {
+			if let Some(elaborated) = self.types.borrow().get(&module) {
+				elaborated.clone()
+			} else {
+				telescope.push(module);
+				let elaborated = self.elab_type(module, ty, telescope);
+				telescope.pop();
+				self.types.borrow_mut().insert(module, elaborated.clone());
+				elaborated
 			}
 		}
 	}
@@ -310,7 +334,7 @@ impl ElabContext<'_> {
 		&self,
 		module: ModuleId,
 		ty: &crate::lowering::Type,
-		shallow: bool,
+		telescope: &mut Vec<ModuleId>,
 	) -> Type {
 		match ty {
 			crate::lowering::Type::Unknown => {
@@ -318,7 +342,7 @@ impl ElabContext<'_> {
 			}
 			crate::lowering::Type::Unit => Type::Primitive(PrimitiveType::Unit),
 			crate::lowering::Type::Shared(inner) => {
-				self.elab_type(module, inner, shallow)
+				self.elab_type(module, inner, telescope)
 			}
 			crate::lowering::Type::Named(name) => {
 				if name.0.len() == 1 {
@@ -369,25 +393,15 @@ impl ElabContext<'_> {
 						}
 						crate::lowering::ModuleMember::Alias(
 							qualified_identifier,
-						) => {
-							if shallow {
-								Type::default()
-							} else {
-								self.elab_type(
-									the_module,
-									&crate::lowering::Type::Named(
-										qualified_identifier.clone(),
-									),
-									false,
-								)
-							}
-						}
+						) => self.elab_type_defined_at(
+							the_module,
+							&crate::lowering::Type::Named(
+								qualified_identifier.clone(),
+							),
+							telescope,
+						),
 						crate::lowering::ModuleMember::Type(ty) => {
-							if shallow {
-								Type::default()
-							} else {
-								self.elab_type(the_module, ty, false)
-							}
+							self.elab_type_defined_at(the_module, ty, telescope)
 						}
 						_ => {
 							self.report_not_a_type(name, the_module);
@@ -397,7 +411,7 @@ impl ElabContext<'_> {
 				}
 			}
 			crate::lowering::Type::Array(dims, inner) => {
-				let inner = self.elab_type(module, inner, shallow);
+				let inner = self.elab_type(module, inner, telescope);
 				// TODO: error out on certain sizes
 				Type::Array(*dims, Box::new(inner))
 			}
@@ -434,17 +448,28 @@ impl ElabContext<'_> {
 						.with_order(-10),
 				);
 
-		for id in definitions {
-			if let Some(Identifier::Name(label)) =
-				self.lowering_context.module_label(*id)
-			{
-				report = report.with_label(
-					ariadne::Label::new(label.span_of()).with_message(format!(
-						"\"{}\" is one of the options I considered",
-						self.print_qualified(*id)
-					)),
-				)
-			}
+		for (i, (id, label)) in definitions
+			.iter()
+			.filter_map(|id| {
+				if let Some(Identifier::Name(label)) =
+					self.lowering_context.module_label(*id)
+				{
+					Some((id, label))
+				} else {
+					None
+				}
+			})
+			.enumerate()
+		{
+			report = report.with_label(
+				ariadne::Label::new(label.span_of())
+					.with_message(format!(
+						"\"{}\" is {} of the options I considered",
+						self.print_qualified(*id),
+						if i > 0 { "another one" } else { "one" }
+					))
+					.with_order(i as i32),
+			)
 		}
 
 		self.push_report(report.finish());
@@ -476,6 +501,60 @@ impl ElabContext<'_> {
 				ariadne::Label::new(label.span_of()).with_message(
 					"...yet it does not look like one based on this definition",
 				),
+			)
+		}
+
+		self.push_report(report.finish());
+	}
+	// }}}
+	// {{{ Definition cycle
+	fn report_cycle(&self, definitions: &[ModuleId]) {
+		let names: String = definitions
+			.iter()
+			.map(|i| self.print_qualified(*i))
+			.collect::<Vec<_>>()
+			.join(", "); // Is there no way to do this without allocating twice ;-;
+
+		// NOTE: Declaration labels technically always exist, but if I
+		// hypothetically ever made the parser ever more error tolerant, this code
+		// could panic... Oh well, the solution would be tacking on more source info
+		// related to unknown names in the lowering pass, but that's not an issue
+		// I'll worry about for now :p
+		let closer = self
+			.lowering_context
+			.module_label(*definitions.last().unwrap())
+			.unwrap()
+			.to_name()
+			.unwrap();
+
+		let mut report = ariadne::Report::build(
+			ariadne::ReportKind::Error,
+			closer.span_of(),
+		)
+		.with_code("CyclicDefinition")
+		.with_message(format!("Cyclic definition encountered: {}", names));
+
+		for (i, (id, label)) in definitions
+			.iter()
+			.filter_map(|id| {
+				if let Some(Identifier::Name(label)) =
+					self.lowering_context.module_label(*id)
+				{
+					Some((id, label))
+				} else {
+					None
+				}
+			})
+			.enumerate()
+		{
+			report = report.with_label(
+				ariadne::Label::new(label.span_of())
+					.with_message(format!(
+						"\"{}\" is {} of the elements I encountered in the cycle",
+						self.print_qualified(*id),
+						if i > 0 { "another one" } else { "one" },
+					))
+					.with_order(i as i32),
 			)
 		}
 
