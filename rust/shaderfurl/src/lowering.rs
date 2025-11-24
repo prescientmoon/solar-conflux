@@ -13,16 +13,16 @@ pub struct Struct {
 	pub fields: Box<[(Identifier, Type)]>,
 }
 // }}}
-// {{{ Scoping contexts
+// {{{ Lowering contexts
 // The context in which this pass runs
 #[derive(Default, Debug)]
-pub struct ScopingContext {
+pub struct LoweringContext {
 	structs: Vec<Struct>,
 	// (module, name, parent)
 	pub modules: Vec<(Module, Option<Identifier>, Option<ModuleId>)>,
 }
 
-impl ScopingContext {
+impl LoweringContext {
 	fn register_struct(&mut self, s: Struct) -> StructId {
 		let id = StructId(self.structs.len());
 		self.structs.push(s);
@@ -84,14 +84,14 @@ impl ScopingContext {
 	}
 }
 
-impl Index<StructId> for ScopingContext {
+impl Index<StructId> for LoweringContext {
 	type Output = Struct;
 	fn index(&self, index: StructId) -> &Self::Output {
 		&self.structs[index.0]
 	}
 }
 
-impl Index<ModuleId> for ScopingContext {
+impl Index<ModuleId> for LoweringContext {
 	type Output = Module;
 	fn index(&self, index: ModuleId) -> &Self::Output {
 		&self.modules[index.0].0
@@ -100,8 +100,8 @@ impl Index<ModuleId> for ScopingContext {
 // }}}
 // {{{ The `FromCst` trait
 pub trait FromCst<Cst>: Sized {
-	fn from_cst(ctx: &mut ScopingContext, cst: &Cst) -> Self;
-	fn from_cst_option(ctx: &mut ScopingContext, cst: Option<&Cst>) -> Self
+	fn from_cst(ctx: &mut LoweringContext, cst: &Cst) -> Self;
+	fn from_cst_option(ctx: &mut LoweringContext, cst: Option<&Cst>) -> Self
 	where
 		Self: Default,
 	{
@@ -109,7 +109,7 @@ pub trait FromCst<Cst>: Sized {
 	}
 
 	fn from_cst_option_or(
-		ctx: &mut ScopingContext,
+		ctx: &mut LoweringContext,
 		cst: Option<&Cst>,
 		def: Self,
 	) -> Self {
@@ -118,25 +118,25 @@ pub trait FromCst<Cst>: Sized {
 }
 
 impl<Cst, T: FromCst<Cst> + Default> FromCst<Option<Cst>> for T {
-	fn from_cst(ctx: &mut ScopingContext, cst: &Option<Cst>) -> Self {
+	fn from_cst(ctx: &mut LoweringContext, cst: &Option<Cst>) -> Self {
 		Self::from_cst_option(ctx, cst.as_ref())
 	}
 }
 
 impl<Cst, T: FromCst<Cst>> FromCst<Box<Cst>> for T {
-	fn from_cst(ctx: &mut ScopingContext, cst: &Box<Cst>) -> Self {
+	fn from_cst(ctx: &mut LoweringContext, cst: &Box<Cst>) -> Self {
 		Self::from_cst(ctx, cst)
 	}
 }
 
 impl<Cst, T: FromCst<Cst>> FromCst<Vec<Cst>> for Vec<T> {
-	fn from_cst(ctx: &mut ScopingContext, cst: &Vec<Cst>) -> Self {
+	fn from_cst(ctx: &mut LoweringContext, cst: &Vec<Cst>) -> Self {
 		cst.iter().map(|v| T::from_cst(ctx, v)).collect()
 	}
 }
 
 impl<Cst, T: FromCst<Cst>> FromCst<Box<[Cst]>> for Box<[T]> {
-	fn from_cst(ctx: &mut ScopingContext, cst: &Box<[Cst]>) -> Self {
+	fn from_cst(ctx: &mut LoweringContext, cst: &Box<[Cst]>) -> Self {
 		cst.iter().map(|v| T::from_cst(ctx, v)).collect()
 	}
 }
@@ -162,7 +162,7 @@ impl Display for Name {
 
 impl FromCst<crate::cst::Token<String>> for Name {
 	fn from_cst(
-		_: &mut ScopingContext,
+		_: &mut LoweringContext,
 		cst: &crate::cst::Token<String>,
 	) -> Self {
 		Self(Rc::new(cst.value.clone()))
@@ -191,7 +191,7 @@ impl Identifier {
 
 impl FromCst<crate::cst::Token<String>> for Identifier {
 	fn from_cst(
-		ctx: &mut ScopingContext,
+		ctx: &mut LoweringContext,
 		cst: &crate::cst::Token<String>,
 	) -> Self {
 		Self::Name(Name::from_cst(ctx, cst))
@@ -203,7 +203,7 @@ pub struct QualifiedIdentifier(pub Box<[Name]>);
 
 impl FromCst<crate::cst::QualifiedName> for QualifiedIdentifier {
 	fn from_cst(
-		ctx: &mut ScopingContext,
+		ctx: &mut LoweringContext,
 		cst: &crate::cst::QualifiedName,
 	) -> Self {
 		Self(FromCst::from_cst(ctx, &cst.0))
@@ -228,7 +228,7 @@ pub enum Expr {
 }
 
 impl FromCst<crate::cst::Expr> for Expr {
-	fn from_cst(ctx: &mut ScopingContext, cst: &crate::cst::Expr) -> Self {
+	fn from_cst(ctx: &mut LoweringContext, cst: &crate::cst::Expr) -> Self {
 		match cst {
 			crate::cst::Expr::Int(token) => Self::Int(token.value),
 			crate::cst::Expr::Float(token) => Self::Float(token.value),
@@ -287,7 +287,7 @@ impl Type {
 }
 
 impl FromCst<crate::cst::Type> for Type {
-	fn from_cst(ctx: &mut ScopingContext, cst: &crate::cst::Type) -> Self {
+	fn from_cst(ctx: &mut LoweringContext, cst: &crate::cst::Type) -> Self {
 		match cst {
 			crate::cst::Type::Named(token) => {
 				Self::Named(Identifier::from_cst(ctx, token))
@@ -340,7 +340,10 @@ pub enum Statement {
 }
 
 impl FromCst<crate::cst::Statement> for Statement {
-	fn from_cst(ctx: &mut ScopingContext, cst: &crate::cst::Statement) -> Self {
+	fn from_cst(
+		ctx: &mut LoweringContext,
+		cst: &crate::cst::Statement,
+	) -> Self {
 		match cst {
 			crate::cst::Statement::Expression(expr) => {
 				Self::Expression(Expr::from_cst(ctx, expr))
@@ -412,15 +415,14 @@ pub struct Block(Box<[Statement]>);
 
 impl FromCst<crate::cst::StatementBlock> for Block {
 	fn from_cst(
-		ctx: &mut ScopingContext,
+		ctx: &mut LoweringContext,
 		cst: &crate::cst::StatementBlock,
 	) -> Self {
 		Self(FromCst::from_cst(ctx, &cst.statements))
 	}
 }
-
 // }}}
-// {{{ Procs
+// {{{ Procedures
 #[derive(Clone, Debug, Default)]
 pub struct Proc {
 	args: Vec<(Identifier, Type)>,
@@ -441,7 +443,7 @@ impl Default for ProcBody {
 }
 
 impl FromCst<crate::cst::Proc> for Proc {
-	fn from_cst(ctx: &mut ScopingContext, cst: &crate::cst::Proc) -> Self {
+	fn from_cst(ctx: &mut LoweringContext, cst: &crate::cst::Proc) -> Self {
 		let mut args = Vec::new();
 		if let Some(d) = &cst.args {
 			let mut untyped = Vec::new();
@@ -481,9 +483,9 @@ impl FromCst<crate::cst::Proc> for Proc {
 	}
 }
 // }}}
-// {{{ Scopes
+// {{{ Modules
 #[derive(Debug, Clone, Default)]
-pub enum ScopeMember {
+pub enum ModuleMember {
 	#[default]
 	Unknown,
 	External(crate::cst::ExternalValue, Type),
@@ -500,8 +502,8 @@ pub enum Module {
 	// import ...
 	// ...
 	Import(QualifiedIdentifier, ModuleId),
-	// Contains a single top-level declaration
-	Toplevel(ScopeMember),
+	// A single top-level declaration
+	Toplevel(ModuleMember),
 	// Contains a series of modules qualified by a single identifier.
 	// The same name might appear more than once!
 	Fork(Box<[(Identifier, ModuleId)]>),
@@ -510,7 +512,7 @@ pub enum Module {
 impl ModuleId {
 	fn qualify(
 		self,
-		ctx: &mut ScopingContext,
+		ctx: &mut LoweringContext,
 		path: QualifiedIdentifier,
 	) -> (Identifier, ModuleId) {
 		let mut path = path.0.into_vec();
@@ -533,7 +535,7 @@ impl ModuleId {
 
 impl FromCst<Vec<crate::cst::ModuleEntry>> for ModuleId {
 	fn from_cst(
-		ctx: &mut ScopingContext,
+		ctx: &mut LoweringContext,
 		cst: &Vec<crate::cst::ModuleEntry>,
 	) -> Self {
 		let mut out = Vec::new();
@@ -556,23 +558,23 @@ impl FromCst<Vec<crate::cst::ModuleEntry>> for ModuleId {
 						declaration.ty.as_ref().map(|v| Type::from_cst(ctx, v));
 
 					let toplevel = match &declaration.value {
-						None => ScopeMember::Unknown,
+						None => ModuleMember::Unknown,
 						Some(crate::cst::DeclValue::Alias(name)) => {
-							ScopeMember::Alias(QualifiedIdentifier::from_cst(
+							ModuleMember::Alias(QualifiedIdentifier::from_cst(
 								ctx, name,
 							))
 						}
 						Some(crate::cst::DeclValue::Type(ty)) => {
-							ScopeMember::Type(Type::from_cst(ctx, ty))
+							ModuleMember::Type(Type::from_cst(ctx, ty))
 						}
 						Some(crate::cst::DeclValue::External(v)) => {
-							ScopeMember::External(
+							ModuleMember::External(
 								v.value,
 								ty.unwrap_or_default(),
 							)
 						}
 						Some(crate::cst::DeclValue::Proc(proc)) => {
-							ScopeMember::Proc(Proc::from_cst(ctx, proc))
+							ModuleMember::Proc(Proc::from_cst(ctx, proc))
 						}
 					};
 
