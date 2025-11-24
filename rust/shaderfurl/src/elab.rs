@@ -7,8 +7,8 @@ use std::{
 
 use crate::{
 	cst::{BinaryOperator, UnaryOperator},
-	scope::{
-		Identifier, ModuleId, Name, QualifiedIdentifier, ScopingContext,
+	lowering::{
+		Identifier, LoweringContext, ModuleId, Name, QualifiedIdentifier,
 		StructId,
 	},
 };
@@ -45,7 +45,7 @@ pub struct Binder {
 
 #[derive(Default)]
 pub struct ElabContext {
-	pub scoping_context: ScopingContext,
+	pub lowering_context: LoweringContext,
 	structs: Vec<Struct>,
 	props: Vec<Type>,
 	binders: Vec<Binder>,
@@ -56,8 +56,8 @@ pub struct ElabContext {
 }
 
 impl ElabContext {
-	pub fn from_scoping(scoping_context: ScopingContext) -> Self {
-		Self { scoping_context, ..Default::default() }
+	pub fn from_scoping(scoping_context: LoweringContext) -> Self {
+		Self { lowering_context: scoping_context, ..Default::default() }
 	}
 }
 // }}}
@@ -126,12 +126,12 @@ impl ElabContext {
 		module: ModuleId,
 		name: &Name,
 	) -> ModuleResolution {
-		match &self.scoping_context[module] {
-			crate::scope::Module::Toplevel(_) => Default::default(),
-			crate::scope::Module::Import(_, inner) => {
+		match &self.lowering_context[module] {
+			crate::lowering::Module::Toplevel(_) => Default::default(),
+			crate::lowering::Module::Import(_, inner) => {
 				self.resolve_name_externally(*inner, name)
 			}
-			crate::scope::Module::Fork(items) => items
+			crate::lowering::Module::Fork(items) => items
 				.into_iter()
 				.filter(|(mod_name, _)| mod_name.to_name() == Some(name))
 				.map(|(_, inner)| *inner)
@@ -159,7 +159,7 @@ impl ElabContext {
 		module: ModuleId,
 		name: &Name,
 	) -> ModuleResolution {
-		if let Some(last) = self.scoping_context.module_parent(module) {
+		if let Some(last) = self.lowering_context.module_parent(module) {
 			self.resolve_name_internally(last, name)
 		} else {
 			Default::default()
@@ -171,8 +171,8 @@ impl ElabContext {
 			return res.clone(); // Not pretty, but oh well...
 		}
 
-		let crate::scope::Module::Import(path, inner) =
-			&self.scoping_context[module]
+		let crate::lowering::Module::Import(path, inner) =
+			&self.lowering_context[module]
 		else {
 			panic!("Expected module to be an import")
 		};
@@ -201,15 +201,15 @@ impl ElabContext {
 		module: ModuleId,
 		name: &Name,
 	) -> ModuleResolution {
-		let locally: ModuleResolution = match &self.scoping_context[module] {
-			crate::scope::Module::Toplevel(_) => Default::default(),
-			crate::scope::Module::Import(_, inner) => self
+		let locally: ModuleResolution = match &self.lowering_context[module] {
+			crate::lowering::Module::Toplevel(_) => Default::default(),
+			crate::lowering::Module::Import(_, inner) => self
 				.resolve_import(module)
 				.into_iter()
 				.flat_map(|res| self.resolve_name_externally(res, name))
 				.chain(self.resolve_name_externally(*inner, name))
 				.collect(),
-			crate::scope::Module::Fork(_) => {
+			crate::lowering::Module::Fork(_) => {
 				self.resolve_name_externally(module, name)
 			}
 		};
@@ -238,7 +238,7 @@ impl ElabContext {
 
 		let mut current = module;
 		let mut telescope = vec![module];
-		while let Some(parent) = self.scoping_context.module_parent(current) {
+		while let Some(parent) = self.lowering_context.module_parent(current) {
 			telescope.push(parent);
 			current = parent;
 		}
@@ -246,7 +246,7 @@ impl ElabContext {
 		for (i, label) in telescope
 			.iter()
 			.rev()
-			.filter_map(|elem| self.scoping_context.module_label(*elem))
+			.filter_map(|elem| self.lowering_context.module_label(*elem))
 			.enumerate()
 		{
 			if i > 0 {

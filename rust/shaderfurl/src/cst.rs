@@ -14,11 +14,7 @@ pub struct Token<T = ()> {
 
 impl<T> Token<T> {
 	pub fn set<O>(self, other: O) -> Token<O> {
-		Token {
-			span: self.span,
-			trivia: self.trivia,
-			value: other,
-		}
+		Token { span: self.span, trivia: self.trivia, value: other }
 	}
 }
 
@@ -113,8 +109,8 @@ pub enum ExternalValue {
 	Uniform,
 	Attribute,
 	Varying,
-	UniformBuffer, // UBO
-	Buffer,        // SSBO
+	UniformBuffer,
+	Buffer, // SSBO
 }
 
 #[derive(Debug, Clone)]
@@ -441,11 +437,7 @@ impl std::fmt::Display for Expr {
 
 				Ok(())
 			}
-			Self::Wrapped(Delimited {
-				open: _,
-				inner,
-				close,
-			}) => {
+			Self::Wrapped(Delimited { open: _, inner, close }) => {
 				write!(f, "(")?;
 				if let Some(inner) = inner {
 					write!(f, "{inner}")?;
