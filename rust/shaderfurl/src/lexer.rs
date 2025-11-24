@@ -1,4 +1,4 @@
-use std::{cmp, path::Path, rc::Rc};
+use std::cmp;
 
 use ariadne::Span;
 use enumset::EnumSetType;
@@ -37,14 +37,8 @@ impl Ord for SourcePos {
 // }}}
 // {{{ File IDs
 // TODO: change this to whatever the LSP uses
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct FileId(Rc<Path>);
-
-impl FileId {
-	pub fn new(path: Rc<Path>) -> Self {
-		Self(path)
-	}
-}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FileId(pub usize);
 
 impl std::fmt::Display for FileId {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -53,7 +47,7 @@ impl std::fmt::Display for FileId {
 }
 // }}}
 // {{{ Source spans
-#[derive(Clone)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct SourceSpan {
 	pub path: FileId,
 	pub from: SourcePos,
@@ -75,7 +69,7 @@ impl SourceSpan {
 		assert_eq!(self.path, other.path);
 		let start = self.from.min(other.from);
 		let end = self.end().max(other.end());
-		Self::new(self.path.clone(), start, end - start.index)
+		Self::new(self.path, start, end - start.index)
 	}
 
 	pub fn merge_options(
@@ -262,7 +256,7 @@ impl<'a> Lexer<'a> {
 
 		let mut tok = Token {
 			kind: TokenKind::Eof,
-			span: SourceSpan::new(self.path.clone(), self.pos, 0),
+			span: SourceSpan::new(self.path, self.pos, 0),
 		};
 
 		let mut end_offset = 0;
