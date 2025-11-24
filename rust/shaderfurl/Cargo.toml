@@ -6,4 +6,3 @@ edition = "2024"
 [dependencies]
 ariadne = { version="0.5.1", features=["auto-color"] }
 enumset = "1.1.10"
-salsa = "0.23.0"
