@@ -6,11 +6,10 @@ use std::{
 };
 
 use crate::{
-	cst::{BinaryOperator, UnaryOperator},
-	lowering::{
-		Identifier, LoweringContext, ModuleId, Name, QualifiedIdentifier,
-		StructId,
-	},
+	compact_report,
+	cst::{BinaryOperator, HasSpan, UnaryOperator},
+	lexer::SourceSpan,
+	lowering::{Identifier, LoweringContext, ModuleId, Name, StructId},
 };
 
 // {{{ The elaboration context type
@@ -44,32 +43,58 @@ pub struct Binder {
 }
 
 #[derive(Default)]
-pub struct ElabContext {
+pub struct ElabContext<'a> {
 	pub lowering_context: LoweringContext,
 	structs: Vec<Struct>,
 	props: Vec<Type>,
 	binders: Vec<Binder>,
 	toplevel: HashMap<BinderId, Toplevel>,
-	aliases: HashMap<QualifiedIdentifier, Option<QualifiedIdentifier>>,
-	types: HashMap<QualifiedIdentifier, Type>,
 	imports: RefCell<HashMap<ModuleId, Box<[ModuleId]>>>,
+	types: RefCell<HashMap<ModuleId, Type>>,
+	reports: RefCell<Vec<ariadne::Report<'a, SourceSpan>>>,
 }
 
-impl ElabContext {
+impl<'a> ElabContext<'a> {
 	pub fn from_scoping(scoping_context: LoweringContext) -> Self {
 		Self { lowering_context: scoping_context, ..Default::default() }
+	}
+
+	pub fn reports(
+		&self,
+	) -> std::cell::Ref<'_, Vec<ariadne::Report<'a, SourceSpan>>> {
+		self.reports.borrow()
+	}
+
+	fn push_report(&self, report: ariadne::Report<'a, SourceSpan>) {
+		self.reports.borrow_mut().push(report)
 	}
 }
 // }}}
 // {{{ Types & expressions & statements
-#[derive(Debug, Clone, Default)]
-pub enum Type {
+#[derive(Debug, Clone, Copy, Default)]
+pub enum PrimitiveType {
 	#[default]
 	Unknown,
 	Unit,
+	F32,
+	F64,
+	I32,
+	I64,
+	Bool,
+}
+
+#[derive(Debug, Clone)]
+pub enum Type {
+	Primitive(PrimitiveType),
 	Struct(StructId),
 	Array((usize, usize), Box<Type>),
 	Proc(Box<[Type]>, Box<Type>),
+}
+
+impl Default for Type {
+	fn default() -> Self {
+		Self::Primitive(Default::default())
+	}
 }
 
 #[derive(Clone, Debug)]
@@ -120,7 +145,7 @@ pub enum Proc {
 // }}}
 // {{{ Name resolution
 type ModuleResolution = HashSet<ModuleId>;
-impl ElabContext {
+impl ElabContext<'_> {
 	fn resolve_name_externally(
 		&self,
 		module: ModuleId,
@@ -267,3 +292,194 @@ impl ElabContext {
 	}
 }
 // }}}
+
+impl ElabContext<'_> {
+	// {{{ Checking of types
+	pub fn check_types(&self) {
+		for module in self.lowering_context.module_ids() {
+			if let crate::lowering::Module::Toplevel(
+				crate::lowering::ModuleMember::Type(ty),
+			) = &self.lowering_context[module]
+			{
+				self.elab_type(module, ty, true);
+			}
+		}
+	}
+
+	fn elab_type(
+		&self,
+		module: ModuleId,
+		ty: &crate::lowering::Type,
+		shallow: bool,
+	) -> Type {
+		match ty {
+			crate::lowering::Type::Unknown => {
+				Type::Primitive(PrimitiveType::Unknown)
+			}
+			crate::lowering::Type::Unit => Type::Primitive(PrimitiveType::Unit),
+			crate::lowering::Type::Shared(inner) => {
+				self.elab_type(module, inner, shallow)
+			}
+			crate::lowering::Type::Named(name) => {
+				if name.0.len() == 1 {
+					match name.0[0].name.as_str() {
+						"f32" => return Type::Primitive(PrimitiveType::F32),
+						"f64" => return Type::Primitive(PrimitiveType::F64),
+						"i32" => return Type::Primitive(PrimitiveType::I32),
+						"i64" => return Type::Primitive(PrimitiveType::I64),
+						"bool" => return Type::Primitive(PrimitiveType::Bool),
+						"unit" => return Type::Primitive(PrimitiveType::Unit),
+						_ => {}
+					};
+				}
+
+				let ids: ModuleResolution = self
+					.resolve_path_internally(module, &name.0)
+					.into_iter()
+					.filter(|n| {
+						matches!(
+							&self.lowering_context[*n],
+							crate::lowering::Module::Toplevel(_)
+						)
+					})
+					.collect();
+
+				if ids.is_empty() {
+					compact_report!(
+						(self, "NameNotFound", name),
+						("Name \"{}\" not defined", name),
+						("I could not resolve this name"),
+					);
+
+					Type::default()
+				} else if ids.len() > 1 {
+					self.report_ambiguous_name(name, &ids);
+					Type::default()
+				} else {
+					let the_module = *ids.iter().next().unwrap();
+					let crate::lowering::Module::Toplevel(toplevel) =
+						&self.lowering_context[the_module]
+					else {
+						unreachable!()
+					};
+
+					match toplevel {
+						crate::lowering::ModuleMember::Unknown => {
+							Type::default()
+						}
+						crate::lowering::ModuleMember::Alias(
+							qualified_identifier,
+						) => {
+							if shallow {
+								Type::default()
+							} else {
+								self.elab_type(
+									the_module,
+									&crate::lowering::Type::Named(
+										qualified_identifier.clone(),
+									),
+									false,
+								)
+							}
+						}
+						crate::lowering::ModuleMember::Type(ty) => {
+							if shallow {
+								Type::default()
+							} else {
+								self.elab_type(the_module, ty, false)
+							}
+						}
+						_ => {
+							self.report_not_a_type(name, the_module);
+							Type::default()
+						}
+					}
+				}
+			}
+			crate::lowering::Type::Array(dims, inner) => {
+				let inner = self.elab_type(module, inner, shallow);
+				// TODO: error out on certain sizes
+				Type::Array(*dims, Box::new(inner))
+			}
+			crate::lowering::Type::Struct(struct_id) => {
+				Type::Struct(*struct_id)
+			}
+		}
+	}
+	// }}}
+
+	// Error reporting
+	// {{{ Ambiguous name
+	fn report_ambiguous_name(
+		&self,
+		name: &crate::lowering::QualifiedIdentifier,
+		definitions: &ModuleResolution,
+	) {
+		let names: String = definitions
+			.iter()
+			.map(|i| self.print_qualified(*i))
+			.collect::<Vec<_>>()
+			.join(", "); // Is there no way to do this without allocating twice ;-;
+
+		let mut report =
+			ariadne::Report::build(ariadne::ReportKind::Error, name.span_of())
+				.with_code("AmbiguousName")
+				.with_message(format!(
+					"Name \"{}\" is ambiguous and could refer to one of the following: {}",
+					name, names
+				))
+				.with_label(
+					ariadne::Label::new(name.span_of())
+						.with_message("I am confused about this name")
+						.with_order(-10),
+				);
+
+		for id in definitions {
+			if let Some(Identifier::Name(label)) =
+				self.lowering_context.module_label(*id)
+			{
+				report = report.with_label(
+					ariadne::Label::new(label.span_of()).with_message(format!(
+						"\"{}\" is one of the options I considered",
+						self.print_qualified(*id)
+					)),
+				)
+			}
+		}
+
+		self.push_report(report.finish());
+	}
+	// }}}
+	// {{{ Not a type
+	fn report_not_a_type(
+		&self,
+		name: &crate::lowering::QualifiedIdentifier,
+		definition: ModuleId,
+	) {
+		let mut report =
+			ariadne::Report::build(ariadne::ReportKind::Error, name.span_of())
+				.with_code("NotAType")
+				.with_message(format!(
+					"Name \"{}\" does not refer to a type",
+					name
+				))
+				.with_label(
+					ariadne::Label::new(name.span_of())
+						.with_message("I was expecting this to be a type...")
+						.with_order(-10),
+				);
+
+		if let Some(Identifier::Name(label)) =
+			self.lowering_context.module_label(definition)
+		{
+			report = report.with_label(
+				ariadne::Label::new(label.span_of()).with_message(
+					"...yet it does not look like one based on this definition",
+				),
+			)
+		}
+
+		self.push_report(report.finish());
+	}
+	// }}}
+}

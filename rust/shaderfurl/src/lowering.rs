@@ -2,7 +2,10 @@
 #![allow(dead_code)]
 use std::{fmt::Display, ops::Index, rc::Rc};
 
-use crate::cst::{BinaryOperator, UnaryOperator};
+use crate::{
+	cst::{BinaryOperator, HasSpan, UnaryOperator},
+	lexer::SourceSpan,
+};
 
 // {{{ Structs
 #[derive(Clone, Copy, Debug)]
@@ -65,22 +68,8 @@ impl LoweringContext {
 		self.modules.get(module.0).unwrap().1.as_ref()
 	}
 
-	// To be used for debugging only
-	pub fn inner_module_by_label(&self, label: &str) -> ModuleId {
-		let id = Identifier::from_str(label);
-		let outer = self
-			.modules
-			.iter()
-			.enumerate()
-			.find(|(_, (_, mod_label, _))| mod_label.as_ref() == Some(&id))
-			.unwrap()
-			.0;
-
-		let mut outer = ModuleId(outer);
-		while let Module::Import(_, inner) = self[outer] {
-			outer = inner;
-		}
-		outer
+	pub fn module_ids(&self) -> impl Iterator<Item = ModuleId> {
+		(0..self.modules.len()).map(ModuleId)
 	}
 }
 
@@ -145,18 +134,21 @@ impl<Cst, T: FromCst<Cst>> FromCst<Box<[Cst]>> for Box<[T]> {
 // `FromCst` implementation
 // {{{ Names
 // I should probably intern the strings properly, but I'm laaaazy
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Name(pub Rc<String>);
+#[derive(Debug, Clone, Eq)]
+pub struct Name {
+	pub span: SourceSpan,
+	pub name: Rc<String>,
+}
 
-impl Name {
-	pub fn from_str(s: &str) -> Self {
-		Self(Rc::new(s.to_string()))
+impl PartialEq for Name {
+	fn eq(&self, other: &Self) -> bool {
+		self.name == other.name
 	}
 }
 
 impl Display for Name {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "{}", self.0)
+		write!(f, "{}", self.name)
 	}
 }
 
@@ -165,7 +157,13 @@ impl FromCst<crate::cst::Token<String>> for Name {
 		_: &mut LoweringContext,
 		cst: &crate::cst::Token<String>,
 	) -> Self {
-		Self(Rc::new(cst.value.clone()))
+		Self { span: cst.span, name: Rc::new(cst.value.clone()) }
+	}
+}
+
+impl HasSpan for Name {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		Some(self.span)
 	}
 }
 
@@ -177,10 +175,6 @@ pub enum Identifier {
 }
 
 impl Identifier {
-	pub fn from_str(s: &str) -> Self {
-		Self::Name(Name::from_str(s))
-	}
-
 	pub fn to_name(&self) -> Option<&Name> {
 		match self {
 			Self::Unknown => None,
@@ -207,6 +201,26 @@ impl FromCst<crate::cst::QualifiedName> for QualifiedIdentifier {
 		cst: &crate::cst::QualifiedName,
 	) -> Self {
 		Self(FromCst::from_cst(ctx, &cst.0))
+	}
+}
+
+impl HasSpan for QualifiedIdentifier {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		self.0.try_span_of()
+	}
+}
+
+impl Display for QualifiedIdentifier {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		for (i, chunk) in self.0.iter().enumerate() {
+			if i > 0 {
+				write!(f, ".")?;
+			}
+
+			write!(f, "{}", chunk)?;
+		}
+
+		Ok(())
 	}
 }
 // }}}
@@ -275,7 +289,7 @@ pub enum Type {
 	Unknown,
 	Unit,
 	Shared(Rc<Type>),
-	Named(Identifier),
+	Named(QualifiedIdentifier),
 	Array((usize, usize), Box<Type>),
 	Struct(StructId),
 }
@@ -290,7 +304,7 @@ impl FromCst<crate::cst::Type> for Type {
 	fn from_cst(ctx: &mut LoweringContext, cst: &crate::cst::Type) -> Self {
 		match cst {
 			crate::cst::Type::Named(token) => {
-				Self::Named(Identifier::from_cst(ctx, token))
+				Self::Named(QualifiedIdentifier::from_cst(ctx, token))
 			}
 			crate::cst::Type::Struct(st) => {
 				let fields = st

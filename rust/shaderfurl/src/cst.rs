@@ -288,7 +288,7 @@ impl BinaryOperator {
 // {{{ Types
 #[derive(Debug, Clone)]
 pub enum Type {
-	Named(Token<String>),
+	Named(QualifiedName),
 	Struct(Struct),
 	Array(Array),
 }
@@ -468,7 +468,7 @@ pub trait HasSpan {
 
 impl HasSpan for SourceSpan {
 	fn try_span_of(&self) -> Option<SourceSpan> {
-		Some(self.clone())
+		Some(*self)
 	}
 }
 
@@ -512,13 +512,13 @@ impl<T: HasSpan> HasSpan for Box<[T]> {
 /// inner type is not required to implement [HasSpan] as well.
 impl<T> HasSpan for Token<T> {
 	fn try_span_of(&self) -> Option<SourceSpan> {
-		Some(self.span.clone())
+		Some(self.span)
 	}
 }
 
 impl HasSpan for lexer::Token {
 	fn try_span_of(&self) -> Option<SourceSpan> {
-		Some(self.span.clone())
+		Some(self.span)
 	}
 }
 

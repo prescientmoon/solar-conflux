@@ -1,26 +1,62 @@
-use std::{path::PathBuf, rc::Rc, str::FromStr};
+use std::rc::Rc;
 
 use ariadne::Source;
 
 use crate::{
 	elab::ElabContext,
 	lexer::{FileId, Lexer, TokenKind},
-	lowering::{FromCst, LoweringContext, ModuleId, Name},
+	lowering::{FromCst, LoweringContext, ModuleId},
 	parser::Parser,
 };
 
 mod cst;
 mod elab;
+mod errors;
 mod lexer;
 mod lowering;
 mod parser;
 
+#[derive(Default)]
+struct PathCache {
+	paths: Vec<(Rc<String>, ariadne::Source<String>)>,
+}
+
+impl PathCache {
+	fn add_file(&mut self, path: &str, contents: &str) -> FileId {
+		self.paths.push((
+			Rc::new(path.to_string()),
+			ariadne::Source::from(contents.to_string()),
+		));
+		FileId(self.paths.len() - 1)
+	}
+}
+
+impl ariadne::Cache<FileId> for &PathCache {
+	#[allow(refining_impl_trait)]
+	fn fetch(&mut self, id: &FileId) -> Result<&Source<Self::Storage>, String> {
+		Ok(&self
+			.paths
+			.get(id.0)
+			.ok_or_else(|| format!("Cannot find file with id {id}"))?
+			.1)
+	}
+
+	fn display<'a>(
+		&self,
+		id: &'a FileId,
+	) -> Option<impl std::fmt::Display + 'a> {
+		Some(self.paths.get(id.0)?.0.clone())
+	}
+
+	type Storage = String;
+}
+
 fn main() {
 	let buffer = include_str!("../shaders-idea/example.furl").to_string();
 
-	let file_id =
-		FileId::new(Rc::from(PathBuf::from_str("repl").unwrap().as_path()));
-	let mut lexer = Lexer::new(file_id.clone(), &buffer);
+	let mut source_cache = PathCache::default();
+	let file_id = source_cache.add_file("repl", &buffer);
+	let mut lexer = Lexer::new(file_id, &buffer);
 
 	println!("========== Lexing");
 	loop {
@@ -33,32 +69,28 @@ fn main() {
 		}
 	}
 
-	let mut parser = Parser::new(file_id.clone(), &buffer);
+	let mut parser = Parser::new(file_id, &buffer);
 
 	let file = parser.parse_file();
 	println!("========== Parsing");
-	println!("{:?}", parser.stop_on_stack);
-	println!("{:#?}", file);
+	// println!("{:#?}", file);
 
-	for report in parser.reports() {
+	for report in parser.reports().iter() {
 		report
-			.eprint((file_id.clone(), Source::from(&buffer)))
+			.eprint(&source_cache)
 			.expect("Failed to print report to console ;-;");
 	}
 
 	let mut ctx = LoweringContext::default();
 	ModuleId::from_cst(&mut ctx, &file.entries);
-	println!("{:#?}", ctx);
-	let ctx = ElabContext::from_scoping(ctx);
-
-	let second_mod = ctx.lowering_context.inner_module_by_label("second");
-	let resolutions = ctx.resolve_path_internally(
-		second_mod,
-		&[Name::from_str("first"), Name::from_str("something")],
-	);
-
+	// println!("{:#?}", ctx);
 	println!("========== Elaboration");
-	for module in resolutions {
-		println!("> {}", ctx.print_qualified(module))
+	let ctx = ElabContext::from_scoping(ctx);
+	ctx.check_types();
+
+	for report in ctx.reports().iter() {
+		report
+			.eprint(&source_cache)
+			.expect("Failed to print report to console ;-;");
 	}
 }
