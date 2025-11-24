@@ -5,15 +5,15 @@ use ariadne::Source;
 use crate::{
 	elab::ElabContext,
 	lexer::{FileId, Lexer, TokenKind},
+	lowering::{FromCst, LoweringContext, ModuleId, Name},
 	parser::Parser,
-	scope::{FromCst, ModuleId, Name, ScopingContext},
 };
 
 mod cst;
 mod elab;
 mod lexer;
+mod lowering;
 mod parser;
-mod scope;
 
 fn main() {
 	let buffer = include_str!("../shaders-idea/example.furl").to_string();
@@ -46,12 +46,12 @@ fn main() {
 			.expect("Failed to print report to console ;-;");
 	}
 
-	let mut ctx = ScopingContext::default();
+	let mut ctx = LoweringContext::default();
 	ModuleId::from_cst(&mut ctx, &file.entries);
 	println!("{:#?}", ctx);
 	let ctx = ElabContext::from_scoping(ctx);
 
-	let second_mod = ctx.scoping_context.inner_module_by_label("second");
+	let second_mod = ctx.lowering_context.inner_module_by_label("second");
 	let resolutions = ctx.resolve_path_internally(
 		second_mod,
 		&[Name::from_str("first"), Name::from_str("something")],
