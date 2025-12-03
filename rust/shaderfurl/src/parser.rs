@@ -1243,7 +1243,7 @@ impl<'a> Parser<'a> {
 					});
 
 				let value = self.parse_decl_value();
-				if value.is_none() {
+				if second_colon.is_some() && value.is_none() {
 					compact_report!(
 						(
 							self,
@@ -1270,7 +1270,6 @@ impl<'a> Parser<'a> {
 					Some(
 						cst::DeclValue::Type(_)
 						| cst::DeclValue::Proc(_)
-						| cst::DeclValue::Type(_)
 						| cst::DeclValue::Alias(_),
 					) if ty.is_some() => {
 						compact_report!(
