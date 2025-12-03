@@ -214,7 +214,7 @@ impl Display for QualifiedIdentifier {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		for (i, chunk) in self.0.iter().enumerate() {
 			if i > 0 {
-				write!(f, ".")?;
+				write!(f, "/")?;
 			}
 
 			write!(f, "{}", chunk)?;
@@ -233,7 +233,7 @@ pub enum Expr {
 	Bool(bool),
 	Int(i64),
 	Float(f64),
-	Variable(Identifier),
+	Variable(QualifiedIdentifier),
 	Property(Box<Expr>, Identifier),
 	Call(Box<Expr>, Box<[Expr]>),
 	Unary(UnaryOperator, Box<Expr>),
@@ -247,7 +247,7 @@ impl FromCst<crate::cst::Expr> for Expr {
 			crate::cst::Expr::Int(token) => Self::Int(token.value),
 			crate::cst::Expr::Float(token) => Self::Float(token.value),
 			crate::cst::Expr::Variable(token) => {
-				Self::Variable(Identifier::from_cst(ctx, token))
+				Self::Variable(QualifiedIdentifier::from_cst(ctx, token))
 			}
 			crate::cst::Expr::Property(expr, token) => Self::Property(
 				Box::new(Self::from_cst(ctx, expr)),
@@ -350,7 +350,7 @@ pub enum Statement {
 	If(Box<[(Expr, Block)]>),
 	For(Box<(Statement, Statement, Statement)>, Block),
 	Assignment(Expr, Option<BinaryOperator>, Expr),
-	Declaration(Identifier, Option<Type>, Option<Expr>),
+	Declaration(QualifiedIdentifier, Option<Type>, Option<Expr>),
 }
 
 impl FromCst<crate::cst::Statement> for Statement {
@@ -373,9 +373,9 @@ impl FromCst<crate::cst::Statement> for Statement {
 				Self::Declaration(
 					match &local_declaration.variable {
 						Some(crate::cst::Expr::Variable(v)) => {
-							Identifier::from_cst(ctx, v)
+							QualifiedIdentifier::from_cst(ctx, v)
 						}
-						_ => Identifier::default(),
+						_ => QualifiedIdentifier::default(),
 					},
 					local_declaration
 						.ty

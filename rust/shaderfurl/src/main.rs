@@ -16,6 +16,7 @@ mod errors;
 mod lexer;
 mod lowering;
 mod parser;
+mod telescope;
 
 #[derive(Default)]
 struct PathCache {
@@ -87,7 +88,7 @@ fn main() {
 	// println!("{:#?}", ctx);
 	println!("========== Elaboration");
 	let ctx = ElabContext::from_scoping(ctx);
-	ctx.check_types();
+	ctx.elab_toplevel();
 
 	for report in ctx.reports().iter() {
 		report
