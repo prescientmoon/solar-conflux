@@ -498,14 +498,19 @@ impl FromCst<crate::cst::Proc> for Proc {
 }
 // }}}
 // {{{ Modules
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub enum ModuleMember {
-	#[default]
-	Unknown,
+	Unknown(Option<Type>),
 	External(crate::cst::ExternalValue, Type),
 	Alias(QualifiedIdentifier),
 	Type(Type),
 	Proc(Proc),
+}
+
+impl Default for ModuleMember {
+	fn default() -> Self {
+		Self::Unknown(None)
+	}
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -572,7 +577,7 @@ impl FromCst<Vec<crate::cst::ModuleEntry>> for ModuleId {
 						declaration.ty.as_ref().map(|v| Type::from_cst(ctx, v));
 
 					let toplevel = match &declaration.value {
-						None => ModuleMember::Unknown,
+						None => ModuleMember::Unknown(ty),
 						Some(crate::cst::DeclValue::Alias(name)) => {
 							ModuleMember::Alias(QualifiedIdentifier::from_cst(
 								ctx, name,

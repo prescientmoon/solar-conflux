@@ -44,13 +44,13 @@ pub struct Binder {
 pub struct ElabContext<'a> {
 	pub lowering_context: LoweringContext,
 
+	// Type fragments
 	/// Indexed by [StructId]
 	structs: Vec<Struct>,
-
 	/// Indexed by [ArrayTypeId]
 	arrays: RefCell<Vec<ArrayType>>,
 
-	// Toplevel elaboration memorization
+	// Top-level elaboration memorization
 	imports: RefCell<HashMap<ModuleId, Box<[ModuleId]>>>,
 	aliases: RefCell<HashMap<ModuleId, Option<Alias>>>,
 	typedefs: RefCell<HashMap<ModuleId, Type>>,
@@ -369,7 +369,19 @@ impl ElabContext<'_> {
 				) => {
 					self.elab_external(&mut Telescope::new(module));
 				}
-				_ => {}
+				crate::lowering::Module::Toplevel(
+					crate::lowering::ModuleMember::Unknown(ty),
+				) => {
+					if let Some(ty) = ty {
+						self.elab_type(&mut Telescope::new(module), ty);
+					}
+				}
+				crate::lowering::Module::Toplevel(
+					crate::lowering::ModuleMember::Proc(_proc),
+				) => {
+					todo!()
+				}
+				crate::lowering::Module::Fork(_) => {}
 			}
 		}
 	}
@@ -507,7 +519,7 @@ impl ElabContext<'_> {
 							.focusing_many(resolved.jumps, |telescope| {
 								self.elab_toplevel_type(telescope, ty)
 							}),
-						crate::lowering::ModuleMember::Unknown => {
+						crate::lowering::ModuleMember::Unknown(None) => {
 							Type::default()
 						}
 						_ => {
