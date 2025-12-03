@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use std::{
-	cell::RefCell,
+	cell::{Ref, RefCell},
 	collections::{HashMap, HashSet},
 	fmt::Write,
 };
@@ -10,7 +10,18 @@ use crate::{
 	cst::{BinaryOperator, HasSpan, UnaryOperator},
 	lexer::SourceSpan,
 	lowering::{Identifier, LoweringContext, ModuleId, Name, StructId},
+	telescope::Telescope,
 };
+
+/*
+TODO:
+- [ ] Elaborate aliases
+- [x] Elaborate type definitions
+- [ ] Elaborate structs
+- [ ] Elaborate proc types
+- [ ] Elaborate statements
+- [ ] Elaborate expressions
+*/
 
 // {{{ The elaboration context type
 #[derive(Clone, Copy, Debug)]
@@ -19,21 +30,8 @@ pub struct BinderId(usize);
 #[derive(Clone, Copy, Debug)]
 pub struct PropId(usize);
 
-#[derive(Debug, Clone)]
-pub enum External {
-	Uniform,
-	UniformBuffer,
-	Buffer,
-	Attribute,
-	Varying,
-}
-
-#[derive(Debug, Clone)]
-pub enum Toplevel {
-	Unknown,
-	External(External),
-	Proc(Proc),
-}
+#[derive(Clone, Copy, Debug)]
+pub struct ArrayTypeId(usize);
 
 pub struct Binder {
 	// The original name in the source code.
@@ -45,12 +43,21 @@ pub struct Binder {
 #[derive(Default)]
 pub struct ElabContext<'a> {
 	pub lowering_context: LoweringContext,
+
+	/// Indexed by [StructId]
 	structs: Vec<Struct>,
-	props: Vec<Type>,
-	binders: Vec<Binder>,
-	toplevel: HashMap<BinderId, Toplevel>,
+
+	/// Indexed by [ArrayTypeId]
+	arrays: RefCell<Vec<ArrayType>>,
+
+	// Toplevel elaboration memorization
 	imports: RefCell<HashMap<ModuleId, Box<[ModuleId]>>>,
-	types: RefCell<HashMap<ModuleId, Type>>,
+	aliases: RefCell<HashMap<ModuleId, Option<Alias>>>,
+	typedefs: RefCell<HashMap<ModuleId, Type>>,
+	procs: RefCell<HashMap<ModuleId, Proc>>,
+	external: RefCell<HashMap<ModuleId, External>>,
+
+	// Error reporting
 	reports: RefCell<Vec<ariadne::Report<'a, SourceSpan>>>,
 }
 
@@ -68,6 +75,16 @@ impl<'a> ElabContext<'a> {
 	fn push_report(&self, report: ariadne::Report<'a, SourceSpan>) {
 		self.reports.borrow_mut().push(report)
 	}
+
+	fn register_array_type(&self, t: ArrayType) -> ArrayTypeId {
+		let id = ArrayTypeId(self.arrays.borrow().len());
+		self.arrays.borrow_mut().push(t);
+		id
+	}
+
+	fn get_array_type(&self, index: ArrayTypeId) -> Ref<'_, ArrayType> {
+		Ref::map(self.arrays.borrow(), |r| &r[index.0])
+	}
 }
 // }}}
 // {{{ Types & expressions & statements
@@ -83,12 +100,18 @@ pub enum PrimitiveType {
 	Bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
+pub struct ArrayType {
+	dimensions: (usize, usize),
+	inner: Type,
+}
+
+#[derive(Debug, Clone, Copy)]
 pub enum Type {
 	Primitive(PrimitiveType),
 	Struct(StructId),
-	Array((usize, usize), Box<Type>),
-	Proc(Box<[Type]>, Box<Type>),
+	Array(ArrayTypeId),
+	Proc(ModuleId), // Procedures can only be introduced at the top level
 }
 
 impl Default for Type {
@@ -98,8 +121,37 @@ impl Default for Type {
 }
 
 #[derive(Clone, Debug)]
+pub struct Alias {
+	/// Keeps track of the jumps taken around the codebase in order to resolve the
+	/// alias. This is only used for error reporting (in particular, it's useful
+	/// for showing every alias followed while elaborating a cyclic definition)
+	jumps: Box<[ModuleId]>,
+	endpoint: ModuleId,
+}
+
+#[derive(Clone, Debug)]
+pub struct External {
+	ty: Type,
+	value: crate::cst::ExternalValue,
+	// TODO: I might include things like layout information here
+}
+
+#[derive(Clone, Debug)]
 pub struct Struct {
-	pub fields: Box<[PropId]>,
+	fields: Box<[PropId]>,
+}
+
+#[derive(Clone, Debug)]
+pub struct Proc {
+	arguments: Box<[Type]>,
+	output: Type,
+	implementation: ProcImplementation,
+}
+
+#[derive(Clone, Debug)]
+pub enum ProcImplementation {
+	Native(String),
+	Implemented(Box<[BinderId]>, Block),
 }
 
 #[derive(Clone, Debug)]
@@ -136,12 +188,6 @@ pub enum Statement {
 
 #[derive(Clone, Debug, Default)]
 pub struct Block(Box<[Statement]>);
-
-#[derive(Clone, Debug)]
-pub enum Proc {
-	Native(String),
-	Implemented(Box<[BinderId]>, Block),
-}
 // }}}
 // {{{ Name resolution
 type ModuleResolution = HashSet<ModuleId>;
@@ -191,9 +237,11 @@ impl ElabContext<'_> {
 		}
 	}
 
-	fn resolve_import(&self, module: ModuleId) -> Box<[ModuleId]> {
-		if let Some(res) = self.imports.borrow().get(&module) {
-			return res.clone(); // Not pretty, but oh well...
+	fn elab_import(&self, module: ModuleId) -> Ref<'_, [ModuleId]> {
+		if let Ok(cached) = Ref::filter_map(self.imports.borrow(), |imports| {
+			imports.get(&module).map(|v| &**v)
+		}) {
+			return cached;
 		}
 
 		let crate::lowering::Module::Import(path, inner) =
@@ -217,8 +265,12 @@ impl ElabContext<'_> {
 			}
 		};
 
-		self.imports.borrow_mut().insert(module, boxed.clone());
-		boxed
+		if boxed.is_empty() {
+			self.report_name_not_found(path);
+		}
+
+		self.imports.borrow_mut().insert(module, boxed);
+		self.elab_import(module)
 	}
 
 	fn resolve_name_internally(
@@ -229,8 +281,9 @@ impl ElabContext<'_> {
 		let locally: ModuleResolution = match &self.lowering_context[module] {
 			crate::lowering::Module::Toplevel(_) => Default::default(),
 			crate::lowering::Module::Import(_, inner) => self
-				.resolve_import(module)
-				.into_iter()
+				.elab_import(module)
+				.iter()
+				.copied()
 				.flat_map(|res| self.resolve_name_externally(res, name))
 				.chain(self.resolve_name_externally(*inner, name))
 				.collect(),
@@ -275,7 +328,7 @@ impl ElabContext<'_> {
 			.enumerate()
 		{
 			if i > 0 {
-				write!(&mut out, ".").unwrap();
+				write!(&mut out, "/").unwrap();
 			}
 
 			match label {
@@ -294,47 +347,132 @@ impl ElabContext<'_> {
 // }}}
 
 impl ElabContext<'_> {
-	// {{{ Checking of types
-	pub fn check_types(&self) {
+	// {{{ Elaborate top-level entries
+	pub fn elab_toplevel(&self) {
 		for module in self.lowering_context.module_ids() {
-			if let crate::lowering::Module::Toplevel(
-				crate::lowering::ModuleMember::Type(ty),
-			) = &self.lowering_context[module]
-			{
-				self.elab_type_defined_at(module, ty, &mut Vec::new());
+			match &self.lowering_context[module] {
+				crate::lowering::Module::Import(_, _) => {
+					self.elab_import(module);
+				}
+				crate::lowering::Module::Toplevel(
+					crate::lowering::ModuleMember::Type(ty),
+				) => {
+					self.elab_toplevel_type(&mut Telescope::new(module), ty);
+				}
+				crate::lowering::Module::Toplevel(
+					crate::lowering::ModuleMember::Alias(to),
+				) => {
+					self.elab_toplevel_alias(&mut Telescope::new(module), to);
+				}
+				crate::lowering::Module::Toplevel(
+					crate::lowering::ModuleMember::External(_, _),
+				) => {
+					self.elab_external(&mut Telescope::new(module));
+				}
+				_ => {}
 			}
 		}
 	}
-
-	fn elab_type_defined_at(
+	// }}}
+	// {{{ Elaborate name aliases
+	fn elab_toplevel_alias(
 		&self,
-		module: ModuleId,
-		ty: &crate::lowering::Type,
+		telescope: &mut Telescope<ModuleId>,
+		to: &crate::lowering::QualifiedIdentifier,
+	) -> Option<Ref<'_, Alias>> {
+		if let Some(cycle) = telescope.find_cycle() {
+			self.report_cycle(cycle);
+			return None;
+		} else if let Ok(cached) =
+			Ref::filter_map(self.aliases.borrow(), |aliases| {
+				aliases.get(telescope.tip())
+			}) {
+			return Ref::filter_map(cached, |v| v.as_ref()).ok();
+		}
 
-		// The types we were checking while we got here
-		telescope: &mut Vec<ModuleId>,
-	) -> Type {
-		if telescope.contains(&module) {
-			self.report_cycle(&telescope);
-			Type::default()
+		let elaborated = self.elab_alias(telescope, to);
+		self.aliases.borrow_mut().insert(*telescope.tip(), elaborated);
+		self.elab_toplevel_alias(telescope, to)
+	}
+
+	/// Resolves an alias pointing to a toplevel entry. This can be considered
+	/// a wrapper around [Self::resolve_path_internally] which:
+	/// - errors out on ambiguous names (i.e. cases where more than one match
+	///   exists)
+	/// - errors out on names that are not found
+	/// - follows jumps recursively until the result is a non-alias
+	/// - detects alias cycles
+	fn elab_alias(
+		&self,
+		telescope: &mut Telescope<ModuleId>,
+		to: &crate::lowering::QualifiedIdentifier,
+	) -> Option<Alias> {
+		let ids: ModuleResolution = self
+			.resolve_path_internally(*telescope.tip(), &to.0)
+			.into_iter()
+			.filter(|n| {
+				matches!(
+					&self.lowering_context[*n],
+					crate::lowering::Module::Toplevel(_)
+				)
+			})
+			.collect();
+
+		if ids.is_empty() {
+			self.report_name_not_found(to);
+			None
+		} else if ids.len() > 1 {
+			self.report_ambiguous_name(to, &ids);
+			None
 		} else {
-			if let Some(elaborated) = self.types.borrow().get(&module) {
-				elaborated.clone()
-			} else {
-				telescope.push(module);
-				let elaborated = self.elab_type(module, ty, telescope);
-				telescope.pop();
-				self.types.borrow_mut().insert(module, elaborated.clone());
-				elaborated
+			let the_module = *ids.iter().next().unwrap();
+			match &self.lowering_context[the_module] {
+				crate::lowering::Module::Toplevel(
+					crate::lowering::ModuleMember::Alias(to),
+				) => telescope.focusing(the_module, |telescope| {
+					self.elab_toplevel_alias(telescope, to).map(|alias| {
+						// h
+						Alias {
+							jumps: std::iter::once(the_module)
+								.chain(alias.jumps.iter().copied())
+								.collect(),
+							endpoint: alias.endpoint,
+						}
+					})
+				}),
+				_ => Some(Alias {
+					jumps: vec![the_module].into_boxed_slice(),
+					endpoint: the_module,
+				}),
 			}
+		}
+	}
+	// }}}
+	// {{{ Elaborate types
+	fn elab_toplevel_type(
+		&self,
+		// The types we were checking while we got here
+		telescope: &mut Telescope<ModuleId>,
+		ty: &crate::lowering::Type,
+	) -> Type {
+		if let Some(cycle) = telescope.find_cycle() {
+			self.report_cycle(cycle);
+			Type::default()
+		} else if let Some(&elaborated) =
+			self.typedefs.borrow().get(telescope.tip())
+		{
+			elaborated
+		} else {
+			let elaborated = self.elab_type(telescope, ty);
+			self.typedefs.borrow_mut().insert(*telescope.tip(), elaborated);
+			elaborated
 		}
 	}
 
 	fn elab_type(
 		&self,
-		module: ModuleId,
+		telescope: &mut Telescope<ModuleId>,
 		ty: &crate::lowering::Type,
-		telescope: &mut Vec<ModuleId>,
 	) -> Type {
 		match ty {
 			crate::lowering::Type::Unknown => {
@@ -342,7 +480,7 @@ impl ElabContext<'_> {
 			}
 			crate::lowering::Type::Unit => Type::Primitive(PrimitiveType::Unit),
 			crate::lowering::Type::Shared(inner) => {
-				self.elab_type(module, inner, telescope)
+				self.elab_type(telescope, inner)
 			}
 			crate::lowering::Type::Named(name) => {
 				if name.0.len() == 1 {
@@ -357,72 +495,85 @@ impl ElabContext<'_> {
 					};
 				}
 
-				let ids: ModuleResolution = self
-					.resolve_path_internally(module, &name.0)
-					.into_iter()
-					.filter(|n| {
-						matches!(
-							&self.lowering_context[*n],
-							crate::lowering::Module::Toplevel(_)
-						)
-					})
-					.collect();
-
-				if ids.is_empty() {
-					compact_report!(
-						(self, "NameNotFound", name),
-						("Name \"{}\" not defined", name),
-						("I could not resolve this name"),
-					);
-
-					Type::default()
-				} else if ids.len() > 1 {
-					self.report_ambiguous_name(name, &ids);
-					Type::default()
-				} else {
-					let the_module = *ids.iter().next().unwrap();
+				if let Some(resolved) = self.elab_alias(telescope, name) {
 					let crate::lowering::Module::Toplevel(toplevel) =
-						&self.lowering_context[the_module]
+						&self.lowering_context[resolved.endpoint]
 					else {
 						unreachable!()
 					};
 
 					match toplevel {
+						crate::lowering::ModuleMember::Type(ty) => telescope
+							.focusing_many(resolved.jumps, |telescope| {
+								self.elab_toplevel_type(telescope, ty)
+							}),
 						crate::lowering::ModuleMember::Unknown => {
 							Type::default()
 						}
-						crate::lowering::ModuleMember::Alias(
-							qualified_identifier,
-						) => self.elab_type_defined_at(
-							the_module,
-							&crate::lowering::Type::Named(
-								qualified_identifier.clone(),
-							),
-							telescope,
-						),
-						crate::lowering::ModuleMember::Type(ty) => {
-							self.elab_type_defined_at(the_module, ty, telescope)
-						}
 						_ => {
-							self.report_not_a_type(name, the_module);
+							self.report_not_a_type(name, resolved.endpoint);
 							Type::default()
 						}
 					}
+				} else {
+					Type::default()
 				}
 			}
 			crate::lowering::Type::Array(dims, inner) => {
-				let inner = self.elab_type(module, inner, telescope);
+				let inner = self.elab_type(telescope, inner);
+
 				// TODO: error out on certain sizes
-				Type::Array(*dims, Box::new(inner))
+				Type::Array(self.register_array_type(ArrayType {
+					dimensions: *dims,
+					inner,
+				}))
 			}
 			crate::lowering::Type::Struct(struct_id) => {
+				// TODO: elaborate the struct' fields
 				Type::Struct(*struct_id)
 			}
 		}
 	}
 	// }}}
+	// {{{ Elaborate name aliases
+	fn elab_external(
+		&self,
+		telescope: &mut Telescope<ModuleId>,
+	) -> Ref<'_, External> {
+		if let Ok(cached) =
+			Ref::filter_map(self.external.borrow(), |external| {
+				external.get(telescope.tip())
+			}) {
+			return cached;
+		}
+
+		let crate::lowering::Module::Toplevel(
+			crate::lowering::ModuleMember::External(value, ty),
+		) = &self.lowering_context[*telescope.tip()]
+		else {
+			panic!("Expected module to be an external value declaration")
+		};
+
+		let elaborated =
+			External { ty: self.elab_type(telescope, ty), value: *value };
+		self.external.borrow_mut().insert(*telescope.tip(), elaborated);
+		self.elab_external(telescope)
+	}
+	// }}}
 
 	// Error reporting
+	// {{{ Name not found
+	fn report_name_not_found(
+		&self,
+		name: &crate::lowering::QualifiedIdentifier,
+	) {
+		compact_report!(
+			(self, "NameNotFound", name),
+			("Name \"{}\" not defined", name),
+			("I could not resolve this name"),
+		);
+	}
+	// }}}
 	// {{{ Ambiguous name
 	fn report_ambiguous_name(
 		&self,
