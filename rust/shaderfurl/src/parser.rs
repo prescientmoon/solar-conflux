@@ -289,6 +289,7 @@ impl<'a> Parser<'a> {
 		TokenKind::Integer
 			| TokenKind::Float
 			| TokenKind::Identifier
+			| TokenKind::Submodule
 			| TokenKind::LeftParen
 	);
 
@@ -319,8 +320,9 @@ impl<'a> Parser<'a> {
 					Some(cst::Expr::Error(tok.set(())))
 				}
 			}
-			TokenKind::Identifier => {
-				Some(cst::Expr::Variable(self.embed_source(tok)))
+			TokenKind::Identifier | TokenKind::Submodule => {
+				let path = self.continue_parsing_qualified_name(vec![tok]);
+				Some(cst::Expr::Variable(path))
 			}
 			TokenKind::LeftParen => {
 				let inner = self
@@ -1140,7 +1142,7 @@ impl<'a> Parser<'a> {
 		TokenKind::Import
 			| TokenKind::Module
 			| TokenKind::Identifier
-			| TokenKind::Property
+			| TokenKind::Submodule
 	);
 
 	fn parse_module_entry(&mut self) -> Option<cst::ModuleEntry> {
@@ -1199,7 +1201,7 @@ impl<'a> Parser<'a> {
 					entries,
 				}))
 			}
-			TokenKind::Identifier | TokenKind::Property => {
+			TokenKind::Identifier | TokenKind::Submodule => {
 				let mut path = self.with_stopper(
 					TokenKind::Colon | Self::DECL_VALUE_MARKER,
 					|parser| {
@@ -1305,7 +1307,7 @@ impl<'a> Parser<'a> {
 		mut toks: Vec<Token<TokenKind>>,
 	) -> cst::QualifiedName {
 		while let Some(tok) =
-			self.expect_tolerant(TokenKind::Identifier | TokenKind::Property)
+			self.expect_tolerant(TokenKind::Identifier | TokenKind::Submodule)
 		{
 			toks.push(tok)
 		}
@@ -1314,24 +1316,24 @@ impl<'a> Parser<'a> {
 		for mut tok in toks {
 			let kind = tok.value;
 
-			if out.is_empty() && kind == TokenKind::Property {
+			if out.is_empty() && kind == TokenKind::Submodule {
 				compact_report!(
-					(self, "UnexpectedDot", &tok),
-					("Qualified path started with dot"),
-					("I was expecting this path to start without a dot"),
+					(self, "UnexpectedSlash", &tok),
+					("Qualified path started with slash"),
+					("I was expecting this path to start without a slash"),
 				);
 			} else if !out.is_empty() && kind == TokenKind::Identifier {
 				compact_report!(
-					(self, "MissingDot", &tok),
-					("Qualified path is missing dot"),
-					("I was expecting a dot before this path section"),
+					(self, "MissingSlash", &tok),
+					("Qualified path is missing slash"),
+					("I was expecting a slash before this path section"),
 				);
 			}
 
 			let source = self.lexer.source_span(&tok.span);
 
 			// Remove the dot
-			if kind == TokenKind::Property {
+			if kind == TokenKind::Submodule {
 				tok.span.from.index += 1;
 				tok.span.from.col += 1;
 				tok.span.length -= 1;
@@ -1339,7 +1341,7 @@ impl<'a> Parser<'a> {
 
 			out.push(tok.set(match kind {
 				TokenKind::Identifier => source.to_string(),
-				TokenKind::Property => source[1..].to_string(),
+				TokenKind::Submodule => source[1..].to_string(),
 				_ => unreachable!(),
 			}));
 		}

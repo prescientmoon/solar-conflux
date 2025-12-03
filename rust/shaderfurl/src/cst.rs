@@ -201,7 +201,7 @@ pub struct For {
 pub enum Expr {
 	Int(Token<i64>),
 	Float(Token<f64>),
-	Variable(Token<String>),
+	Variable(QualifiedName),
 	Property(Option<Box<Expr>>, Token<String>),
 	Call(Box<Expr>, Box<[Expr]>),
 	Unary(Token<UnaryOperator>, Option<Box<Expr>>),
@@ -354,13 +354,27 @@ impl std::fmt::Display for BinaryOperator {
 	}
 }
 
+impl std::fmt::Display for QualifiedName {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		for (i, chunk) in self.0.iter().enumerate() {
+			if i > 0 {
+				write!(f, "/")?;
+			}
+
+			write!(f, "{}", chunk.value)?;
+		}
+
+		Ok(())
+	}
+}
+
 impl std::fmt::Display for Expr {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
 			Self::Error(_) => write!(f, "<error>"),
 			Self::Int(tok) => write!(f, "{}", tok.value),
 			Self::Float(tok) => write!(f, "{}", tok.value),
-			Self::Variable(tok) => write!(f, "{}", tok.value),
+			Self::Variable(tok) => write!(f, "{}", tok),
 			Self::Property(None, tok) => write!(f, "<expr>.{}", tok.value),
 			Self::Property(Some(e), tok) => write!(f, "{e}.{}", tok.value),
 			Self::Call(callee, args) => {

@@ -12,18 +12,27 @@ hi link furlKeyword Keyword
 syn match furlIdentifier /\v\h\w*/
 hi link furlIdentifier @variable
 
+syn match furlType /\v[A-Z]\w*/
+syn keyword furlType f32 f64 i32 i64 u32 u64 bool sampler2D unit
+hi link furlType Type
+
+syn match furlOperator /\v\*|\/|\+|\-|\&|\||\^|\!|\~/
+syn match furlOperator /\v\=|\=\=|\-\>|\<\<|\>\>|\<|\>/
+syn match furlOperator "\\\/" conceal cchar=∨
+syn match furlOperator "\/\\" conceal cchar=∧
+syn match furlOperator ">=" conceal cchar=≥
+syn match furlOperator "<=" conceal cchar=≤
+syn match furlOperator "!=" conceal cchar=≠
+syn match furlOperator /\v∨|∧|≥|≤|≠/
+hi link furlOperator Operator
+
 syn match furlProperty /\v\.\h\w*/
 hi link furlProperty @variable.member
 
-syn match furlType /\v[A-Z]\w*/
-syn keyword furlType f32 f64 i32 i64 u32 u64 bool sampler2D
-hi link furlType Type
+syn match furlModule /\v\/\h\w*/
+hi link furlModule Label
 
-syn match furlOperator /\v\\\/|\/\\|\*|\/|\+|\-|\&|\||\^|\!|\~/
-syn match furlOperator /\v\=|\=\=|\-\>|\<\=|\>\=|\<\<|\>\>|\<|\>/
-hi link furlOperator Operator
-
-syn match furlPunctuation /\v[\:\;\,\(\)\{\}\[\]\?]/
+syn match furlPunctuation /\v[:;,(){}[\]?]/
 hi link furlPunctuation Operator
 
 syntax match furlFloat /\v\-?\d*\.\d+/

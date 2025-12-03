@@ -168,6 +168,7 @@ pub enum TokenKind {
 	Float,      // 0.0
 	Identifier, // foo
 	Property,   // .foo
+	Submodule,  // /foo
 	String,     // "foo"
 	Comment,    // // foo
 	Junk,
@@ -307,6 +308,16 @@ impl<'a> Lexer<'a> {
 				tok.kind = TokenKind::Property;
 			}
 			// }}}
+			// {{{ Sub-modules
+			'/' if nch.is_alphabetic() => {
+				self.advance();
+				while self.curr.is_alphanumeric() {
+					self.advance();
+				}
+
+				tok.kind = TokenKind::Submodule;
+			}
+			// }}}
 			// {{{ Numbers
 			ch if ch.is_ascii_digit() => {
 				while self.curr.is_ascii_digit() {
@@ -385,6 +396,11 @@ impl<'a> Lexer<'a> {
 					('~', _) => tok.kind = BitwiseNot,
 					('|', _) => tok.kind = Or,
 					('&', _) => tok.kind = And,
+					('∨', _) => tok.kind = Join,
+					('∧', _) => tok.kind = Meet,
+					('≤', _) => tok.kind = LesserOrEqual,
+					('≥', _) => tok.kind = GreaterOrEqual,
+					('≠', _) => tok.kind = NotEqual,
 					#[rustfmt::skip]
 					('/', '\\') => { tok.kind = Meet; self.advance(); }
 					#[rustfmt::skip]
