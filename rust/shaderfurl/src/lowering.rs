@@ -1,6 +1,6 @@
 #![allow(clippy::get_first)]
 #![allow(dead_code)]
-use std::{fmt::Display, ops::Index, rc::Rc};
+use std::{fmt::Display, hash::Hash, ops::Index, rc::Rc};
 
 use crate::{
 	cst::{BinaryOperator, HasSpan, UnaryOperator},
@@ -149,6 +149,12 @@ impl PartialEq for Name {
 impl Display for Name {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "{}", self.name)
+	}
+}
+
+impl Hash for Name {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.name.hash(state);
 	}
 }
 
@@ -339,7 +345,7 @@ impl FromCst<crate::cst::Type> for Type {
 // }}}
 // {{{ Statements
 #[derive(Clone, Debug, Default)]
-pub enum Statement {
+pub enum StatementKind {
 	#[default]
 	Unknown,
 	Discard,
@@ -353,7 +359,31 @@ pub enum Statement {
 	Declaration(QualifiedIdentifier, Option<Type>, Option<Expr>),
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct Statement {
+	pub span: Option<SourceSpan>,
+	pub kind: StatementKind,
+}
+
+impl HasSpan for Statement {
+	fn try_span_of(&self) -> Option<SourceSpan> {
+		self.span
+	}
+}
+
 impl FromCst<crate::cst::Statement> for Statement {
+	fn from_cst(
+		ctx: &mut LoweringContext,
+		cst: &crate::cst::Statement,
+	) -> Self {
+		Self {
+			span: cst.try_span_of(),
+			kind: StatementKind::from_cst(ctx, cst),
+		}
+	}
+}
+
+impl FromCst<crate::cst::Statement> for StatementKind {
 	fn from_cst(
 		ctx: &mut LoweringContext,
 		cst: &crate::cst::Statement,
@@ -407,9 +437,9 @@ impl FromCst<crate::cst::Statement> for Statement {
 				let steps: Vec<_> = for_.steps.iter().take(3).collect();
 				Self::For(
 					Box::new((
-						Self::from_cst_option(ctx, steps.get(0).copied()),
-						Self::from_cst_option(ctx, steps.get(1).copied()),
-						Self::from_cst_option(ctx, steps.get(2).copied()),
+						Statement::from_cst_option(ctx, steps.get(0).copied()),
+						Statement::from_cst_option(ctx, steps.get(1).copied()),
+						Statement::from_cst_option(ctx, steps.get(2).copied()),
 					)),
 					Block::from_cst(ctx, &for_.block),
 				)
@@ -425,7 +455,7 @@ impl FromCst<crate::cst::Statement> for Statement {
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct Block(Box<[Statement]>);
+pub struct Block(pub Box<[Statement]>);
 
 impl FromCst<crate::cst::StatementBlock> for Block {
 	fn from_cst(
@@ -439,9 +469,9 @@ impl FromCst<crate::cst::StatementBlock> for Block {
 // {{{ Procedures
 #[derive(Clone, Debug, Default)]
 pub struct Proc {
-	args: Vec<(Identifier, Type)>,
-	ret: Type,
-	body: ProcBody,
+	pub args: Vec<(Identifier, Type)>,
+	pub ret: Type,
+	pub body: ProcBody,
 }
 
 #[derive(Clone, Debug)]

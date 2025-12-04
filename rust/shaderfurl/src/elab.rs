@@ -9,7 +9,7 @@ use crate::{
 	compact_report,
 	cst::{BinaryOperator, HasSpan, UnaryOperator},
 	lexer::SourceSpan,
-	lowering::{Identifier, LoweringContext, ModuleId, Name, StructId},
+	lowering::{self, Identifier, LoweringContext, ModuleId, Name, StructId},
 	telescope::Telescope,
 };
 
@@ -40,6 +40,12 @@ pub struct Binder {
 	ty: Type,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct ProcId(ModuleId);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct ExternalId(ModuleId);
+
 #[derive(Default)]
 pub struct ElabContext<'a> {
 	pub lowering_context: LoweringContext,
@@ -49,13 +55,17 @@ pub struct ElabContext<'a> {
 	structs: Vec<Struct>,
 	/// Indexed by [ArrayTypeId]
 	arrays: RefCell<Vec<ArrayType>>,
+	/// Indexed by [LocalId]
+	locals: RefCell<Vec<Local>>,
+	/// Indexed by [FlexId]
+	flex_solutions: RefCell<Vec<Option<Type>>>,
 
 	// Top-level elaboration memorization
 	imports: RefCell<HashMap<ModuleId, Box<[ModuleId]>>>,
 	aliases: RefCell<HashMap<ModuleId, Option<Alias>>>,
 	typedefs: RefCell<HashMap<ModuleId, Type>>,
-	procs: RefCell<HashMap<ModuleId, Proc>>,
-	external: RefCell<HashMap<ModuleId, External>>,
+	procs: RefCell<HashMap<ProcId, Proc>>,
+	external: RefCell<HashMap<ExternalId, External>>,
 
 	// Error reporting
 	reports: RefCell<Vec<ariadne::Report<'a, SourceSpan>>>,
@@ -85,6 +95,30 @@ impl<'a> ElabContext<'a> {
 	fn get_array_type(&self, index: ArrayTypeId) -> Ref<'_, ArrayType> {
 		Ref::map(self.arrays.borrow(), |r| &r[index.0])
 	}
+
+	fn regsiter_local(&self, identifier: Identifier, ty: Type) -> LocalId {
+		let id = LocalId(self.locals.borrow().len());
+		self.locals.borrow_mut().push(Local { ty, identifier });
+		id
+	}
+
+	fn get_local(&self, id: LocalId) -> Ref<'_, Local> {
+		Ref::map(self.locals.borrow(), |r| &r[id.0])
+	}
+
+	fn get_external(&self, id: ExternalId) -> Ref<'_, External> {
+		Ref::map(self.external.borrow(), |e| e.get(&id).unwrap())
+	}
+
+	fn get_proc(&self, id: ProcId) -> Ref<'_, Proc> {
+		Ref::map(self.procs.borrow(), |p| p.get(&id).unwrap())
+	}
+
+	fn register_flex(&self) -> Type {
+		let id = FlexId(self.locals.borrow().len());
+		self.flex_solutions.borrow_mut().push(None);
+		Type::Flex(id)
+	}
 }
 // }}}
 // {{{ Types & expressions & statements
@@ -106,8 +140,13 @@ pub struct ArrayType {
 	inner: Type,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct FlexId(usize);
+
 #[derive(Debug, Clone, Copy)]
 pub enum Type {
+	/// Unification variable
+	Flex(FlexId),
 	Primitive(PrimitiveType),
 	Struct(StructId),
 	Array(ArrayTypeId),
@@ -151,22 +190,27 @@ pub struct Proc {
 #[derive(Clone, Debug)]
 pub enum ProcImplementation {
 	Native(String),
-	Implemented(Box<[BinderId]>, Block),
+	Implemented(Box<[LocalId]>, Block),
 }
 
 #[derive(Clone, Debug)]
 pub enum Expr {
 	// Base values
-	Unknown,
 	Unit,
 	Bool(bool),
 	Int(i64, Type),
 	Float(f64, Type),
-	Variable(BinderId),
+	Hole(Type),
+	Local(LocalId),
+	External(ExternalId),
+
+	// Upcasts
+	ScalarDiagonalUpcast(usize, Box<Expr>),
+	ScalarVectorUpcast(usize, Box<Expr>),
 
 	// Compound values
 	Property(Box<Expr>, PropId),
-	Call(BinderId, Vec<Expr>),
+	Call(ProcId, Vec<Expr>),
 	Unary(UnaryOperator, Box<Expr>),
 	Binary(Box<(Expr, BinaryOperator, Expr)>),
 	Ternary(Box<(Expr, Expr, Expr)>),
@@ -183,7 +227,7 @@ pub enum Statement {
 	If(Box<[(Expr, Block)]>),
 	For(Box<(Statement, Statement, Statement)>, Block),
 	Assignment(Expr, Option<BinaryOperator>, Expr),
-	Declaration(BinderId, Option<Expr>),
+	Declaration(LocalId, Option<Expr>),
 }
 
 #[derive(Clone, Debug, Default)]
@@ -377,9 +421,9 @@ impl ElabContext<'_> {
 					}
 				}
 				crate::lowering::Module::Toplevel(
-					crate::lowering::ModuleMember::Proc(_proc),
+					crate::lowering::ModuleMember::Proc(_),
 				) => {
-					todo!()
+					self.elab_toplevel_proc(&mut Telescope::new(module));
 				}
 				crate::lowering::Module::Fork(_) => {}
 			}
@@ -547,14 +591,15 @@ impl ElabContext<'_> {
 		}
 	}
 	// }}}
-	// {{{ Elaborate name aliases
+	// {{{ Elaborate external values
 	fn elab_external(
 		&self,
 		telescope: &mut Telescope<ModuleId>,
 	) -> Ref<'_, External> {
+		let external_id = ExternalId(*telescope.tip());
 		if let Ok(cached) =
 			Ref::filter_map(self.external.borrow(), |external| {
-				external.get(telescope.tip())
+				external.get(&external_id)
 			}) {
 			return cached;
 		}
@@ -568,8 +613,195 @@ impl ElabContext<'_> {
 
 		let elaborated =
 			External { ty: self.elab_type(telescope, ty), value: *value };
-		self.external.borrow_mut().insert(*telescope.tip(), elaborated);
+		self.external.borrow_mut().insert(external_id, elaborated);
 		self.elab_external(telescope)
+	}
+	// }}}
+	// {{{ Elaborate procedures
+	fn elab_toplevel_proc(
+		&self,
+		telescope: &mut Telescope<ModuleId>,
+	) -> Ref<'_, Proc> {
+		let proc_id = ProcId(*telescope.tip());
+		if let Ok(cached) =
+			Ref::filter_map(self.procs.borrow(), |procs| procs.get(&proc_id))
+		{
+			return cached;
+		}
+
+		let crate::lowering::Module::Toplevel(
+			crate::lowering::ModuleMember::Proc(proc),
+		) = &self.lowering_context[*telescope.tip()]
+		else {
+			panic!("Expected module to be a procedure")
+		};
+
+		let arg_types: Box<[Type]> = proc
+			.args
+			.iter()
+			.map(|(_, arg)| self.elab_type(telescope, arg))
+			.collect();
+
+		let implementation = match &proc.body {
+			lowering::ProcBody::Native(name) => {
+				ProcImplementation::Native(name.clone())
+			}
+			lowering::ProcBody::Implemented(block) => {
+				let locals: Box<[LocalId]> = proc
+					.args
+					.iter()
+					.zip(arg_types.iter().copied())
+					.map(|((identifier, _), ty)| {
+						self.regsiter_local(identifier.clone(), ty)
+					})
+					.collect();
+
+				let mut env = LocalEnv::default();
+				for id in &locals {
+					self.add_to_env(&mut env, *id);
+				}
+
+				ProcImplementation::Implemented(
+					locals,
+					self.elab_block(&mut env, block),
+				)
+			}
+		};
+
+		let elaborated = Proc {
+			arguments: arg_types,
+			output: self.elab_type(telescope, &proc.ret),
+			implementation,
+		};
+		self.procs.borrow_mut().insert(proc_id, elaborated);
+		self.elab_toplevel_proc(telescope)
+	}
+
+	fn elab_block(
+		&self,
+		env: &mut LocalEnv,
+		block: &crate::lowering::Block,
+	) -> Block {
+		self.block(env, |env| {
+			for statement in &block.0 {
+				self.elab_statement(env, statement);
+			}
+		})
+		.1
+	}
+
+	fn elab_statement(
+		&self,
+		env: &mut LocalEnv,
+		statement: &crate::lowering::Statement,
+	) {
+		match &statement.kind {
+			lowering::StatementKind::Unknown => {}
+			lowering::StatementKind::Discard => {
+				self.emit_statement(env, Statement::Unknown);
+				self.emit_span(env, statement.span, false);
+			}
+			lowering::StatementKind::Break => {
+				if env.in_loop {
+					self.emit_statement(env, Statement::Break);
+				} else {
+					compact_report!(
+						(self, "InvalidBreak", statement),
+						("'break' cannot be used outside loops"),
+						("I was expecting this statement to live inside a loop"),
+					);
+				}
+
+				self.emit_span(env, statement.span, env.in_loop);
+			}
+			lowering::StatementKind::Continue => {
+				if env.in_loop {
+					self.emit_statement(env, Statement::Continue);
+				} else {
+					compact_report!(
+						(self, "InvalidContinue", statement),
+						("'continue' cannot be used outside loops"),
+						("I was expecting this statement to live inside a loop"),
+					);
+				}
+
+				self.emit_span(env, statement.span, env.in_loop);
+			}
+			lowering::StatementKind::Return(expr) => {
+				let expr = self.elab_expr(env, expr);
+				self.emit_statement(env, Statement::Return(expr));
+				self.emit_span(env, statement.span, true);
+			}
+			lowering::StatementKind::Expression(expr) => {
+				env.might_backtrack(|env| {
+					let expr = self.elab_expr(env, expr);
+					if self.expr_has_side_effects(&expr) {
+						(expr, true)
+					} else {
+						if let Some(span) = statement.span {
+							self.report_no_effect(span);
+						}
+
+						(expr, false)
+					}
+				});
+
+				// TODO: we could technically do some more analysis here, looking for
+				// discards inside function calls, but I am too lazy to do that, and
+				// always-diverging calls don't really come up in practice.
+				self.emit_span(env, statement.span, false);
+			}
+			lowering::StatementKind::If(_items) => todo!(),
+			lowering::StatementKind::For(_, _block) => todo!(),
+			lowering::StatementKind::Assignment(
+				_expr,
+				_binary_operator,
+				_expr1,
+			) => {
+				self.emit_span(env, statement.span, false);
+				todo!()
+			}
+			lowering::StatementKind::Declaration(
+				_qualified_identifier,
+				_,
+				_expr,
+			) => {
+				self.emit_span(env, statement.span, false);
+				todo!()
+			}
+		}
+	}
+
+	fn elab_expr(
+		&self,
+		env: &mut LocalEnv,
+		expr: &crate::lowering::Expr,
+	) -> Expr {
+		match expr {
+			lowering::Expr::Unknown => Expr::Hole(self.register_flex()),
+			lowering::Expr::Unit => Expr::Unit,
+			lowering::Expr::Bool(b) => Expr::Bool(*b),
+			lowering::Expr::Int(i) => {
+				let ty = self.register_flex();
+				env.type_in(
+					ty,
+					vec![
+						Type::Primitive(PrimitiveType::I32),
+						Type::Primitive(PrimitiveType::I64),
+						Type::Primitive(PrimitiveType::F32),
+						Type::Primitive(PrimitiveType::F64),
+					],
+				);
+				Expr::Int(*i, ty)
+			}
+			lowering::Expr::Float(_) => todo!(),
+			lowering::Expr::Variable(qualified_identifier) => todo!(),
+			lowering::Expr::Property(expr, identifier) => todo!(),
+			lowering::Expr::Call(expr, exprs) => todo!(),
+			lowering::Expr::Unary(unary_operator, expr) => todo!(),
+			lowering::Expr::Binary(_) => todo!(),
+			lowering::Expr::Ternary(_) => todo!(),
+		}
 	}
 	// }}}
 
@@ -724,4 +956,275 @@ impl ElabContext<'_> {
 		self.push_report(report.finish());
 	}
 	// }}}
+	// {{{ No effect
+	fn report_no_effect(&self, span: SourceSpan) {
+		self.push_report(
+			ariadne::Report::build(ariadne::ReportKind::Warning, span)
+				.with_code("NoEffect")
+				.with_message("Standalone expression has no side effects")
+				.with_label(ariadne::Label::new(span).with_message(
+					"I expected this expression to perform side effects",
+				))
+				.finish(),
+		);
+	}
+	// }}}
 }
+
+// {{{ Locals
+#[derive(Clone, Copy, Debug)]
+pub struct LocalId(usize);
+
+struct Local {
+	ty: Type,
+	identifier: Identifier,
+}
+
+enum Constraint {
+	Unification(Type, Type),
+	OneOf(Type, Box<[Type]>),
+}
+
+#[derive(Default)]
+struct LocalEnv {
+	variables: HashMap<Name, LocalId>,
+	constraints: Vec<Constraint>,
+	statements: Vec<Statement>,
+
+	// Flags
+	in_loop: bool,
+
+	/// Contains the location where execution diverged, if such a location has
+	/// been encountered.
+	diverged_at: Option<SourceSpan>,
+
+	/// Used for error handling. Contains the span of code that lives after the
+	/// block diverged.
+	diverging_span: Option<SourceSpan>,
+}
+
+impl LocalEnv {
+	fn might_backtrack<O>(
+		&mut self,
+		computation: impl FnOnce(&mut Self) -> (O, bool),
+	) -> O {
+		let statements = self.statements.len();
+		let diverged_at = self.diverged_at;
+		let diverging_span = self.diverging_span;
+		let (result, should_keep) = computation(self);
+		if !should_keep {
+			self.statements.truncate(statements);
+			self.diverged_at = diverged_at;
+			self.diverging_span = diverging_span;
+		}
+
+		result
+	}
+
+	fn type_in(&mut self, ty: Type, one_of: Vec<Type>) {
+		self.constraints.push(Constraint::OneOf(ty, one_of.into_boxed_slice()));
+	}
+}
+
+impl ElabContext<'_> {
+	fn add_to_env(&self, env: &mut LocalEnv, id: LocalId) {
+		let local = self.get_local(id);
+		if let Identifier::Name(name) = &local.identifier {
+			env.variables.insert(name.clone(), id);
+		}
+	}
+
+	fn emit_statement(&self, env: &mut LocalEnv, statement: Statement) {
+		if env.diverged_at.is_none() {
+			env.statements.push(statement);
+		}
+	}
+
+	fn emit_span(
+		&self,
+		env: &mut LocalEnv,
+		span: Option<SourceSpan>,
+		diverged: bool,
+	) {
+		if env.diverged_at.is_some() {
+			env.diverging_span = (env.diverging_span, span).try_span_of();
+		} else if diverged && env.diverged_at.is_none() {
+			env.diverged_at = span;
+		}
+	}
+
+	fn block<O>(
+		&self,
+		env: &mut LocalEnv,
+		computation: impl FnOnce(&mut LocalEnv) -> O,
+	) -> (O, Block) {
+		let statements = std::mem::take(&mut env.statements);
+		let diverged_at = std::mem::take(&mut env.diverged_at);
+		let diverging_span = std::mem::take(&mut env.diverging_span);
+		let result = computation(env);
+
+		if let Some(at) = env.diverged_at
+			&& let Some(span) = env.diverging_span
+			&& diverged_at.is_none()
+		{
+			self.push_report(
+				ariadne::Report::build(ariadne::ReportKind::Warning, span)
+					.with_code("UnreachableCode")
+					.with_message("Code encountered after diverging statement")
+					.with_label(
+						ariadne::Label::new(at)
+							.with_message("This is where execution diverges"),
+					)
+					.with_label(ariadne::Label::new(span).with_message(
+						"These statements will never get reached",
+					))
+					.finish(),
+			);
+		}
+
+		env.diverged_at = diverged_at;
+		env.diverging_span = diverging_span;
+
+		let block = Block(
+			std::mem::replace(&mut env.statements, statements)
+				.into_boxed_slice(),
+		);
+
+		(result, block)
+	}
+}
+// }}}
+// {{{ Side effect tracking
+impl ElabContext<'_> {
+	fn expr_has_side_effects(&self, expr: &Expr) -> bool {
+		match expr {
+			Expr::Unit => false,
+			Expr::Bool(_) => false,
+			Expr::Int(_, _) => false,
+			Expr::Float(_, _) => false,
+			Expr::Hole(_) => false,
+			Expr::Local(_) => false,
+			Expr::External(_) => false,
+			Expr::Property(expr, _) => self.expr_has_side_effects(expr),
+			Expr::Call(proc_id, exprs) => {
+				for expr in exprs {
+					if self.expr_has_side_effects(expr) {
+						return true;
+					}
+				}
+
+				self.proc_has_side_effects(*proc_id)
+			}
+			Expr::Unary(_, expr) => self.expr_has_side_effects(expr),
+			Expr::Binary(binary) => {
+				self.expr_has_side_effects(&binary.0)
+					|| self.expr_has_side_effects(&binary.2)
+			}
+			Expr::Ternary(ternary) => {
+				self.expr_has_side_effects(&ternary.0)
+					|| self.expr_has_side_effects(&ternary.1)
+					|| self.expr_has_side_effects(&ternary.2)
+			}
+			Expr::ScalarVectorUpcast(_, expr) => {
+				self.expr_has_side_effects(expr)
+			}
+			Expr::ScalarDiagonalUpcast(_, expr) => {
+				self.expr_has_side_effects(expr)
+			}
+		}
+	}
+
+	fn proc_has_side_effects(&self, id: ProcId) -> bool {
+		let proc = self.get_proc(id);
+		if let ProcImplementation::Implemented(_, block) = &proc.implementation
+		{
+			self.block_has_side_effects(block)
+		} else {
+			false
+		}
+	}
+
+	fn block_has_side_effects(&self, block: &Block) -> bool {
+		block
+			.0
+			.iter()
+			.any(|statement| self.statement_has_side_effects(statement))
+	}
+
+	// NOTE: this marks things like break or discard statements as "pure", since
+	// they cannot leak outside the current scope
+	fn statement_has_side_effects(&self, statement: &Statement) -> bool {
+		match statement {
+			Statement::Unknown => false,
+			Statement::Discard => true,
+			Statement::Break => false,
+			Statement::Continue => false,
+			Statement::Return(expr) => self.expr_has_side_effects(expr),
+			Statement::Expression(expr) => self.expr_has_side_effects(expr),
+			Statement::If(items) => items.iter().any(|(expr, block)| {
+				self.expr_has_side_effects(expr)
+					|| self.block_has_side_effects(block)
+			}),
+			Statement::For(setup, block) => {
+				self.statement_has_side_effects(&setup.0)
+					|| self.statement_has_side_effects(&setup.1)
+					|| self.statement_has_side_effects(&setup.2)
+					|| self.block_has_side_effects(block)
+			}
+			Statement::Assignment(left, _, right) => {
+				self.write_to_expr_has_side_effects(left)
+					|| self.expr_has_side_effects(right)
+			}
+			Statement::Declaration(_, expr) => expr
+				.as_ref()
+				.is_some_and(|expr| self.expr_has_side_effects(expr)),
+		}
+	}
+
+	/// Computes whether writing to the result of a given expression constitutes
+	/// a side effect.
+	#[allow(clippy::only_used_in_recursion)]
+	fn write_to_expr_has_side_effects(&self, expr: &Expr) -> bool {
+		match expr {
+			Expr::External(_) => true,
+			Expr::Property(expr, _) => {
+				self.write_to_expr_has_side_effects(expr)
+			}
+			_ => false,
+		}
+	}
+}
+// }}}
+// {{{ Type-checking
+impl ElabContext<'_> {
+	fn type_of(&self, expr: &Expr) -> Type {
+		match expr {
+			Expr::Unit => Type::Primitive(PrimitiveType::Unit),
+			Expr::Bool(_) => Type::Primitive(PrimitiveType::Bool),
+			Expr::Int(_, ty) => *ty,
+			Expr::Float(_, ty) => *ty,
+			Expr::Hole(ty) => *ty,
+			Expr::Local(id) => self.get_local(*id).ty,
+			Expr::External(id) => self.get_external(*id).ty,
+			Expr::Property(_expr, _prop_id) => todo!(),
+			Expr::Call(id, _) => self.get_proc(*id).output,
+			// NOTE: unary operators are type-preserving
+			Expr::Unary(_, expr) => self.type_of(expr),
+			Expr::Binary(_) => todo!(),
+			Expr::Ternary(ternary) => self.type_of(&ternary.1),
+			Expr::ScalarVectorUpcast(dim, expr) => {
+				Type::Array(self.register_array_type(ArrayType {
+					dimensions: (*dim, 1),
+					inner: self.type_of(expr),
+				}))
+			}
+			Expr::ScalarDiagonalUpcast(dim, expr) => {
+				Type::Array(self.register_array_type(ArrayType {
+					dimensions: (*dim, *dim),
+					inner: self.type_of(expr),
+				}))
+			}
+		}
+	}
+}
+// }}}
