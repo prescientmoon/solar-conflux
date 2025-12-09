@@ -236,7 +236,7 @@ pub struct Block(Box<[Statement]>);
 // {{{ Name resolution
 type ModuleResolution = HashSet<ModuleId>;
 impl ElabContext<'_> {
-	fn resolve_name_externally(
+	fn resolve_name_inwards(
 		&self,
 		module: ModuleId,
 		name: &Name,
@@ -244,7 +244,7 @@ impl ElabContext<'_> {
 		match &self.lowering_context[module] {
 			crate::lowering::Module::Toplevel(_) => Default::default(),
 			crate::lowering::Module::Import(_, inner) => {
-				self.resolve_name_externally(*inner, name)
+				self.resolve_name_inwards(*inner, name)
 			}
 			crate::lowering::Module::Fork(items) => items
 				.into_iter()
@@ -254,7 +254,7 @@ impl ElabContext<'_> {
 		}
 	}
 
-	pub fn resolve_path_externally(
+	pub fn resolve_path_inwards(
 		&self,
 		module: ModuleId,
 		name: &[Name],
@@ -262,20 +262,20 @@ impl ElabContext<'_> {
 		match name {
 			[] => HashSet::from([module]),
 			[head, tail @ ..] => self
-				.resolve_name_externally(module, head)
+				.resolve_name_inwards(module, head)
 				.into_iter()
-				.flat_map(|res| self.resolve_path_externally(res, tail))
+				.flat_map(|res| self.resolve_path_inwards(res, tail))
 				.collect(),
 		}
 	}
 
-	fn resolve_name_internally_at_parent(
+	fn resolve_name_outwards_at_parent(
 		&self,
 		module: ModuleId,
 		name: &Name,
 	) -> ModuleResolution {
 		if let Some(last) = self.lowering_context.module_parent(module) {
-			self.resolve_name_internally(last, name)
+			self.resolve_name_outwards(last, name)
 		} else {
 			Default::default()
 		}
@@ -297,14 +297,13 @@ impl ElabContext<'_> {
 		let boxed: Box<[_]> = match path.0.as_ref() {
 			[] => Box::new([]),
 			[head, tail @ ..] => {
-				let below = self.resolve_name_externally(*inner, head);
-				let above =
-					self.resolve_name_internally_at_parent(module, head);
+				let below = self.resolve_name_inwards(*inner, head);
+				let above = self.resolve_name_outwards_at_parent(module, head);
 
 				below
 					.into_iter()
 					.chain(above)
-					.flat_map(|res| self.resolve_path_externally(res, tail))
+					.flat_map(|res| self.resolve_path_inwards(res, tail))
 					.collect()
 			}
 		};
@@ -317,30 +316,29 @@ impl ElabContext<'_> {
 		self.elab_import(module)
 	}
 
-	fn resolve_name_internally(
+	fn resolve_name_outwards(
 		&self,
 		module: ModuleId,
 		name: &Name,
 	) -> ModuleResolution {
 		let locally: ModuleResolution = match &self.lowering_context[module] {
 			crate::lowering::Module::Toplevel(_) => Default::default(),
-			crate::lowering::Module::Import(_, inner) => self
+			crate::lowering::Module::Import(_, _) => self
 				.elab_import(module)
 				.iter()
 				.copied()
-				.flat_map(|res| self.resolve_name_externally(res, name))
-				.chain(self.resolve_name_externally(*inner, name))
+				.flat_map(|res| self.resolve_name_inwards(res, name))
 				.collect(),
 			crate::lowering::Module::Fork(_) => {
-				self.resolve_name_externally(module, name)
+				self.resolve_name_inwards(module, name)
 			}
 		};
 
-		let above = self.resolve_name_internally_at_parent(module, name);
+		let above = self.resolve_name_outwards_at_parent(module, name);
 		locally.into_iter().chain(above).collect()
 	}
 
-	pub fn resolve_path_internally(
+	pub fn resolve_path_outwards(
 		&self,
 		module: ModuleId,
 		name: &[Name],
@@ -348,9 +346,9 @@ impl ElabContext<'_> {
 		match name {
 			[] => HashSet::from([module]),
 			[head, tail @ ..] => self
-				.resolve_name_internally(module, head)
+				.resolve_name_outwards(module, head)
 				.into_iter()
-				.flat_map(|res| self.resolve_path_externally(res, tail))
+				.flat_map(|res| self.resolve_path_inwards(res, tail))
 				.collect(),
 		}
 	}
@@ -452,7 +450,7 @@ impl ElabContext<'_> {
 	}
 
 	/// Resolves an alias pointing to a toplevel entry. This can be considered
-	/// a wrapper around [Self::resolve_path_internally] which:
+	/// a wrapper around [Self::resolve_path_outwards] which:
 	/// - errors out on ambiguous names (i.e. cases where more than one match
 	///   exists)
 	/// - errors out on names that are not found
@@ -464,7 +462,7 @@ impl ElabContext<'_> {
 		to: &crate::lowering::QualifiedIdentifier,
 	) -> Option<Alias> {
 		let ids: ModuleResolution = self
-			.resolve_path_internally(*telescope.tip(), &to.0)
+			.resolve_path_outwards(*telescope.tip(), &to.0)
 			.into_iter()
 			.filter(|n| {
 				matches!(
@@ -486,14 +484,11 @@ impl ElabContext<'_> {
 				crate::lowering::Module::Toplevel(
 					crate::lowering::ModuleMember::Alias(to),
 				) => telescope.focusing(the_module, |telescope| {
-					self.elab_toplevel_alias(telescope, to).map(|alias| {
-						// h
-						Alias {
-							jumps: std::iter::once(the_module)
-								.chain(alias.jumps.iter().copied())
-								.collect(),
-							endpoint: alias.endpoint,
-						}
+					self.elab_toplevel_alias(telescope, to).map(|alias| Alias {
+						jumps: std::iter::once(the_module)
+							.chain(alias.jumps.iter().copied())
+							.collect(),
+						endpoint: alias.endpoint,
 					})
 				}),
 				_ => Some(Alias {
