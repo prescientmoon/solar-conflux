@@ -1,3 +1,4 @@
 shaders-idea
 .direnv
 target
+!.envrc
