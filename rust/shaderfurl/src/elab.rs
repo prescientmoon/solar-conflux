@@ -15,10 +15,10 @@ use crate::{
 
 /*
 TODO:
-- [ ] Elaborate aliases
+- [x] Elaborate aliases
 - [x] Elaborate type definitions
-- [ ] Elaborate structs
-- [ ] Elaborate proc types
+- [x] Elaborate structs
+- [x] Elaborate proc types
 - [ ] Elaborate statements
 - [ ] Elaborate expressions
 */
@@ -33,13 +33,6 @@ pub struct PropId(usize);
 #[derive(Clone, Copy, Debug)]
 pub struct ArrayTypeId(usize);
 
-pub struct Binder {
-	// The original name in the source code.
-	// Useful for error messages.
-	name: String,
-	ty: Type,
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ProcId(ModuleId);
 
@@ -51,14 +44,14 @@ pub struct ElabContext<'a> {
 	pub lowering_context: LoweringContext,
 
 	// Type fragments
-	/// Indexed by [StructId]
-	structs: Vec<Struct>,
 	/// Indexed by [ArrayTypeId]
 	arrays: RefCell<Vec<ArrayType>>,
 	/// Indexed by [LocalId]
 	locals: RefCell<Vec<Local>>,
 	/// Indexed by [FlexId]
 	flex_solutions: RefCell<Vec<Option<Type>>>,
+	/// Indexed by [PropId]
+	props: RefCell<Vec<Prop>>,
 
 	// Top-level elaboration memorization
 	imports: RefCell<HashMap<ModuleId, Box<[ModuleId]>>>,
@@ -66,6 +59,7 @@ pub struct ElabContext<'a> {
 	typedefs: RefCell<HashMap<ModuleId, Type>>,
 	procs: RefCell<HashMap<ProcId, Proc>>,
 	external: RefCell<HashMap<ExternalId, External>>,
+	structs: RefCell<HashMap<StructId, Struct>>,
 
 	// Error reporting
 	reports: RefCell<Vec<ariadne::Report<'a, SourceSpan>>>,
@@ -119,6 +113,12 @@ impl<'a> ElabContext<'a> {
 		self.flex_solutions.borrow_mut().push(None);
 		Type::Flex(id)
 	}
+
+	fn register_prop(&self, name: Identifier, ty: Type) -> PropId {
+		let id = PropId(self.props.borrow().len());
+		self.props.borrow_mut().push(Prop { ty, name });
+		id
+	}
 }
 // }}}
 // {{{ Types & expressions & statements
@@ -131,6 +131,8 @@ pub enum PrimitiveType {
 	F64,
 	I32,
 	I64,
+	U32,
+	U64,
 	Bool,
 }
 
@@ -178,6 +180,12 @@ pub struct External {
 #[derive(Clone, Debug)]
 pub struct Struct {
 	fields: Box<[PropId]>,
+}
+
+#[derive(Clone, Debug)]
+pub struct Prop {
+	ty: Type,
+	name: Identifier,
 }
 
 #[derive(Clone, Debug)]
@@ -500,6 +508,53 @@ impl ElabContext<'_> {
 	}
 	// }}}
 	// {{{ Elaborate types
+	fn elab_struct(
+		&self,
+		// The types we were checking while we got here
+		telescope: &mut Telescope<ModuleId>,
+		s: StructId,
+	) {
+		if !self.structs.borrow().contains_key(&s) {
+			let structure = &self.lowering_context[s];
+			let mut fields = Vec::new();
+
+			for (name, ty) in &structure.fields {
+				let elaborated = self.elab_type(telescope, ty);
+				let id = self.register_prop(name.clone(), elaborated);
+				fields.push(id)
+			}
+
+			// O(N²), but doesn't matter
+			for (i, (name, _)) in structure.fields.iter().enumerate() {
+				if let Some(name) = name.to_name() {
+					let occurrences: Box<[_]> = structure
+						.fields
+						.iter()
+						.enumerate()
+						.filter_map(|(j, (current, _))| {
+							Some((j, current.to_name()?))
+						})
+						.filter(|(_, current)| *current == name)
+						// We drop everything if any element comes before the current name,
+						// since that means we've already reported on this name.
+						.take_while(|(j, _)| *j >= i)
+						.map(|(_, c)| c)
+						.cloned()
+						.collect();
+
+					if occurrences.len() > 1 {
+						self.report_duplicate_field(&occurrences[..]);
+					}
+				}
+			}
+
+			self.structs
+				.borrow_mut()
+				.insert(s, Struct { fields: fields.into_boxed_slice() });
+		}
+	}
+	// }}}
+	// {{{ Elaborate types
 	fn elab_toplevel_type(
 		&self,
 		// The types we were checking while we got here
@@ -540,6 +595,8 @@ impl ElabContext<'_> {
 						"f64" => return Type::Primitive(PrimitiveType::F64),
 						"i32" => return Type::Primitive(PrimitiveType::I32),
 						"i64" => return Type::Primitive(PrimitiveType::I64),
+						"u32" => return Type::Primitive(PrimitiveType::U32),
+						"u64" => return Type::Primitive(PrimitiveType::U64),
 						"bool" => return Type::Primitive(PrimitiveType::Bool),
 						"unit" => return Type::Primitive(PrimitiveType::Unit),
 						_ => {}
@@ -580,7 +637,7 @@ impl ElabContext<'_> {
 				}))
 			}
 			crate::lowering::Type::Struct(struct_id) => {
-				// TODO: elaborate the struct' fields
+				self.elab_struct(telescope, *struct_id);
 				Type::Struct(*struct_id)
 			}
 		}
@@ -668,6 +725,7 @@ impl ElabContext<'_> {
 			output: self.elab_type(telescope, &proc.ret),
 			implementation,
 		};
+
 		self.procs.borrow_mut().insert(proc_id, elaborated);
 		self.elab_toplevel_proc(telescope)
 	}
@@ -694,7 +752,7 @@ impl ElabContext<'_> {
 			lowering::StatementKind::Unknown => {}
 			lowering::StatementKind::Discard => {
 				self.emit_statement(env, Statement::Unknown);
-				self.emit_span(env, statement.span, false);
+				self.emit_span(env, statement.span, true);
 			}
 			lowering::StatementKind::Break => {
 				if env.in_loop {
@@ -730,6 +788,11 @@ impl ElabContext<'_> {
 			lowering::StatementKind::Expression(expr) => {
 				env.might_backtrack(|env| {
 					let expr = self.elab_expr(env, expr);
+					// TODO: do a more thorough check.
+					// For example, we don't want to allow arithmetic expressions
+					// where one of the operands has side effects.
+					//
+					// In fact, I think we should only really allow calls here...
 					if self.expr_has_side_effects(&expr) {
 						(expr, true)
 					} else {
@@ -741,8 +804,8 @@ impl ElabContext<'_> {
 					}
 				});
 
-				// TODO: we could technically do some more analysis here, looking for
-				// discards inside function calls, but I am too lazy to do that, and
+				// TODO: we could technically do some more analysis here like looking
+				// for discards inside function calls, but I am too lazy to do that, and
 				// always-diverging calls don't really come up in practice.
 				self.emit_span(env, statement.span, false);
 			}
@@ -781,6 +844,8 @@ impl ElabContext<'_> {
 				env.type_in(
 					ty,
 					vec![
+						Type::Primitive(PrimitiveType::U32),
+						Type::Primitive(PrimitiveType::U64),
 						Type::Primitive(PrimitiveType::I32),
 						Type::Primitive(PrimitiveType::I64),
 						Type::Primitive(PrimitiveType::F32),
@@ -789,7 +854,17 @@ impl ElabContext<'_> {
 				);
 				Expr::Int(*i, ty)
 			}
-			lowering::Expr::Float(_) => todo!(),
+			lowering::Expr::Float(f) => {
+				let ty = self.register_flex();
+				env.type_in(
+					ty,
+					vec![
+						Type::Primitive(PrimitiveType::F32),
+						Type::Primitive(PrimitiveType::F64),
+					],
+				);
+				Expr::Float(*f, ty)
+			}
 			lowering::Expr::Variable(qualified_identifier) => todo!(),
 			lowering::Expr::Property(expr, identifier) => todo!(),
 			lowering::Expr::Call(expr, exprs) => todo!(),
@@ -962,6 +1037,35 @@ impl ElabContext<'_> {
 				))
 				.finish(),
 		);
+	}
+	// }}}
+	// {{{ Field declared multiple times
+	fn report_duplicate_field(&self, definitions: &[Name]) {
+		assert!(!definitions.is_empty());
+
+		let mut report = ariadne::Report::build(
+			ariadne::ReportKind::Error,
+			definitions.last().span_of(),
+		)
+		.with_code("DuplicateField")
+		.with_message(format!(
+			"Field {} declared multiple times",
+			definitions.last().unwrap()
+		));
+
+		for (i, name) in definitions.iter().enumerate() {
+			report = report.with_label(
+				ariadne::Label::new(name.span_of())
+					.with_message(format!(
+						"This is {} definition of {}",
+						if i > 0 { "another" } else { "the first" },
+						definitions.last().unwrap()
+					))
+					.with_order(i as i32),
+			)
+		}
+
+		self.push_report(report.finish());
 	}
 	// }}}
 }

@@ -8,7 +8,7 @@ use crate::{
 };
 
 // {{{ Structs
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct StructId(usize);
 
 #[derive(Clone, Debug)]
