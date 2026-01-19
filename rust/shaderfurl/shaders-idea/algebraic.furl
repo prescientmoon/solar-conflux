@@ -1,0 +1,130 @@
+Semigroup :: theory
+  self    : Type
+  compose : fun(self, self) -> self
+
+Monoid :: theory
+  import semigroup
+  semigroup : Semigroup 
+  identity  : self
+
+Group :: theory
+  import monoid
+  monoid  : Monoid 
+  inverse : fun(self) -> self
+
+// While mathematically different, to the compiler this is merely a wrapper 
+// around a group
+AbelianGroup :: theory
+  import group
+  group : Group
+
+Ring :: theory
+  self           : Type
+  additive       : AbelianGroup where self :: self
+  multiplicative : Monoid       where self :: self
+
+  zero :: additive.identity
+  add  :: additive.compose
+
+  one  :: multiplicative.identity
+  mul  :: multiplicative.compose
+
+// While mathematically different, to the compiler this is merely a wrapper 
+// around a ring
+Field :: theory
+  import ring
+  ring : Ring
+
+VecSpace :: theory
+  import vec
+  field : Field
+  vec   : AbelianGroup
+  scale : fun(field, self) -> self
+
+// TODO:
+Real :: theory 
+  self : Type
+  from/f32  : fun(f32) -> self
+  from/f64  : fun(f32) -> self
+
+Real/f32 :: intro Real where
+  self :: f32
+  from/f32 :: proc(v: f32) -> f32 do return v
+  from/f64 :: proc(v: f64) -> f32 do return v // TODO: make this work
+
+Real/f64 :: intro Real where
+  self :: f32
+  from/f64 :: proc(v: f64) -> f64 do return v 
+  from/f32 :: proc(v: f32) -> f64 do return v  // TODO: make this work
+
+// A field that contains the real numbers. In practice, this will either refer
+// to the reals or the complex numbers.
+RealField :: theory 
+  import field
+  real  : Real
+  field : Field where self :: real.self
+
+InnerProdSpace :: theory
+  import space
+
+  real  : RealField
+  space : VecSpace where field :: real.field
+
+  dot   : fun(self) -> field
+
+NormedProdSpace :: theory
+  import space
+
+  real  : RealField
+  space : VecSpace where field :: real.field
+
+  norm  : fun(self) -> field
+
+inner_to_normed :: intro{ I : InnerProdSpace } NormedProdSpace where
+  space :: I.space
+  norm  :: proc(a : I.type) -> I.field do
+    return sqrt (dot a a)
+
+Lattice :: theory
+  self : Type
+  join : fun(self, self) -> self // ∨
+  meet : fun(self, self) -> self // ∧ 
+
+Lattice/clamp :: proc{ L : Lattice } (min, max, x: L) -> L do
+  return (min ∧ x) ∨ max
+
+F         :: rigid Field
+V         :: rigid VecSpace where field :: F
+F/Lattice :: rigid Lattice  where self  :: F
+
+mix :: proc(a, b: V, t: F) -> V do
+  return t * a + (1 - t) * b
+
+smoothstep :: proc(a, b, x: F) -> F do
+  // This will automatically find the F/Lattice rigid variable while instance 
+  // searching :)
+  t := clamp ((x - a) / (b - a)) 0 1
+  return t * t * (3 - 2 * t)
+
+// Design document:
+// - a theory is a dependent list of declarations with kind:
+//   - type
+//   - <type> for a given type
+//   - <theory> for a given theory
+// - theories can contain aliases and import statements
+// - the "rigid" keyword can be used anywhere to introduce rigid variables
+// - rigid variables can be referenced anywhere, creating an implicit dependency
+// - rigid variables can be introduced inline with the {} syntax
+// - rigid variables can have the same kinds as the members of theories
+// - for a rigid theory, one can project non-value (i.e. theory or type) members
+//   using dot accessor syntax
+// - when used in a type context, the .self projection is automatically applied
+// - when in a theory member or rigid variable declaration, a theory can be
+//   taken the quotient of. This consists of fixing a series of members to given
+//   values. Syntax for fixing multiple members exists, although under the hood
+//   they are fixed one at a time
+// - if the member of a theory is fixed by a quotient, taking the respective
+//   projection will return the fixed value definitionally
+// - conceptually, every rigid theory variable recursively and implicitly creates
+//   rigid variables for every one of its members, and then fixes its values to
+//   said rigid variables

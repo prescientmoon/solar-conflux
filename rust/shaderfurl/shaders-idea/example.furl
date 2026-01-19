@@ -1,0 +1,40 @@
+module first where
+  module something where
+    first/something : f32 : uniform
+
+module first/something where
+  first/something : f32 : varying
+
+module second where
+  import third
+  import first/something
+  something :: [4]something
+  middle :: third/right
+
+module third where
+  first/something : f64 : buffer
+  something :: [4]other
+  something :: [5, 5]first/something
+
+  right :: left
+
+left :: [2, 3]second/middle
+long :: [3]struct 
+  thing : first/something/first/something
+  other : [4]i32
+  other : [4]unit
+
+module empty where
+  import nonsensical
+  
+thing :: proc(a, b, c: f32) -> [4]f32
+  return 
+
+thing :: struct
+  foo : i32
+  bar : f32
+  foo : [2]f32
+  goo : struct
+    foo : i64
+    foo : u64
+  foo : u64
