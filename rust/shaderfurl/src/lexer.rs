@@ -173,7 +173,6 @@ pub enum TokenKind {
 	Comment,    // // foo
 	Junk,
 	Eof,
-	Sof, // Start of file:
 }
 
 #[derive(Clone)]
