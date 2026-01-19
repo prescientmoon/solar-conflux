@@ -16,7 +16,6 @@ mod errors;
 mod lexer;
 mod lowering;
 mod parser;
-mod telescope;
 
 #[derive(Default)]
 struct PathCache {

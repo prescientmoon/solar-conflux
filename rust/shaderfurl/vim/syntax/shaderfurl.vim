@@ -5,8 +5,8 @@ endif
 syn clear
 
 syn keyword furlKeyword import module where frag vert
-syn keyword furlKeyword return discard continue break if then elif else for do proc
-syn keyword furlKeyword struct attribute buffer uniform varying
+syn keyword furlKeyword return discard continue break if then elif else for do proc fun
+syn keyword furlKeyword struct attribute buffer uniform varying intro theory rigid self
 hi link furlKeyword Keyword
 
 syn match furlIdentifier /\v\h\w*/

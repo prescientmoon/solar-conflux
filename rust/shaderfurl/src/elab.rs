@@ -10,7 +10,6 @@ use crate::{
 	cst::{BinaryOperator, HasSpan, UnaryOperator},
 	lexer::SourceSpan,
 	lowering::{self, Identifier, LoweringContext, ModuleId, Name, StructId},
-	telescope::Telescope,
 };
 
 /*
@@ -31,7 +30,7 @@ pub struct BinderId(usize);
 pub struct PropId(usize);
 
 #[derive(Clone, Copy, Debug)]
-pub struct ArrayTypeId(usize);
+pub struct TypeId(usize);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ProcId(ModuleId);
@@ -39,19 +38,44 @@ pub struct ProcId(ModuleId);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ExternalId(ModuleId);
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct StatementId(usize);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct BlockId(usize);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct ExprId(usize);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct SpineId(usize);
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct TypeTelescopeId(usize);
+
 #[derive(Default)]
 pub struct ElabContext<'a> {
 	pub lowering_context: LoweringContext,
 
 	// Type fragments
-	/// Indexed by [ArrayTypeId]
-	arrays: RefCell<Vec<ArrayType>>,
+	/// Indexed by [TypeId]
+	types: RefCell<Vec<Type>>,
 	/// Indexed by [LocalId]
 	locals: RefCell<Vec<Local>>,
 	/// Indexed by [FlexId]
 	flex_solutions: RefCell<Vec<Option<Type>>>,
 	/// Indexed by [PropId]
 	props: RefCell<Vec<Prop>>,
+	/// Indexed by [StatementId]
+	statements: RefCell<Vec<Statement>>,
+	/// Indexed by [BlockId]
+	blocks: RefCell<Vec<Block>>,
+	/// Indexed by [ExprId]
+	exprs: RefCell<Vec<Expr>>,
+	/// Indexed by [SpineId]
+	spines: RefCell<Vec<Spine>>,
+	/// Indexed by [TypeTelescopeId]
+	type_telescopes: RefCell<Vec<TypeTelescope>>,
 
 	// Top-level elaboration memorization
 	imports: RefCell<HashMap<ModuleId, Box<[ModuleId]>>>,
@@ -80,14 +104,14 @@ impl<'a> ElabContext<'a> {
 		self.reports.borrow_mut().push(report)
 	}
 
-	fn register_array_type(&self, t: ArrayType) -> ArrayTypeId {
-		let id = ArrayTypeId(self.arrays.borrow().len());
-		self.arrays.borrow_mut().push(t);
+	fn register_type(&self, t: Type) -> TypeId {
+		let id = TypeId(self.types.borrow().len());
+		self.types.borrow_mut().push(t);
 		id
 	}
 
-	fn get_array_type(&self, index: ArrayTypeId) -> Ref<'_, ArrayType> {
-		Ref::map(self.arrays.borrow(), |r| &r[index.0])
+	fn get_array_type(&self, index: TypeId) -> Type {
+		self.types.borrow()[index.0]
 	}
 
 	fn regsiter_local(&self, identifier: Identifier, ty: Type) -> LocalId {
@@ -118,6 +142,63 @@ impl<'a> ElabContext<'a> {
 		let id = PropId(self.props.borrow().len());
 		self.props.borrow_mut().push(Prop { ty, name });
 		id
+	}
+
+	fn get_prop(&self, id: PropId) -> Ref<'_, Prop> {
+		Ref::map(self.props.borrow(), |r| &r[id.0])
+	}
+
+	fn register_statement(&self, statement: Statement) -> StatementId {
+		let id = StatementId(self.statements.borrow().len());
+		self.statements.borrow_mut().push(statement);
+		id
+	}
+
+	fn get_statement(&self, id: StatementId) -> Statement {
+		self.statements.borrow()[id.0]
+	}
+
+	fn register_block(&self, block: Block) -> BlockId {
+		let id = BlockId(self.blocks.borrow().len());
+		self.blocks.borrow_mut().push(block);
+		id
+	}
+
+	fn get_block(&self, id: BlockId) -> Ref<'_, Block> {
+		Ref::map(self.blocks.borrow(), |r| &r[id.0])
+	}
+
+	fn register_expr(&self, expr: Expr) -> ExprId {
+		let id = ExprId(self.exprs.borrow().len());
+		self.exprs.borrow_mut().push(expr);
+		id
+	}
+
+	fn get_expr(&self, id: ExprId) -> Expr {
+		self.exprs.borrow()[id.0]
+	}
+
+	fn register_spine(&self, spine: Spine) -> SpineId {
+		let id = SpineId(self.spines.borrow().len());
+		self.spines.borrow_mut().push(spine);
+		id
+	}
+
+	fn get_spine(&self, id: SpineId) -> Ref<'_, Spine> {
+		Ref::map(self.spines.borrow(), |r| &r[id.0])
+	}
+
+	fn register_type_telescope(&self, spine: TypeTelescope) -> TypeTelescopeId {
+		let id = TypeTelescopeId(self.type_telescopes.borrow().len());
+		self.type_telescopes.borrow_mut().push(spine);
+		id
+	}
+
+	fn get_type_telescope(
+		&self,
+		id: TypeTelescopeId,
+	) -> Ref<'_, TypeTelescope> {
+		Ref::map(self.type_telescopes.borrow(), |r| &r[id.0])
 	}
 }
 // }}}
@@ -151,8 +232,8 @@ pub enum Type {
 	Flex(FlexId),
 	Primitive(PrimitiveType),
 	Struct(StructId),
-	Array(ArrayTypeId),
-	Proc(ModuleId), // Procedures can only be introduced at the top level
+	Array((usize, usize), TypeId),
+	Proc(TypeTelescopeId, TypeId),
 }
 
 impl Default for Type {
@@ -190,7 +271,7 @@ pub struct Prop {
 
 #[derive(Clone, Debug)]
 pub struct Proc {
-	arguments: Box<[Type]>,
+	arguments: TypeTelescopeId,
 	output: Type,
 	implementation: ProcImplementation,
 }
@@ -198,10 +279,10 @@ pub struct Proc {
 #[derive(Clone, Debug)]
 pub enum ProcImplementation {
 	Native(String),
-	Implemented(Box<[LocalId]>, Block),
+	Implemented(Box<[LocalId]>, Statement),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Expr {
 	// Base values
 	Unit,
@@ -211,20 +292,24 @@ pub enum Expr {
 	Hole(Type),
 	Local(LocalId),
 	External(ExternalId),
+	Indirect(ExprId),
 
 	// Upcasts
-	ScalarDiagonalUpcast(usize, Box<Expr>),
-	ScalarVectorUpcast(usize, Box<Expr>),
+	ScalarDiagonalUpcast(usize, ExprId),
+	ScalarVectorUpcast(usize, ExprId),
 
 	// Compound values
-	Property(Box<Expr>, PropId),
-	Call(ProcId, Vec<Expr>),
-	Unary(UnaryOperator, Box<Expr>),
-	Binary(Box<(Expr, BinaryOperator, Expr)>),
-	Ternary(Box<(Expr, Expr, Expr)>),
+	Property(ExprId, PropId),
+	Call(ProcId, SpineId),
+	Unary(UnaryOperator, ExprId),
+	Ternary(ExprId, ExprId, ExprId),
+	/// We include the output type as computing it again every time would be a bit
+	/// annoying (I would have to re-implement some of the operator typing logic
+	/// in [ElabContext::type_of].
+	Binary(ExprId, BinaryOperator, ExprId, Type),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Statement {
 	Unknown,
 	Discard,
@@ -232,14 +317,21 @@ pub enum Statement {
 	Continue,
 	Return(Expr),
 	Expression(Expr),
-	If(Box<[(Expr, Block)]>),
-	For(Box<(Statement, Statement, Statement)>, Block),
+	Block(BlockId),
+	If(Expr, StatementId, StatementId),
+	For(StatementId, StatementId, StatementId, StatementId),
 	Assignment(Expr, Option<BinaryOperator>, Expr),
 	Declaration(LocalId, Option<Expr>),
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct Block(Box<[Statement]>);
+
+#[derive(Clone, Debug, Default)]
+pub struct Spine(Box<[Expr]>);
+
+#[derive(Clone, Debug, Default)]
+pub struct TypeTelescope(Box<[Type]>);
 // }}}
 // {{{ Name resolution
 type ModuleResolution = HashSet<ModuleId>;
@@ -407,29 +499,35 @@ impl ElabContext<'_> {
 				crate::lowering::Module::Toplevel(
 					crate::lowering::ModuleMember::Type(ty),
 				) => {
-					self.elab_toplevel_type(&mut Telescope::new(module), ty);
+					self.elab_toplevel_type(
+						&mut ModuleTelescope::new(module),
+						ty,
+					);
 				}
 				crate::lowering::Module::Toplevel(
 					crate::lowering::ModuleMember::Alias(to),
 				) => {
-					self.elab_toplevel_alias(&mut Telescope::new(module), to);
+					self.elab_toplevel_alias(
+						&mut ModuleTelescope::new(module),
+						to,
+					);
 				}
 				crate::lowering::Module::Toplevel(
 					crate::lowering::ModuleMember::External(_, _),
 				) => {
-					self.elab_external(&mut Telescope::new(module));
+					self.elab_external(&mut ModuleTelescope::new(module));
 				}
 				crate::lowering::Module::Toplevel(
 					crate::lowering::ModuleMember::Unknown(ty),
 				) => {
 					if let Some(ty) = ty {
-						self.elab_type(&mut Telescope::new(module), ty);
+						self.elab_type(&mut ModuleTelescope::new(module), ty);
 					}
 				}
 				crate::lowering::Module::Toplevel(
 					crate::lowering::ModuleMember::Proc(_),
 				) => {
-					self.elab_toplevel_proc(&mut Telescope::new(module));
+					self.elab_toplevel_proc(&mut ModuleTelescope::new(module));
 				}
 				crate::lowering::Module::Fork(_) => {}
 			}
@@ -439,7 +537,7 @@ impl ElabContext<'_> {
 	// {{{ Elaborate name aliases
 	fn elab_toplevel_alias(
 		&self,
-		telescope: &mut Telescope<ModuleId>,
+		telescope: &mut ModuleTelescope,
 		to: &crate::lowering::QualifiedIdentifier,
 	) -> Option<Ref<'_, Alias>> {
 		if let Some(cycle) = telescope.find_cycle() {
@@ -447,13 +545,13 @@ impl ElabContext<'_> {
 			return None;
 		} else if let Ok(cached) =
 			Ref::filter_map(self.aliases.borrow(), |aliases| {
-				aliases.get(telescope.tip())
+				aliases.get(&telescope.tip())
 			}) {
 			return Ref::filter_map(cached, |v| v.as_ref()).ok();
 		}
 
 		let elaborated = self.elab_alias(telescope, to);
-		self.aliases.borrow_mut().insert(*telescope.tip(), elaborated);
+		self.aliases.borrow_mut().insert(telescope.tip(), elaborated);
 		self.elab_toplevel_alias(telescope, to)
 	}
 
@@ -466,11 +564,11 @@ impl ElabContext<'_> {
 	/// - detects alias cycles
 	fn elab_alias(
 		&self,
-		telescope: &mut Telescope<ModuleId>,
+		telescope: &mut ModuleTelescope,
 		to: &crate::lowering::QualifiedIdentifier,
 	) -> Option<Alias> {
 		let ids: ModuleResolution = self
-			.resolve_path_outwards(*telescope.tip(), &to.0)
+			.resolve_path_outwards(telescope.tip(), &to.0)
 			.into_iter()
 			.filter(|n| {
 				matches!(
@@ -511,7 +609,7 @@ impl ElabContext<'_> {
 	fn elab_struct(
 		&self,
 		// The types we were checking while we got here
-		telescope: &mut Telescope<ModuleId>,
+		telescope: &mut ModuleTelescope,
 		s: StructId,
 	) {
 		if !self.structs.borrow().contains_key(&s) {
@@ -558,26 +656,26 @@ impl ElabContext<'_> {
 	fn elab_toplevel_type(
 		&self,
 		// The types we were checking while we got here
-		telescope: &mut Telescope<ModuleId>,
+		telescope: &mut ModuleTelescope,
 		ty: &crate::lowering::Type,
 	) -> Type {
 		if let Some(cycle) = telescope.find_cycle() {
 			self.report_cycle(cycle);
 			Type::default()
 		} else if let Some(&elaborated) =
-			self.typedefs.borrow().get(telescope.tip())
+			self.typedefs.borrow().get(&telescope.tip())
 		{
 			elaborated
 		} else {
 			let elaborated = self.elab_type(telescope, ty);
-			self.typedefs.borrow_mut().insert(*telescope.tip(), elaborated);
+			self.typedefs.borrow_mut().insert(telescope.tip(), elaborated);
 			elaborated
 		}
 	}
 
 	fn elab_type(
 		&self,
-		telescope: &mut Telescope<ModuleId>,
+		telescope: &mut ModuleTelescope,
 		ty: &crate::lowering::Type,
 	) -> Type {
 		match ty {
@@ -631,10 +729,7 @@ impl ElabContext<'_> {
 				let inner = self.elab_type(telescope, inner);
 
 				// TODO: error out on certain sizes
-				Type::Array(self.register_array_type(ArrayType {
-					dimensions: *dims,
-					inner,
-				}))
+				Type::Array(*dims, self.register_type(inner))
 			}
 			crate::lowering::Type::Struct(struct_id) => {
 				self.elab_struct(telescope, *struct_id);
@@ -646,9 +741,9 @@ impl ElabContext<'_> {
 	// {{{ Elaborate external values
 	fn elab_external(
 		&self,
-		telescope: &mut Telescope<ModuleId>,
+		telescope: &mut ModuleTelescope,
 	) -> Ref<'_, External> {
-		let external_id = ExternalId(*telescope.tip());
+		let external_id = ExternalId(telescope.tip());
 		if let Ok(cached) =
 			Ref::filter_map(self.external.borrow(), |external| {
 				external.get(&external_id)
@@ -658,7 +753,7 @@ impl ElabContext<'_> {
 
 		let crate::lowering::Module::Toplevel(
 			crate::lowering::ModuleMember::External(value, ty),
-		) = &self.lowering_context[*telescope.tip()]
+		) = &self.lowering_context[telescope.tip()]
 		else {
 			panic!("Expected module to be an external value declaration")
 		};
@@ -672,9 +767,9 @@ impl ElabContext<'_> {
 	// {{{ Elaborate procedures
 	fn elab_toplevel_proc(
 		&self,
-		telescope: &mut Telescope<ModuleId>,
+		telescope: &mut ModuleTelescope,
 	) -> Ref<'_, Proc> {
-		let proc_id = ProcId(*telescope.tip());
+		let proc_id = ProcId(telescope.tip());
 		if let Ok(cached) =
 			Ref::filter_map(self.procs.borrow(), |procs| procs.get(&proc_id))
 		{
@@ -683,7 +778,7 @@ impl ElabContext<'_> {
 
 		let crate::lowering::Module::Toplevel(
 			crate::lowering::ModuleMember::Proc(proc),
-		) = &self.lowering_context[*telescope.tip()]
+		) = &self.lowering_context[telescope.tip()]
 		else {
 			panic!("Expected module to be a procedure")
 		};
@@ -708,20 +803,22 @@ impl ElabContext<'_> {
 					})
 					.collect();
 
-				let mut env = LocalEnv::default();
+				let mut env = LocalEnv::new(telescope.tip());
 				for id in &locals {
 					self.add_to_env(&mut env, *id);
 				}
 
 				ProcImplementation::Implemented(
 					locals,
-					self.elab_block(&mut env, block),
+					Statement::Block(
+						self.register_block(self.elab_block(&mut env, block)),
+					),
 				)
 			}
 		};
 
 		let elaborated = Proc {
-			arguments: arg_types,
+			arguments: self.register_type_telescope(TypeTelescope(arg_types)),
 			output: self.elab_type(telescope, &proc.ret),
 			implementation,
 		};
@@ -793,7 +890,7 @@ impl ElabContext<'_> {
 					// where one of the operands has side effects.
 					//
 					// In fact, I think we should only really allow calls here...
-					if self.expr_has_side_effects(&expr) {
+					if self.expr_has_side_effects(expr) {
 						(expr, true)
 					} else {
 						if let Some(span) = statement.span {
@@ -804,7 +901,7 @@ impl ElabContext<'_> {
 					}
 				});
 
-				// TODO: we could technically do some more analysis here like looking
+				// NOTE: we could technically do some more analysis here like looking
 				// for discards inside function calls, but I am too lazy to do that, and
 				// always-diverging calls don't really come up in practice.
 				self.emit_span(env, statement.span, false);
@@ -865,9 +962,54 @@ impl ElabContext<'_> {
 				);
 				Expr::Float(*f, ty)
 			}
-			lowering::Expr::Variable(qualified_identifier) => todo!(),
-			lowering::Expr::Property(expr, identifier) => todo!(),
-			lowering::Expr::Call(expr, exprs) => todo!(),
+			lowering::Expr::Variable(qualified_identifier) => {
+				let path = &qualified_identifier.0[..];
+				if let [name] = path
+					&& let Some(local) = env.variables.get(name)
+				{
+					Expr::Local(*local)
+				} else {
+					let results = self.resolve_path_inwards(env.at, path);
+					todo!()
+				}
+			}
+			lowering::Expr::Property(expr, identifier) => {
+				let expr = self.elab_expr(env, expr);
+				let res = self.register_flex();
+				let hole = Expr::Hole(res);
+				match identifier {
+					Identifier::Unknown => hole,
+					Identifier::Name(name) => {
+						let out = self.register_expr(hole);
+						env.constraints.push(Constraint::HasProp {
+							of: expr,
+							projection: name.clone(),
+							into: out,
+						});
+
+						Expr::Indirect(out)
+					}
+				}
+			}
+			lowering::Expr::Call(expr, exprs) => {
+				let mut spine = Vec::new();
+				let mut args = Vec::new();
+				for expr in exprs {
+					let expr = self.elab_expr(env, expr);
+					spine.push(expr);
+					args.push(self.type_of(expr));
+				}
+
+				let return_type = self.register_flex();
+				let proc_type = Type::Proc(
+					self.register_type_telescope(TypeTelescope(
+						args.into_boxed_slice(),
+					)),
+					self.register_type(return_type),
+				);
+
+				env.type_in(proc_type, todo!());
+			}
 			lowering::Expr::Unary(unary_operator, expr) => todo!(),
 			lowering::Expr::Binary(_) => todo!(),
 			lowering::Expr::Ternary(_) => todo!(),
@@ -1082,15 +1224,26 @@ struct Local {
 enum Constraint {
 	Unification(Type, Type),
 	OneOf(Type, Box<[Type]>),
+	HasProp {
+		/// The value being projected. We keep the expression around because we are
+		/// going to insert the projection into the AST once the constraint gets
+		/// solved.
+		of: Expr,
+		projection: Name,
+		/// When solved, the result will get inserted here
+		into: ExprId,
+	},
 }
 
-#[derive(Default)]
 struct LocalEnv {
+	/// The ambient module we resolve non-local names to
+	at: ModuleId,
+
 	variables: HashMap<Name, LocalId>,
 	constraints: Vec<Constraint>,
 	statements: Vec<Statement>,
 
-	// Flags
+	/// Signifies whether constructs like `break` or `continue` can be used.
 	in_loop: bool,
 
 	/// Contains the location where execution diverged, if such a location has
@@ -1103,6 +1256,18 @@ struct LocalEnv {
 }
 
 impl LocalEnv {
+	fn new(at: ModuleId) -> Self {
+		Self {
+			at,
+			variables: Default::default(),
+			constraints: Default::default(),
+			statements: Default::default(),
+			in_loop: Default::default(),
+			diverged_at: Default::default(),
+			diverging_span: Default::default(),
+		}
+	}
+
 	fn might_backtrack<O>(
 		&mut self,
 		computation: impl FnOnce(&mut Self) -> (O, bool),
@@ -1195,7 +1360,7 @@ impl ElabContext<'_> {
 // }}}
 // {{{ Side effect tracking
 impl ElabContext<'_> {
-	fn expr_has_side_effects(&self, expr: &Expr) -> bool {
+	fn expr_has_side_effects(&self, expr: Expr) -> bool {
 		match expr {
 			Expr::Unit => false,
 			Expr::Bool(_) => false,
@@ -1204,40 +1369,44 @@ impl ElabContext<'_> {
 			Expr::Hole(_) => false,
 			Expr::Local(_) => false,
 			Expr::External(_) => false,
-			Expr::Property(expr, _) => self.expr_has_side_effects(expr),
-			Expr::Call(proc_id, exprs) => {
-				for expr in exprs {
-					if self.expr_has_side_effects(expr) {
+			Expr::Indirect(id) => self.expr_has_side_effects(self.get_expr(id)),
+			Expr::Property(id, _) => {
+				self.expr_has_side_effects(self.get_expr(id))
+			}
+			Expr::Call(proc_id, spine) => {
+				for expr in &self.get_spine(spine).0 {
+					if self.expr_has_side_effects(*expr) {
 						return true;
 					}
 				}
 
-				self.proc_has_side_effects(*proc_id)
+				self.proc_has_side_effects(proc_id)
 			}
-			Expr::Unary(_, expr) => self.expr_has_side_effects(expr),
-			Expr::Binary(binary) => {
-				self.expr_has_side_effects(&binary.0)
-					|| self.expr_has_side_effects(&binary.2)
+			Expr::Unary(_, id) => self.expr_has_side_effects(self.get_expr(id)),
+			Expr::Binary(lhs, _, rhs, _) => {
+				self.expr_has_side_effects(self.get_expr(lhs))
+					|| self.expr_has_side_effects(self.get_expr(rhs))
 			}
-			Expr::Ternary(ternary) => {
-				self.expr_has_side_effects(&ternary.0)
-					|| self.expr_has_side_effects(&ternary.1)
-					|| self.expr_has_side_effects(&ternary.2)
+			Expr::Ternary(cond, if_true, if_false) => {
+				self.expr_has_side_effects(self.get_expr(cond))
+					|| self.expr_has_side_effects(self.get_expr(if_true))
+					|| self.expr_has_side_effects(self.get_expr(if_false))
 			}
-			Expr::ScalarVectorUpcast(_, expr) => {
-				self.expr_has_side_effects(expr)
+			Expr::ScalarVectorUpcast(_, id) => {
+				self.expr_has_side_effects(self.get_expr(id))
 			}
-			Expr::ScalarDiagonalUpcast(_, expr) => {
-				self.expr_has_side_effects(expr)
+			Expr::ScalarDiagonalUpcast(_, id) => {
+				self.expr_has_side_effects(self.get_expr(id))
 			}
 		}
 	}
 
 	fn proc_has_side_effects(&self, id: ProcId) -> bool {
 		let proc = self.get_proc(id);
-		if let ProcImplementation::Implemented(_, block) = &proc.implementation
+		if let ProcImplementation::Implemented(_, statement) =
+			&proc.implementation
 		{
-			self.block_has_side_effects(block)
+			self.statement_has_side_effects(*statement)
 		} else {
 			false
 		}
@@ -1247,12 +1416,12 @@ impl ElabContext<'_> {
 		block
 			.0
 			.iter()
-			.any(|statement| self.statement_has_side_effects(statement))
+			.any(|statement| self.statement_has_side_effects(*statement))
 	}
 
 	// NOTE: this marks things like break or discard statements as "pure", since
 	// they cannot leak outside the current scope
-	fn statement_has_side_effects(&self, statement: &Statement) -> bool {
+	fn statement_has_side_effects(&self, statement: Statement) -> bool {
 		match statement {
 			Statement::Unknown => false,
 			Statement::Discard => true,
@@ -1260,34 +1429,46 @@ impl ElabContext<'_> {
 			Statement::Continue => false,
 			Statement::Return(expr) => self.expr_has_side_effects(expr),
 			Statement::Expression(expr) => self.expr_has_side_effects(expr),
-			Statement::If(items) => items.iter().any(|(expr, block)| {
-				self.expr_has_side_effects(expr)
-					|| self.block_has_side_effects(block)
-			}),
-			Statement::For(setup, block) => {
-				self.statement_has_side_effects(&setup.0)
-					|| self.statement_has_side_effects(&setup.1)
-					|| self.statement_has_side_effects(&setup.2)
-					|| self.block_has_side_effects(block)
+			Statement::Block(id) => {
+				let block = self.get_block(id);
+
+				block.0.iter().any(|statement| {
+					self.statement_has_side_effects(*statement)
+				})
+			}
+			Statement::If(cond, if_true, if_false) => {
+				self.expr_has_side_effects(cond)
+					|| self
+						.statement_has_side_effects(self.get_statement(if_true))
+					|| self.statement_has_side_effects(
+						self.get_statement(if_false),
+					)
+			}
+			Statement::For(start, cond, end, inner) => {
+				self.statement_has_side_effects(self.get_statement(start))
+					|| self.statement_has_side_effects(self.get_statement(cond))
+					|| self.statement_has_side_effects(self.get_statement(end))
+					|| self
+						.statement_has_side_effects(self.get_statement(inner))
 			}
 			Statement::Assignment(left, _, right) => {
 				self.write_to_expr_has_side_effects(left)
 					|| self.expr_has_side_effects(right)
 			}
-			Statement::Declaration(_, expr) => expr
-				.as_ref()
-				.is_some_and(|expr| self.expr_has_side_effects(expr)),
+			Statement::Declaration(_, expr) => {
+				expr.is_some_and(|expr| self.expr_has_side_effects(expr))
+			}
 		}
 	}
 
 	/// Computes whether writing to the result of a given expression constitutes
 	/// a side effect.
 	#[allow(clippy::only_used_in_recursion)]
-	fn write_to_expr_has_side_effects(&self, expr: &Expr) -> bool {
+	fn write_to_expr_has_side_effects(&self, expr: Expr) -> bool {
 		match expr {
 			Expr::External(_) => true,
-			Expr::Property(expr, _) => {
-				self.write_to_expr_has_side_effects(expr)
+			Expr::Property(id, _) => {
+				self.write_to_expr_has_side_effects(self.get_expr(id))
 			}
 			_ => false,
 		}
@@ -1296,34 +1477,94 @@ impl ElabContext<'_> {
 // }}}
 // {{{ Type-checking
 impl ElabContext<'_> {
-	fn type_of(&self, expr: &Expr) -> Type {
+	/// Computes the type of an elaborated expression. This operation does no
+	/// unification of advanced checking, and assumes everything checks out
+	/// already.
+	fn type_of(&self, expr: Expr) -> Type {
 		match expr {
 			Expr::Unit => Type::Primitive(PrimitiveType::Unit),
 			Expr::Bool(_) => Type::Primitive(PrimitiveType::Bool),
-			Expr::Int(_, ty) => *ty,
-			Expr::Float(_, ty) => *ty,
-			Expr::Hole(ty) => *ty,
-			Expr::Local(id) => self.get_local(*id).ty,
-			Expr::External(id) => self.get_external(*id).ty,
-			Expr::Property(_expr, _prop_id) => todo!(),
-			Expr::Call(id, _) => self.get_proc(*id).output,
+			Expr::Int(_, ty) => ty,
+			Expr::Float(_, ty) => ty,
+			Expr::Hole(ty) => ty,
+			Expr::Local(id) => self.get_local(id).ty,
+			Expr::External(id) => self.get_external(id).ty,
+			Expr::Indirect(id) => self.type_of(self.get_expr(id)),
+			Expr::Property(_, prop_id) => self.get_prop(prop_id).ty,
+			Expr::Call(id, _) => self.get_proc(id).output,
 			// NOTE: unary operators are type-preserving
-			Expr::Unary(_, expr) => self.type_of(expr),
-			Expr::Binary(_) => todo!(),
-			Expr::Ternary(ternary) => self.type_of(&ternary.1),
+			Expr::Unary(_, id) => self.type_of(self.get_expr(id)),
+			Expr::Binary(_, _, _, ty) => ty,
+			Expr::Ternary(_, if_true, _) => {
+				self.type_of(self.get_expr(if_true))
+			}
 			Expr::ScalarVectorUpcast(dim, expr) => {
 				Type::Array(self.register_array_type(ArrayType {
-					dimensions: (*dim, 1),
-					inner: self.type_of(expr),
+					dimensions: (dim, 1),
+					inner: self.type_of(self.get_expr(expr)),
 				}))
 			}
 			Expr::ScalarDiagonalUpcast(dim, expr) => {
 				Type::Array(self.register_array_type(ArrayType {
-					dimensions: (*dim, *dim),
-					inner: self.type_of(expr),
+					dimensions: (dim, dim),
+					inner: self.type_of(self.get_expr(expr)),
 				}))
 			}
 		}
+	}
+}
+// }}}
+
+// {{{ Module telescopes
+#[derive(Debug, Clone)]
+pub struct ModuleTelescope {
+	elements: Vec<ModuleId>,
+}
+
+impl ModuleTelescope {
+	pub fn new(id: ModuleId) -> Self {
+		Self { elements: vec![id] }
+	}
+
+	pub fn tip(&self) -> ModuleId {
+		*self.elements.last().unwrap()
+	}
+
+	pub fn focusing<O>(
+		&mut self,
+		element: ModuleId,
+		compute: impl FnOnce(&mut Self) -> O,
+	) -> O {
+		self.elements.push(element);
+		let output = compute(self);
+		self.elements.pop();
+		output
+	}
+
+	pub fn focusing_many<O>(
+		&mut self,
+		elements: impl IntoIterator<Item = ModuleId>,
+		compute: impl FnOnce(&mut Self) -> O,
+	) -> O {
+		self.elements.extend(elements);
+		let output = compute(self);
+		self.elements.pop();
+		output
+	}
+
+	/// Computes whether the telescope contains a closed cycle. If such a cycle
+	/// exists, we could never escape it, thus it is guaranteed to be at the end
+	/// of the telescope.
+	pub fn find_cycle(&self) -> Option<&[ModuleId]> {
+		let tip = self.tip();
+		let rest = &self.elements[..self.elements.len() - 1];
+		for (i, element) in rest.iter().enumerate().rev() {
+			if *element == tip {
+				return Some(&rest[i..]);
+			}
+		}
+
+		None
 	}
 }
 // }}}
