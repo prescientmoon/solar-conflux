@@ -1,0 +1,34 @@
+// ========== Type aliases
+Color :: [4]f32
+mat4  :: [4, 4]f32
+
+// ========== Custom helpers
+uv_in_bounds :: proc(uv: [2]f32) -> bool
+  return uv.x ≥ 0 ∧ uv.x ≤ 1 ∧ uv.y ≥ 0 ∧ uv.y ≤ 1
+
+module sdf where
+  rect :: proc(center, dims, p: [2]f32) -> f32
+    d := abs (p - center) - dims / 2
+    return len(d ∧ 0) + d.x ∧ d.y ∨ 0
+
+  circle :: proc(center: [2]f32, r: f32, p: [2]f32) -> f32
+    return len(p - center) - r
+
+module color where
+  rgba/premul :: rgba/premul/Color
+  module rgba/premul where
+    Color :: [4]f32
+    blend :: proc(src, dest: Color) -> Color
+      return src + dest * (1 - src.a)
+
+  rgba/straight :: rgba/straight/Color
+  module rgba/straight where
+    Color :: [4]f32
+
+    blend :: proc(src, dest: Color) -> Color
+      alpha := mix dest.a 1 src.a
+      rgb   := mix (dst.rgb * dst.a) src.rgb src.a
+      return alpha == 0 ? 0 : vec4 (rgb / alpha) alpha
+
+    premul :: proc(col: Color) -> rgba/premul
+      return vec4 (col.a * col.rgb) col.a
