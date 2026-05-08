@@ -202,12 +202,20 @@ tokenize :: proc(lexer: ^Lexer) -> (tok: Token, err: Enfold_Error) {
 		// }}}
 		// {{{ Strings
 		case '"':
-			// TODO: escaping and whatnot
-			for lexer.curr != '"' {
+			escaped := false
+			for {
+				ch := lexer.curr
 				advance_rune(lexer) or_return
-			}
 
-			advance_rune(lexer) or_return
+				if escaped {
+					escaped = false
+				} else if ch == '\\' {
+					escaped = true
+					continue
+				} else if ch == '"' {
+					break
+				}
+			}
 
 			tok.kind = .String
 		// }}}

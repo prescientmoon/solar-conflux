@@ -3,6 +3,7 @@ package enfold
 import "base:runtime"
 import "core:fmt"
 import "core:log"
+import "core:strings"
 
 Expr :: union {
 	EBool,
@@ -317,7 +318,7 @@ peek :: proc(
 parse_assignment :: proc(parser: ^Parser) -> (stmt: ST_Assignment, err: Enfold_Error) {
 	label(parser, "assignment")
 
-	if tok := peek(parser) or_return; tok.kind != .Identifier {
+	if tok := peek(parser) or_return; tok.kind != .Identifier && tok.kind != .Property {
 		return stmt, Parser_Cancellation{}
 	}
 
@@ -345,7 +346,7 @@ parse_assignment :: proc(parser: ^Parser) -> (stmt: ST_Assignment, err: Enfold_E
 	// We're commited now, so let's create a list of strings for the path
 	stmt.path = make_slice([]string, len(path_toks), parser.alloc)
 	for s, i in path_toks {
-		if i == 0 {
+		if s.kind == .Identifier {
 			stmt.path[i] = stmt.path_toks[i].content
 		} else {
 			stmt.path[i] = string(stmt.path_toks[i].content[1:])
@@ -543,9 +544,29 @@ parse_single_expr :: proc(parser: ^Parser) -> (expr: Expr, err: Enfold_Error) {
 	// }}}
 	// {{{ Strings
 	case .String:
+		out := strings.builder_make(0, len(parser.curr.content) - 2, parser.alloc)
+
+		escaped := false
+		for ch in parser.curr.content[1:len(parser.curr.content) - 1] {
+			if escaped {
+				escaped = false
+
+				if ch == 'n' {
+					strings.write_rune(&out, '\n')
+				} else {
+					strings.write_rune(&out, ch)
+				}
+			} else if ch == '\\' {
+				escaped = true
+				continue
+			} else {
+				strings.write_rune(&out, ch)
+			}
+		}
+
 		expr = EString {
 			tok   = parser.curr,
-			value = parser.curr.content[1:len(parser.curr.content) - 1],
+			value = strings.to_string(out),
 		}
 
 		next_token(parser) or_return

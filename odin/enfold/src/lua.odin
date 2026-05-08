@@ -103,6 +103,7 @@ effect_to_lua :: proc(cg: ^Codegen, expr: NEffect) {
 	for statement in expr.contents {
 		switch inner in statement {
 		case NST_Declaration:
+			strings.write_string(&cg.out, "local ")
 			for v, i in inner.vars {
 				strings.write_string(&cg.out, v.content)
 

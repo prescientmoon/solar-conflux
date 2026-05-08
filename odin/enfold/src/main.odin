@@ -33,9 +33,13 @@ main_impl :: proc() -> int {
 		Bytes(arena.total_reserved),
 	)
 
-	source := #load("../experiments/source2.idea", string)
+	source := #load("../experiments/keybinds.enfold", string)
 	parser, err := mk_parser(source, virtual.arena_allocator(&arena))
-	if err != nil {log.error(err)}
+
+	if err != nil {
+		log.error(err)
+		return 1
+	}
 
 	expr: Expr
 	expr, err = parse_toplevel_block(&parser)
@@ -43,8 +47,6 @@ main_impl :: proc() -> int {
 	if err != nil {
 		log.error(err)
 		return 1
-	} else {
-		log.infof("Expr: %#v", expr)
 	}
 
 	evaluator := mk_evaluator(parser.alloc)
@@ -54,8 +56,6 @@ main_impl :: proc() -> int {
 	if err != nil {
 		log.error(err)
 		return 1
-	} else {
-		log.infof("Effect: %#v", neffect)
 	}
 
 	cg := mk_lua_codegen(parser.alloc)
