@@ -1,0 +1,30 @@
+\documentclass[a4paper, margin=0]{article}
+\usepackage[left=5mm, right=0mm, top=5mm, bottom=0mm]{geometry}
+\usepackage{graphicx}
+\usepackage{pgffor}
+
+\newcounter{cards}
+\newcommand{\card}[2]{%
+	\foreach \i in {1, ..., #2} {%
+			\noindent\includegraphics[width=59mm]{images/#1.jpg}%
+			\stepcounter{cards}%
+			\ifnum\the\value{cards}=3
+				\leavevmode\newline
+				\setcounter{cards}{0}
+			\fi
+		}%
+\ignorespaces
+}
+
+\begin{document}
+\card{womachinex}{3}
+\card{scale}{3}
+\card{count}{3}
+\card{zeroking}{3}
+\card{defense}{1}
+\card{lance}{1}
+\card{clovis}{1}
+\card{crisis}{1}
+\card{solomon}{1}
+\card{zeus}{1}
+\end{document}
