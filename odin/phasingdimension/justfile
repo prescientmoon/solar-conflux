@@ -1,0 +1,56 @@
+default:
+  @just --list
+
+odin command *args:
+  odin {{command}} src {{args}}
+
+# {{{ Building
+build *args:
+  @just odin build \
+    -strict-style \
+    -extra-linker-flags:"-fuse-ld=mold" \
+    {{args}}
+
+build-test *args:
+  @mkdir -p build/test
+  @just build \
+    -debug \
+    -build-mode:test \
+    -define:ODIN_TEST_CLIPBOARD=true \
+    -out:build/test/phasing.bin \
+    {{args}}
+
+build-debug:
+  @mkdir -p build/debug
+  @just build -debug -out:build/debug/phasing.bin
+
+build-release:
+  @mkdir -p build/release
+  @just build -o=speed -no-bounds-check -out:build/release/phasing.bin
+# }}}
+# {{{ Debug & run
+debug: build-debug
+  seergdb ./build/debug/phasing.bin
+
+debug-test: build-test
+  seergdb ./build/test/phasing.bin
+
+run: build-debug
+  ./build/debug/phasing.bin
+
+run-release: build-release
+  ./build/release/phasing.bin
+# }}}
+# {{{ Check & test
+check:
+  @just odin check
+
+test *args:
+  @mkdir -p build/test
+  @just odin test \
+    -debug \
+    -define:ODIN_TEST_CLIPBOARD=true \
+    -define:ODIN_TEST_LOG_LEVEL=info \
+    -out:build/test/phasing.bin \
+    {{args}}
+# }}}
