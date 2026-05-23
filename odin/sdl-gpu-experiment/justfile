@@ -1,0 +1,35 @@
+build-shader name:
+  slangc ./src/shaders/{{name}}.slang -o ./build/shaders/{{name}}.vert.spv \
+    -stage vertex -entry vertMain -D __VERT__ \
+    -reflection-json ./build/shaders/{{name}}.slang.vert.json \
+    -target spirv -emit-spirv-directly -fvk-use-entrypoint-name  -fvk-invert-y
+  slangc ./src/shaders/{{name}}.slang -o ./build/shaders/{{name}}.frag.spv \
+    -stage fragment -entry fragMain -D __FRAG__ \
+    -reflection-json ./build/shaders/{{name}}.slang.frag.json \
+    -target spirv -emit-spirv-directly -fvk-use-entrypoint-name  -fvk-invert-y
+  shadercross ./build/shaders/{{name}}.frag.spv -e fragMain \
+    --stage fragment -o ./build/shaders/{{name}}.frag.dxil
+  shadercross ./build/shaders/{{name}}.vert.spv -e vertMain \
+    --stage vertex   -o ./build/shaders/{{name}}.vert.dxil
+  shadercross ./build/shaders/{{name}}.frag.spv -e fragMain \
+    --stage fragment -o ./build/shaders/{{name}}.frag.hlsl
+  shadercross ./build/shaders/{{name}}.vert.spv -e vertMain \
+    --stage vertex   -o ./build/shaders/{{name}}.vert.hlsl
+  shadercross ./build/shaders/{{name}}.frag.spv -e fragMain \
+    --stage fragment -o ./build/shaders/{{name}}.frag.json
+  shadercross ./build/shaders/{{name}}.vert.spv -e vertMain \
+    --stage vertex   -o ./build/shaders/{{name}}.vert.json
+  # Pack the stats as binary
+  printf "\\x$(jq ".samplers" ./build/shaders/{{name}}.vert.json)" \
+    >> ./build/shaders/{{name}}.vert.stats.bin
+  printf "\\x$(jq ".storage_buffers" ./build/shaders/{{name}}.vert.json)" \
+    >> ./build/shaders/{{name}}.vert.stats.bin
+  printf "\\x$(jq ".samplers" ./build/shaders/{{name}}.frag.json)" \
+    >> ./build/shaders/{{name}}.frag.stats.bin
+  printf "\\x$(jq ".storage_buffers" ./build/shaders/{{name}}.frag.json)" \
+    >> ./build/shaders/{{name}}.frag.stats.bin
+build:
+  # Build shaders
+  rm -rf ./build/shaders
+  mkdir -p ./build/shaders
+  just build-shader example
