@@ -1,0 +1,20 @@
+build-windows:
+  rm -rf build/windows-tmp
+  mkdir -p build/windows-tmp
+  rm -rf build/windows
+  mkdir -p build/windows
+  odin build src \
+    -debug \
+    -out:build/windows-tmp/experiment.obj \
+    -build-mode:object \
+    -target:windows_amd64
+  zig cc \
+    -target x86_64-windows-msvc \
+    build/windows-tmp/*.obj \
+    build/raylib-6.0_win64_msvc16/lib/raylibdll.lib \
+    -lbcrypt \
+    -L build/xwin/crt/lib/x86_64 \
+    -L build/xwin/sdk/lib/um/x86_64 \
+    -L build/xwin/sdk/lib/ucrt/x86_64 \
+    -o build/windows/experiment.exe
+  cp build/raylib-6.0_win64_msvc16/lib/raylib.dll ./build/windows
