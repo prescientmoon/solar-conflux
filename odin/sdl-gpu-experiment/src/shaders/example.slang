@@ -9,9 +9,9 @@ struct Sprite {
 
 struct Globals {
   Sprite sprites[1024];
-  uint spriteCount;
+  uint _spriteCount; // Unused, here for the CPU's sake
   uint tick;
-  float2 _screenSize; // Unused, here for the CPU's sake
+  float2 screenSize;
 };
 
 struct VOut {

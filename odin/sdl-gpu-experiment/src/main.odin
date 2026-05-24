@@ -58,7 +58,7 @@ TEXTURE_DATA := [Texture][]byte {
 
 @rodata
 TEXTURE_LABEL := [Texture]cstring {
-  .Atlas = "atlas"
+  .Atlas = "atlas",
 }
 // }}}
 // {{{ Buffers
@@ -76,7 +76,7 @@ Gpu_Pipeline :: enum {
 }
 
 GPU_PIPELINE_SHADERS :: [Gpu_Pipeline]string {
-  .Example = "example"
+  .Example = "example",
 }
 // }}}
 
@@ -147,13 +147,13 @@ frame :: proc(state: ^State) -> bool {
 	}
 
 	renderPass := sdl.BeginGPURenderPass(cmdBuf, &colorTarget, 1, nil)
-  sdl.BindGPUGraphicsPipeline(renderPass, state.app.pipelines[.Example])
 
+  sdl.BindGPUGraphicsPipeline(renderPass, state.app.pipelines[.Example])
   sdl_bind_sbuffers(state.app, renderPass, .VERTEX, .Globals)
   sdl_bind_sbuffers(state.app, renderPass, .FRAGMENT, .Globals)
   sdl_bind_textures(state.app, renderPass, .FRAGMENT, .Atlas)
-
   sdl.DrawGPUPrimitives(renderPass, 6, state.globals.sprite_count, 0, 0)
+
 	sdl.EndGPURenderPass(renderPass)
 
   submittedCommands := sdl.SubmitGPUCommandBuffer(cmdBuf)
@@ -412,9 +412,7 @@ sdl_make_pipeline :: proc(app: ^Sdl_App, $id: Gpu_Pipeline) -> bool {
 // Split off from sdl_make_pipeline to not generate the same logic over and over
 // again due to para-poly.
 sdl_make_pipeline_from_shaders :: proc(
-  app: ^Sdl_App,
-  shaders: [2]^sdl.GPUShader,
-  id: Gpu_Pipeline,
+  app: ^Sdl_App, shaders: [2]^sdl.GPUShader, id: Gpu_Pipeline,
 ) -> bool {
 	colorTargetDesc: sdl.GPUColorTargetDescription = {
     format = sdl.GetGPUSwapchainTextureFormat(app.device, app.window),
@@ -446,7 +444,6 @@ sdl_make_pipeline_from_shaders :: proc(
 
 	newPipeline := sdl.CreateGPUGraphicsPipeline(app.device, pipelineCreateInfo)
   sdl_guard(newPipeline != nil, "create graphics pipeline") or_return
-  log.debug("here")
 
   pipeline := &app.pipelines[id]
 	if pipeline^ != nil {

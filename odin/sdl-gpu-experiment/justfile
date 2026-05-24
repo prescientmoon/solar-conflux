@@ -1,4 +1,4 @@
-build-shader name:
+@build-shader name:
   slangc ./src/shaders/{{name}}.slang -o ./build/shaders/{{name}}.vert.spv \
     -stage vertex -entry vertMain -D __VERT__ \
     -reflection-json ./build/shaders/{{name}}.slang.vert.json \
@@ -28,6 +28,7 @@ build-shader name:
     >> ./build/shaders/{{name}}.frag.stats.bin
   printf "\\x$(jq ".storage_buffers" ./build/shaders/{{name}}.frag.json)" \
     >> ./build/shaders/{{name}}.frag.stats.bin
+
 build:
   # Build shaders
   rm -rf ./build/shaders
