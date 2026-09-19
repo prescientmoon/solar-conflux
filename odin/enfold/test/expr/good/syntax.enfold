@@ -1,0 +1,19 @@
+effect
+  list ":" 3 true (foo bar) -- inline
+  list -- multiline
+    "a"
+    "c"
+
+  deeply.nested = nested.deeply
+  a, b, c := "tuple declaration!"
+
+  object #noalign
+    a.b.c = 3
+    foo
+     .huh
+     =
+      "bar"
+
+  multi "a test...", list object
+    foo = "...of nested blocks"
+    bar = "this used to break!"

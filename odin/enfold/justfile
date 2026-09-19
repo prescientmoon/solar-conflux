@@ -1,0 +1,59 @@
+default:
+  @just --list
+
+echo *args:
+  @echo -e "\033[35m[BUILD]\033[0m" {{args}}
+
+odin command *args:
+  odin {{command}} src {{args}}
+
+# {{{ Building
+build *args:
+  @just odin build \
+    -strict-style \
+    -extra-linker-flags:"-fuse-ld=mold" \
+    {{args}}
+
+build-test *args:
+  @mkdir -p build/test
+  @just build \
+    -debug \
+    -build-mode:test \
+    -define:ODIN_TEST_CLIPBOARD=true \
+    -out:build/test/enfold.bin \
+    {{args}}
+
+build-debug:
+  @mkdir -p build/debug
+  @just build -debug -out:build/debug/enfold.bin
+
+build-release:
+  @mkdir -p build/release
+  @just build -o=speed -no-bounds-check -out:build/release/enfold.bin
+# }}}
+# {{{ Debug & run
+debug: build-debug
+  seergdb ./build/debug/enfold.bin
+
+debug-test: build-test
+  seergdb ./build/test/enfold.bin
+
+run-debug: build-debug
+  ./build/debug/enfold.bin
+
+run-release: build-release
+  ./build/release/enfold.bin
+# }}}
+# {{{ Check & test
+check:
+  @just odin check
+
+test *args:
+  @mkdir -p build/test
+  @just odin test \
+    -debug \
+    -define:ODIN_TEST_CLIPBOARD=true \
+    -define:ODIN_TEST_LOG_LEVEL=info \
+    -out:build/test/enfold.bin \
+    {{args}}
+# }}}
