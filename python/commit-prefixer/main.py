@@ -12,20 +12,20 @@ if len(sys.argv) < 2:
 
 (defaultPrefix,) = sys.argv[1:]
 
-messageRegex = re.compile("^(.+):\\s*(.*)$")
+messageRegex = re.compile("^([^:]+):\\s*(.*)$")
 
 i = 0
 firstPrefix = None
 for line in sys.stdin:
-	match = messageRegex.search(line)
 	if i == 0:
+		match = messageRegex.search(line)
 		if match is None or match.group(2) == "3": # Detect :3
 			print(f"{defaultPrefix}: {line}", end="")
 		else:
 			print(line, end="")
 			firstPrefix = match.group(1)
 	else:
-		if match is None or match.group(1) != firstPrefix:
+		if firstPrefix and not line.startswith(firstPrefix):
 			print(line, end="")
 		else:
 			print(match.group(2), end="")
