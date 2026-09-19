@@ -1,0 +1,48 @@
+name: Node.js Package
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - run: npm i -g pnpm
+      - run: pnpm install
+      - run: pnpm run test
+
+  publish-npm:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+          registry-url: https://registry.npmjs.org/
+      - run: npm i -g pnpm
+      - run: pnpm install
+      - run: pnpm run build
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+  publish-gpr:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - run: npm i -g pnpm
+      - run: pnpm install
+      - run: pnpm run build
+      - run: pnpx ts-node scripts/removeScope.ts
+      - run: echo "//npm.pkg.github.com/:_authToken=${{secrets.GH_TOKEN}}" >> .npmrc
+      - run: npm publish
