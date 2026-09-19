@@ -18,7 +18,7 @@ if [ -d "$language/$name" ]; then
 fi
 
 git fetch $repo
-josh-filter ":prefix=$language/$name:unsign" FETCH_HEAD && git checkout FILTERED_HEAD
+josh-filter "${JOSH_FILTERS:-""}:prefix=$language/$name:unsign" FETCH_HEAD && git checkout FILTERED_HEAD
 FILTER_BRANCH_SQUELCH_WARNING=1 \
   git filter-branch --msg-filter "awk \"{print \\\"$language($name): \\\" \\\$0}\"" -f && \
   git rebase --root --committer-date-is-author-date --signoff
