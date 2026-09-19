@@ -1,0 +1,63 @@
+Slides:
+Part 1: Prelude
+1. About me: describe who I am
+  - this is my first talk — feel free to interject at any time if I'm being confusing.
+2. What is neovim: ask the audience if they've heard of neovim. Skip this unless someone lives under a 🪨
+3. Why configure neovim using nix?
+  - the same reasons you'd configure anything else using nix
+  - quickly mention the two listed reasons
+4. Existing approaches:
+  - quickly go through the listed thingies
+  - mention that those are all more mature and better fleshed out than what I'm about to present
+5. Cake slide: can we do what `nixvim` does, without making the experience of writing lua in nix annoying, and without losing flexibility?
+5. What is tempest:
+  - points on screen
+  - Explain most of the rest of the talk will go over the building blocks this DSL consists of, and hopefully teach the audience about some nix quirks they didn't know about
+
+Part 2: Implementation
+6. Lua code blocks
+  - we can use this function when we want to write actual lua code
+  - it's needed very rarely.
+  - the rest of helpers are implemented on top of this
+7. Primitives
+  - akin to existing generators like `builtins.toJSON`
+8. Variables: on screen
+9. Function application: on screen
+10. Property access: on screen
+11. Functions: on screen
+12. Blocks:
+  - we don't always want to return from functions
+  - blocks describe effects
+  - like the IO monad in haskell
+13. Mutation:
+  - if a block sees a random object, it treats it as mutating a variable in scope
+  - very useful, as vim options can generally be set on the `vim.opt` namespace
+14. Keybinds:
+  - the heart of nvim
+  - one or many
+  - only showing the simplest case here
+  - there are many other helpers one can use for this stuff all-around
+15. Autocmds:
+  - event listeners
+  - the heart of dynamic behaviour in nvim
+  - (show code)
+  - the action is itself a block! (we usually only have to call `block` at the toplevel)
+  - implicit contexts
+16. Package managers:
+  - you can use any PM you want
+  - we provide helpers for using `lazy.nvim`
+  - the shown code:
+    - uses the `dir` option to download the plugin using nix
+    - provides a nix dependency
+    - does not load the plugin if running inside a vscode window
+    - lazy loads when in a `.miros` file
+    - configures a keybind, which will also automatically load the plugin if it hasn't been loaded yet
+    - runs some custom code when the plugin is loaded
+17. Final thoughts:
+  - what we've built (recap)
+  - does it actually work?
+    - have been using it for over a year
+  - should you use it? probably not
+    - undocumented
+    - abuses nix mechanisms
+    - very hackable!
