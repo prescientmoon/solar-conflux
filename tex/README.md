@@ -1,0 +1,3 @@
+- [yugioh-proxies](./yugioh-proxies): template for proxying Yu-Gi-Oh! cards
+- [uni-ethics-paper](./uni-ethics-paper): paper I worked on for ethics class
+- [uni-ethics-presentation](./uni-ethics-presentation): presentation I worked on for ethics class

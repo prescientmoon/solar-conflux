@@ -1,0 +1,96 @@
+\documentclass{beamer}
+\usetheme{Warsaw}
+\usepackage{amsmath, amssymb}
+\usecolortheme{lily}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage{graphicx}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{verbatim}
+\usepackage{mathtools}
+\usepackage{xcolor}
+\usepackage{nicematrix}
+
+\pgfplotsset{compat = newest}
+\usetikzlibrary{matrix}
+\usepackage[dvipsnames]{xcolor}
+\usetikzlibrary{perspective}
+
+\NiceMatrixOptions{
+code-for-first-row = \color{red} ,
+code-for-last-row = \color{blue} ,
+code-for-first-col = \color{blue} ,
+code-for-last-col = \color{blue}
+}
+
+\title{Statistical Profiling in the Health Insurance Industry}
+\author{Adriel Matei, Steijn van de Vliert, Elwin Winter}
+% \institute{University of Groningen}
+\date{March 28, 2025}
+% \institute{University of Groningen}
+
+% Define custom headline
+\setbeamertemplate{headline}{%
+  \leavevmode%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.5ex,dp=1.5ex]{section in head/foot}%
+    \mbox{}\hspace{.5em}\strut\insertsectionhead\mbox{}\hfill\strut  {\insertframenumber/\inserttotalframenumber}\mbox{}\strut\hspace{.5em}\mbox{}%
+  \end{beamercolorbox}%
+}
+
+\setbeamercolor{block title}{fg=white, bg=purple!50!black}
+\setbeamercolor{block body}{fg=black, bg=pink!20}
+\setbeamercolor{titlebox}{fg=black,bg=white}
+
+\newcommand{\sparkles}{\includegraphics[height=0.9em]{sparkles.png}}
+
+\begin{document}
+
+\section{Introduction}
+
+ {
+  \usebackgroundtemplate{\includegraphics[height=\paperheight]{intro-backdrop.jpg}}
+  \begin{frame}
+	  \begin{beamercolorbox}[center]{titlebox}
+		  \titlepage
+	  \end{beamercolorbox}
+  \end{frame}
+ }
+
+\begin{frame}{Introduction}
+	\begin{itemize}
+		\item What is statistical profiling?
+		\item Risk factors
+		\item The central question
+		      % \item Banned in some parts of the world
+	\end{itemize}
+\end{frame}
+
+% I don't think we should explicitly have a slide about methodology, as we are quite limited when it comes to time. I think we should quickly mention the two frameworks we're using in the introduction (by saying it in person), and then elaborate once we're actually using the framework (further down bellow).
+% \begin{frame}{Methodology}
+% 	\begin{itemize}
+% 		\item Different ethical perspectives: consequentialism and deontology
+% 	\end{itemize}
+% \end{frame}
+
+\include{ethical}
+\include{policy}
+
+\section{Conclusion}
+
+\begin{frame}{Conclusion \& References}
+	\pause
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=.4\paperwidth]{refs.png}
+	\end{figure}
+	\begin{center}
+		\huge \sparkles\: Thank You! \sparkles
+	\end{center}
+\end{frame}
+
+\end{document}
+
