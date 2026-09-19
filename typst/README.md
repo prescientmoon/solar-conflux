@@ -1,2 +1,3 @@
 - [tempest-talk](./tempest-talk): A talk I gave about my Neovim & Nix setup
 - [learning](./learning): Random experiments I did when first learning about typst
+- [coles-iota-encoding](./coles-iota-encoding): Presentation I gave about encoding data as applications of the iota combinator
