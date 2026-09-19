@@ -1,2 +1,2 @@
-- [steiner](./steiner): unfinished ML-style language
-- [shaderfurl](./shaderfurl): unfinished shader language
+- [steiner](./steiner): unfinished ML-style language.
+- [shaderfurl](./shaderfurl): unfinished shader language.

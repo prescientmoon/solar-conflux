@@ -18,6 +18,7 @@
 - [lunarline](./lunarline): Attempt at optimizing a functional language using compile-time partial evaluation.
 - [lune](./lune): Failed effect-system project.
 - [maps](./maps): Attempt at implementing maps with membership proofs.
+- [moonlog](./moonlog): Indentation-based logic language.
 - [proofs](./proofs): Attempt at expressing mathematical proofs using PureScript's effect system.
 - [purebird](./purebird): Flappy-bird game.
 - [purpleflow](./purpleflow): Unfinished dependently-typed programming language.
@@ -27,7 +28,7 @@
 - [slice](./slice): Basic benchmarks and a `Slice` type.
 - [sliding-windows](./sliding-windows): Implement sliding windows over lists of monoids in linear complexity.
 - [sprint](./sprint): Failed effect-system based on typelevel lists.
-- [steinerlang](./steinerlang): Unfinished language
+- [steinerlang](./steinerlang): Unfinished language.
 - [strategy](./strategy): Unfinished attempt at implementing a mixed strategy nash equilibrium solver.
 - [streams](./streams): Playing with `purescript-pipes`.
 - [switcheroo](./switcheroo): Index-monad based stream library idea.
