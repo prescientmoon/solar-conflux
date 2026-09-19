@@ -1,5 +1,6 @@
-- [yugioh-proxies](./yugioh-proxies): template for proxying Yu-Gi-Oh! cards
-- [uni-ethics-paper](./uni-ethics-paper): paper I worked on for ethics class in uni
-- [uni-ethics-presentation](./uni-ethics-presentation): presentation I worked on for ethics class uni
-- [bachelor-prep-paper](./bachelor-prep-paper): paper I worked on for the bachelor preparation class in uni
-- [bachelor-prep-presentation](./bachelor-prep-presentation): presentation I worked on for the bachelor preparation class in uni
+- [yugioh-proxies](./yugioh-proxies): template for proxying Yu-Gi-Oh! cards.
+- [uni-ethics-paper](./uni-ethics-paper): paper I worked on for ethics class in uni.
+- [uni-ethics-presentation](./uni-ethics-presentation): presentation I worked on for ethics class uni.
+- [bachelor-prep-paper](./bachelor-prep-paper): paper I worked on for the bachelor preparation class in uni.
+- [bachelor-prep-presentation](./bachelor-prep-presentation): presentation I worked on for the bachelor preparation class in uni.
+- [uni-matroid-paper](./uni-matroid-paper): matroid theory paper I worked on for a course.
