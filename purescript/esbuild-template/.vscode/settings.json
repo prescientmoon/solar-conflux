@@ -1,0 +1,20 @@
+{
+  "cSpell.words": [
+    "codegen",
+    "corefn",
+    "dhall",
+    "esbuild",
+    "outdir",
+    "pcss",
+    "pnpm",
+    "postbuild",
+    "purescript",
+    "purs",
+    "spago",
+    "thomashoneyman"
+  ],
+  "scss.lint.unknownAtRules": "ignore",
+  "files.associations": {
+    "*.pcss": "scss"
+  }
+}
