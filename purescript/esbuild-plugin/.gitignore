@@ -1,0 +1,10 @@
+**/node_modules
+
+# Here because of me testing the examples
+.psc-ide-port
+.purs-repl
+
+.spago
+output
+
+index.js
