@@ -9,6 +9,7 @@
 - [monadic](./monadic): Custom web framework inspired by [halogen](https://github.com/purescript-halogen/purescript-halogen).
 - [monorepo-template](./monorepo-template/): Overly-engineered template for typescript monorepos.
 - [moontorio](./moontorio): Unfinished Factorio-inspired game.
+- [moonita](./moonita): Unfinished Noita-inspired card-tower-defense.
 - [multiplayer-backend](./multiplayer-backend): Unfinished server for some multiplayer game. Later rebranded into `pleix-backend`.
 - [og-website](./og-website): My first ever personal website.
 - [option](./option/): Typescript implementation of the `Maybe` monad.
