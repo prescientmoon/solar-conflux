@@ -1,0 +1,51 @@
+\section{The spectral geometry of hyperbolic and spherical spaces}
+\begin{frame}{The Laplace-Beltrami operator}
+	\begin{enumerate}
+		\begin{definition}[Laplace-Beltrami operator]
+			a generalization of the Laplace operator to more general spaces
+			\begin{align*}
+				\Delta f \coloneq \divergence \nabla f.
+			\end{align*}
+		\end{definition}
+		\item The spectrum of this operator is a subset of $[0, \infty)$. We call it the \textcolor{blue}{\emph{spectrum}} of the manifold.
+		      \pause
+		\item The spectrum determines many things about the space (like its volume).
+		\item When two distinct (up to isomorphism) manifolds share a spectrum, they for an \textcolor{red}{\emph{isospectral pair}}.
+	\end{enumerate}
+\end{frame}
+
+\begin{comment}
+\begin{frame}{Can isospectral pairs approximate your mom}
+	\begin{itemize}
+		\item One of the problems the paper studies is finding volume-maximizing isospectral pairs of spherical forms (i.e. the spaces we are interested in).
+		\item Isospectral pairs share the order of their homotopy groups.
+		\item The paper classifies spherical forms with homotopy group of order $<24$.
+		\item It follows that any such isospectral pairs (with group order $<24$) are lens spaces.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Combining lenses into larger spaces}
+	\begin{itemize}
+		\item We can combine lens spaces by concatenating their lists of indices.
+		\item Together with a computational search, the paper builds a table of the solutions for a bunch of dimensions. The general case is still an open question.
+	\end{itemize}
+\end{frame}
+\end{comment}
+
+{
+\usebackgroundtemplate{
+	\begin{tikzpicture}
+		\clip (0,0) rectangle (\paperwidth,\paperheight);
+		\fill[color=silver] (\paperwidth-10pt,0) rectangle (\paperwidth,\paperheight);
+		% Added
+		\fill[color=silver](0,0) rectangle (10pt,\paperheight);
+	\end{tikzpicture}
+}
+
+\begin{frame}{The silver lining}
+	\begin{itemize}
+		\item Isospectral manifolds are intriguing in their own right, but in dimension 3 all isospectral manifolds are isometric.
+		\item We can thus attempt to infer the shape of our universe based on its spectrum.
+	\end{itemize}
+\end{frame}
+}

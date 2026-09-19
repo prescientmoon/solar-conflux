@@ -1,0 +1,16 @@
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.nav
+*.snm
+*.toc
+*.vrb
+*.out
+*.synctex
+*.synctex(busy)
+# main.pdf
+*.synctex.gz
+.fuse_*
