@@ -1,0 +1,26 @@
+{
+    "name": "purescript-run-external-state",
+    "license": [
+        "GPL-3.0-or-later"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Mateiadrielrafael/purescript-run-external-state"
+    },
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "output"
+    ],
+    "dependencies": {
+        "purescript-effect": "^v3.0.0",
+        "purescript-maybe": "^v5.0.0",
+        "purescript-prelude": "^v5.0.1",
+        "purescript-profunctor-lenses": "^v7.0.1",
+        "purescript-refs": "^v5.0.0",
+        "purescript-run": "^v4.0.0",
+        "purescript-tuples": "^v6.0.1",
+        "purescript-typelevel-prelude": "^v6.0.0"
+    }
+}
