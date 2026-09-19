@@ -25,6 +25,7 @@
 - [reverse-state](./reverse-state): Implementation of, (drum roll), reverse state.
 - [run-external-state](./run-external-state): A more powerful state monad for the `purescript-run` effect system.
 - [run-supply](./run-supply): Effect for generating an infinite supply of unique values.
+- [skylang](./skylang): Experiment in dependent typing with implicit argument elaboration.
 - [slice](./slice): Basic benchmarks and a `Slice` type.
 - [sliding-windows](./sliding-windows): Implement sliding windows over lists of monoids in linear complexity.
 - [sprint](./sprint): Failed effect-system based on typelevel lists.
