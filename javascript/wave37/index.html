@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Proc JAM</title>
+		<!--Libraries-->
+		<!--Jquery-->
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+		<!--Mainloop.js-->
+		<script src="https://cdn.jsdelivr.net/npm/mainloop.js@latest/build/mainloop.min.js"></script>
+		<!--touch events-->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-touch-events/1.0.5/jquery.mobile-events.js"></script>
+		<!--other scripts-->
+		<script type="text/javascript" src="js/Vector2.js" ></script>
+		<script type="text/javascript" src="js/player.js" ></script>
+		<script type="text/javascript" src="js/canvas.js" ></script>
+		<script type="text/javascript" src="js/particle.js" ></script>
+		<script type="text/javascript" src="js/wall.js" ></script>
+		<script type="text/javascript" src="js/enemy.js" ></script>
+		<script type="text/javascript" src="js/bullet.js" ></script>
+		<script type="text/javascript" src="js/enemyBullet.js" ></script>
+		<script type="text/javascript" src="js/spawn.js" ></script>
+		<script type="text/javascript" src="js/end.js" ></script>
+		<script type="text/javascript" src="js/loop.js"></script>
+		<script src="js/event.js" defer></script>
+		<script src="js/enemy-factory.js" defer></script>
+		<script src="js/enemies.js" defer></script>
+		<script src="js/main.js" defer></script>
+	</head>
+	<body>
+		<div id="left"></div>
+		<div id="right"></div>
+		<div id="wave"></div>
+		<div id="GO">
+			<div id="GO-text">
+			</div>
+			<button id="PA" onclick="location.reload()">Play Again</button>
+		</div>
+		<div id="container">
+			<div id="container-2">
+					<canvas id="canvas"></canvas>
+					<canvas id="bg-canvas"></canvas>
+					<img src="https://cdn.discordapp.com/attachments/425702620028731395/507634735607185408/black_hole_good_animation.gif" id="hole">
+			</div>
+		</div>
+		<div id="main-menu">
+			<div id="title">
+				Wave 37
+			</div>
+			<div id="menu-text">
+				<div class="menu" id="start">
+					Play
+				</div>
+				<div class="menu" id="credits">
+					Credits
+				</div>
+				<div class="menu" id="end">
+					Exit
+				</div>
+			</div>
+		</div>
+		<div id="credit-screen">
+			<div id="credit-text">
+			Programming: 
+			<ul>
+				<li>
+					Main developer - Matei Adriel
+				</li>
+				<li>
+					MainLoop.js - Isaac Sukin
+				</li>
+			</ul>
+			Music & Art - Calin Avram<br/>
+			SFX: 
+			<ul> 
+				<li>
+					shootingSound - dklon
+				</li>
+				<li>
+					heal sound - p0ss
+				</li>
+			</ul>
+			Beta testing:
+				<ul>
+					<li>
+						Teodora Matei
+					</li>
+					<li>
+						Calin Avram
+					</li>
+					<li>
+						Radu Popescu (Vlog de IT)
+					</li>
+					<li>
+						Nicolae Furca
+					</li>
+					<li>
+						Vyctor661#2132
+					</li>
+				</ul>
+				Links:
+				<ul>
+					<li>
+						<a href="https://github.com/IceCreamYou/MainLoop.js">Mainloop.js<a/>
+					</li>
+					<li>
+						<a href="https://opengameart.org/content/spell-sounds-starter-pack">Spell SFX</a>
+					</li>
+					<li>
+						<a href="https://opengameart.org/content/laser-fire">Laser SFX</a>
+					</li>
+				</ul>
+			</div>
+			<div id="credit-close">Close</div>
+		</div>
+		<img src="textures/player.png" id="texture1" class="texture">
+		<img src="https://media.discordapp.net/attachments/425702620028731395/506886102066528257/enemy2.png" id="texture4" class="texture">
+		<audio src="audio/Oddisey_of_Space_1.ogg" class="texture" id="menu-song"></audio>
+		<iframe src="audio/Oddisey_of_Space_1.ogg" allow="autoplay" style="display:none" id="menu-song">
+		</iframe> 
+		<audio src="audio/Oddisey_of_Space_1.ogg" class="texture" id="main-song" loop></audio>
+		<div id="dialog">
+			<div id="dialog-content">
+				
+			</div>
+			<div id="dialog-footer">
+				click to continue
+			</div>
+		</div>
+	</body>
+</html>
