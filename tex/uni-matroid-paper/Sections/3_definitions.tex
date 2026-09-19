@@ -1,0 +1,447 @@
+\newpage
+\section{Elementary Definitions}
+
+\subsection{Independent sets}
+
+We will begin with the first possible way of defining what a \textit{matroid} is. This way is arguably the simplest one because the properties are intuitive and not hard to visualize. When speaking about matroids, we will always deal with finite sets, and the way we obtain a matroid from a finite set is to select some special selection of its subsets.  These special sets correspond to the \textit{independent} sets, and should obey some distinctive properties. This idea is precisely what the following definition is about.
+
+\begin{defn}
+    Let $E$ be a finite set, possibly empty, and $\mathcal{I}$ a collection of subsets of $E$ (i.e. some subset of the power set $2^E$ of E). We call the ordered pair $M = (E, \mathcal{I})$ a matroid if the following three properties are satisfied
+
+    \begin{enumerate}
+        \item[(I1)] We have $\emptyset \in \mathcal{I}$.
+        
+        \item[(I2)] If $I \in \mathcal{I}$ and $J \subseteq I$, then $J \in \mathcal{I}$.
+        
+        \item[(I3)] If $J, I \in \mathcal{I}$ and $|J| < |I|$, then there exists $e \in I - J$ so that $J \cup e \in \mathcal{I}$.
+    \end{enumerate}
+
+    We call elements of $\mathcal{I}$ \textbf{independent sets}. 
+\end{defn}
+
+There are some alternatives to the third property that are equivalent, for example we could alternatively write
+
+\begin{enumerate}
+    % The `\ ` is the hackiest thing ever, please ignore it :/
+    \item [(3.*)$\ $] \textit{ If $I, J \in \mathcal{I} $ and $|J| = |I| + 1$, then there exists $e \in J - I$ such that $I \cup e \in \mathcal{I}$.}
+\end{enumerate}
+
+or
+
+\begin{enumerate}
+\item[(3.**)] \textit{If $X \subseteq E$ and $I_1, I_2$ are maximal members of $\{ I \in \mathcal{I} | I \subseteq X \}$, then $|I_1| = |I_2|$.}
+\end{enumerate}
+
+\begin{exmp}
+In  figure (\ref{fig:1234-matroid-independent-sets}) we find a representation of a matroid by writing all subsets of the ground set $\{1,2,3,4\}$ and coloring them accordingly. The independent sets are colored in orange. It is clear that the empty set is independent and that all subsets of independent sets are independent. The dependent sets, colored in cyan, are the sets that are not independent.
+\end{exmp}
+
+
+\begin{figure}[h]
+
+\begin{center}
+\begin{tikzpicture}
+
+\matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
+ & & &\textcolor{cyan}{
+1234} & & & &\\
+ \textcolor{cyan}{
+123}& &\textcolor{cyan}{
+124} & &\textcolor{cyan}{
+134} &  & \textcolor{cyan}{
+234}  \\
+\textcolor{orange}{12} & \textcolor{cyan}{13} & \textcolor{cyan}{14} & & \textcolor{orange}{23} & \textcolor{cyan}{
+24} & \textcolor{cyan}{
+34} \\
+\textcolor{orange}{1}& &\textcolor{orange}{2} & & \textcolor{orange}{3}& & \textcolor{cyan}{4} \\
+& & & \textcolor{orange}{\emptyset} &  & & \\
+&&&&&& \\};
+
+\foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
+\draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
+
+\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{cyan}{Dependent set}};
+
+\end{tikzpicture} % why does it say this??? Did you forget a semicolon?
+\end{center}
+\caption{Diagram of a 4-element matroid, with dependent and independent sets colored accordingly.}
+\label{fig:1234-matroid-independent-sets}
+\end{figure}
+
+
+The definition of a matroid is designed to extract out the property that makes a subset of elements 'independent'. This leads us to our first examples, namely the so-called \textit{representable matroids} arising from linear algebra. We say that a subset of vectors is \textit{independent} in a matroid, if and only if it is \textit{linearly independent} in the usual sense. 
+%This means, in particular, that the subsets have the same properties.
+
+
+
+ Let $A \in \mat_{m \times n}(\mathbb{F})$ where $\mathbb{F}$ is a field. In the article we will not just be interested with $\mathbb{F} = \mathbb{C} \; \mathrm{or}\; \mathbb{F} = \mathbb{R} $ but also in finite fields\footnote{In particular, we are interested in $\mathbb{Z} / p\mathbb{Z}$. By that we mean $\mathbb{Z}$ modulo $p\mathbb{Z}$ so the set of reminders when dividing by a prime number $p$. We will denote this field by $\mathbb{F}_p$}.
+
+\begin{exmp}
+    
+
+ 
+ We will pick a concrete example of $A \in  \mat_{3 \times 4}(\mathbb{R})$ to illustrate that the set of columns of a matrix has a natural matroid structure. Suppose we have a matrix
+
+$$A = \begin{pmatrix}
+
+2 & 0 & 2 & 0 \\
+1 & -1 & 0 & 0 \\
+0 & 3 & 3 & 0
+
+
+\end{pmatrix}.$$
+
+We would like to consider \textit{the set of labels of columns of the matrix $A$} and form a matroid on it. This means we start with $E = \{1,2,3,4\}$ so a finite set where the number $1$ corresponds to the column $\begin{pmatrix} 2 & 1 & 0 \end{pmatrix} ^ T$, the number 2 corresponds to $\begin{pmatrix}  0 & -1 & 3  \end{pmatrix} ^ T$ and so forth. We now declare that a subset of $E$ is called independent if and only if the corresponding set of column vectors is linearly independent as a set of vectors in $\mathbb{R}^3$. We can explicitly check what this means in our example. The sets $\{1\}$, $\{2\}$, $\{3\}$ are all independent because they correspond to non-zero vectors. For the two-element subsets we see that $\{1,2\}$, $\{1,3\}$ and $\{2,3\}$ are all independent, while any two element subsets containing the last column are not. Finally, the 3-element subset $\{1,2,3\}$ is not independent because as vectors, the first and the second column sum up to the third. So to conclude, the collection of all independent sets is
+$$\mathcal{I} = \{\emptyset, \{1\}, \{2\}, \{3\}, \{1,2\}, \{1,3\}, \{2,3\} \},$$
+
+which indeed satisfies the properties of collection of independent sets of a matroid. This is not a coincidence, we will prove that a collection of subsets formed from a matrix in the above way is always a matroid.
+
+\end{exmp}
+
+
+\begin{theorem}
+
+    Let $A \in \mathrm{Mat} _{m \times n}(\mathbb{F})$ and $E = \{1, 2, \cdots, n\}$ be a finite set of $n$ elements where the element $i$ corresponds to the $i$-th column of the matrix $A$. We call a subset $I \subseteq E$ independent if and only if the column vectors that the members of $I$ correspond to form a linearly independent set as members of $\mathbb{F}^n$, and denote the collection of all independent subsets as $\mathcal{I}$. Then $M = (M, \mathcal{I})$ is a matroid, and we denote it by $M[A]$.
+    
+\end{theorem}
+
+\begin{proof}
+    The idea of the proof is taken from \cite[p. 8]{oxley1}.
+    We need to check that the collection $\mathcal{I}$ satisfies the three properties for the collection of independent sets given in the definition. 
+
+\begin{enumerate}
+
+    \item[(I1)] First, $\emptyset$ is trivially in $\mathcal{I}$.
+    
+    \item[(I2)] The second property is also satisfied because if $J \subseteq I$ and $I \in \mathcal{I}$ this means that the vectors corresponding to $I$ form a linearly independent set. In particular, let $v_1, v_2, \cdots v_j, v_{j+1}, \cdots v_{i}$ be the column vectors corresponding to $I$, and that first $j$ are also in $J$, that means $|I| = i$, $|J| = j$ and $j \leq i$. If for some linear combination we have $a_1v_1 + \cdots + a_jv_j = 0$, where $a_i \in \mathbb{F}$ then it is also true that $a_1v_1 + \cdots + a_jv_j + 0 \cdot a_{j+1} + \cdots + 0 \cdot a_i = 0$. Since the vectors of $I$ are linearly independent it now follows that $a_1 = a_2 = \cdots a_j = 0$ as well. So the vectors corresponding to the elements of $J$ are also linearly independent, which means by definition $J \in \mathcal{I}$.
+
+    \item[(I3)] Finally, we have to check third property. We assume that $J, I \in \mathcal{I}$ and $|J| < |I|$. We denote by $V_J$ and $V_I$ the linear subspaces of $\mathbb{F}^n$ spanned by vectors corresponding to $J$ and $I$ respectively. Because the vectors corresponding to $J$ and $I$ are linearly independent, they also form a basis for $V_J$ and $V_I$ respectively. For any $e \in I - J$ we denote by $v(e) \in \mathbb{F}^n$ the column vector of $A$ corresponding to $e$. Suppose some $e \in I - J$ has the property that adding it to $J$ does not change the dimension of the subspace spanned by J, i.e. $\dim (V_J \cup v(e)) = \dim (V_J) = |J|$. Then $v(e)$ is already in $V(J)$ because the vectors corresponding to $J$ are linearly independent and if the dimension does not increase, then $v(e)$ can be expressed as a linear combination of vectors corresponding to $J$. However, this cannot hold true for \textit{every} $e \in I - J$. Suppose for contradiction, that for every $e \in I - J$ it holds that the vector $v(e) $ is already in $ V_J$. Because for all elements in the intersection,  $i \in I \cap J$, we have $v(i) \in V_J$ by definition, we could then infer $V_I \subseteq V_J$. But this implies that 
+
+    $$|I| = \dim(V_I) = \dim(V_J) = |J| < |I|$$
+     which is a contradiction. So there is at least one $e \in I - J$ so that $\dim(V_J \cup v(e)) = \dim(V_J) + 1$, which means the vectors corresponding to $J \cup e$ form a linearly independent subset. Finally, this means that $J \cup e \in \mathcal{I}$ which proves the third property.
+
+\end{enumerate}
+\end{proof}
+
+In order to talk about any classification of matroids we have to say when the two matroids are equivalent - representing the same structure of independent sets. Intuitively, it is nothing deep, the definition will just rephrase that the two are \textit{equal} if it is possible to relabel the elements of the first matroid to the elements of the second without changing the independent sets.
+
+\begin{defn}
+    We call two matroids $M = (E, \mathcal{I})$ and $N = (F, \mathcal{J})$ isomorphic and denote it by $M \sim N$ if there exists a bijection $f: E \to F$ so that a subset $K \subseteq F$ is independent if and only if $K = f(L)$ for some independent set $L \in \mathcal{I}$.
+\end{defn}
+
+
+\begin{defn}
+    We call a matroid $M$ representable, if $M$ is isomorphic to a matrix matroid $N[A]$ for some $A \in \mat_{m \times n}(\mathbb{F})$ over some field $\mathbb{F}$. Moreover, we  call it $\mathbb{F}$-representable if it is representable over specific field $\mathbb{F}$.
+\end{defn}
+
+We will now define another important class of matroids. Due to its simplicity it will be suitable as an example in many of the notions defined in the proceeding text.
+
+\begin{defn}\label{uniformM}
+    Let $E = \{1, 2, \cdots, n\}$ and $\mathcal{I} = \{ L \subseteq E \; \text{ such that } \; |L| \leq m\}$. Then $(E, \mathcal{I})$ is a matroid which we denote by $U_{m,n}$ and call it a uniform matroid of rank $m$ on a $n$ element set.
+\end{defn}
+\begin{theorem}
+    The ordered pair $U_{m,n} = (E, \mathcal{I})$ is a matroid.
+\end{theorem}
+
+\begin{proof}
+    
+It is easy to check that $U_{m,n}$ is indeed a matroid. 
+
+\begin{enumerate}
+   
+
+    \item[(I1)] For any $m \geq 0$ we have $\emptyset \in \mathcal{I}$ since $|\emptyset | = 0$.
+    \item[(I2)] If $I \in \mathcal{I}$ and $J \subseteq I$ then $|J|\leq |I|$ so $|J|\leq |I| \leq m$ implying $J \in \mathcal{I}$ by definition.
+    \item[(I3)] Finally, if $I, J \in \mathcal{I}$ and $|J|<|I|$ then for any $e \in I - J$ we will have $|J \cup e| = |J| + 1 \leq |I| \leq m$ so $J \cup e \in \mathcal{I}$ by definition for any $e \in I - J.$
+
+
+\end{enumerate}
+\end{proof}
+
+\subsection{Bases}
+
+Let $M = (E, \mathcal{I})$ be a matroid. We call a subset $B \subseteq E$ a \textit{basis} if it is a \textit{maximal independent set}. That means that $B$ is an independent set and $B$ is not properly contained inside any other independent set. It turns out that bases for matroids and bases for vector subspaces have some similarities in their properties. In particular the third property of independent sets immedietly guarantees us that all matroid bases have the same size, just like vector bases for finite-dimensional vector spaces.
+
+\begin{theorem} \label{thm:bases-have-equal-size}
+    Let $M = (E, \mathcal{I})$ be a matroid. Then all bases of $M$ have the same size.
+\end{theorem}
+
+\begin{proof}
+    Aiming for contradiction, suppose that the theorem does not hold. Let $B$ and $S$ be two bases with $|B| < |S|$ - different size. By the third property of independent sets we know there exists $e \in S - B$ such that $ B \cup e \in \mathcal{I}$. However, then $B$ is properly contained inside $B \cup e$, another independent set, which contradicts its maximality. So the initial assumption that there exist two bases with different size is false.
+\end{proof}
+
+The concept of a basis is important because it allows us to define a \textit{rank function} of a matroid, which computes the size of the maximal independent subset inside a given subset of a matroid.  Because the sizes of all of such sets --- bases --- are equal, this will be a well-defined notion.
+
+\begin{exmp}
+    In figure (\ref{fig:1234-matroid-bases}), we find a depiction of the same matroid from figure (\ref{fig:1234-matroid-independent-sets}). In addition, we also highlight the bases of the matroid in red. Two properties can be observed:
+\begin{enumerate}
+    \item The bases are the maximally independent subsets, which means that all of their proper supersets are dependent. 
+    \item Both bases contain two elements (they have the same size).
+\end{enumerate}
+\end{exmp}
+
+\begin{figure}[h]
+
+\begin{center}
+\begin{tikzpicture}
+
+\matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
+ & & &\textcolor{cyan}{
+1234} & & & &\\
+ \textcolor{cyan}{
+123}& &\textcolor{cyan}{
+124} & &\textcolor{cyan}{
+134} &  & \textcolor{cyan}{
+234}  \\
+\textcolor{red}{12} & \textcolor{cyan}{13} & \textcolor{cyan}{14} & & \textcolor{red}{23} & \textcolor{cyan}{
+24} & \textcolor{cyan}{
+34} \\
+\textcolor{orange}{1}& &\textcolor{orange}{2} & & \textcolor{orange}{3}& & \textcolor{cyan}{4} \\
+& & & \textcolor{orange}{\emptyset} &  & & \\
+&&&&&& \\};
+
+\foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
+\draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
+
+\node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Bases} \textcolor{cyan}{Dependent set}};
+
+\end{tikzpicture}
+\end{center}
+\caption{Diagram of a 4-element matroid, with bases in red.}
+\label{fig:1234-matroid-bases}
+\end{figure}
+
+Similar to the set of independent sets, we can characterize the set of bases of $M$ using the following two properties.
+
+\begin{theorem}\label{thm:basis-properties}
+    Let $M$ be a matroid with $E$ as its ground set, and $\mathcal{B}$ be the set of bases (maximal independent sets) of $M$. Then $\mathcal{B}$ satisfies the following properties.
+    \begin{enumerate}
+        \item[(B1)] $\mathcal{B}$ is non-empty.
+        \item[(B2)] If $B_1,B_2\in\mathcal{B}$ and $x\in B_1 - B_2$, then there exists $y\in B_2 - B_1$ such that $(B_1 - x)\cup y \in\mathcal{B}$.
+    \end{enumerate}
+\end{theorem}
+
+Let us prove that the set of bases of a matroid satisfies the properties (B1) and (B2):
+\begin{proof} This proof was inspired by \cite[p. 17]{oxley1}. We will prove each property individually:
+    \begin{enumerate}
+        \item[(B1)] 
+            To prove the first property, observe that by (I1), $\emptyset$ is always in $\mathcal{I}$ so the collection of independent sets is non-empty. All finite non-empty partially ordered sets have at least one maximal element (see lemma (\ref{lem:non-empty-finite-posets-have-maximal-elements}) in \hyperref[sec:appendix-poset]{the appendix on partially ordered sets} for more details). Applying this on the partially ordered set induced by inclusion on $\mathcal I$ proves a basis must exist.
+        \item[(B2)]
+          For the second property let $x\in B_2 - B_1$. We first note that (I2) implies that $B_1 - x$ is independent, since it is a subset of $B_1$. Since $|B_1-x|<|B_2|$, we can apply (I3) on independent sets $B_1-x$ and $B_2$ to get some $y\in B_2-(B_1-x)$ such that $(B_1-x)\cup y \in\mathcal{I}$. Since $|(B_1-x) + y|=|B_1|$ and all maximal independent sets have the same cardinality (see theorem (\ref{thm:bases-have-equal-size})), $(B_1-x)\cup y$ must be a maximal independent set --- thus a basis. Because $y$ is also in $B_2-B_1$, the property is fulfilled.
+    \end{enumerate}
+\end{proof} 
+
+
+
+\begin{lemma}\label{lem:basis-axioms-imply-equal-size}
+    Let $E$ be a finite set, and let $\mathcal{B}$ be a collection of subsets of $E$ satisfying (B1) and (B2). Then $\mathcal{B}$ is equicardinal, that is, all elements in $\mathcal{B}$ have the same cardinality.
+\end{lemma}
+
+Even though we have already proven that the set of bases of a matroid is equicardinal, we will also show that this property holds for an \textit{arbitrary collection of subsets} satisfying (B1) and (B2). This property will be useful in a future proof.
+
+%Now that we have a new way to describe $\mathcal{B}$ with (B1) and (B2), we again need to prove that it is equicardinal (all elements of $\mathcal{B}$ having the same cardinality). 
+
+\begin{proof}[Proof of lemma (\ref{lem:basis-axioms-imply-equal-size})]
+    This proof was inspired by \cite[p. 17]{oxley1} Suppose that $\mathcal{B}$ is not equicardinal, that is, we have $|B_1|>|B_2|$ for some $B_1,B_2\in\mathcal{B}$. For all $B_1,B_2$ where that holds, choose the pair that minimizes $|B_1-B_2|$. Since $B_1$ is larger than $B _2$, we know that $B _1 - B _2 \neq \emptyset$. Choose an element $b\in B_1-B_2$ and apply (B2) to show that there exists some $d\in B_2-B_1$ such that $(B_1-b)\cup d \in\mathcal{B}$. With our choices of $b$ and $d$, we can see that $|((B_1-b)\cup d)-B_2|=|(B_1-b)-B_2|<|B_1-B_2|$. This, combined with the fact that $|(B_1-b)\cup d|=|B_1|<|B_2|$, tells us that $B_1$ and $B_2$ are actually not the minimal choice. This contradiction proves that $\mathcal{B}$ is indeed equicardinal.
+\end{proof}
+
+We are going to show the first cryptomorphism, referring to the idea that matroids can be defined not by the collection of independent sets but by its collection of bases. To show that the two properties (B1) and (B2) are sufficient to describe the bases of $M$, we will prove that if $\mathcal{B}$ is any collection of subsets satisfying the bases axioms, then the independent sets are all the possible subsets of the elements of $\mathcal{B}$.
+
+\begin{theorem}\label{thm:basis-axioms-form-matroid}
+    Let $\mathcal{B}$ be a collection of subsets of a non-empty finite set $E$, satisfying (B1) and (B2). Let $\mathcal{I}=\{ I\subseteq B \; | \; B\in\mathcal{B} \}$. Then $(E,\mathcal{I})$ is a matroid with $\mathcal{B}$ as its set of bases.
+\end{theorem}
+
+
+\begin{proof}
+    This proof was inspired by \cite[p. 17]{oxley1}. Our goal is of course to show that $\mathcal{I}$ satisfies the conditions of independent sets. If we manage to do that we will have that $(E, \mathcal{I})$ is a matroid having $\mathcal{B}$ as its collection of bases.
+    \begin{enumerate}
+      \item[(I1)] Since (B1) tells us that $\mathcal{B}$ is non-empty, and because $\emptyset$ is a subset of any set (in particular, $\emptyset \subseteq B$, where $B$ is some member of $\mathcal{B}$), we by definition have $\emptyset \in \mathcal{I}$.
+        
+      \item[(I2)] If $I\in\mathcal{I}$ and $J\subseteq I$, then by definition of $\mathcal{I}$ we have that $J\subseteq I\subseteq B$ for some $B\in\mathcal{B}$. We then see that $J\subseteq B$, and by definition  $J\in\mathcal{I}$. So $\mathcal{I}$ satisfies (I2).
+        
+      \item[(I3)] By contradiction, suppose (I3) fails for some $I,J\in\mathcal{I}$ with $|I|<|J|$. This means that for all elements $x\in J-I$ we have $I\cup x \notin \mathcal{I}$. Our goal is to show that $|I|\geq|J|$, yielding a contradiction. For this to be the case, we will derive some inequalities between cardinalities of the sets involved.
+        
+        Let $B_I$ and $B_J$ be the elements of $\mathcal{B}$ that contain $I$ and $J$ respectively, by definition of $\mathcal{I}$, we know such sets exist. Choose some $B_J$ such that $|B_J - (J\cup B_I)|$ is minimal. 
+
+        It turns out that for our choice of $I$ and $J$, we have $J-B_I = J-I$. The inclusion $J- B_I \subseteq J - I$ is clear because $I \subseteq B_I$. It then follows that if $J-B_I \neq J-I$, some element $e \in (J-I)-(J-B_I)$ would exist. We verify directly that this implies $e \in B_I$. Since $e$ is a member of $J-I$, our initial assumption that for all $k \in J - I$ we have $I \cup k \notin \mathcal{I}$ tells us that $I\cup e\notin \mathcal{I}$. This contradicts $I\cup e\subseteq B_I$, since all subsets of a base are independent.
+
+        Suppose now that $B_J-(J\cup B_I)$ is non-empty. Let $j$ be an element of this set. We then know by (B2) that there exists some element $i\in B_I-B_J$ such that $(B_J-j)\cup i \in\mathcal{B}$. However, $i \in B_I$ implies 
+        \begin{align*}
+        |((B_J-j)\cup i)-(J\cup B_I)|=|(B_J-j)-(J\cup B_I)|<|(B_J-(J\cup B_I)|. 
+        \end{align*}
+
+        We've now found a new element $B=(B_J-j)\cup i$ in $\mathcal{B}$ that has $|B-(J\cup B_I)|$ smaller than $|B_J-(J\cup B_I)|$. Note how $j\notin J$ means that 
+        \begin{align*}
+        J=J-j\subseteq B_J-j\subseteq (B_J-j)\cup i = B. 
+        \end{align*}
+
+        We then have $J\subseteq B$, which means that $B$ should have been our choice for $B_J$ that minimalizes $|B_J-(J\cup B_I)|$. Thus, minimality of our choice of $B_J$ is contradicted, and thus, $B_J-(J\cup B_I)=\emptyset$. This now implies that $B_J\subseteq J\cup B_I$, which implies that $B_J-B_I\subseteq (J\cup B_I)-B_I=J-B_I$. Since $J-B_I\subseteq B_J-B_I$ already holds (because $J\subseteq B_J$), this proves equality between $B_J-B_I$ and $J-B_I$.
+
+        Next up, we apply a similar procedure to prove that $B_I-(I\cup B_J)$ is empty. Assume by contradiction that $i$ is a member of the set. We can then apply $(B2)$ to get some $j\in B_J-B_I=J-B_I=J-I$ such that $(B_I-i)\cup j\in\mathcal{B}$. Since our choice of $i$ tells us that $i \notin I$, we have that $I\cup j = (I-i)\cup j \subseteq (B_I-i)\cup j$, which means $I\cup j\in\mathcal{I}$. This precisely gives us $(I3)$, which contradicts our original assumption. Thus, $B_I-(I\cup B_J)=\emptyset$. By the same logic we used in the previous paragraph, $B_I-B_J=I-B_J\subseteq I-J$. This means that $|B_I-B_J|\leq|I-J|$.
+
+        We can use the fact that $\mathcal{B}$ is equicardical (lemma (\ref{lem:basis-axioms-imply-equal-size})), to see that $|B_I-B_J|=|B_J-B_I|$. At last, we use everything we've obtained so far to get the following
+        \begin{align*}
+        |I-J|\geq |B_I-B_J|=|B_J-B_I|=|J-B_I|=|J-I|.
+        \end{align*}
+
+        We therefore obtain the inequality $|I - J|\geq |J - I|$. We know that $ I = (I - J) \cup (I\cap J)$, and $I - J$ is clearly disjoint with $I \cap J$. We notice that
+
+        \begin{align*}
+        |I| = |(I - J)\cup (I \cap J)| = |I - J| + |I \cap J| - |\underbrace{(I - J) \cap (I \cap J)}_{ = \emptyset}|.
+        \end{align*}
+
+        Therefore, $|I| = |I-J| + |I \cap J|$ and by the same reasoning $|J| = |J - I| + |I\cup J|$. We are now almost done. Combining the above ineqalities with $|I - J|\geq |J - I|$, we observe that $|I-J| +|I \cap J|\geq |J - I| + |I \cap J|$, which finally implies $|I|\geq |J|$. This contradicts our assumption that $|I|< |J|$. 
+        
+        Thus, we have derived a contradiction when assuming that a pair $(I, J)$ of subsets violating (I3) exists. Hence, $\mathcal{I}$ satisfies (I3), and all in all $(E,\mathcal{I})$ is a matroid.
+    \end{enumerate}  
+
+    
+    The fact that $\mathcal{B}$ is now the set of bases of the matroid $(E,\mathcal{I})$ follows from the fact that all elements in $\mathcal{B}$ are by definition maximal members of $\mathcal{I}$.
+\end{proof}
+
+\newpage
+\input{circuits}
+\input{graphs}
+
+\newpage
+\section{Rank Function}
+
+We will introduce our first description of matroids that does not rely on a collection of subsets that satisfies certain properties, but rather on a \textit{function} that satisfies certain properties.
+
+The rank function is a function $\rank :2^E \rightarrow \mathbb{Z}_{\geq0}$ that, given a $X\subseteq E(M)$, gives you the cardinality of a maximal independent set contained in $X$. In other words:
+
+$$ \rank(X) = \max\{\, |I| \; | \,\, I\in\mathcal{I} \text{ and } I\subseteq X \}. $$
+For example, $\rank(E(M))=|B|$ for some $B\in\mathcal{B}(M)$, and we define $\rank(M) = \rank(E(M))$. We can characterize the rank function with the following properties:
+
+\begin{theorem}
+    Let $M$ be a matroid on a ground set $E$, and let $\rank : 2^E \rightarrow \mathbb{Z}_{\geq0}$ be its rank function. Then $\rank$ satisfies these properties.
+    \begin{enumerate}
+        \item[(R1)] If $X\subseteq E$, then $0 \leq \rank(X) \leq |X| $
+        \item[(R2)] If $X\subseteq Y\subseteq E$, then $\rank(X)\leq\rank(Y)$
+        \item[(R3)] If $X,Y\subseteq E$, then $\rank(X\cup Y)+\rank(X\cap Y) \leq \rank(X)+\rank(Y) $
+    \end{enumerate}
+\end{theorem}
+
+In figure (\ref{fig:1234-matroid-rank}) we again find our example matroid drawing. We denote the rank of each set by writing it in subscript below the set. We can see that the rank of any set is at most its cardinality, and each subset of some set has at most the rank of that set. As always, it takes a bit more effort to show that the last property holds for a given matroid.
+
+\begin{figure}[H]
+    \begin{center}
+    \begin{tikzpicture}
+    
+    \matrix (a) [matrix of math nodes, column sep=0.6cm, row sep=0.6cm,]{
+     & & &\textcolor{cyan}{
+    1234}_2 & & & &\\
+     \textcolor{cyan}{
+    123}_2& &\textcolor{cyan}{
+    124}_2 & &\textcolor{cyan}{
+    134}_1 &  & \textcolor{cyan}{
+    234}_2  \\
+    \textcolor{red}{12}_2 & \textcolor{blue}{13}_1 & \textcolor{cyan}{14}_1 & & \textcolor{red}{23}_2 & \textcolor{cyan}{
+    24}_1 & \textcolor{cyan}{
+    34}_1 \\
+    \textcolor{orange}{1}_1& &\textcolor{orange}{2}_1 & & \textcolor{orange}{3}_1& & \textcolor{blue}{4}_0 \\
+    & & & \textcolor{orange}{\emptyset}_0 &  & & \\
+    &&&&&& \\};
+    
+    \foreach \i/\j in {1-4/2-1, 1-4/2-3, 1-4/2-5, 1-4/2-7, 2-1/3-1, 2-1/3-2, 2-1/3-5, 2-3/3-1, 2-3/3-3, 2-3/3-6, 2-5/3-2, 2-5/3-3, 2-5/3-7, 2-7/3-5, 2-7/3-6, 2-7/3-7, 3-1/4-1, 3-1/4-3, 3-2/4-1, 3-2/4-5, 3-3/4-1, 3-3/4-7, 3-5/4-3, 3-5/4-5, 3-6/4-3, 3-6/4-7, 3-7/4-7, 3-7/4-5, 4-1/5-4, 4-3/5-4, 4-5/5-4, 4-7/5-4}
+    \draw[double, line width = 0.005mm, color = brown] (a-\i) -- (a-\j);
+    
+    \node[draw] at (0, -2.5){\small \textcolor{orange}{Independent set}, \textcolor{red}{Basis}, \textcolor{cyan}{Dependent set}, \textcolor{blue}{Circuit}, $\text{Set}_{\rank(\text{Set})}$ };
+    \end{tikzpicture}
+    \end{center}
+
+    \caption{Description of a 4-element matroid, with the rank of each set as subscript.}
+    \label{fig:1234-matroid-rank}
+\end{figure}
+
+
+
+
+Now, let us prove that the rank function of a matroid satisfies these properties. 
+
+\begin{proof}
+This proof was inspired by \cite[p. 23]{oxley1}.
+    \begin{enumerate} 
+    
+        \item[(R1)] Since the co-domain of $\rank$ is $\mathbb{Z}_{\geq0}$ then  $\rank(X) \geq 0$. Let $I_X$ be a maximal independent set contained in $X$. By definition, we see that $|I_X|=\rank(X)$. Since $X\supseteq I_X$, it follows that $|X| \geq |I_X| = \rank(X)$.       Thus, $0\leq\rank(X)\leq|X|$ what we wanted to show.
+        
+        \item[(R2)] Let $I_X$ be a minimal independent set contained in $X$, so $\rank(X)=|I_X|$. $I_X\subseteq X\subseteq Y$ implies that $I_X$ is an independent set contained in $Y$. Since $I_X$ is an independent set contained in $Y$ then by definition $|I_X|\leq \rank(Y)$ since $\rank(Y)$ is the size of the \textit{largest} independent set contained in $Y$. Finally, we get that $\rank(X)=|I_X|\leq \rank(Y)$ what we wanted to show.
+        
+        \item[(R3)] We assume that $A\subseteq B\subseteq E$. Let $I_{A\cap B}$ be a maximal independent set contained in $A\cap B$. Since $A\cap B\subseteq A\cup B$, it means that $I_{A\cap B}$ must be an independent set contained in $A\cup B$. Let $I_{A\cup B}$ be $I_{A\cap B}$ \textit{extended} to be a \textbf{maximal} independent set contained in $A\cup B$. So $I_{A\cap B}\subseteq I_{A\cup B} \subseteq A\cup B$. 
+        
+        Now, let us take a look at the set $I_{A\cup B}\cap A$. Since the set is contained in $A$ and $I_{A\cup B}$, the property (I2) tells us that $I_{A\cup B}\cap A$ is in independent set contained in $A$. Since the set may or may not be maximal we know by definition, $|I_{A\cup B}\cap A|\leq \rank(A)$. Similarly, $|I_{A\cup B}\cap B|\leq \rank(B) $.
+
+        We will now use the well known fact that for any sets $X$ and $Y$, it holds that $|X\cup Y|=|X|+|Y|-|X\cap Y|$, in other words $|X|+|Y|=|X\cup Y|+|X\cap Y|$.
+        
+        \begin{align*}
+            \rank(A)+\rank(B) &\geq |I_{A\cup B}\cap A|+|I_{A\cup B}\cap B| 
+            \\&=  |(I_{A\cup B}\cap A)\cup(I_{A\cup B}\cap B)|
+             +|(I_{A\cup B}\cap A)\cap(I_{A\cup B}\cap B)| 
+            \\&=  |I_{A\cup B}\cap (A\cup B)|+|I_{A\cup B}\cap (A\cap B)|. 
+        \end{align*}
+
+        Since $I_{A\cup B}\subseteq A\cup B$, we see that $I_{A\cup B}\cap(A\cup B) = I_{A\cup B}$.
+
+        Because $I_{A\cap B}\subseteq I_{A\cup B}$ and $I_{A\cap B}\subseteq A\cap B$, it tells us that $I_{A\cup B}\cap (A\cap B) \supseteq I_{A\cap B}\cap (A\cap B) = I_{A\cap B} $. Let $e\in I_{A\cup B}\cap (A\cap B)$. Aiming for contradiction, suppose $e\notin I_{A\cap B}$. Since $e\in I_{A\cup B}$, we can see that $I_{A\cap B}\cup e \subseteq I_{A\cup B} $. Then (I2) implies that $I_{A\cap B}\cup e$ is independent. Combining that fact with that $e\in A\cap B$, we see that $I_{A\cap B}\cap e$ is an independent set contained in $A\cap B$. This contradicts the maximality of $I_{A\cap B}$ in being independent and contained in $A\cap B$. Thus, the contradiction gives us that $e\in I_{A\cap B}$. This proves that $I_{A\cup B}\cap(A\cap B)\subseteq I_{A\cap B} $, which implies equality between the two sets.
+
+        Thus,
+
+        $$ \rank(X)+\rank(Y) \geq  |I_{A\cup B}|+|I_{A\cap B}| = \rank(A\cup B)+\rank(A\cap B). $$
+    \end{enumerate}
+\end{proof}
+One might observe that the rank of an independent set is the cardinality of the set itself. This is because the largest independent set that is contained in this independent set is of course the independent set itself. With this property, we can define the set of independent sets with the three properties of the rank function.
+\begin{theorem}
+    \label{thm:indep-from-bases}
+    Let $E$ be a finite set, and let $\rank : 2^E \rightarrow \mathbb{Z}_{\geq0}$ be a function satisfying (R1)-(R3). Let $\mathcal{I} = \{ I\subseteq E : \rank(I)=|I| \} $. Then $(E,\mathcal{I})$ is a matroid with $\rank$ as its rank function.
+\end{theorem}
+Before we prove this, let us prove the following minor theorem first.
+\begin{theorem}
+\label{rankextension}
+    Let $E$ be a finite set and $\rank:2^E\rightarrow \mathbb{Z}_{\geq0}$ be a function satisfying (R2) and (R3). Let $X,Y\subseteq E$. If for all $y\in Y-X$, it holds that $\rank(X\cup y)=\rank(X)$, then we have that $\rank(X\cup Y)=\rank(Y)$.
+\end{theorem}
+\begin{proof} 
+    This proof was inspired by \cite[p. 24]{oxley1}. We will prove that the statement holds with $Y-X = \{a_1,a_2,\cdots,a_k\}$ for all positive integers $k$.
+    \begin{enumerate}
+        \item Consider the case when $k=1$. If $\rank(X\cup a_1)=\rank(X)$, then $\rank(X\cup Y)=\rank(X\cup(Y-X))=\rank(X\cup a_1)=\rank(X)$.
+        \item Assume the statement holds for $k=n$. We will attempt to prove it also holds for $k = n + 1$.
+        
+        Let us see if the statement holds for $k=n+1$: Let $Y-X=\{a_1,\cdots,a_{n+1}\}$ and assume that for all $i\in\{1,\cdots,n+1\}$, it holds that $\rank(X\cup a_i)=\rank(X)$. Then, using the assumption and our induction hypothesis, 
+        \begin{align*}
+            \rank(X)+\rank(X) &= \rank(X\cup \{a_1,\cdots,a_n\})+\rank(X\cup a_{n+1}) 
+            \\&\geq \rank\left(\left[X\cup\{a_1,\cdots,a_n\}\right]\cup \left[X\cup a_{n+1}\right]\right) +
+             \\ &\quad\:  \rank\left([X\cup\{a_1,\cdots,a_n\}]\cap [X\cup a_{n+1}]\right)  && \text{(using (R3))}
+            \\&= \rank\left(X\cup\{a_1,\cdots,a_{n+1}\}\right) + \rank\left(X\right) 
+            \\&\geq \rank(X)+\rank(X).  && \text{(using (R2)) }
+        \end{align*}
+        Since $\rank(X)+\rank(X)$ is on both sides, equality holds throughout. 
+        
+        Thus, $\rank(X\cup Y) = \rank(X\cup\{a_1,\cdots,a_{n+1}\})=\rank(X)$. And thus, the statement holds for $k=n+1$.
+    \end{enumerate}
+    Thus, by mathematical induction, the statement holds for all positive integers $k$.
+\end{proof}
+Finally, we can prove Theorem 9:
+\begin{proof}[Proof of theorem (\ref{thm:indep-from-bases})]
+This proof was inspired by \cite[p. 24]{oxley1}. To prove that $(E,\mathcal{I})$ is a matroid, we will prove that $\mathcal{I}$ satisfies (I1)-(I3).
+    \begin{enumerate}
+        \item[(I1)] (R1) tells us that $0\leq\rank(\emptyset)\leq|\emptyset|=0$, which implies that $\rank(\emptyset)=0=|\emptyset|$. By how we defined $\mathcal{I}$, this implies that $\emptyset\in\mathcal{I}$, so (I1) is satisfied.
+        \item[(I2)] Assume we have $J\subseteq I\in\mathcal{I}$. Then, using (R3),
+        $$ \rank(J)+\rank(I-J) \geq \rank(J\cup[I-J])+\rank(J\cap[I-J]) = \rank(I)+\rank(\emptyset)=|I|. $$
+        Using (R2), we also get that
+        $$ \rank(J)+\rank(I-J) \leq |J|+\rank(I-J) \leq |J|+|I-J| = |I|. $$
+        This implies that equality must hold throughout. At last, we show that
+        $$ \rank(J)+\rank(I-J) = |J|+\rank(I-J) \Rightarrow \rank(J)=|J|. $$
+        Since $\rank(J)=|J|$ means that $J\in\mathcal{I}$, we conclude that (I2) is satisfied.
+        
+        \item[(I3)] Suppose (I3) does not hold for some $I,J\in\mathcal{I}$ with $|I|>|J|$. Then for all $e\in I-J$, it holds that $J\cup e\notin \mathcal{I}$. Also, remember that $I,J\in\mathcal{I}$ means that $\rank(I)=|I|$ and $\rank(J)=|J|$.
+
+        For this next part, let $e$ be anarbitrary member of $I-J$. Since $J\subseteq J\cup e$, we can use (R1) and (R2) to see that
+        $$ |J|=\rank(J)\leq\rank(J\cup e)\leq|J\cup e|=|J|+1 .$$
+        
+       We see that $J\cup e\notin \mathcal{I}$ tells us that $\rank(J\cup e)\neq|J\cup e|=|J|+1$. Since we just proven that $|J|\leq\rank(J\cup e)\leq|J|+1$, it must mean that $\rank(J\cup e)$ is equal to what's on the left-hand side, so $|J|=\rank(J)$.
+
+        This gives us that for all $e\in I-J$, it holds that $\rank(J\cup e)=\rank(J)$. With this, theorem (\ref{rankextension}) tells us that $\rank(J\cup I)=\rank(J)=|J|$. However, since $I\subseteq J\cup I$, we can use (R2) to see that $\rank(J\cup I) \geq \rank(I) = |I|$. Combining those two, we get that $|J|\geq|I|$. This contradicts our assumption that $|J|<|I|$. Thus, (I3) is satisfied.
+    \end{enumerate}
+    Thus, $(E,\mathcal{I})$ is a matroid.
+\end{proof}
+
+

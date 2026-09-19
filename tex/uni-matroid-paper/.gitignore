@@ -1,0 +1,12 @@
+*.log
+*.aux
+*.*_latexmk
+*.gz
+*.fls
+*.blg
+*.bbl
+*.pdf
+*.out
+*.toc
+!Material/*.pdf
+!Artifacts/*.pdf

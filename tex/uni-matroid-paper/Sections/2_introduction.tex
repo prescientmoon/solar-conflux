@@ -1,0 +1,45 @@
+\subsection{(In)dependence}
+
+In English language, two people, objects or concepts are dependent on each other if both in some way influence one another. Two things being independent of each other in turn means that they in no way can affect each other. 
+
+    In mathematics, there are many concepts where we can use these two words to describe certain phenomena, most notably in linear algebra. In linear algebra, a set of vectors is linearly dependent if you can write one of its vectors as a linear combination of the others. Using the word dependent here makes sense, because if you can use all others to build that one vector, then that vector does not \textit{really} stand on its own. An equivalent and more general definition is:
+
+
+    \begin{defn}
+
+    A set of vectors $\{v_1,v_2,\cdots,v_n\}$ is linearly dependent if there exists $a_1,a_2,\cdots,a_n \in \mathbb{R} $ not all zero, such that $a_1v_1+a_2v_2+\cdots +a_nv_n = 0.$
+    
+    \end{defn}
+
+
+
+
+For linear independence we have the negation, which is:
+\begin{defn}
+    A set of vectors $ \{v_1,v_2,\cdots,v_n\}$ is linearly independent if $a_1v_1+a_2v_2+\cdots+a_nv_n=0$ implies that $a_1=a_2=\cdots=a_n=0.$
+
+\end{defn}
+There are many more fields that have this concept of (in)dependence present in some way. To relate these with another, we will abstract the concept of (in)dependence into mere sets that follow certain rules. It turns out that by doing so, we can visualize the concept of independence in other fields of mathematics.
+
+% It turns out that by doing this we can find independence in places that do not even use the terms (in)dependence, most notably, graph theory.
+
+%TODO: give an intuitive explanation on why cycles in graphs are somehow 'dependent'
+
+
+
+\subsection{Matroids}
+
+A matroid is a structure that abstracts the notion of independence. To construct a matroid we start with a ground set that is finite. We do not want to work with infinite sets, because that causes lots of problems. Next, we construct some collection of subsets of the ground set, following a couple of rules. Usually, this initial collection would be the collection of \textit{independent sets}. However, it turns out that there are many surprisingly equivalent ways of defining a matroid, such as
+\begin{multicols}{2}
+\begin{itemize}
+    \item Independent sets
+    \item Bases
+    \item Circuits
+    \item Rank function
+    \item Closure operator
+    \item Flats
+\end{itemize}
+\end{multicols}
+
+We call any such equivalent way of defining a matroid a \textit{cryptomorphism} \cite{gordon_mcnulty_2012}.
+There are many more cryptomorphic ways to define a matroid, but the ones listed will be covered in this article. Each of these mathematical objects has two to four axioms that uniquely determine it as the object characterizing a matroid. To show the cryptomorphism, we will have to prove a certain equivalence each time, relating a new notion to a previously proved one. All of this will help us gain a deeper insight into the concept of dependence and independence and ultimately answer our guiding question - \textbf{how can we define matroids?}

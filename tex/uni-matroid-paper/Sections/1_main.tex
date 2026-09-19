@@ -1,0 +1,127 @@
+\documentclass{article}
+%\usepackage[utf8x]{inputenc}
+\usepackage{graphicx} 
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{tikz}
+%\usepackage{newunicodechar}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+%This two lines make it so that each section starts in a new page, in case we want to use it
+%\usepackage{titlesec}
+%\newcommand{\sectionbreak}{\clearpage}
+
+\usetikzlibrary{graphs}
+\usepackage[demo]{graphicx}
+
+% just took these from the presentation. might have some errors, idk how this stuff works
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat = newest}
+\usetikzlibrary{matrix}
+\usepackage[dvipsnames]{xcolor}
+
+\usepackage[shortlabels]{enumitem}
+\usepackage{appendix}
+
+% copypasted from 
+% https://www.dickimawbooks.com/latex/thesis/html/amsthm.html
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{defn}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem*{minidef*}{}
+\newtheorem{corollary}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{exmp}{Example}[section]
+
+
+\theoremstyle{remark}
+\newtheorem*{note}{Note}
+\newtheorem{remark}{Remark}
+
+% \DeclareUnicodeCharacter{D9E}{\sussy}
+% % \newunicodechar{}{\sussy}
+% % \renewcommand\qedsymbol{$\sussy$}
+% \renewcommand\qedsymbol{$\blacksquare$}
+
+\usepackage{verbatim}
+\usepackage{tabularx}
+\usepackage{indentfirst} % Indent first paragraph in each section
+\usepackage[a4paper, total={6in, 9in}]{geometry}
+\usepackage{multicol}
+\usepackage{setspace}
+
+
+\newcommand{\cl}{\mathrm{cl}}
+\newcommand{\caf}{\mathcal{F}}
+\newcommand{\ev}{\mathrm{ev}}
+\DeclareMathOperator{\mat}{Mat}
+\DeclareMathOperator{\rank}{r}
+\DeclareMathOperator{\spann}{span}
+
+\onehalfspacing
+
+% Equations should be numbered per section
+\numberwithin{equation}{section}
+
+
+
+
+    \title{ {\includegraphics[scale=0.5]{rug_logo.png}}\\
+    \vspace{2cm}
+    {Cryptomorphic Descriptions of Matroids} 
+    }
+    \author{Adriel Matei, Béla Schneider, Javier Gustavo Vela Castro, Juš Kocutar}
+    \date{June 2023}
+
+
+
+\begin{document}
+
+
+\maketitle
+
+
+\newpage
+
+\tableofcontents
+
+\newpage
+\section{Introduction}
+\input{2_introduction}
+\input{3_definitions}
+
+%\input{graphic} already inside definitions
+
+\input{closure}
+\input{one_more_equivalence_because_why_not}
+
+%\input{U24} already put inside definitions section
+
+\input{algebraic}
+\input{dual_matroids}
+\input{conclusion}
+
+\newpage
+%\nocite{*}
+\bibliographystyle{abbrv}
+\bibliography{sources}
+
+\numberwithin{exmp}{subsection}
+\renewcommand{\thesubsection}{\Alph{subsection}}
+\newpage
+\section{Appendices}
+\begin{appendices}
+    \renewcommand{\theexmp}{\Alph{subsection}.\arabic{exmp}}
+    \input{appendix-fields.tex}
+    \newpage\input{appendix-poset.tex}
+\end{appendices}
+
+
+
+
+\end{document}
+
