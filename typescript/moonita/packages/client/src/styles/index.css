@@ -1,0 +1,24 @@
+html,
+body,
+#app {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+.game__game--stack {
+  background: white;
+}
+
+.game__game--stack,
+.game__game--canvas {
+  width: 100%;
+  height: 100vh;
+  display: block;
+}

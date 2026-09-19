@@ -1,0 +1,27 @@
+{
+  "name": "moonita",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "@pixi/core": "^6.2.2",
+    "@pixi/display": "^6.2.2",
+    "gl-matrix": "^3.4.3",
+    "pixi.js": "^6.2.2",
+    "preact": "^10.5.13",
+    "runtypes": "^6.5.0",
+    "twgl.js": "^4.21.2",
+    "wolf-ecs": "^2.1.3",
+    "ws": "^8.3.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.0.0",
+    "@types/ws": "^8.2.1",
+    "typescript": "^4.3.2",
+    "vite": "^2.6.4",
+    "vite-plugin-glsl": "^0.0.9"
+  }
+}
