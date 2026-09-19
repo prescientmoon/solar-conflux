@@ -1,5 +1,6 @@
 - [abilities](./abilities/): Typeclass-dictionary abuse enabling the creation of a bare-bones effect system.
 - [ask](./ask): Typeclass-based implicit arguments.
+- [board-game](./board-game): Demo implementation for a board game I did for a client.
 - [bug](./bug/): Unknown reason of existence.
 - [canopy](./canopy/): Unfinished attempt at writing a [Diplomacy](<https://en.wikipedia.org/wiki/Diplomacy_(game)>) adjudication engine.
 - [compose](./compose/): Overload do-notation for function composition and existential types.
@@ -26,9 +27,9 @@
 - [slice](./slice): Basic benchmarks and a `Slice` type.
 - [sliding-windows](./sliding-windows): Implement sliding windows over lists of monoids in linear complexity.
 - [sprint](./sprint): Failed effect-system based on typelevel lists.
+- [steinerlang](./steinerlang): Unfinished language
 - [strategy](./strategy): Unfinished attempt at implementing a mixed strategy nash equilibrium solver.
 - [streams](./streams): Playing with `purescript-pipes`.
 - [switcheroo](./switcheroo): Index-monad based stream library idea.
 - [thumbor](./thumbor): Dropped attempt at writing PureScript bindings for [thumbor-ts](https://github.com/Brettm12345/thumbor-ts).
 - [typelevel](./typelevel): Typelevel naturals, vectors, sum-types, orderings and lambda-calculus evaluation and a value-level bounded-type GADT.
-- [board-game](./board-game): Demo implementation for a board game I did for a client.
