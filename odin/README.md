@@ -1,0 +1,8 @@
+- [cross](./cross): cross compilation experiments.
+- [enfold](./enfold): configuration language targeting Lua.
+- [metafurl](./metafurl): dependent language idea.
+- [phasingdimension](./phasingdimension): unfinished Yu-Gi-Oh! combo finder.
+- [sdl-gpu-experiment](./sdl-gpu-experiment): SDL GPU abstraction experiments.
+- [sdl-opengl-rendering](./sdl-opengl-rendering): SDL OpenGL experiments.
+- [tunnels](./tunnels): Language translator utility for [the tunnels puzzle](https://thegreatescaper.itch.io/tunnels).
+- [wgpu-experiment](./wgpu-experiment): Quickly forgotten about WGPU rendering experiments.
