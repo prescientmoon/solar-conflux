@@ -1,0 +1,2 @@
+- [tempest-talk](./tempest-talk): A talk I gave about my Neovim & Nix setup
+- [learning](./learning): Random experiments I did when first learning about typst
