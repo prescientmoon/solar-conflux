@@ -18,7 +18,10 @@
         in
         {
           example = pkgs.mkShell {
-            packages = [ nixos-secrets ];
+            packages = [
+              pkgs.gnumake
+              nixos-secrets
+            ];
           };
         }
       );

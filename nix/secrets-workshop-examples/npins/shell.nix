@@ -11,6 +11,7 @@ in
 pkgs.mkShell {
   packages = [
     pkgs.npins
+    pkgs.gnumake
     nixos-secrets
   ];
 }
