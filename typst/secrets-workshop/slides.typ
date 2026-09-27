@@ -502,7 +502,12 @@
 ]
 
 #slide[
-  - Link to cheatsheet here (with QR code).
+  #align(center)[
+    #box[ #image("assets/examples.png", height: 70%)] #box[#image("assets/pr.png", height: 70%)]
+  ]
+
+  - https://git.moonythm.dev/prescientmoon/solar-conflux/src/branch/master/nix/secrets-workshop-examples
+  - https://github.com/NixOS/nixpkgs/pull/547171
 ]
 
 #slide[
