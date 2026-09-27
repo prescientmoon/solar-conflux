@@ -1,0 +1,40 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1790480522,
+        "narHash": "sha256-d3hOIhc3atvdRbTI+jZygt5ld0eQKfgBjhQ/VKpV3dM=",
+        "rev": "8d5d270900d3fc75655ea2d9d248b234f6631439",
+        "type": "tarball",
+        "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.11pre1080219.8d5d270900d3/nixexprs.tar.zst?lastModified=1790480522&rev=8d5d270900d3fc75655ea2d9d248b234f6631439"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.zst"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "starlitpkgs": "starlitpkgs"
+      }
+    },
+    "starlitpkgs": {
+      "locked": {
+        "lastModified": 1790463643,
+        "narHash": "sha256-N9sTHvSEGWqkeE++YkbVkd0X9DL4NhG4GWhLpZ3d8U8=",
+        "owner": "starlitcanopy",
+        "repo": "nixpkgs",
+        "rev": "b8986700257bd98d521a3c79b3f53f0238a9aefb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "starlitcanopy",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

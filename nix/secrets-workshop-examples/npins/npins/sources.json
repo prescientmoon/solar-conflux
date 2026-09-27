@@ -1,0 +1,24 @@
+{
+  "pins": {
+    "nixpkgs": {
+      "type": "Channel",
+      "name": "nixpkgs-unstable",
+      "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.11pre1080219.8d5d270900d3/nixexprs.tar.xz",
+      "hash": "sha256-d3hOIhc3atvdRbTI+jZygt5ld0eQKfgBjhQ/VKpV3dM="
+    },
+    "starlitpkgs": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "starlitcanopy",
+        "repo": "nixpkgs"
+      },
+      "branch": "master",
+      "submodules": false,
+      "revision": "f6de2038e5e3681865042e6585e73449858c1be3",
+      "url": "https://github.com/starlitcanopy/nixpkgs/archive/f6de2038e5e3681865042e6585e73449858c1be3.tar.gz",
+      "hash": "sha256-XrVdKTZaC5ZvvwZhQsoa3z5eeC+Qz2c6D51+V9iwQTo="
+    }
+  },
+  "version": 7
+}
