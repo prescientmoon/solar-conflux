@@ -135,7 +135,14 @@ local function updatePlayer()
         playerData.r = remap(playerData.rTarg, -1, 1, -10,10)
         playerData.y = lerp(playerData.y, (iy * 50) + playerConfig.startY, 0.05)
         playerData.x = playerData.x + playerData.dx
-        playerData.x = clamp(0+ playerConfig.scaleX/2,playerData.x,300- playerConfig.scaleX/2)
+        -- Spacing around the edges such that the rocket doesn't look odd while
+        -- rotating!
+        local sp = 6
+        playerData.x = clamp(
+            sp + playerConfig.scaleX / 2,
+            playerData.x,
+            screenWidth - sp - playerConfig.scaleX / 2
+        )
     end
 end
 
