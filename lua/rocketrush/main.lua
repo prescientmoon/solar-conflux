@@ -27,6 +27,10 @@ swapStateSprs:setFilter("nearest", "nearest")
 --audio
 swapStateSfx = love.audio.newSource("audio/swapState.wav", "static")
 
+--fonts
+exosphere = love.graphics.newFont("fonts/Exosphere.ttf", 128, "normal", 5)
+exosphere:setFilter("nearest", "nearest")
+
 --disable AA
 love.graphics.setDefaultFilter('nearest', 'nearest')
 
