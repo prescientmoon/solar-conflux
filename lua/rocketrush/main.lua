@@ -9,6 +9,7 @@ require "scripts/palette"
 
 --scenes
 require "scripts/menus"
+require "scripts/game"
 
 --states and screen stuff
 local screenWidth = 300
