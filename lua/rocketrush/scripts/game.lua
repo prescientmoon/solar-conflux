@@ -7,7 +7,8 @@ local playerConfig = {
     startY = 300,
     acceleration = 0.2,
     rotLerp = 0.1,
-    isDebugPlayer = true
+    isDebugPlayer = true,
+    maxSpeedX = 5
 }
 
 local playerData = {
@@ -26,10 +27,14 @@ local function drawPlayer()
 end
 
 local function updatePlayer()
-    
+    local ix, iy = input:get "move"
+    playerData.dx = lerp(playerData.dx, ix * playerConfig.maxSpeedX, playerConfig.acceleration)
+    playerData.rTarg = lerp(playerData.rTarg, ix, playerConfig.rotLerp)
+    playerData.r = lerp(-10,10, playerData.rTarg)
+    playerData.y = lerp(playerData.y, (iy * 50) + playerConfig.startY, 0.05)
+    playerData.x = playerData.x + playerData.dx
+    playerData.x = clamp(0+ playerConfig.scaleX/2,playerData.x,300- playerConfig.scaleX/2)
 end
-
-local
 
 function drawGame()
     drawPlayer()
