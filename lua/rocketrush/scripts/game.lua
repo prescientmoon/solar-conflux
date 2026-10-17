@@ -7,7 +7,6 @@ local playerConfig = {
     startY = 300,
     acceleration = 0.2,
     rotLerp = 0.1,
-    isDebugPlayer = true,
     maxSpeedX = 5,
     startHealth = 3
 }
@@ -100,22 +99,32 @@ local function drawTrash()
 end
 
 local function drawPlayer()
-    if playerConfig.isDebugPlayer == true then
+    if debug then
         love.graphics.setColor(1,1,1,1)
-        love.graphics.draw(
-            rocketSprite,
-            playerData.x - rocketSprite:getWidth() / 2,
-            playerData.y - rocketSprite:getHeight() / 2
-        )
-
-        local flameQuad = flameQuads[1 + math.floor(tick.frame / 2) % #flameQuads]
-        love.graphics.draw(
-            flameSprites,
-            flameQuad,
-            playerData.x - flameWidth / 2,
-            playerData.y + rocketSprite:getHeight() / 2 - 8
-        )
+        love.graphics.rectangle("fill",playerData.x - playerConfig.scaleX/2,playerData.y - playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY)
     end
+
+    local rot = playerData.r / 180 * math.pi
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.draw(
+        rocketSprite,
+        playerData.x, playerData.y,
+        rot,
+        1, 1,
+        rocketSprite:getWidth() / 2,
+        rocketSprite:getHeight() / 2
+    )
+
+    local flameQuad = flameQuads[1 + math.floor(tick.frame / 2) % #flameQuads]
+    love.graphics.draw(
+        flameSprites,
+        flameQuad,
+        playerData.x, playerData.y,
+        rot,
+        1, 1,
+        flameWidth / 2,
+        -rocketSprite:getHeight() / 2 + 8
+    )
 end
 
 local function updatePlayer()
@@ -123,7 +132,7 @@ local function updatePlayer()
         local ix, iy = input:get "move"
         playerData.dx = lerp(playerData.dx, ix * playerConfig.maxSpeedX, playerConfig.acceleration)
         playerData.rTarg = lerp(playerData.rTarg, ix, playerConfig.rotLerp)
-        playerData.r = lerp(-10,10, playerData.rTarg)
+        playerData.r = remap(playerData.rTarg, -1, 1, -10,10)
         playerData.y = lerp(playerData.y, (iy * 50) + playerConfig.startY, 0.05)
         playerData.x = playerData.x + playerData.dx
         playerData.x = clamp(0+ playerConfig.scaleX/2,playerData.x,300- playerConfig.scaleX/2)
