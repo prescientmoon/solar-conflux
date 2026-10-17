@@ -27,22 +27,50 @@ local trashTextures = {
         cx = 6,
         cy = 0,
         cw = 23,
-        ch = 34
+        ch = 23
     },
     {
         sprite = love.graphics.newImage("sprites/Rock.png"),
         cx = 0,
         cy = 9,
         cw = 34,
-        ch = 22
+        ch = 17
     },
     {
         sprite = love.graphics.newImage("sprites/Sphere.png"),
-        cx = 7,
+        cx = 15,
+        cy = 15,
+        cw = 24,
+        ch = 17
+    },
+    {
+        sprite = love.graphics.newImage("sprites/Fish.png"),
+        cx = 0,
+        cy = 5,
+        cw = 42,
+        ch = 13
+    },
+    {
+        sprite = love.graphics.newImage("sprites/Juice box.png"),
+        cx = 3,
         cy = 7,
-        cw = 40,
-        ch = 40
-    }
+        cw = 23,
+        ch = 25
+    },
+    {
+        sprite = love.graphics.newImage("sprites/Pipis.png"),
+        cx = 18,
+        cy = 27,
+        cw = 25,
+        ch = 25
+    },
+    {
+        sprite = love.graphics.newImage("sprites/Trash can.png"),
+        cx = 3,
+        cy = 4,
+        cw = 29,
+        ch = 35
+    },
 }
 
 for _,v in ipairs(trashTextures) do v.sprite:setFilter("nearest", "nearest") end
