@@ -7,7 +7,7 @@ end
 
 function updateMenus()
     if input:pressed("action") then
-
+        
     end
 end
 
