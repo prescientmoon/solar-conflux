@@ -21,6 +21,32 @@ local playerData = {
     health = playerConfig.startHealth
 }
 
+local trashTextures = {
+    {
+        sprite = love.graphics.newImage("sprites/Mungus.png"),
+        cx = 6,
+        cy = 0,
+        cw = 23,
+        ch = 34
+    },
+    {
+        sprite = love.graphics.newImage("sprites/Rock.png"),
+        cx = 0,
+        cy = 9,
+        cw = 34,
+        ch = 22
+    },
+    {
+        sprite = love.graphics.newImage("sprites/Sphere.png"),
+        cx = 7,
+        cy = 7,
+        cw = 40,
+        ch = 40
+    }
+}
+
+for _,v in ipairs(trashTextures) do v.sprite:setFilter("nearest", "nearest") end
+
 local stars = {}
 
 local maxTrash = 16
@@ -80,13 +106,25 @@ local function addTrash(x)
     local trash = {
         x = x,
         y = math.random(-300, -100),
-        tex = math.random(1,3),
+        tex = math.random(1, #trashTextures),
         dy = 0,
         spd = 5 + math.random(0, 2) * (charge / maxCharge),
         accel = 0.1,
         r = 0
     }
     table.insert(trashObjs,trash)
+end
+
+local function trashCollidesWith(trash, x, y, w, h)
+    local tex = trashTextures[trash.tex]
+    local tw = tex.sprite:getWidth()
+    local th = tex.sprite:getHeight()
+    return aabb(
+        trash.x - tw / 2 + tex.cx,
+        trash.y - th / 2 + tex.cy,
+        tex.cw, tex.ch,
+        x, y, w, h
+    )
 end
 
 local function updateTrash()
@@ -108,14 +146,15 @@ local function updateTrash()
             goto continue
         end
         value.r = value.r + 5
-        if aabb(value.x -16, value.y - 16, 32, 32, playerData.x-playerConfig.scaleX/2,playerData.y-playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY) then
+
+        if trashCollidesWith(value, playerData.x-playerConfig.scaleX/2,playerData.y-playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY) then
             addOrRemoveHealth(-1)
             shakeCam(2)
             table.remove(trashObjs, index)
             charge = math.floor(charge / 2)
             goto continue
         end
-        if aabb(value.x -16, value.y - 16, 32, 32, playerData.x-(playerConfig.scaleX*4)/2,playerData.y-(playerConfig.scaleY*3)/2,playerConfig.scaleX*4,playerConfig.scaleY*3) then
+        if trashCollidesWith(value, playerData.x-(playerConfig.scaleX*4)/2,playerData.y-(playerConfig.scaleY*3)/2,playerConfig.scaleX*4,playerConfig.scaleY*3) then
             isInAura = true
             hasAdddedCharge = false
             if tempCharge < 10 and charge ~= 50 then
@@ -150,13 +189,26 @@ local function updateTrash()
 end
 
 local function drawTrash()
-    for index, value in ipairs(trashObjs) do
-        love.graphics.setColor(1,0,0,1)
-        love.graphics.rectangle(
-            "fill",
-            math.floor(value.x - 16),
-            math.floor(value.y - 16),
-            32,32
+    for index, trash in ipairs(trashObjs) do
+        local tex = trashTextures[trash.tex]
+        local tw = tex.sprite:getWidth()
+        local th = tex.sprite:getHeight()
+        if debug then
+            love.graphics.setColor(1, 0, 0, 1)
+            love.graphics.rectangle(
+                "fill",
+                trash.x - tw / 2 + tex.cx,
+                trash.y - th / 2 + tex.cy,
+                tex.cw, tex.ch
+            )
+        end
+
+        love.graphics.setColor(1,1,1,1)
+        love.graphics.draw(
+            tex.sprite,
+            trash.x, trash.y,
+            trash.r / 180 * math.pi, 1, 1,
+            tw / 2, th / 2
         )
     end
 end
