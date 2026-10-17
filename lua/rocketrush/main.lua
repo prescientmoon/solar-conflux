@@ -28,8 +28,9 @@ swapStateSprs:setFilter("nearest", "nearest")
 swapStateSfx = love.audio.newSource("audio/swapState.wav", "static")
 
 --fonts
-exosphere = love.graphics.newFont("fonts/Exosphere.ttf", 128, "normal", 5)
-exosphere:setFilter("nearest", "nearest")
+mainFontSize = 32
+mainFont = love.graphics.newFont("fonts/Nechao Sharp.ttf", mainFontSize, "normal", 20)
+mainFont:setFilter("nearest", "nearest")
 
 --disable AA
 love.graphics.setDefaultFilter('nearest', 'nearest')
@@ -59,11 +60,12 @@ end
 
 --draws debug stuff like the color palette and various metrics
 local function drawDebug()
+    local sp = 10 -- spacing
     drawPal()
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.print("FPS: "..love.timer.getFPS(), 10, 10)
-    love.graphics.print("Scale: "..scale, 10, 30)
-    love.graphics.print("State: "..state, 10, 50)
+    love.graphics.print("FPS: "..love.timer.getFPS(), sp, 2 * sp)
+    love.graphics.print("Scale: "..scale, sp, 3 * sp + mainFontSize)
+    love.graphics.print("State: "..state, sp, 4 * sp + mainFontSize * 2)
 end
 
 --main init
@@ -113,7 +115,7 @@ end
 
 function drawStuffHere()
     --main drawing function, draw things here
-    love.graphics.clear(ink(pal[1],true))
+    love.graphics.clear(ink(pal[2],true))
     if state == "menu" then
         drawMenus()
     elseif state == "game" then
@@ -123,6 +125,7 @@ function drawStuffHere()
 end
 
 function love.draw()
+    love.graphics.setFont(mainFont)
     --drawing function to draw canvas and debug overlay
     love.graphics.clear(ink(pal[1],true))
     love.graphics.setCanvas{gameCanvas, stencil=true}
