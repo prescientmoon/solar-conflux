@@ -26,10 +26,10 @@ end
 
 
 --state swapping w/ transition effect
-local swapStateIndex = 1
-local desiredNewState = nil
-local newStateLoad = nil
-local isSwappingState = false
+local swapStateIndex = 1 -- frame of the animation
+local desiredNewState = nil -- label for the state
+local newStateLoad = nil -- function that loads the state
+local isSwappingState = false -- are we in the animation?
 
 function swapState(newState, newStateLoadFunction)
     if isSwappingState == false then
@@ -55,12 +55,11 @@ function updateSwapState()
             state = desiredNewState
         end
     end
-
 end
 
 function drawSwapState()
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.draw(swapStateSprs, swapStateQuads[math.floor(swapStateIndex)], 0, 0, 0, 2, 2)
+    love.graphics.draw(swapStateSprs, swapStateQuads[swapStateIndex], 0, 0, 0, 2, 2)
 end
 
 --clamp between 2 values
