@@ -7,28 +7,28 @@ local menuFocus = { main = 0, options = 0, pause = 0 }
 -- The previous menu we entered each menu from
 local menuPrev = { main = nil, options = nil, pause = nil }
 
-local function menuPos()
-    if menu == "main" then
-        return 70, 125
-    elseif menu == "pause" then
-        return 60, 30
-    elseif menu == "options" then
-        return 55, 30
-    end
-end
+-- These get reset every frame
+local menuX = 0
+local menuY = 0
+local menuFoci = {}
 
 local function menuText(index, text)
-    local x, y = menuPos()
     if index == menuFocus[menu] then
         ink(pal[8])
     else
         ink(pal[5])
     end
-    love.graphics.print(text, x, y + (sp + mainFontSize) * index)
+    table.insert(menuFoci, { x = menuX, y = menuY })
+    love.graphics.print(text, menuX, menuY + sp / 2 + 4)
+    menuY = menuY + sp + mainFontSize
 end
 
 function drawMenus()
+    menuFoci = {}
     if menu == "main" then
+        menuX = 70
+        menuY = 125
+
         menuText(0, "Play")
         menuText(1, "Options")
         menuText(2, "Quit")
@@ -39,18 +39,23 @@ function drawMenus()
             45, 275, 0, 0.5, 0.5
         )
     elseif menu == "pause" then
+        menuX = 60
+        menuY = 30
+
         menuText(0, "Continue")
         menuText(1, "Options")
         menuText(2, "Quit")
     elseif menu == "options" then
+        menuX = 55
+        menuY = 30
+
         menuText(0, "Scale: " .. scale .. "x")
         menuText(1, "Volume")
 
-        local x, y = menuPos()
-        local ybar = y + 2 * (sp + mainFontSize)
-        local wbar = screenWidth - 2 * sp - x
+        local wbar = screenWidth - sp - menuX - 5
         local wseg = wbar / 10
         local barsp = 2
+        local barHeight = mainFontSize - 10
 
         for i=0,9 do
             if i >= volume then
@@ -63,22 +68,22 @@ function drawMenus()
 
             love.graphics.rectangle(
                 "fill",
-                x + barsp / 2 + wseg * i,
-                ybar + 5,
+                menuX + barsp / 2 + wseg * i,
+                menuY + sp / 2,
                 wseg - barsp,
-                mainFontSize-5
+                barHeight
             )
         end
+
+        menuY = 350
+        menuX = 165
+        menuText(2, "Back")
     end
 
     -- The keyboard-controllable focus cursor
-    local x, y = menuPos()
+    local focus = menuFoci[1 + menuFocus[menu]]
     ink(pal[8])
-    love.graphics.print(
-        ">",
-        x - mainFontSize - sp,
-        y + (sp + mainFontSize) * menuFocus[menu]
-    )
+    love.graphics.print(">", focus.x - mainFontSize - sp, focus.y + sp / 2 + 4)
 end
 
 function gotoMenu(kind, focus, callback)
@@ -103,7 +108,7 @@ local function changeFocus(delta)
 
     -- Normalize the foci
     menuFocus.main = menuFocus.main % 3
-    menuFocus.options = menuFocus.options % 2
+    menuFocus.options = menuFocus.options % 3
     menuFocus.pause = menuFocus.pause % 3
 end
 
@@ -133,12 +138,16 @@ function updateMenus()
     elseif menu == "options" then
         ticksSinceVolChange = ticksSinceVolChange + 1
 
-        if focus == 0 then
-            if input:pressed("action") then
+        if input:pressed("action") then
+            if focus == 0 then
                 clickSfx:clone():play()
                 cycleScale(1)
+            elseif focus == 2 then
+                gotoMenu(menuPrev.options)
             end
+        end
 
+        if focus == 0 then
             if input:pressed("left") then
                 clickSfx:clone():play()
                 cycleScale(-1)
