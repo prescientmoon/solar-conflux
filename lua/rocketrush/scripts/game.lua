@@ -23,23 +23,32 @@ local playerData = {
 
 local stars = {}
 
-local maxTrash = 8
+local maxTrash = 16
 externHealth = 0
 
 charge = 1
 local tempCharge = 1
 local maxCharge = 50
-local isInAura = false
 local hasAdddedCharge = false
 
 local outlineVisible = false
 
 trashTimer = 1
-local trashInterval = 1800
+local trashInterval = 100
 
 local trashObjs = {}
 
 local alive = true
+
+local function dynamicTrashInterval()
+    return math.floor(
+        remap(
+            math.min(charge, 0.75 * maxCharge),
+            1, 0.75 * maxCharge,
+            trashInterval, trashInterval / 4
+        )
+    )
+end
 
 local function die()
     alive = false
@@ -73,7 +82,7 @@ local function addTrash(x)
         y = math.random(-300, -100),
         tex = math.random(1,3),
         dy = 0,
-        spd = 5,
+        spd = 5 + math.random(0, 2) * (charge / maxCharge),
         accel = 0.1,
         r = 0
     }
@@ -81,53 +90,57 @@ local function addTrash(x)
 end
 
 local function updateTrash()
-    if alive == true then
-        for index, value in ipairs(trashObjs) do
-            value.dy = lerp(value.dy,value.spd,value.accel)
-            if value.y < 600 then
-                value.y = value.y + value.dy
-            else
-                value.y = math.random(-300, -100)
-                value.x = math.random(32,300-32)
-                value.dy = 0
-            end
-            value.r = value.r + 5
-            if aabb(value.x -16, value.y - 16, 32, 32, playerData.x-playerConfig.scaleX/2,playerData.y-playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY) then
-                addOrRemoveHealth(-1)
-                shakeCam(2)
-                value.y = math.random(-300, -100)
-                value.x = math.random(32,300-32)
-                value.dy = 0
-            end
-            if aabb(value.x -16, value.y - 16, 32, 32, playerData.x-(playerConfig.scaleX*4)/2,playerData.y-(playerConfig.scaleY*3)/2,playerConfig.scaleX*4,playerConfig.scaleY*3) then
-                isInAura = true
-                hasAdddedCharge = false
-                if auraTimer < 5 then
-                    auraTimer = auraTimer + 1
-                else
-                    if tempCharge < 10 and charge ~= 50 then
-                        auraSfx:setPitch(remap(tempCharge,1,10,0.8,1.2))
-                        love.audio.play(auraSfx)
-                        tempCharge = tempCharge + 1
-                        outlineVisible = true
-                    end
+    if not alive then return end
+
+    local isInAura = false
+    outlineVisible = false
+
+    if auraTimer < 5 then
+        auraTimer = auraTimer + 1
+    end
+
+    for index, value in ipairs(trashObjs) do
+        value.dy = lerp(value.dy,value.spd,value.accel)
+        if value.y < 500 then
+            value.y = value.y + value.dy
+        else
+            table.remove(trashObjs, index)
+            goto continue
+        end
+        value.r = value.r + 5
+        if aabb(value.x -16, value.y - 16, 32, 32, playerData.x-playerConfig.scaleX/2,playerData.y-playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY) then
+            addOrRemoveHealth(-1)
+            shakeCam(2)
+            table.remove(trashObjs, index)
+            charge = math.floor(charge / 2)
+            goto continue
+        end
+        if aabb(value.x -16, value.y - 16, 32, 32, playerData.x-(playerConfig.scaleX*4)/2,playerData.y-(playerConfig.scaleY*3)/2,playerConfig.scaleX*4,playerConfig.scaleY*3) then
+            isInAura = true
+            hasAdddedCharge = false
+            if tempCharge < 10 and charge ~= 50 then
+                outlineVisible = true
+                if auraTimer >= 5 then
+                    auraSfx:setPitch(remap(tempCharge,1,10,0.8,1.2))
+                    love.audio.play(auraSfx)
+                    tempCharge = tempCharge + 1
                     auraTimer = 1
                 end
-
-            else
-                outlineVisible = false
-                isInAura = false
             end
         end
-        if trashTimer < trashInterval then
-            trashTimer = trashTimer + 1
-        else
-            trashTimer = 1
-            if #trashObjs < maxTrash then
-                addTrash(math.random(32,300-32))
-            end
-        end     
+
+        ::continue::
     end
+
+    if trashTimer < dynamicTrashInterval() then
+        trashTimer = trashTimer + 1
+    else
+        trashTimer = 1
+        if #trashObjs < maxTrash then
+            addTrash(math.random(32,300-32))
+        end
+    end
+
     if isInAura == false and hasAdddedCharge == false then
         charge = charge + tempCharge
         tempCharge = 1
@@ -139,7 +152,12 @@ end
 local function drawTrash()
     for index, value in ipairs(trashObjs) do
         love.graphics.setColor(1,0,0,1)
-        love.graphics.rectangle("fill",value.x - 16, value.y - 16, 32,32)
+        love.graphics.rectangle(
+            "fill",
+            math.floor(value.x - 16),
+            math.floor(value.y - 16),
+            32,32
+        )
     end
 end
 
@@ -261,7 +279,7 @@ local function drawChargeBar()
     if outlineVisible then
         love.graphics.draw(outlineSpr,playerData.x,playerData.y,0,2,2,34/2,44/2)
     end
-    love.graphics.draw(chargeBarSprs, chargeBarQuads[charge],playerData.x + 20, playerData.y - 32)
+    love.graphics.draw(chargeBarSprs, chargeBarQuads[math.min(50, charge+tempCharge)],playerData.x + 20, playerData.y - 32)
 end
 
 function drawGame()
@@ -284,7 +302,6 @@ end
 function loadGame()
     stars = {}
     trashObjs = {}
-    addTrash(math.random(32,300-32))
     addStars(75)
     playerData = {
         x = playerConfig.startX,
@@ -297,4 +314,10 @@ function loadGame()
     }
     externHealth = playerData.health
     alive = true
+    charge = 1
+    trashTimer = 1
+    auraTimer = 1
+    hasAdddedCharge = false
+    outlineVisible = false
+    addTrash(math.random(32,300-32))
 end
