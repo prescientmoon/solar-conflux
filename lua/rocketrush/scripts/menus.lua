@@ -97,14 +97,19 @@ end
 
 local ticksSinceVolChange = 0 -- :(
 
-function updateMenus()
-    if input:pressed("up") then menuFocus[menu] = menuFocus[menu] - 1 end
-    if input:pressed("down") then menuFocus[menu] = menuFocus[menu] + 1 end
+local function changeFocus(delta)
+    menuFocus[menu] = menuFocus[menu] + delta
+    selectSfx:clone():play()
 
     -- Normalize the foci
     menuFocus.main = menuFocus.main % 3
     menuFocus.options = menuFocus.options % 2
     menuFocus.pause = menuFocus.pause % 3
+end
+
+function updateMenus()
+    if input:pressed("up") then changeFocus(-1) end
+    if input:pressed("down") then changeFocus(1) end
 
     local focus = menuFocus[menu]
 
@@ -116,11 +121,13 @@ function updateMenus()
             elseif focus == 1 then
                 gotoMenu("options", 0)
             elseif focus == 2 then
+                clickSfx:clone():play()
                 love.event.quit()
             end
         end
 
         if input:pressed("back") then
+            clickSfx:clone():play()
             love.event.quit()
         end
     elseif menu == "options" then
@@ -128,19 +135,30 @@ function updateMenus()
 
         if focus == 0 then
             if input:pressed("action") then
+                clickSfx:clone():play()
                 cycleScale(1)
             end
 
-            if input:pressed("left") then cycleScale(-1) end
-            if input:pressed("right") then cycleScale(1) end
+            if input:pressed("left") then
+                clickSfx:clone():play()
+                cycleScale(-1)
+            end
+
+            if input:pressed("right") then
+                clickSfx:clone():play()
+                cycleScale(1)
+            end
         end
 
         if focus == 1 and ticksSinceVolChange % 4 == 0 then
             if input:down("left") then
+                selectSfx:clone():play()
                 setVolume(volume - 1)
                 ticksSinceVolChange = 0
             end
+
             if input:down("right") then
+                selectSfx:clone():play()
                 setVolume(volume + 1)
                 ticksSinceVolChange = 0
             end

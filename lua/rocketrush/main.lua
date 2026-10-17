@@ -27,7 +27,9 @@ swapStateSprs:setFilter("nearest", "nearest")
 
 --audio
 swapStateSfx = love.audio.newSource("audio/swapState.wav", "static")
-local sounds = { swapStateSfx }
+clickSfx = love.audio.newSource("audio/click.wav", "static")
+selectSfx = love.audio.newSource("audio/select.wav", "static")
+local sounds = { swapStateSfx, clickSfx, selectSfx }
 
 function setVolume(newVolume)
     volume = clamp(newVolume, 0, 10)
