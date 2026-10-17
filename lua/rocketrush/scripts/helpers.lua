@@ -50,7 +50,7 @@ function updateSwapState()
         end
         if swapStateIndex == 10 then
             swapStateSfx:play()
-            newStateLoad()
+            if newStateLoad then newStateLoad() end
             newStateLoad = nil
             state = desiredNewState
         end

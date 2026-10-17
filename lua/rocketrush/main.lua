@@ -12,12 +12,13 @@ require "scripts/menus"
 require "scripts/game"
 
 --states and screen stuff
-local screenWidth = 300
-local screenHeight = 400
-local scale = 1
+screenWidth = 300
+screenHeight = 400
+scale = 1
 state = "none"
 local gameCanvas = nil
 debug = false
+volume = 10 -- min is 0, max is 10
 
 --sprites and spritesheets
 swapStateSprs = love.graphics.newImage("sprites/scrnTrnsGB.png")
@@ -26,6 +27,14 @@ swapStateSprs:setFilter("nearest", "nearest")
 
 --audio
 swapStateSfx = love.audio.newSource("audio/swapState.wav", "static")
+local sounds = { swapStateSfx }
+
+function setVolume(newVolume)
+    volume = clamp(newVolume, 0, 10)
+    for _, effect in pairs(sounds) do
+        effect:setVolume(volume / 10)
+    end
+end
 
 --fonts
 mainFontSize = 32
@@ -80,7 +89,7 @@ function love.load()
     --initialize colors and palette
     initColors()
     --swap scene to menus
-    swapState("menu", loadMenus)
+    swapState("menu")
 end
 
 --main update
@@ -93,15 +102,7 @@ function love.update(dt)
     end
     --cycle scale with F11
     if input:pressed("scale") then
-        if scale < 6 then
-            scale = scale + 1
-            love.window.setMode( screenWidth*scale,screenHeight*scale,{vsync = true})
-            recreateCanvases()
-        else
-            scale = 1
-            love.window.setMode( screenWidth*scale,screenHeight*scale,{vsync = true})
-            recreateCanvases()
-        end
+        cycleScale(1)
     end
     --update scene swapper
     updateSwapState()
@@ -112,6 +113,13 @@ function love.update(dt)
         updateGame()
     end
 end
+
+function cycleScale(delta)
+    scale = (scale - 1 + delta) % 6 + 1
+    love.window.setMode(screenWidth * scale, screenHeight * scale, {vsync = true})
+    recreateCanvases()
+end
+
 
 function drawStuffHere()
     --main drawing function, draw things here
@@ -136,4 +144,3 @@ function love.draw()
         drawDebug()
     end
 end
-

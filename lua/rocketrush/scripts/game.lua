@@ -76,6 +76,10 @@ end
 function updateGame()
     updatePlayer()
     updateStars()
+
+    if input:pressed("back") then
+        gotoMenu("pause", 0)
+    end
 end
 
 function loadGame()

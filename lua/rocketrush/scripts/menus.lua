@@ -1,22 +1,30 @@
---temporary menus, includes settings and credits too
 local menu = "main"
-local focus = 0 -- the index of the focused button
 local sp = 10 -- spacing
+
+-- 0-based indices for the focused button in each menu
+local menuFocus = { main = 0, options = 0, pause = 0 }
+
+-- The previous menu we entered each menu from
+local menuPrev = { main = nil, options = nil, pause = nil }
 
 local function menuPos()
     if menu == "main" then
         return 70, 125
+    elseif menu == "pause" then
+        return 55, 30
+    elseif menu == "options" then
+        return 55, 30
     end
 end
 
 local function menuText(index, text)
     local x, y = menuPos()
-    if index == focus then
+    if index == menuFocus[menu] then
         ink(pal[8])
     else
         ink(pal[5])
     end
-    love.graphics.print(text, x, y + (sp + mainFontSize) * index, rot)
+    love.graphics.print(text, x, y + (sp + mainFontSize) * index)
 end
 
 function drawMenus()
@@ -25,36 +33,135 @@ function drawMenus()
         menuText(1, "Options")
         menuText(2, "Quit")
 
-        local x, y = menuPos()
-        ink(pal[8])
-        love.graphics.print(">", x - mainFontSize - sp, y + (sp + mainFontSize) * focus)
-
         ink(pal[6])
-        love.graphics.print("A game by:\n - epujellysilly\n - moonberry\n - prescientmoon", 60, 275, 0, 0.4, 0.5)
+        love.graphics.print(
+            "A game by:\n - epujellysilly\n - moonberry\n - prescientmoon",
+            60, 275, 0, 0.5, 0.5
+        )
+    elseif menu == "pause" then
+        menuText(0, "Continue")
+        menuText(1, "Options")
+        menuText(2, "Quit")
     elseif menu == "options" then
-        love.graphics.print("Options menu!", 10, 10,0, 0.125, 0.125)
+        menuText(0, "Scale: " .. scale .. "x")
+        menuText(1, "Volume")
+
+        local x, y = menuPos()
+        local ybar = y + 2 * (sp + mainFontSize)
+        local wbar = screenWidth - 2 * sp - x
+        local wseg = wbar / 10
+        local barsp = 2
+
+        for i=0,9 do
+            if i >= volume then
+                ink(pal[5])
+            elseif menuFocus[menu] == 1 then
+                ink(pal[8])
+            else
+                ink(pal[6])
+            end
+
+            love.graphics.rectangle(
+                "fill",
+                x + barsp / 2 + wseg * i,
+                ybar + 5,
+                wseg - barsp,
+                mainFontSize-5
+            )
+        end
     end
+
+    -- The keyboard-controllable focus cursor
+    local x, y = menuPos()
+    ink(pal[8])
+    love.graphics.print(
+        ">",
+        x - mainFontSize - sp,
+        y + (sp + mainFontSize) * menuFocus[menu]
+    )
 end
+
+function gotoMenu(kind, focus, callback)
+    if state == "menu" then
+        menuPrev[kind] = menu
+    else
+        menuPrev[kind] = nil
+    end
+
+    swapState("menu", function()
+        menu = kind
+        if focus ~= nil then menuFocus[menu] = focus end
+        if callback then callback() end
+    end)
+end
+
+local ticksSinceVolChange = 0 -- :(
 
 function updateMenus()
-    local ix, iy = input:get "move"
+    if input:pressed("up") then menuFocus[menu] = menuFocus[menu] - 1 end
+    if input:pressed("down") then menuFocus[menu] = menuFocus[menu] + 1 end
 
-    if input:pressed("up") then
-        focus = focus - 1
-    end
-    if input:pressed("down") then
-        focus = focus + 1
-    end
+    -- Normalize the foci
+    menuFocus.main = menuFocus.main % 3
+    menuFocus.options = menuFocus.options % 2
+    menuFocus.pause = menuFocus.pause % 3
 
+    local focus = menuFocus[menu]
+
+    -- TODO: sound effects for button clicks
     if menu == "main" then
-        focus = focus % 3
+        if input:pressed("action") then
+            if focus == 0 then
+                swapState("game", loadGame)
+            elseif focus == 1 then
+                gotoMenu("options", 0)
+            elseif focus == 2 then
+                love.event.quit()
+            end
+        end
+
+        if input:pressed("back") then
+            love.event.quit()
+        end
+    elseif menu == "options" then
+        ticksSinceVolChange = ticksSinceVolChange + 1
+
+        if focus == 0 then
+            if input:pressed("action") then
+                cycleScale()
+            end
+
+            if input:pressed("left") then cycleScale(-1) end
+            if input:pressed("right") then cycleScale(1) end
+        end
+
+        if focus == 1 and ticksSinceVolChange % 4 == 0 then
+            if input:down("left") then
+                setVolume(volume - 1)
+                ticksSinceVolChange = 0
+            end
+            if input:down("right") then
+                setVolume(volume + 1)
+                ticksSinceVolChange = 0
+            end
+        end
+
+        if input:pressed("back") then
+            gotoMenu(menuPrev.options)
+        end
+    elseif menu == "pause" then
+        if input:pressed("action") then
+            if focus == 0 then
+                swapState("game")
+            elseif focus == 1 then
+                gotoMenu("options", 0)
+            elseif focus == 2 then
+                gotoMenu("main", 0)
+            end
+        end
+
+        if input:pressed("back") then
+            swapState("game")
+        end
     end
-
-    if input:pressed("action") then
-        swapState("game", loadGame)
-    end
-end
-
-function loadMenus()
-
 end
