@@ -102,6 +102,8 @@ function love.update(dt)
     --update various scenes
     if state == "menu" then
         updateMenus()
+    elseif state == "game" then
+        updateGame()
     end
 end
 
@@ -110,6 +112,8 @@ function drawStuffHere()
     love.graphics.clear(ink(pal[1],true))
     if state == "menu" then
         drawMenus()
+    elseif state == "game" then
+        drawGame()
     end
     drawSwapState()
 end
