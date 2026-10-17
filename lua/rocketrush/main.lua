@@ -39,8 +39,8 @@ input = baton.new {
     down = {'key:down', 'key:s', 'axis:lefty+', 'button:dpdown'},
     action = {'key:space','key:return', 'button:a'},
     back = {'key:escape', 'button:b', 'button:start'},
-    debug = {'key:f12'},
-    scale = {'key:f11'}
+    debug = {'key:='},
+    scale = {'key:-'}
   },
   pairs = {
     move = {'left', 'right', 'up', 'down'}
