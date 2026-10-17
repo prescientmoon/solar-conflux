@@ -79,3 +79,7 @@ end
 function remap(val, low, high, low2, high2)
     return low2 + (val - low) * (high2 - low2) / (high - low)
 end
+
+function shakeCam(intensity)
+    shake = intensity
+end

@@ -8,7 +8,8 @@ local playerConfig = {
     acceleration = 0.2,
     rotLerp = 0.1,
     isDebugPlayer = true,
-    maxSpeedX = 5
+    maxSpeedX = 5,
+    startHealth = 3
 }
 
 local playerData = {
@@ -18,9 +19,85 @@ local playerData = {
     dy = 0,
     r = 0,
     rTarg = 0,
+    health = playerConfig.startHealth
 }
 
 local stars = {}
+
+local maxTrash = 8
+externHealth = 0
+
+trashTimer = 1
+local trashInterval = 1800
+
+local trashObjs = {}
+
+local alive = true
+
+local function die()
+    alive = false
+    playerData.x = 999
+end
+
+local function addOrRemoveHealth(val)
+    playerData.health = playerData.health + val
+    externHealth = playerData.health
+    if playerData.health < 1 then
+        die()
+    end
+end
+
+local function addTrash(x)
+    local trash = {
+        x = x,
+        y = math.random(-300, -100),
+        tex = math.random(1,3),
+        dy = 0,
+        spd = 5,
+        accel = 0.1,
+        r = 0
+    }
+    table.insert(trashObjs,trash)
+end
+
+local function updateTrash()
+    if alive == true then
+        for index, value in ipairs(trashObjs) do
+            value.dy = lerp(value.dy,value.spd,value.accel)
+            if value.y < 600 then
+                value.y = value.y + value.dy
+            else
+                value.y = math.random(-300, -100)
+                value.x = math.random(32,300-32)
+                value.dy = 0
+            end
+            value.r = value.r + 5
+            if aabb(value.x -16, value.y - 16, 32, 32, playerData.x-playerConfig.scaleX/2,playerData.y-playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY) then
+                addOrRemoveHealth(-1)
+                shakeCam(2)
+                value.y = math.random(-300, -100)
+                value.x = math.random(32,300-32)
+                value.dy = 0
+            end
+        end
+        if trashTimer < trashInterval then
+            trashTimer = trashTimer + 1
+        else
+            trashTimer = 1
+            if #trashObjs < maxTrash then
+                addTrash(math.random(32,300-32))
+            end
+        end     
+    end
+
+end
+
+local function drawTrash()
+    for index, value in ipairs(trashObjs) do
+        love.graphics.setColor(1,0,0,1)
+        love.graphics.rectangle("fill",value.x - 16, value.y - 16, 32,32)
+    end
+end
 
 local function drawPlayer()
     if playerConfig.isDebugPlayer == true then
@@ -30,13 +107,15 @@ local function drawPlayer()
 end
 
 local function updatePlayer()
-    local ix, iy = input:get "move"
-    playerData.dx = lerp(playerData.dx, ix * playerConfig.maxSpeedX, playerConfig.acceleration)
-    playerData.rTarg = lerp(playerData.rTarg, ix, playerConfig.rotLerp)
-    playerData.r = lerp(-10,10, playerData.rTarg)
-    playerData.y = lerp(playerData.y, (iy * 50) + playerConfig.startY, 0.05)
-    playerData.x = playerData.x + playerData.dx
-    playerData.x = clamp(0+ playerConfig.scaleX/2,playerData.x,300- playerConfig.scaleX/2)
+    if alive == true then
+        local ix, iy = input:get "move"
+        playerData.dx = lerp(playerData.dx, ix * playerConfig.maxSpeedX, playerConfig.acceleration)
+        playerData.rTarg = lerp(playerData.rTarg, ix, playerConfig.rotLerp)
+        playerData.r = lerp(-10,10, playerData.rTarg)
+        playerData.y = lerp(playerData.y, (iy * 50) + playerConfig.startY, 0.05)
+        playerData.x = playerData.x + playerData.dx
+        playerData.x = clamp(0+ playerConfig.scaleX/2,playerData.x,300- playerConfig.scaleX/2)
+    end
 end
 
 local function addStars(count)
@@ -53,10 +132,12 @@ local function addStars(count)
 end
 
 local function updateStars()
-    for index, value in ipairs(stars) do
-        value.y = value.y + value.spd
-        if value.y > 500 then
-            value.y = math.random(-50,-100)
+    if alive == true then
+        for index, value in ipairs(stars) do
+            value.y = value.y + value.spd
+            if value.y > 500 then
+                value.y = math.random(-50,-100)
+            end
         end
     end
 end
@@ -71,19 +152,23 @@ end
 function drawGame()
     drawStars()
     drawPlayer()
+    drawTrash()
 end
 
 function updateGame()
     updatePlayer()
     updateStars()
-
+    updateTrash()
     if input:pressed("back") then
         gotoMenu("pause", 0)
     end
 end
 
 function loadGame()
-    addStars(125)
+    stars = {}
+    trashObjs = {}
+    addTrash(math.random(32,300-32))
+    addStars(75)
     playerData = {
         x = playerConfig.startX,
         y = playerConfig.startY,
@@ -91,5 +176,7 @@ function loadGame()
         dy = 0,
         r = 0,
         rTarg = 0,
+        health = playerConfig.startHealth
     }
+    externHealth = playerData.health
 end

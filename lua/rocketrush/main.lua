@@ -19,6 +19,9 @@ state = "none"
 local gameCanvas = nil
 debug = false
 volume = 10 -- min is 0, max is 10
+camOX = 0
+camOY = 0
+shake = 0
 
 --sprites and spritesheets
 swapStateSprs = love.graphics.newImage("sprites/scrnTrnsGB.png")
@@ -64,6 +67,15 @@ input = baton.new {
   joystick = love.joystick.getJoysticks()[1],
 }
 
+local function updateShake()
+    camOX = math.random(-16,16)
+    camOY = math.random(-16,16)
+    camOX = camOX * shake
+    camOY = camOY * shake
+    shake = shake*0.95
+    if (shake<0.05) then shake=0 end
+end
+
 --re generate drawing canvas with screen scale
 local function recreateCanvases()
     gameCanvas = love.graphics.newCanvas(screenWidth, screenHeight, { type = '2d', readable = true })
@@ -77,6 +89,8 @@ local function drawDebug()
     love.graphics.print("FPS: "..love.timer.getFPS(), sp, 2 * sp)
     love.graphics.print("Scale: "..scale, sp, 3 * sp + mainFontSize)
     love.graphics.print("State: "..state, sp, 4 * sp + mainFontSize * 2)
+    love.graphics.print("TrashTimer: "..trashTimer, sp, 5 *sp + mainFontSize* 3)
+    love.graphics.print("PHealth: "..externHealth, sp, 6 *sp + mainFontSize* 4)
 end
 
 --main init
@@ -96,6 +110,7 @@ end
 
 --main update
 function love.update(dt)
+    updateShake()
     --update input
     input:update()
     --toggle debug mode with F12
@@ -137,11 +152,11 @@ end
 function love.draw()
     love.graphics.setFont(mainFont)
     --drawing function to draw canvas and debug overlay
-    love.graphics.clear(ink(pal[1],true))
+    love.graphics.clear(ink(pal[2],true))
     love.graphics.setCanvas{gameCanvas, stencil=true}
     drawStuffHere()
     love.graphics.setCanvas()
-    love.graphics.draw(gameCanvas, 0, 0, 0, scale, scale)
+    love.graphics.draw(gameCanvas, camOX, camOY, 0, scale, scale)
     if debug then
         drawDebug()
     end
