@@ -11,9 +11,9 @@ local function menuPos()
     if menu == "main" then
         return 70, 125
     elseif menu == "pause" then
-        return 55, 30
+        return 60, 30
     elseif menu == "options" then
-        return 55, 30
+        return 60, 30
     end
 end
 
