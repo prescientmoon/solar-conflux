@@ -60,7 +60,7 @@ end
 
 function drawSwapState()
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.draw(swapStateSprs, swapStateQuads[math.floor(swapStateIndex)], 0, 0, 0, 4, 4)
+    love.graphics.draw(swapStateSprs, swapStateQuads[math.floor(swapStateIndex)], 0, 0, 0, 2, 2)
 end
 
 --clamp between 2 values
