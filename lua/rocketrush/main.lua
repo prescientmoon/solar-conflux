@@ -28,8 +28,15 @@ swapStateSprs = love.graphics.newImage("sprites/scrnTrnsGB.png")
 swapStateQuads = generateQuads(swapStateSprs, 150, 200, 4, 5)
 swapStateSprs:setFilter("nearest", "nearest")
 
+chargeBarSprs = love.graphics.newImage("sprites/chargeBar.png")
+chargeBarQuads = generateQuads(chargeBarSprs, 64, 64, 5, 10)
+chargeBarSprs:setFilter("nearest", "nearest")
+
 rocketSprite = love.graphics.newImage("sprites/Rocket.png")
 rocketSprite:setFilter("nearest", "nearest")
+
+outlineSpr = love.graphics.newImage("sprites/shipOutline.png")
+outlineSpr:setFilter("nearest","nearest")
 
 flameWidth = 16
 flameHeight = 18
@@ -39,9 +46,10 @@ flameSprites:setFilter("nearest", "nearest")
 
 --audio
 swapStateSfx = love.audio.newSource("audio/swapState.wav", "static")
+auraSfx = love.audio.newSource("audio/aura.wav", "static")
 clickSfx = love.audio.newSource("audio/click.wav", "static")
 selectSfx = love.audio.newSource("audio/select.wav", "static")
-local sounds = { swapStateSfx, clickSfx, selectSfx }
+local sounds = { swapStateSfx, clickSfx, selectSfx, auraSfx }
 
 function setVolume(newVolume)
     volume = clamp(newVolume, 0, 10)
@@ -100,6 +108,7 @@ local function drawDebug()
     love.graphics.print("State: "..state, sp, 4 * sp + mainFontSize * 2)
     love.graphics.print("TrashTimer: "..trashTimer, sp, 5 *sp + mainFontSize* 3)
     love.graphics.print("PHealth: "..externHealth, sp, 6 *sp + mainFontSize* 4)
+    love.graphics.print("Charge: "..charge, sp, 7 *sp + mainFontSize* 5)
 end
 
 --main init

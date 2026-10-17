@@ -26,6 +26,14 @@ local stars = {}
 local maxTrash = 8
 externHealth = 0
 
+charge = 1
+local tempCharge = 1
+local maxCharge = 50
+local isInAura = false
+local hasAdddedCharge = false
+
+local outlineVisible = false
+
 trashTimer = 1
 local trashInterval = 1800
 
@@ -38,6 +46,8 @@ local function die()
     playerData.x = 999
 end
 
+local auraTimer = 1
+
 local function addOrRemoveHealth(val)
     playerData.health = playerData.health + val
     externHealth = playerData.health
@@ -45,6 +55,7 @@ local function addOrRemoveHealth(val)
         die()
     end
 end
+
 
 local function addTrash(x)
     local trash = {
@@ -78,6 +89,25 @@ local function updateTrash()
                 value.x = math.random(32,300-32)
                 value.dy = 0
             end
+            if aabb(value.x -16, value.y - 16, 32, 32, playerData.x-(playerConfig.scaleX*4)/2,playerData.y-(playerConfig.scaleY*3)/2,playerConfig.scaleX*4,playerConfig.scaleY*3) then
+                isInAura = true
+                hasAdddedCharge = false
+                if auraTimer < 5 then
+                    auraTimer = auraTimer + 1
+                else
+                    if tempCharge < 10 and charge ~= 50 then
+                        auraSfx:setPitch(remap(tempCharge,1,10,0.8,1.2))
+                        love.audio.play(auraSfx)
+                        tempCharge = tempCharge + 1
+                        outlineVisible = true
+                    end
+                    auraTimer = 1
+                end
+
+            else
+                outlineVisible = false
+                isInAura = false
+            end
         end
         if trashTimer < trashInterval then
             trashTimer = trashTimer + 1
@@ -88,7 +118,12 @@ local function updateTrash()
             end
         end     
     end
-
+    if isInAura == false and hasAdddedCharge == false then
+        charge = charge + tempCharge
+        tempCharge = 1
+        hasAdddedCharge = true
+    end
+    charge = clamp(1,charge,maxCharge)
 end
 
 local function drawTrash()
@@ -125,6 +160,10 @@ local function drawPlayer()
         flameWidth / 2,
         -rocketSprite:getHeight() / 2 + 8
     )
+    if debug then
+        love.graphics.setColor(0,0,1,1)
+        love.graphics.rectangle("line",playerData.x-(playerConfig.scaleX*4)/2,playerData.y-(playerConfig.scaleY*3)/2,playerConfig.scaleX*4,playerConfig.scaleY*3)
+    end
 end
 
 local function updatePlayer()
@@ -177,10 +216,19 @@ local function drawStars()
     end
 end
 
+local function drawChargeBar()
+    love.graphics.setColor(1,1,1,1)
+    if outlineVisible then
+        love.graphics.draw(outlineSpr,playerData.x,playerData.y,0,2,2,34/2,44/2)
+    end
+    love.graphics.draw(chargeBarSprs, chargeBarQuads[charge],playerData.x + 20, playerData.y - 32)
+end
+
 function drawGame()
     drawStars()
     drawPlayer()
     drawTrash()
+    drawChargeBar()
 end
 
 function updateGame()
