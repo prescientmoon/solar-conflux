@@ -36,7 +36,7 @@ function drawMenus()
         ink(pal[6])
         love.graphics.print(
             "A game by:\n - epujellysilly\n - moonberry\n - prescientmoon",
-            60, 275, 0, 0.5, 0.5
+            45, 275, 0, 0.5, 0.5
         )
     elseif menu == "pause" then
         menuText(0, "Continue")
@@ -128,7 +128,7 @@ function updateMenus()
 
         if focus == 0 then
             if input:pressed("action") then
-                cycleScale()
+                cycleScale(1)
             end
 
             if input:pressed("left") then cycleScale(-1) end
