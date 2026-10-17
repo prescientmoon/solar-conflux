@@ -13,7 +13,7 @@ local function menuPos()
     elseif menu == "pause" then
         return 60, 30
     elseif menu == "options" then
-        return 60, 30
+        return 55, 30
     end
 end
 
