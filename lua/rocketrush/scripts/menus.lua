@@ -12,5 +12,5 @@ function updateMenus()
 end
 
 function loadMenus()
-    
+
 end

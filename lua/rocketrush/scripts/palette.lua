@@ -15,22 +15,13 @@ function initColors()
 end
 
 --function to convert hexcode to RGB and return raw color data or set love2d color
-function ink(hexstring,raw)
-    
-    local hex = hexstring:gsub("^#", "")
-
-    if #hex == 3 or #hex == 4 then
-        hex = hex:gsub(".", function(c) return c..c end)
-    end
-
+function ink(hex,raw)
     local r, g, b, a
     if #hex == 6 then
         a = 0xFF
         r, g, b = hex:match("^(%x%x)(%x%x)(%x%x)$")
-    elseif #hex == 8 then
-        a, r, g, b = hex:match("^(%x%x)(%x%x)(%x%x)(%x%x)$")
     else
-        error(("Invalid hex color “%s” (expected 3,4,6 or 8 hex digits)"):format(hexstring))
+        error(("Invalid hex color “%s” (expected 6 hex digits)"):format(hex))
     end
     r = tonumber(r, 16) / 255
     g = tonumber(g, 16) / 255
