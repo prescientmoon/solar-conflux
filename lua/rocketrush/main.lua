@@ -1,6 +1,6 @@
 --main script
 
-local tick = require "libs/tick" --framerate lock library
+tick = require "libs/tick" --framerate lock library
 local baton = require 'libs/baton' --input manager library
 
 --helper scripts
@@ -27,6 +27,15 @@ shake = 0
 swapStateSprs = love.graphics.newImage("sprites/scrnTrnsGB.png")
 swapStateQuads = generateQuads(swapStateSprs, 150, 200, 4, 5)
 swapStateSprs:setFilter("nearest", "nearest")
+
+rocketSprite = love.graphics.newImage("sprites/Rocket.png")
+rocketSprite:setFilter("nearest", "nearest")
+
+flameWidth = 16
+flameHeight = 18
+flameSprites = love.graphics.newImage("sprites/Flames.png")
+flameQuads = generateQuads(flameSprites, flameWidth, flameHeight, 5, 1)
+flameSprites:setFilter("nearest", "nearest")
 
 --audio
 swapStateSfx = love.audio.newSource("audio/swapState.wav", "static")

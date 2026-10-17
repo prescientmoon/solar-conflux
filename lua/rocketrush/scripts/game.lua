@@ -1,8 +1,8 @@
 --game scene
 
 local playerConfig = {
-    scaleX = 32,
-    scaleY = 32,
+    scaleX = 20,
+    scaleY = 30,
     startX = 150,
     startY = 300,
     acceleration = 0.2,
@@ -102,7 +102,19 @@ end
 local function drawPlayer()
     if playerConfig.isDebugPlayer == true then
         love.graphics.setColor(1,1,1,1)
-        love.graphics.rectangle("fill",playerData.x - playerConfig.scaleX/2,playerData.y - playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY)
+        love.graphics.draw(
+            rocketSprite,
+            playerData.x - rocketSprite:getWidth() / 2,
+            playerData.y - rocketSprite:getHeight() / 2
+        )
+
+        local flameQuad = flameQuads[1 + math.floor(tick.frame / 2) % #flameQuads]
+        love.graphics.draw(
+            flameSprites,
+            flameQuad,
+            playerData.x - flameWidth / 2,
+            playerData.y + rocketSprite:getHeight() / 2 - 8
+        )
     end
 end
 
@@ -179,4 +191,5 @@ function loadGame()
         health = playerConfig.startHealth
     }
     externHealth = playerData.health
+    alive = true
 end
