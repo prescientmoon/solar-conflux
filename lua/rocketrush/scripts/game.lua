@@ -47,12 +47,22 @@ local function die()
 end
 
 local auraTimer = 1
+local starBoomAnimations = {}
 
 local function addOrRemoveHealth(val)
     playerData.health = playerData.health + val
     externHealth = playerData.health
     if playerData.health < 1 then
         die()
+    end
+
+    if val < 0 then
+        for i=0,-val-1 do
+            table.insert(
+                starBoomAnimations,
+                { start = tick.frame, index = playerData.health + i }
+            )
+        end
     end
 end
 
@@ -166,6 +176,36 @@ local function drawPlayer()
     end
 end
 
+local function drawHearts()
+    local heartW = heartSprite:getWidth()
+    local heartH = heartSprite:getHeight()
+    local hpSp = 4
+    local hpX = hpSp * 2
+    local hpY = screenHeight - heartH - hpSp * 2
+    love.graphics.setColor(1,1,1,1)
+    for i=0,playerData.health-1 do
+        love.graphics.draw(
+            heartSprite,
+            hpX + i * (heartW + hpSp),
+            hpY + hpSp / 2
+        )
+    end
+
+    for i, v in ipairs(starBoomAnimations) do
+        local frameIx = math.floor((tick.frame - v.start) / 6)
+        if frameIx >= 12 then
+            table.remove(starBoomAnimations, i)
+        else
+            love.graphics.draw(
+                heartBoomSprites,
+                heartBoomQuads[frameIx + 1],
+                hpX + v.index * (heartW + hpSp),
+                hpY + hpSp /2
+            )
+        end
+    end
+end
+
 local function updatePlayer()
     if alive == true then
         local ix, iy = input:get "move"
@@ -229,6 +269,7 @@ function drawGame()
     drawPlayer()
     drawTrash()
     drawChargeBar()
+    drawHearts()
 end
 
 function updateGame()
