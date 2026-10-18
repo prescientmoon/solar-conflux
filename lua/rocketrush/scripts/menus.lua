@@ -55,7 +55,7 @@ function drawMenus()
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.draw(
         rocketBgSprites,
-        rocketBgQuads[1 + tick.frame % #rocketBgQuads],
+        rocketBgQuads[1 + math.floor(tick.frame / 4) % #rocketBgQuads],
         0, 0, 0, 2, 2
     )
 
