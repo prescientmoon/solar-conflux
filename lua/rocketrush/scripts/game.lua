@@ -611,7 +611,7 @@ function loadGame()
     }
     externHealth = playerData.health
     alive = true
-    charge = 50
+    charge = 1
     trashTimer = 1
     monsterHealth = 5
     auraTimer = 1
