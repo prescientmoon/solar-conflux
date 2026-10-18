@@ -15,7 +15,7 @@ require "scripts/game"
 --states and screen stuff
 screenWidth = 300
 screenHeight = 400
-scale = 1
+scale = 1 -- min is 1, max is 6
 state = "none"
 local gameCanvas = nil
 debug = false
@@ -196,9 +196,13 @@ function love.update(dt)
         updateGame()
     end
 
-    if state ~= "game" then
+    if state ~= "game" and (state ~= "menu" or menu ~= "gameover") then
         mainMusic:setFilter(nil)
         mainMusic:setPitch(1)
+    end
+
+    if state ~= "menu" or menu ~= "gameover" then
+        clickSfx:setPitch(1)
     end
 end
 

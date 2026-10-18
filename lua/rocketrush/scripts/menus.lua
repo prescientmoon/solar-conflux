@@ -1,4 +1,4 @@
-local menu = "main"
+menu = "main"
 local sp = 10 -- spacing
 
 -- 0-based indices for the focused button in each menu
@@ -8,11 +8,20 @@ local menuFocus = { main = 0, options = 0, pause = 0, gameover = 0 }
 local menuPrev = { main = nil, options = nil, pause = nil, gameover = 0 }
 
 -- These get reset every frame
-local menuX = 0
-local menuY = 0
-local menuFoci = {}
+local menuX
+local menuY
+local menuFoci
 
+local scoreX
+local scoreY
+local scoreRow
+local score
+local timePerScoreRow
+local scoreDone
+
+-- Get reset when switching
 local mainMenuTimer = 0
+local gameOverTimer = 0
 
 local function drawStrokedText(text, color, outline, ocolor, x, y, r, sx, sy)
     ink(ocolor)
@@ -51,6 +60,40 @@ local function drawBordered(border, bcolor, color, x, y, w, h)
 
     ink(color)
     love.graphics.rectangle("fill", x, y, w, h)
+end
+
+local function scoreText(text, amount, kind)
+    local color = pal[6]
+    local ocolor = pal[3]
+    local scoreSp = 2
+    local mult = 2
+    if kind == "final" then 
+        color = pal[8]
+        ocolor = pal[6]
+    end
+    if timePerScoreRow * scoreRow > gameOverTimer then return end
+    if timePerScoreRow * scoreRow == gameOverTimer then
+        clickSfx:clone():play()
+        timePerScoreRow = math.floor(timePerScoreRow * 0.9)
+        clickSfx:setPitch(clickSfx:getPitch()*1.05)
+    end
+    drawStrokedText(
+        text,
+        color, 2, ocolor,
+        scoreX, scoreY + scoreSp / 2 + 4,
+        0, 1 / mult, 1 / mult
+    )
+    local w = mainFont:getWidth("" .. amount)
+    drawStrokedText(
+        "" .. amount,
+        color, 2, ocolor,
+        screenWidth - w / mult - 20, scoreY + scoreSp / 2 + 4,
+        0, 1/mult, 1/mult
+    )
+    scoreY = scoreY + scoreSp + mainFontSize / 2
+    scoreRow = scoreRow + 1
+
+    if kind == nil then score = score + amount end
 end
 
 function drawMenus()
@@ -198,16 +241,63 @@ function drawMenus()
         menuY = 350
         menuText(2, "Back")
     elseif menu == "gameover" then
-        menuX = 60
-        menuY = 310
+        scoreX = 20
+        scoreY = 160
+        scoreRow = 0
+        score = 0
 
-        menuText(0, "Go again?")
-        menuText(1, "Enough...")
+        if trashDodged > 0 then
+            scoreText("Dodge x" .. trashDodged .. ":", trashDodged * 2)
+        end
+
+        if trashPierced > 0 then
+            scoreText("Pierce x" .. trashDodged .. ":", trashPierced * 75)
+        end
+
+        if monsterHits > 0 then
+            scoreText("Attack x" .. monsterHits .. ":", monsterHits * 15)
+        end
+
+        if overheal > 0 then
+            scoreText("Overheal x" .. overheal .. ":", overheal * 25)
+        end
+
+        if hitsTaken > 0 then
+            scoreText("Got hit x" .. hitsTaken .. ":", hitsTaken * (-25))
+        else
+            scoreText("Untouchable:", 250)
+        end
+
+        if gameOver == 2 then
+            scoreText("Victory bonus:", 100)
+        end
+
+        local t = remap(gameTimer, 0, 3600, 0, 1)
+        local timeBonus = math.floor(remap(t * t * t, 0, 1, 1000, 0))
+        if timeBonus > 0 and gameOver == 1 then timeBonus = 0 end
+        if gameTimer <= 3600 or gameTimer >= 3600 * 2 then
+            if timeBonus ~= 0 then
+                scoreText("Time bonus:", timeBonus)
+            end
+        end
+
+        scoreY = 290
+        if score > 0 then
+            scoreText("Total:", score,"final")
+        elseif score < 0 then
+            scoreText("Baffling...", score,"final")
+        else
+            scoreText("A strange void!", ":3","final")
+        end
 
         local sprite
         if gameOver == 1 then
+            mainMusic:setFilter { type="highpass",  lowgain=0.01,volume=0.7 }
+            mainMusic:setPitch(0.7)
             sprite = gameOverDefeatSprite
         elseif gameOver == 2 then
+            mainMusic:setFilter { type="highpass",  lowgain=0.1,volume=0.7 }
+            mainMusic:setPitch(1.3)
             sprite = gameOverWinSprite
         else
             error("wtf, the game isn't over...")
@@ -217,6 +307,16 @@ function drawMenus()
         love.graphics.draw(
             sprite, 0, 10
         )
+
+        scoreDone = timePerScoreRow * scoreRow <= gameOverTimer
+        if scoreDone then
+            menuX = 60
+            menuY = 310
+            menuText(0, "Go again?")
+            menuText(1, "Enough...")
+        end
+
+        gameOverTimer = gameOverTimer + 1
     end
 
     -- The keyboard-controllable focus cursor
@@ -239,6 +339,13 @@ function gotoMenu(kind, focus, callback)
         if kind == "main" then
             mainMenuTimer = 0
         end
+    end
+
+    if kind == "gameover" then
+        gameOverTimer = 0
+        timePerScoreRow = 30
+        clickSfx:setPitch(1)
+        scoreDone = false
     end
 
     swapState("menu", function()

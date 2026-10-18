@@ -107,9 +107,11 @@ local trashInterval = 100
 local trashObjs = {}
 
 local canTakeDamage = true
+local iframes = 0
 
 local auraTimer = 1
 local starBoomAnimations = {}
+
 
 local function drawMonster()
     love.graphics.setColor(1,monsterHealthFlashValue,monsterHealthFlashValue,1)
@@ -208,7 +210,7 @@ local function drawExplode()
 end
 
 local function addOrRemoveHealth(val)
-    if canTakeDamage and val < 0 then
+    if canTakeDamage and iframes <= 0 and val < 0 then
         playerData.health = playerData.health + val
         love.audio.play(damageSfx)
         externHealth = playerData.health
@@ -217,9 +219,15 @@ local function addOrRemoveHealth(val)
         end
     end
 
-    if val > 0 and playerData.health < 3 then
-        playerData.health = playerData.health + val
-        externHealth = playerData.health
+    if val > 0 then
+        for i=1,val do
+            if playerData.health < 3 then
+                playerData.health = playerData.health + val
+                externHealth = playerData.health
+            else
+                overheal = overheal + 1
+            end
+        end
     end
 
 
@@ -257,6 +265,7 @@ local function updateAttack()
         if playerData.yAttackOffset < 440 then
             isAttacking = false
             monsterHealth = monsterHealth - 1
+            monsterHits = monsterHits + 1
             addOrRemoveHealth(1)
             charge = 1
         end
@@ -264,6 +273,7 @@ local function updateAttack()
         playerData.yAttackOffset = lerp(playerData.yAttackOffset,0,0.1)
         if playerData.yAttackOffset > -10 then
             canTakeDamage = true
+            iframes = 30
         end
     end
     if charge == maxCharge then
@@ -318,18 +328,24 @@ local function updateTrash()
             value.y = value.y + value.dy
         else
             table.remove(trashObjs, index)
+            trashDodged = trashDodged + 1
             goto continue
         end
         value.r = value.r + 5
 
-        if trashCollidesWith(value, playerData.x-playerConfig.scaleX/2,playerData.y-playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY) and canTakeDamage then
+        if trashCollidesWith(value, playerData.x-playerConfig.scaleX/2,playerData.y-playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY) then
             addExplode(value.x,value.y)
             if debug == false then
                 addOrRemoveHealth(-1)
             end
             shakeCam(2)
             table.remove(trashObjs, index)
-            charge = math.floor(charge / 2)
+            if canTakeDamage and iframes <= 0 then
+                charge = math.floor(charge / 2)
+                hitsTaken = hitsTaken + 1
+            else
+                trashPierced = trashPierced + 1
+            end
             goto continue
         end
         if trashCollidesWith(value, playerData.x-(playerConfig.scaleX*4)/2,playerData.y-(playerConfig.scaleY*3)/2,playerConfig.scaleX*4,playerConfig.scaleY*3) then
@@ -583,6 +599,7 @@ function drawGame()
 end
 
 function updateGame()
+    iframes = math.min(0, iframes - 1)
     updateGhosts()
     updatePlayer()
     updateStars()
@@ -595,8 +612,10 @@ function updateGame()
         gotoMenu("pause", 0)
     end
     addThrusterFX(2,playerData.x + math.random(-8,8),playerData.y + 10)
-gameOver=2
-    if gameOver > 0 then gotoMenu("gameover", 0) end
+    if gameOver > 0 then
+        gotoMenu("gameover", 0)
+    end
+    gameTimer = gameTimer + 1
 end
 
 function loadGame()
@@ -622,4 +641,14 @@ function loadGame()
     hasAdddedCharge = false
     outlineVisible = false
     addTrash(math.random(32,300-32))
+    canTakeDamage =true
+    iframes = 0
+
+    -- Scoring data
+    trashDodged = 0
+    trashPierced = 0
+    monsterHits = 0
+    overheal = 0
+    hitsTaken = 0
+    gameTimer = 0
 end
