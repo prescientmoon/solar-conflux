@@ -282,7 +282,13 @@ function drawMenus()
         end
 
         scoreY = 290
-        if score > 0 then
+        if score >= 3000 then
+            scoreText("Catgirl status:", score,"final")
+        elseif score >= 2000 then
+            scoreText("Beyond infinity:", score,"final")
+        elseif score >= 1000 then
+            scoreText("Big winner:", score,"final")
+        elseif score > 0 then
             scoreText("Total:", score,"final")
         elseif score < 0 then
             scoreText("Baffling...", score,"final")
