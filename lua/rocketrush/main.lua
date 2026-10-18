@@ -28,6 +28,10 @@ swapStateSprs = love.graphics.newImage("sprites/scrnTrnsGB.png")
 swapStateQuads = generateQuads(swapStateSprs, 150, 200, 4, 5)
 swapStateSprs:setFilter("nearest", "nearest")
 
+explodeSprs = love.graphics.newImage("sprites/explodeFX.png")
+explodeQuads = generateQuads(explodeSprs,128,128,5,4)
+explodeSprs:setFilter("nearest", "nearest")
+
 chargeBarSprs = love.graphics.newImage("sprites/chargeBar.png")
 chargeBarQuads = generateQuads(chargeBarSprs, 64, 64, 5, 10)
 chargeBarSprs:setFilter("nearest", "nearest")

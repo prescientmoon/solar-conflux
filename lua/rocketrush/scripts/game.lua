@@ -18,7 +18,8 @@ local playerData = {
     dy = 0,
     r = 0,
     rTarg = 0,
-    health = playerConfig.startHealth
+    health = playerConfig.startHealth,
+    yAttackOffset = 0
 }
 
 local trashTextures = {
@@ -76,11 +77,14 @@ local trashTextures = {
 for _,v in ipairs(trashTextures) do v.sprite:setFilter("nearest", "nearest") end
 
 local stars = {}
+local thrusterFX = {}
+local explotions = {}
 
 local maxTrash = 16
 externHealth = 0
 
 charge = 1
+local isAttacking = false
 local tempCharge = 1
 local maxCharge = 50
 local hasAdddedCharge = false
@@ -92,7 +96,34 @@ local trashInterval = 100
 
 local trashObjs = {}
 
+local canTakeDamage = true
+
 local alive = true
+
+local function addExplode(x,y)
+    local explotion = {
+        x = x,
+        y = y,
+        i = 1
+    }
+    table.insert(explotions,explotion)
+end
+
+local function updateExplode()
+    for index, value in ipairs(explotions) do
+        if value.i < 20 then
+            value.i = value.i +1
+        else
+            table.remove(explotions,index)
+        end
+    end
+end
+
+local function drawExplode()
+    for index, value in ipairs(explotions) do
+        love.graphics.draw(explodeSprs,explodeQuads[value.i],value.x-64,value.y-64)
+    end
+end
 
 local function dynamicTrashInterval()
     return math.floor(
@@ -112,12 +143,44 @@ end
 local auraTimer = 1
 local starBoomAnimations = {}
 
-local function addOrRemoveHealth(val)
-    playerData.health = playerData.health + val
-    externHealth = playerData.health
-    if playerData.health < 1 then
-        die()
+local function doAttack()
+    isAttacking = true
+end
+
+local function updateAttack()
+    if isAttacking then
+        canTakeDamage = false
+        playerData.yAttackOffset = lerp(playerData.yAttackOffset,-350,0.1)
+        if playerData.yAttackOffset < 340 then
+            isAttacking = falseyou 
+            charge = 1
+        end
+    else
+        playerData.yAttackOffset = lerp(playerData.yAttackOffset,0,0.1)
+        if playerData.yAttackOffset > -10 then
+            canTakeDamage = true
+        end
     end
+    if charge == maxCharge then
+        if input:pressed("action") then
+            doAttack()
+        end
+    end
+end
+
+local function drawAttack()
+    
+end
+
+local function addOrRemoveHealth(val)
+    if canTakeDamage then
+        playerData.health = playerData.health + val
+        externHealth = playerData.health
+        if playerData.health < 1 then
+            die()
+        end
+    end
+
 
     if val < 0 then
         for i=0,-val-1 do
@@ -175,7 +238,8 @@ local function updateTrash()
         end
         value.r = value.r + 5
 
-        if trashCollidesWith(value, playerData.x-playerConfig.scaleX/2,playerData.y-playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY) then
+        if trashCollidesWith(value, playerData.x-playerConfig.scaleX/2,playerData.y-playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY) and canTakeDamage then
+            addExplode(value.x,value.y)
             addOrRemoveHealth(-1)
             shakeCam(2)
             table.remove(trashObjs, index)
@@ -310,7 +374,7 @@ local function updatePlayer()
         playerData.dx = lerp(playerData.dx, ix * playerConfig.maxSpeedX, playerConfig.acceleration)
         playerData.rTarg = lerp(playerData.rTarg, ix, playerConfig.rotLerp)
         playerData.r = remap(playerData.rTarg, -1, 1, -10,10)
-        playerData.y = lerp(playerData.y, (iy * 50) + playerConfig.startY, 0.05)
+        playerData.y = lerp(playerData.y, (iy * 50) + playerConfig.startY, 0.05) + playerData.yAttackOffset
         playerData.x = playerData.x + playerData.dx
         -- Spacing around the edges such that the rocket doesn't look odd while
         -- rotating!
@@ -333,6 +397,46 @@ local function addStars(count)
             c = math.random(5,7)
         }
         table.insert(stars,star)
+    end
+end
+
+local function addThrusterFX(count,x,y)
+    for i = 1, count, 1 do
+        local particle = {
+            x = x,
+            y = y,
+            spd = math.random(10,12),
+            s = math.random(2,6),
+            c = math.random(5,7),
+            cTimer = 1
+        }
+        table.insert(thrusterFX,particle)
+    end
+end
+
+local function updateThrusterFX()
+    if alive == true then
+        for index, value in ipairs(thrusterFX) do
+            value.y = value.y + value.spd
+            if value.cTimer < 3 then
+                value.cTimer = value.cTimer + 1
+            else
+                value.cTimer = 1
+                value.c = value.c - 1
+                value.s = value.s - 1
+            end
+            if value.c < 2 or value.s < 1 then
+                table.remove(thrusterFX, index)
+            end
+        end
+    end
+end
+
+local function drawThrusterFX()
+    for index, value in ipairs(thrusterFX) do
+        value.c =  clamp(1,value.c,8)
+        ink(pal[value.c],false)
+        love.graphics.rectangle("fill",value.x - value.s/2,value.y - value.s/2,value.s,value.s)
     end
 end
 
@@ -364,8 +468,10 @@ end
 
 function drawGame()
     drawStars()
+    drawThrusterFX()
     drawPlayer()
     drawTrash()
+    drawExplode()
     drawChargeBar()
     drawHearts()
 end
@@ -373,10 +479,14 @@ end
 function updateGame()
     updatePlayer()
     updateStars()
+    updateExplode()
     updateTrash()
+    updateThrusterFX()
+    updateAttack()
     if input:pressed("back") then
         gotoMenu("pause", 0)
     end
+    addThrusterFX(2,playerData.x + math.random(-8,8),playerData.y + 10)
 end
 
 function loadGame()
@@ -390,7 +500,8 @@ function loadGame()
         dy = 0,
         r = 0,
         rTarg = 0,
-        health = playerConfig.startHealth
+        health = playerConfig.startHealth,
+        yAttackOffset = 0
     }
     externHealth = playerData.health
     alive = true
