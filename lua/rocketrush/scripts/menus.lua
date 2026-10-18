@@ -251,7 +251,7 @@ function drawMenus()
         end
 
         if trashPierced > 0 then
-            scoreText("Pierce x" .. trashDodged .. ":", trashPierced * 75)
+            scoreText("Pierce x" .. trashPierced .. ":", trashPierced * 75)
         end
 
         if monsterHits > 0 then
