@@ -79,6 +79,7 @@ for _,v in ipairs(trashTextures) do v.sprite:setFilter("nearest", "nearest") end
 local stars = {}
 local thrusterFX = {}
 local explotions = {}
+local shipGhosts = {}
 
 local maxTrash = 16
 externHealth = 0
@@ -107,6 +108,38 @@ local function addExplode(x,y)
         i = 1
     }
     table.insert(explotions,explotion)
+end
+
+local function addGhost()
+    local ghost = {
+        x = playerData.x,
+        y = playerData.y,
+        a = 1,
+        ai = 1
+    }
+    table.insert(shipGhosts,ghost)
+end
+
+local function updateGhosts()
+    for index, value in ipairs(shipGhosts) do
+        if value.ai < 4 then
+            value.ai = value.ai +1
+        else
+            value.ai =1
+            value.a = value.a -0.1
+        end
+        if value.a < 0.1 then
+            table.remove(shipGhosts,index)
+        end
+        value.y = value.y + 1
+    end
+end
+
+local function drawGhosts()
+    for index, value in ipairs(shipGhosts) do
+        love.graphics.setColor(1,1,1,value.a)
+        love.graphics.draw(rocketSprite,value.x-playerConfig.scaleX/2,value.y-playerConfig.scaleY/2)
+    end
 end
 
 local function updateExplode()
@@ -150,6 +183,9 @@ local function doAttack()
 end
 
 local function updateAttack()
+    if canTakeDamage == false then
+        addGhost()
+    end
     if isAttacking then
         canTakeDamage = false
         playerData.yAttackOffset = lerp(playerData.yAttackOffset,-350,0.1)
@@ -169,10 +205,6 @@ local function updateAttack()
             doAttack()
         end
     end
-end
-
-local function drawAttack()
-    
 end
 
 local function addOrRemoveHealth(val)
@@ -473,6 +505,7 @@ end
 function drawGame()
     drawStars()
     drawThrusterFX()
+    drawGhosts()
     drawPlayer()
     drawTrash()
     drawExplode()
@@ -481,6 +514,7 @@ function drawGame()
 end
 
 function updateGame()
+    updateGhosts()
     updatePlayer()
     updateStars()
     updateExplode()
