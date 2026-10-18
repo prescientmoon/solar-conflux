@@ -110,6 +110,10 @@ local canTakeDamage = true
 
 local alive = true
 
+
+local auraTimer = 1
+local starBoomAnimations = {}
+
 local function drawMonster()
     if isMonsterDead == false then
         love.graphics.setColor(1,monsterHealthFlashValue,monsterHealthFlashValue,1)
@@ -124,6 +128,12 @@ local function addExplode(x,y)
         i = 1
     }
     table.insert(explotions,explotion)
+end
+local function die()
+    alive = false
+    love.audio.play(dieSfx)
+    addExplode(playerData.x,playerData.y)
+    playerData.x = 999
 end
 
 local function updateMonster()
@@ -151,6 +161,7 @@ local function updateMonster()
             end
         end
         if monsterDieTimer > 10 then
+            alive = false
             isMonsterDead = true
         end
     end
@@ -206,6 +217,32 @@ local function drawExplode()
     end
 end
 
+local function addOrRemoveHealth(val)
+    if canTakeDamage and val < 0 then
+        playerData.health = playerData.health + val
+        love.audio.play(damageSfx)
+        externHealth = playerData.health
+        if playerData.health < 1 then
+            die()
+        end
+    end
+
+    if val > 0 and playerData.health < 3 then
+        playerData.health = playerData.health + val
+        externHealth = playerData.health
+    end
+
+
+    if val < 0 then
+        for i=0,-val-1 do
+            table.insert(
+                starBoomAnimations,
+                { start = tick.frame, index = playerData.health + i }
+            )
+        end
+    end
+end
+
 local function dynamicTrashInterval()
     return math.floor(
         remap(
@@ -216,15 +253,8 @@ local function dynamicTrashInterval()
     )
 end
 
-local function die()
-    alive = false
-    love.audio.play(dieSfx)
-    addExplode(playerData.x,playerData.y)
-    playerData.x = 999
-end
 
-local auraTimer = 1
-local starBoomAnimations = {}
+
 
 local function doAttack()
     isAttacking = true
@@ -240,6 +270,7 @@ local function updateAttack()
         if playerData.yAttackOffset < 440 then
             isAttacking = false
             monsterHealth = monsterHealth - 1
+            addOrRemoveHealth(1)
             charge = 1
         end
     else
@@ -256,26 +287,7 @@ local function updateAttack()
     end
 end
 
-local function addOrRemoveHealth(val)
-    if canTakeDamage then
-        playerData.health = playerData.health + val
-        love.audio.play(damageSfx)
-        externHealth = playerData.health
-        if playerData.health < 1 then
-            die()
-        end
-    end
 
-
-    if val < 0 then
-        for i=0,-val-1 do
-            table.insert(
-                starBoomAnimations,
-                { start = tick.frame, index = playerData.health + i }
-            )
-        end
-    end
-end
 
 
 local function addTrash(x)
