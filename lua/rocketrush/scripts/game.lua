@@ -334,15 +334,15 @@ local function updateTrash()
         value.r = value.r + 5
 
         if trashCollidesWith(value, playerData.x-playerConfig.scaleX/2,playerData.y-playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY) then
-            addExplode(value.x,value.y)
-            if debug == false then
-                addOrRemoveHealth(-1)
-            end
             shakeCam(2)
             table.remove(trashObjs, index)
+            addExplode(value.x,value.y)
             if canTakeDamage and iframes <= 0 then
                 charge = math.floor(charge / 2)
                 hitsTaken = hitsTaken + 1
+                if debug == false then
+                    addOrRemoveHealth(-1)
+                end
             else
                 trashPierced = trashPierced + 1
             end
@@ -381,7 +381,7 @@ local function updateTrash()
     end
     charge = clamp(1,charge,maxCharge)
 
-    if charge + tempCharge >= 50 then
+    if charge >= 50 then
         mainMusic:setFilter { type="highpass",  lowgain=0.1,volume=0.7 }
         mainMusic:setPitch(1.1)
     else
@@ -572,7 +572,7 @@ local function drawChargeBar()
         love.graphics.draw(outlineSpr,playerData.x,playerData.y,0,2,2,34/2,44/2)
     end
     love.graphics.draw(chargeBarSprs, chargeBarQuads[math.min(50, charge+tempCharge)],playerData.x + 20, playerData.y - 32)
-    if charge + tempCharge >= 50 then
+    if charge >= 50 then
        local t = (math.sin(2 * math.pi * tick.frame / 60)) / 2
        local ta = math.abs(t)
        love.graphics.setColor(ta, ta, ta, 1)
@@ -636,13 +636,18 @@ function loadGame()
     gameOver = 0
     charge = 1
     trashTimer = 1
-    monsterHealth = 5
     auraTimer = 1
     hasAdddedCharge = false
     outlineVisible = false
     addTrash(math.random(32,300-32))
     canTakeDamage =true
     iframes = 0
+    monsterHealth = 5
+    monsterHealth = 5
+    monsterDieFxtimer = 1
+    monsterDieTimer = 1
+    monsterHealthFlashValue = 1
+    monsterI = 1
 
     -- Scoring data
     trashDodged = 0
