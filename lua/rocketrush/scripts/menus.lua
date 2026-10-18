@@ -288,6 +288,10 @@ function drawMenus()
             scoreText("Beyond infinity:", score,"final")
         elseif score >= 1000 then
             scoreText("Big winner:", score,"final")
+        elseif score >= 750 then
+            scoreText("Total!!!", score,"final")
+        elseif score >= 500 then
+            scoreText("Total!", score,"final")
         elseif score > 0 then
             scoreText("Total:", score,"final")
         elseif score < 0 then
