@@ -97,7 +97,7 @@ local tempCharge = 1
 local maxCharge = 50
 local hasAdddedCharge = false
 
-local isMonsterDead = false
+gameOver = 0 -- 0 = no, 1 = lost, 2 = won
 
 local outlineVisible = false
 
@@ -108,17 +108,12 @@ local trashObjs = {}
 
 local canTakeDamage = true
 
-local alive = true
-
-
 local auraTimer = 1
 local starBoomAnimations = {}
 
 local function drawMonster()
-    if isMonsterDead == false then
-        love.graphics.setColor(1,monsterHealthFlashValue,monsterHealthFlashValue,1)
-        love.graphics.draw(monsterSprs,monsterQuads[math.floor(monsterI)],0,0)
-    end
+    love.graphics.setColor(1,monsterHealthFlashValue,monsterHealthFlashValue,1)
+    love.graphics.draw(monsterSprs,monsterQuads[math.floor(monsterI)],0,0)
 end
 
 local function addExplode(x,y)
@@ -130,40 +125,37 @@ local function addExplode(x,y)
     table.insert(explotions,explotion)
 end
 local function die()
-    alive = false
+    gameOver = 1
     love.audio.play(dieSfx)
     addExplode(playerData.x,playerData.y)
     playerData.x = 999
 end
 
 local function updateMonster()
-    if isMonsterDead == false then
-        if monsterI < 25 then
-            monsterI = monsterI + 0.5
+    if monsterI < 25 then
+        monsterI = monsterI + 0.5
+    else
+        monsterI = 1
+    end
+    if isAttacking then
+        monsterHealthFlashValue = 0.2
+        love.audio.play(damageSfx)
+        addExplode(150,50)
+    else
+        monsterHealthFlashValue = lerp(monsterHealthFlashValue,1,0.03)
+    end
+    if monsterHealth < 1 then
+        if monsterDieFxtimer < 10 then
+            monsterDieFxtimer = monsterDieFxtimer + 1
         else
-            monsterI = 1
-        end
-        if isAttacking then
-            monsterHealthFlashValue = 0.2
+            monsterDieFxtimer = 1
+            monsterDieTimer = monsterDieTimer + 1
             love.audio.play(damageSfx)
-            addExplode(150,50)
-        else
-            monsterHealthFlashValue = lerp(monsterHealthFlashValue,1,0.03)
+            addExplode(math.random(0,300),math.random(0,100))
         end
-        if monsterHealth < 1 then
-            if monsterDieFxtimer < 10 then
-                monsterDieFxtimer = monsterDieFxtimer + 1
-            else
-                monsterDieFxtimer = 1
-                monsterDieTimer = monsterDieTimer + 1
-                love.audio.play(damageSfx)
-                addExplode(math.random(0,300),math.random(0,100))
-            end
-        end
-        if monsterDieTimer > 10 then
-            alive = false
-            isMonsterDead = true
-        end
+    end
+    if monsterDieTimer > 10 then
+        gameOver = 2
     end
 end
 
@@ -311,7 +303,7 @@ local function trashCollidesWith(trash, x, y, w, h)
 end
 
 local function updateTrash()
-    if not alive then return end
+    if gameOver > 0 then return end
 
     local isInAura = false
     outlineVisible = false
@@ -383,7 +375,7 @@ local function updateTrash()
 end
 
 local function drawTrash()
-    if isMonsterDead then return
+    if gameOver > 0 then return end
     for index, trash in ipairs(trashObjs) do
         local tex = trashTextures[trash.tex]
         local tw = tex.sprite:getWidth()
@@ -472,22 +464,21 @@ local function drawHearts()
 end
 
 local function updatePlayer()
-    if alive == true then
-        local ix, iy = input:get "move"
-        playerData.dx = lerp(playerData.dx, ix * playerConfig.maxSpeedX, playerConfig.acceleration)
-        playerData.rTarg = lerp(playerData.rTarg, ix, playerConfig.rotLerp)
-        playerData.r = remap(playerData.rTarg, -1, 1, -10,10)
-        playerData.y = lerp(playerData.y, (iy * 50) + playerConfig.startY, 0.05) + playerData.yAttackOffset
-        playerData.x = playerData.x + playerData.dx
-        -- Spacing around the edges such that the rocket doesn't look odd while
-        -- rotating!
-        local sp = 6
-        playerData.x = clamp(
-            sp + playerConfig.scaleX / 2,
-            playerData.x,
-            screenWidth - sp - playerConfig.scaleX / 2
-        )
-    end
+    if gameOver > 0 then return end
+    local ix, iy = input:get "move"
+    playerData.dx = lerp(playerData.dx, ix * playerConfig.maxSpeedX, playerConfig.acceleration)
+    playerData.rTarg = lerp(playerData.rTarg, ix, playerConfig.rotLerp)
+    playerData.r = remap(playerData.rTarg, -1, 1, -10,10)
+    playerData.y = lerp(playerData.y, (iy * 50) + playerConfig.startY, 0.05) + playerData.yAttackOffset
+    playerData.x = playerData.x + playerData.dx
+    -- Spacing around the edges such that the rocket doesn't look odd while
+    -- rotating!
+    local sp = 6
+    playerData.x = clamp(
+        sp + playerConfig.scaleX / 2,
+        playerData.x,
+        screenWidth - sp - playerConfig.scaleX / 2
+    )
 end
 
 local function addStars(count)
@@ -518,19 +509,18 @@ local function addThrusterFX(count,x,y)
 end
 
 local function updateThrusterFX()
-    if alive == true then
-        for index, value in ipairs(thrusterFX) do
-            value.y = value.y + value.spd
-            if value.cTimer < 3 then
-                value.cTimer = value.cTimer + 1
-            else
-                value.cTimer = 1
-                value.c = value.c - 1
-                value.s = value.s - 1
-            end
-            if value.c < 2 or value.s < 1 then
-                table.remove(thrusterFX, index)
-            end
+    if gameOver > 0 then return end
+    for index, value in ipairs(thrusterFX) do
+        value.y = value.y + value.spd
+        if value.cTimer < 3 then
+            value.cTimer = value.cTimer + 1
+        else
+            value.cTimer = 1
+            value.c = value.c - 1
+            value.s = value.s - 1
+        end
+        if value.c < 2 or value.s < 1 then
+            table.remove(thrusterFX, index)
         end
     end
 end
@@ -544,12 +534,11 @@ local function drawThrusterFX()
 end
 
 local function updateStars()
-    if alive == true then
-        for index, value in ipairs(stars) do
-            value.y = value.y + value.spd
-            if value.y > 500 then
-                value.y = math.random(-50,-100)
-            end
+    if gameOver > 0 then return end
+    for index, value in ipairs(stars) do
+        value.y = value.y + value.spd
+        if value.y > 500 then
+            value.y = math.random(-50,-100)
         end
     end
 end
@@ -606,6 +595,8 @@ function updateGame()
         gotoMenu("pause", 0)
     end
     addThrusterFX(2,playerData.x + math.random(-8,8),playerData.y + 10)
+gameOver=2
+    if gameOver > 0 then gotoMenu("gameover", 0) end
 end
 
 function loadGame()
@@ -623,7 +614,7 @@ function loadGame()
         yAttackOffset = 0
     }
     externHealth = playerData.health
-    alive = true
+    gameOver = 0
     charge = 1
     trashTimer = 1
     monsterHealth = 5

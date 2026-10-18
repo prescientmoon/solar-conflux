@@ -71,6 +71,12 @@ rocketBgSprites = love.graphics.newImage("sprites/background.png")
 rocketBgQuads = generateQuads(rocketBgSprites, 150, 200, 5, 6)
 rocketBgSprites:setFilter("nearest", "nearest")
 
+gameOverWinSprite = love.graphics.newImage("sprites/COngrats.png")
+gameOverWinSprite:setFilter("nearest", "nearest")
+
+gameOverDefeatSprite = love.graphics.newImage("sprites/Next time, cowboy.png")
+gameOverDefeatSprite:setFilter("nearest", "nearest")
+
 flameWidth = 16
 flameHeight = 18
 flameSprites = love.graphics.newImage("sprites/Flames.png")
@@ -188,6 +194,11 @@ function love.update(dt)
         updateMenus()
     elseif state == "game" then
         updateGame()
+    end
+
+    if state ~= "game" then
+        mainMusic:setFilter(nil)
+        mainMusic:setPitch(1)
     end
 end
 

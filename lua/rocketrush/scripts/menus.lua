@@ -2,10 +2,10 @@ local menu = "main"
 local sp = 10 -- spacing
 
 -- 0-based indices for the focused button in each menu
-local menuFocus = { main = 0, options = 0, pause = 0 }
+local menuFocus = { main = 0, options = 0, pause = 0, gameover = 0 }
 
 -- The previous menu we entered each menu from
-local menuPrev = { main = nil, options = nil, pause = nil }
+local menuPrev = { main = nil, options = nil, pause = nil, gameover = 0 }
 
 -- These get reset every frame
 local menuX = 0
@@ -151,7 +151,6 @@ function drawMenus()
             )
         end
         mainMenuTimer = mainMenuTimer + 1
-
     elseif menu == "pause" then
         menuX = 60
         menuY = 30
@@ -198,6 +197,26 @@ function drawMenus()
         menuX = 165
         menuY = 350
         menuText(2, "Back")
+    elseif menu == "gameover" then
+        menuX = 60
+        menuY = 160
+
+        menuText(0, "Go again?")
+        menuText(1, "Enough...")
+
+        local sprite
+        if gameOver == 1 then
+            sprite = gameOverDefeatSprite
+        elseif gameOver == 2 then
+            sprite = gameOverWinSprite
+        else
+            error("wtf, the game isn't over...")
+        end
+
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.draw(
+            sprite, 0, 10
+        )
     end
 
     -- The keyboard-controllable focus cursor
@@ -312,12 +331,27 @@ function updateMenus()
             elseif focus == 1 then
                 gotoMenu("options", 0)
             elseif focus == 2 then
+                mainMenuTimer=0
                 gotoMenu("main", 0)
             end
         end
 
         if input:pressed("back") then
             swapState("game")
+        end
+    elseif menu == "gameover" then
+        if input:pressed("action") then
+            if focus == 0 then
+                swapState("game")
+            elseif focus == 1 then
+                mainMenuTimer=0
+                gotoMenu("main")
+            end
+        end
+
+        if input:pressed("back") then
+            mainMenuTimer=0
+            gotoMenu("main")
         end
     end
 end
