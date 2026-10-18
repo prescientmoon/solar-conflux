@@ -12,6 +12,8 @@ local menuX = 0
 local menuY = 0
 local menuFoci = {}
 
+local mainMenuTimer = 0
+
 local function drawStrokedText(text, color, outline, ocolor, x, y, r, sx, sy)
     ink(ocolor)
     for i=-outline,outline do
@@ -61,18 +63,95 @@ function drawMenus()
 
     menuFoci = {}
     if menu == "main" then
-        menuX = 100
-        menuY = 175
+        love.graphics.setColor(1, 1, 1, 1)
+        local startupAnimationTime = 120
+        local rocketCanRot = math.pi / 4
+        local rcw = rocketCanSprite:getWidth()
+        local rch = rocketCanSprite:getHeight()
+        if mainMenuTimer < startupAnimationTime then
+            local traw = remap(mainMenuTimer, 0, startupAnimationTime, 0, 1)
+            local texp
+            if traw >= 0.9 then
+                texp = remap(
+                    1 - math.pow(1 - remap(traw, 0.9, 1, 0, 1), 2),
+                    0, 1,
+                    0.9, 1
+                )
+            elseif traw >= 0.7 and traw < 0.9 then
+                texp = remap(
+                    1 - math.pow(1 - remap(traw, 0.7, 0.9, 0, 1), 2),
+                    0, 1,
+                    0.93, 0.9
+                )
+            elseif traw >= 0.3 and traw < 0.7 then
+                texp = remap(
+                    1 - math.pow(1 - remap(traw, 0.3, 0.7, 0, 1), 2),
+                    0, 1,
+                    0.9, 0.93
+                )
+            else
+                texp = remap(
+                    math.pow(remap(traw, 0, 0.3, 0, 1), 4),
+                    0, 1,
+                    0, 0.9
+                )
+            end
+            local t = remap(texp, 0, 1, 70, 0)
+            local ldx = t - 50 * (1 - math.pow(remap(texp,0, 1, -1,1), 2))
+            local ldy = 7 * t
+            local rdx = math.floor(t * 2.3)
+            local rdy = 8 * t
+            local cdx = -6 * t
+            local cdy = 0
+            love.graphics.draw(
+                rocketCanSprite,
+                98 + cdx + rcw / 2,
+                -14 + cdy + rch / 2,
+                rocketCanRot, 1, 1,
+                rcw / 2,
+                rch / 2
+            )
+            love.graphics.draw(logoLeftSprite, 1 + ldx, 24 + ldy)
+            love.graphics.draw(logoRightSprite, 146 + rdx, 24 + rdy)
+        elseif mainMenuTimer == startupAnimationTime then
+            freezeFrames(1)
+        else
+            local shineFrame = 0
+            if (mainMenuTimer - startupAnimationTime + 90) % 120 > 105 then
+                shineFrame = 1 + math.floor(
+                    (mainMenuTimer - startupAnimationTime + 90) % 15 / 3
+                )
+            end
+            love.graphics.draw(
+                rocketCanSprite,
+                98 + rcw / 2,
+                -14 + rch / 2,
+                rocketCanRot,
+                1, 1,
+                rcw / 2,
+                rch / 2
+            )
+            love.graphics.draw(
+                logoShineSprites,
+                logoShineQuads[1 + shineFrame],
+                0, 0, 0, 1, 1
+            )
 
-        menuText(0, "Play")
-        menuText(1, "Options")
-        menuText(2, "Quit")
+            menuX = 100
+            menuY = 175
 
-        drawStrokedText(
-            "A game by:\n - epujellysilly\n - moonberry\n - prescientmoon",
-            pal[7], 2, pal[4],
-            55, 320, 0, 0.5, 0.5
-        )
+            menuText(0, "Play")
+            menuText(1, "Options")
+            menuText(2, "Quit")
+
+            drawStrokedText(
+                "A game by:\n - epujellysilly\n - moonberry\n - prescientmoon",
+                pal[7], 2, pal[4],
+                55, 320, 0, 0.5, 0.5
+            )
+        end
+        mainMenuTimer = mainMenuTimer + 1
+
     elseif menu == "pause" then
         menuX = 60
         menuY = 30
@@ -116,18 +195,20 @@ function drawMenus()
             )
         end
 
-        menuY = 350
         menuX = 165
+        menuY = 350
         menuText(2, "Back")
     end
 
     -- The keyboard-controllable focus cursor
     local focus = menuFoci[1 + menuFocus[menu]]
-    drawStrokedText(
-        ">",
-        pal[8], 3, pal[5],
-        focus.x - mainFontSize - sp, focus.y + sp / 2 + 4
-    )
+    if focus ~= nil then
+        drawStrokedText(
+            ">",
+            pal[8], 3, pal[5],
+            focus.x - mainFontSize - sp, focus.y + sp / 2 + 4
+        )
+    end
 end
 
 function gotoMenu(kind, focus, callback)
@@ -135,6 +216,10 @@ function gotoMenu(kind, focus, callback)
         menuPrev[kind] = menu
     else
         menuPrev[kind] = nil
+
+        if kind == "main" then
+            mainMenuTimer = 0
+        end
     end
 
     swapState("menu", function()

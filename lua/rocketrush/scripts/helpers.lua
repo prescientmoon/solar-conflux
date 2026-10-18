@@ -83,3 +83,25 @@ end
 function shakeCam(intensity)
     shake = intensity
 end
+
+local freezeFrameCount = -1000
+function drawFreezeFrames()
+    if freezeFrameCount > 0 then
+       love.graphics.setColor(1, 1, 1, 1)
+       love.graphics.rectangle("fill", 0, 0, screenWidth, screenHeight)
+    elseif freezeFrameCount > -20 then
+       local t = 1 - math.pow(1 - remap(freezeFrameCount, 0, -20, 1, 0), 2)
+       love.graphics.setColor(1, 1, 1, t)
+       love.graphics.setBlendMode("add")
+       love.graphics.rectangle("fill", 0, 0, screenWidth, screenHeight)
+       love.graphics.setBlendMode("alpha")
+    end
+end
+
+function updateFreezeFrames()
+    freezeFrameCount = freezeFrameCount - 1
+end
+
+function freezeFrames(count)
+    freezeFrameCount = math.max(freezeFrameCount, 0) + count
+end

@@ -52,8 +52,8 @@ heartBoomSprites:setFilter("nearest", "nearest")
 rocketCanSprite = love.graphics.newImage("sprites/RocketCan.png")
 rocketCanSprite:setFilter("nearest", "nearest")
 
-logoRightSprite = love.graphics.newImage("sprites/LogoRight.png")
-logoRightSprite:setFilter("nearest", "nearest")
+logoLeftSprite = love.graphics.newImage("sprites/LogoLeft.png")
+logoLeftSprite:setFilter("nearest", "nearest")
 
 logoRightSprite = love.graphics.newImage("sprites/LogoRight.png")
 logoRightSprite:setFilter("nearest", "nearest")
@@ -175,6 +175,7 @@ function love.update(dt)
     end
     --update scene swapper
     updateSwapState()
+    updateFreezeFrames()
     --update various scenes
     if state == "menu" then
         updateMenus()
@@ -199,15 +200,18 @@ function drawStuffHere()
         drawGame()
     end
     drawSwapState()
+    drawFreezeFrames()
 end
 
 function love.draw()
+    love.graphics.setBlendMode("alpha", "alphamultiply")
     love.graphics.setFont(mainFont)
     --drawing function to draw canvas and debug overlay
     love.graphics.clear(ink(pal[1],true))
     love.graphics.setCanvas{gameCanvas, stencil=true}
     drawStuffHere()
     love.graphics.setCanvas()
+    love.graphics.setBlendMode("alpha", "premultiplied")
     love.graphics.draw(gameCanvas, camOX, camOY, 0, scale, scale)
     if debug then
         drawDebug()
