@@ -38,6 +38,13 @@ rocketSprite:setFilter("nearest", "nearest")
 outlineSpr = love.graphics.newImage("sprites/shipOutline.png")
 outlineSpr:setFilter("nearest","nearest")
 
+heartSprite = love.graphics.newImage("sprites/Spaceheart.png")
+heartSprite:setFilter("nearest", "nearest")
+
+heartBoomSprites = love.graphics.newImage("sprites/SpaceheartBoom.png")
+heartBoomQuads = generateQuads(heartBoomSprites, 19, 17, 12, 1)
+heartBoomSprites:setFilter("nearest", "nearest")
+
 flameWidth = 16
 flameHeight = 18
 flameSprites = love.graphics.newImage("sprites/Flames.png")
@@ -170,7 +177,7 @@ end
 function love.draw()
     love.graphics.setFont(mainFont)
     --drawing function to draw canvas and debug overlay
-    love.graphics.clear(ink(pal[2],true))
+    love.graphics.clear(ink(pal[1],true))
     love.graphics.setCanvas{gameCanvas, stencil=true}
     drawStuffHere()
     love.graphics.setCanvas()
