@@ -222,7 +222,7 @@ local function addOrRemoveHealth(val)
     if val > 0 then
         for i=1,val do
             if playerData.health < 3 then
-                playerData.health = playerData.health + val
+                playerData.health = playerData.health + 1
                 externHealth = playerData.health
             else
                 overheal = overheal + 1
