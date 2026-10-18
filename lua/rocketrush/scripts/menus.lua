@@ -449,7 +449,7 @@ function updateMenus()
     elseif menu == "gameover" then
         if input:pressed("action") then
             if focus == 0 then
-                swapState("game")
+                swapState("game", loadGame)
             elseif focus == 1 then
                 mainMenuTimer=0
                 gotoMenu("main")
