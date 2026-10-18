@@ -377,6 +377,14 @@ local function updateTrash()
         hasAdddedCharge = true
     end
     charge = clamp(1,charge,maxCharge)
+
+    if charge + tempCharge >= 50 then
+        mainMusic:setFilter { type="highpass",  lowgain=0.1,volume=0.7 }
+        mainMusic:setPitch(1.1)
+    else
+        mainMusic:setFilter(nil)
+        mainMusic:setPitch(1)
+    end
 end
 
 local function drawTrash()
