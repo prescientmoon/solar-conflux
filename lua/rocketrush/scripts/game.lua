@@ -595,6 +595,7 @@ function updateGame()
         gotoMenu("pause", 0)
     end
     addThrusterFX(2,playerData.x + math.random(-8,8),playerData.y + 10)
+gameOver=2
     if gameOver > 0 then gotoMenu("gameover", 0) end
 end
 

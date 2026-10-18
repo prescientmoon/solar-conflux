@@ -199,7 +199,7 @@ function drawMenus()
         menuText(2, "Back")
     elseif menu == "gameover" then
         menuX = 60
-        menuY = 160
+        menuY = 310
 
         menuText(0, "Go again?")
         menuText(1, "Enough...")
