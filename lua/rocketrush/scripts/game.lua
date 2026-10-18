@@ -82,6 +82,8 @@ local explotions = {}
 local shipGhosts = {}
 
 local monsterHealth = 5
+local monsterDieFxtimer = 1
+local monsterDieTimer = 1
 local monsterHealthFlashValue = 1
 
 local monsterI = 1
@@ -95,6 +97,8 @@ local tempCharge = 1
 local maxCharge = 50
 local hasAdddedCharge = false
 
+local isMonsterDead = false
+
 local outlineVisible = false
 
 trashTimer = 1
@@ -107,8 +111,10 @@ local canTakeDamage = true
 local alive = true
 
 local function drawMonster()
-    love.graphics.setColor(1,monsterHealthFlashValue,monsterHealthFlashValue,1)
-    love.graphics.draw(monsterSprs,monsterQuads[math.floor(monsterI)],0,0)
+    if isMonsterDead == false then
+        love.graphics.setColor(1,monsterHealthFlashValue,monsterHealthFlashValue,1)
+        love.graphics.draw(monsterSprs,monsterQuads[math.floor(monsterI)],0,0)
+    end
 end
 
 local function addExplode(x,y)
@@ -121,17 +127,32 @@ local function addExplode(x,y)
 end
 
 local function updateMonster()
-    if monsterI < 25 then
-        monsterI = monsterI + 0.5
-    else
-        monsterI = 1
-    end
-    if isAttacking then
-        monsterHealthFlashValue = 0.2
-        love.audio.play(damageSfx)
-        addExplode(150,50)
-    else
-        monsterHealthFlashValue = lerp(monsterHealthFlashValue,1,0.03)
+    if isMonsterDead == false then
+        if monsterI < 25 then
+            monsterI = monsterI + 0.5
+        else
+            monsterI = 1
+        end
+        if isAttacking then
+            monsterHealthFlashValue = 0.2
+            love.audio.play(damageSfx)
+            addExplode(150,50)
+        else
+            monsterHealthFlashValue = lerp(monsterHealthFlashValue,1,0.03)
+        end
+        if monsterHealth < 1 then
+            if monsterDieFxtimer < 10 then
+                monsterDieFxtimer = monsterDieFxtimer + 1
+            else
+                monsterDieFxtimer = 1
+                monsterDieTimer = monsterDieTimer + 1
+                love.audio.play(damageSfx)
+                addExplode(math.random(0,300),math.random(0,100))
+            end
+        end
+        if monsterDieTimer > 10 then
+            isMonsterDead = true
+        end
     end
 end
 
@@ -304,7 +325,9 @@ local function updateTrash()
 
         if trashCollidesWith(value, playerData.x-playerConfig.scaleX/2,playerData.y-playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY) and canTakeDamage then
             addExplode(value.x,value.y)
-            addOrRemoveHealth(-1)
+            if debug == false then
+                addOrRemoveHealth(-1)
+            end
             shakeCam(2)
             table.remove(trashObjs, index)
             charge = math.floor(charge / 2)
@@ -345,28 +368,31 @@ local function updateTrash()
 end
 
 local function drawTrash()
-    for index, trash in ipairs(trashObjs) do
-        local tex = trashTextures[trash.tex]
-        local tw = tex.sprite:getWidth()
-        local th = tex.sprite:getHeight()
-        if debug then
-            love.graphics.setColor(1, 0, 0, 1)
-            love.graphics.rectangle(
-                "fill",
-                trash.x - tw / 2 + tex.cx,
-                trash.y - th / 2 + tex.cy,
-                tex.cw, tex.ch
+    if isMonsterDead == false then
+        for index, trash in ipairs(trashObjs) do
+            local tex = trashTextures[trash.tex]
+            local tw = tex.sprite:getWidth()
+            local th = tex.sprite:getHeight()
+            if debug then
+                love.graphics.setColor(1, 0, 0, 1)
+                love.graphics.rectangle(
+                    "fill",
+                    trash.x - tw / 2 + tex.cx,
+                    trash.y - th / 2 + tex.cy,
+                    tex.cw, tex.ch
+                )
+            end
+        
+            love.graphics.setColor(1,1,1,1)
+            love.graphics.draw(
+                tex.sprite,
+                trash.x, trash.y,
+                trash.r / 180 * math.pi, 1, 1,
+                tw / 2, th / 2
             )
         end
-
-        love.graphics.setColor(1,1,1,1)
-        love.graphics.draw(
-            tex.sprite,
-            trash.x, trash.y,
-            trash.r / 180 * math.pi, 1, 1,
-            tw / 2, th / 2
-        )
     end
+
 end
 
 local function drawPlayer()
