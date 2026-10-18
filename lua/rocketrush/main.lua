@@ -45,6 +45,19 @@ heartBoomSprites = love.graphics.newImage("sprites/SpaceheartBoom.png")
 heartBoomQuads = generateQuads(heartBoomSprites, 19, 17, 12, 1)
 heartBoomSprites:setFilter("nearest", "nearest")
 
+rocketCanSprite = love.graphics.newImage("sprites/RocketCan.png")
+rocketCanSprite:setFilter("nearest", "nearest")
+
+logoRightSprite = love.graphics.newImage("sprites/LogoRight.png")
+logoRightSprite:setFilter("nearest", "nearest")
+
+logoRightSprite = love.graphics.newImage("sprites/LogoRight.png")
+logoRightSprite:setFilter("nearest", "nearest")
+
+logoShineSprites = love.graphics.newImage("sprites/LogoShine.png")
+logoShineQuads = generateQuads(logoShineSprites, 300, 62, 1, 6)
+logoShineSprites:setFilter("nearest", "nearest")
+
 flameWidth = 16
 flameHeight = 18
 flameSprites = love.graphics.newImage("sprites/Flames.png")
