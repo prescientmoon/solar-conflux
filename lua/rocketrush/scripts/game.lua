@@ -137,6 +137,8 @@ end
 
 local function die()
     alive = false
+    love.audio.play(dieSfx)
+    addExplode(playerData.x,playerData.y)
     playerData.x = 999
 end
 
@@ -152,7 +154,7 @@ local function updateAttack()
         canTakeDamage = false
         playerData.yAttackOffset = lerp(playerData.yAttackOffset,-350,0.1)
         if playerData.yAttackOffset < 340 then
-            isAttacking = falseyou 
+            isAttacking = false
             charge = 1
         end
     else
@@ -163,6 +165,7 @@ local function updateAttack()
     end
     if charge == maxCharge then
         if input:pressed("action") then
+            love.audio.play(powerSfx)
             doAttack()
         end
     end
@@ -175,6 +178,7 @@ end
 local function addOrRemoveHealth(val)
     if canTakeDamage then
         playerData.health = playerData.health + val
+        love.audio.play(damageSfx)
         externHealth = playerData.health
         if playerData.health < 1 then
             die()

@@ -77,7 +77,11 @@ swapStateSfx = love.audio.newSource("audio/swapState.wav", "static")
 auraSfx = love.audio.newSource("audio/aura.wav", "static")
 clickSfx = love.audio.newSource("audio/click.wav", "static")
 selectSfx = love.audio.newSource("audio/select.wav", "static")
-local sounds = { swapStateSfx, clickSfx, selectSfx, auraSfx }
+mainMusic = love.audio.newSource("audio/mainMusic.wav", "stream")
+damageSfx = love.audio.newSource("audio/damage.wav", "static")
+dieSfx = love.audio.newSource("audio/die.wav", "static")
+powerSfx = love.audio.newSource("audio/powerUp.wav", "static")
+local sounds = { swapStateSfx, clickSfx, selectSfx, auraSfx, mainMusic, damageSfx, dieSfx, powerSfx }
 
 function setVolume(newVolume)
     volume = clamp(newVolume, 0, 10)
@@ -150,6 +154,8 @@ function love.load()
     love.window.setMode( screenWidth*scale,screenHeight*scale,{vsync = true})
     --initialize colors and palette
     initColors()
+    mainMusic:setLooping(true)
+    love.audio.play(mainMusic)
     --swap scene to menus
     swapState("menu")
 end
