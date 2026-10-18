@@ -105,3 +105,49 @@ end
 function freezeFrames(count)
     freezeFrameCount = math.max(freezeFrameCount, 0) + count
 end
+
+function saveTableToJSON(tbl, filename)
+    local contents = json.encode(tbl, { indent = true })
+    if not contents then
+        return false, "Failed to encode table to JSON"
+    end
+
+    local success, err = love.filesystem.write(filename, contents)
+    if not success then
+        return false, "Error writing file: " .. tostring(err)
+    end
+
+    return true
+end
+
+function loadTableFromJSON(filename)
+    if not love.filesystem.getInfo(filename) then
+        return false, "File not found: " .. filename
+    end
+
+    local contents, err = love.filesystem.read(filename)
+    if not contents then
+        return false, "Could not read file: " .. tostring(err)
+    end
+
+    local tbl, pos, decodeErr = json.decode(contents, 1, nil)
+    if decodeErr then
+        return false, "Error parsing JSON: " .. tostring(decodeErr)
+    end
+
+    return true, tbl
+end
+
+function saveData()
+    local dataToSave = {scale, volume}
+    saveTableToJSON(dataToSave,"settings.json")
+end
+
+function loadData()
+    local didWork, returnData = loadTableFromJSON("settings.json")
+    if didWork == true then
+        scale = returnData[1]
+        volume = returnData[2]
+    end
+
+end

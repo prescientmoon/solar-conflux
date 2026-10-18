@@ -2,6 +2,7 @@
 
 tick = require "libs/tick" --framerate lock library
 local baton = require 'libs/baton' --input manager library
+json = require "libs/dkjson"
 
 --helper scripts
 require "scripts/helpers"
@@ -88,6 +89,7 @@ function setVolume(newVolume)
     for _, effect in pairs(sounds) do
         effect:setVolume(volume / 10)
     end
+    saveData()
 end
 
 --fonts
@@ -145,6 +147,7 @@ end
 
 --main init
 function love.load()
+    loadData()
     --locks FR to 60
     tick.framerate = 60
     tick.rate = 0.0166667
@@ -186,6 +189,7 @@ end
 
 function cycleScale(delta)
     scale = (scale - 1 + delta) % 6 + 1
+    saveData()
     love.window.setMode(screenWidth * scale, screenHeight * scale, {vsync = true})
     recreateCanvases()
 end
