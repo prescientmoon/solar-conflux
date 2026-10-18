@@ -554,6 +554,18 @@ local function drawChargeBar()
         love.graphics.draw(outlineSpr,playerData.x,playerData.y,0,2,2,34/2,44/2)
     end
     love.graphics.draw(chargeBarSprs, chargeBarQuads[math.min(50, charge+tempCharge)],playerData.x + 20, playerData.y - 32)
+    if charge + tempCharge >= 50 then
+       local t = (math.sin(2 * math.pi * tick.frame / 60)) / 2
+       local ta = math.abs(t)
+       love.graphics.setColor(ta, ta, ta, 1)
+       if t >= 0 then
+          love.graphics.setBlendMode("add")
+       else
+          love.graphics.setBlendMode("subtract")
+       end
+       love.graphics.draw(chargeBarSprs, chargeBarQuads[math.min(50, charge+tempCharge)],playerData.x + 20, playerData.y - 32)
+       love.graphics.setBlendMode("alpha")
+    end
 end
 
 function drawGame()
@@ -599,7 +611,7 @@ function loadGame()
     }
     externHealth = playerData.health
     alive = true
-    charge = 1
+    charge = 50
     trashTimer = 1
     monsterHealth = 5
     auraTimer = 1
