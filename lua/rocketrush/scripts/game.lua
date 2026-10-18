@@ -167,8 +167,6 @@ local function updateMonster()
     end
 end
 
-
-
 local function addGhost()
     local ghost = {
         x = playerData.x,
@@ -252,9 +250,6 @@ local function dynamicTrashInterval()
         )
     )
 end
-
-
-
 
 local function doAttack()
     isAttacking = true
@@ -388,31 +383,29 @@ local function updateTrash()
 end
 
 local function drawTrash()
-    if isMonsterDead == false then
-        for index, trash in ipairs(trashObjs) do
-            local tex = trashTextures[trash.tex]
-            local tw = tex.sprite:getWidth()
-            local th = tex.sprite:getHeight()
-            if debug then
-                love.graphics.setColor(1, 0, 0, 1)
-                love.graphics.rectangle(
-                    "fill",
-                    trash.x - tw / 2 + tex.cx,
-                    trash.y - th / 2 + tex.cy,
-                    tex.cw, tex.ch
-                )
-            end
-        
-            love.graphics.setColor(1,1,1,1)
-            love.graphics.draw(
-                tex.sprite,
-                trash.x, trash.y,
-                trash.r / 180 * math.pi, 1, 1,
-                tw / 2, th / 2
+    if isMonsterDead then return
+    for index, trash in ipairs(trashObjs) do
+        local tex = trashTextures[trash.tex]
+        local tw = tex.sprite:getWidth()
+        local th = tex.sprite:getHeight()
+        if debug then
+            love.graphics.setColor(1, 0, 0, 1)
+            love.graphics.rectangle(
+                "fill",
+                trash.x - tw / 2 + tex.cx,
+                trash.y - th / 2 + tex.cy,
+                tex.cw, tex.ch
             )
         end
-    end
 
+        love.graphics.setColor(1,1,1,1)
+        love.graphics.draw(
+            tex.sprite,
+            trash.x, trash.y,
+            trash.r / 180 * math.pi, 1, 1,
+            tw / 2, th / 2
+        )
+    end
 end
 
 local function drawPlayer()
