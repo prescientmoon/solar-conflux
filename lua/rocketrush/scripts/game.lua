@@ -81,6 +81,11 @@ local thrusterFX = {}
 local explotions = {}
 local shipGhosts = {}
 
+local monsterHealth = 5
+local monsterHealthFlashValue = 1
+
+local monsterI = 1
+
 local maxTrash = 16
 externHealth = 0
 
@@ -101,6 +106,11 @@ local canTakeDamage = true
 
 local alive = true
 
+local function drawMonster()
+    love.graphics.setColor(1,monsterHealthFlashValue,monsterHealthFlashValue,1)
+    love.graphics.draw(monsterSprs,monsterQuads[math.floor(monsterI)],0,0)
+end
+
 local function addExplode(x,y)
     local explotion = {
         x = x,
@@ -109,6 +119,23 @@ local function addExplode(x,y)
     }
     table.insert(explotions,explotion)
 end
+
+local function updateMonster()
+    if monsterI < 25 then
+        monsterI = monsterI + 0.5
+    else
+        monsterI = 1
+    end
+    if isAttacking then
+        monsterHealthFlashValue = 0.2
+        love.audio.play(damageSfx)
+        addExplode(150,50)
+    else
+        monsterHealthFlashValue = lerp(monsterHealthFlashValue,1,0.03)
+    end
+end
+
+
 
 local function addGhost()
     local ghost = {
@@ -188,9 +215,10 @@ local function updateAttack()
     end
     if isAttacking then
         canTakeDamage = false
-        playerData.yAttackOffset = lerp(playerData.yAttackOffset,-350,0.1)
-        if playerData.yAttackOffset < 340 then
+        playerData.yAttackOffset = lerp(playerData.yAttackOffset,-450,0.1)
+        if playerData.yAttackOffset < 440 then
             isAttacking = false
+            monsterHealth = monsterHealth - 1
             charge = 1
         end
     else
@@ -507,6 +535,7 @@ function drawGame()
     drawThrusterFX()
     drawGhosts()
     drawPlayer()
+    drawMonster()
     drawTrash()
     drawExplode()
     drawChargeBar()
@@ -520,6 +549,7 @@ function updateGame()
     updateExplode()
     updateTrash()
     updateThrusterFX()
+    updateMonster()
     updateAttack()
     if input:pressed("back") then
         gotoMenu("pause", 0)
@@ -545,6 +575,7 @@ function loadGame()
     alive = true
     charge = 1
     trashTimer = 1
+    monsterHealth = 5
     auraTimer = 1
     hasAdddedCharge = false
     outlineVisible = false

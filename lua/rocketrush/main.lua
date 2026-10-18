@@ -29,6 +29,10 @@ swapStateSprs = love.graphics.newImage("sprites/scrnTrnsGB.png")
 swapStateQuads = generateQuads(swapStateSprs, 150, 200, 4, 5)
 swapStateSprs:setFilter("nearest", "nearest")
 
+monsterSprs = love.graphics.newImage("sprites/monster.png")
+monsterQuads = generateQuads(monsterSprs, 300, 100, 5, 5)
+monsterSprs:setFilter("nearest", "nearest")
+
 explodeSprs = love.graphics.newImage("sprites/explodeFX.png")
 explodeQuads = generateQuads(explodeSprs,128,128,5,4)
 explodeSprs:setFilter("nearest", "nearest")
