@@ -62,6 +62,10 @@ logoShineSprites = love.graphics.newImage("sprites/LogoShine.png")
 logoShineQuads = generateQuads(logoShineSprites, 300, 62, 1, 6)
 logoShineSprites:setFilter("nearest", "nearest")
 
+rocketBgSprites = love.graphics.newImage("sprites/background.png")
+rocketBgQuads = generateQuads(rocketBgSprites, 150, 200, 5, 6)
+rocketBgSprites:setFilter("nearest", "nearest")
+
 flameWidth = 16
 flameHeight = 18
 flameSprites = love.graphics.newImage("sprites/Flames.png")
