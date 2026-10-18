@@ -12,31 +12,66 @@ local menuX = 0
 local menuY = 0
 local menuFoci = {}
 
-local function menuText(index, text)
-    if index == menuFocus[menu] then
-        ink(pal[8])
-    else
-        ink(pal[5])
+local function drawStrokedText(text, color, outline, ocolor, x, y, r, sx, sy)
+    ink(ocolor)
+    for i=-outline,outline do
+        for j=-outline,outline do
+            if i == 0 and j == 0 then goto continue end
+            love.graphics.print(text, i + x, j + y, r, sx, sy)
+            ::continue::
+        end
     end
+    ink(color)
+    love.graphics.print(text, x, y, r, sx, sy)
+end
+
+local function menuText(index, text)
     table.insert(menuFoci, { x = menuX, y = menuY })
-    love.graphics.print(text, menuX, menuY + sp / 2 + 4)
+    local color = pal[6]
+    local ocolor = pal[3]
+    if index == menuFocus[menu] then
+        color = pal[8]
+        ocolor = pal[5]
+    end
+    drawStrokedText(text, color, 3, ocolor, menuX, menuY + sp / 2 + 4)
     menuY = menuY + sp + mainFontSize
 end
 
+local function drawBordered(border, bcolor, color, x, y, w, h)
+    ink(bcolor)
+    love.graphics.rectangle(
+        "fill",
+        x - border,
+        y - border,
+        w + 2 * border,
+        h + 2 * border
+    )
+
+    ink(color)
+    love.graphics.rectangle("fill", x, y, w, h)
+end
+
 function drawMenus()
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(
+        rocketBgSprites,
+        rocketBgQuads[1 + tick.frame % #rocketBgQuads],
+        0, 0, 0, 2, 2
+    )
+
     menuFoci = {}
     if menu == "main" then
-        menuX = 70
-        menuY = 125
+        menuX = 100
+        menuY = 175
 
         menuText(0, "Play")
         menuText(1, "Options")
         menuText(2, "Quit")
 
-        ink(pal[6])
-        love.graphics.print(
+        drawStrokedText(
             "A game by:\n - epujellysilly\n - moonberry\n - prescientmoon",
-            45, 275, 0, 0.5, 0.5
+            pal[7], 2, pal[4],
+            55, 320, 0, 0.5, 0.5
         )
     elseif menu == "pause" then
         menuX = 60
@@ -58,12 +93,18 @@ function drawMenus()
         local barHeight = mainFontSize - 10
 
         for i=0,9 do
-            if i >= volume then
-                ink(pal[5])
-            elseif menuFocus[menu] == 1 then
-                ink(pal[8])
+            if menuFocus[menu] == 1 then
+                if i >= volume then
+                    ink(pal[5])
+                else
+                    ink(pal[8])
+                end
             else
-                ink(pal[6])
+                if i >= volume then
+                    ink(pal[3])
+                else
+                    ink(pal[6])
+                end
             end
 
             love.graphics.rectangle(
@@ -82,8 +123,11 @@ function drawMenus()
 
     -- The keyboard-controllable focus cursor
     local focus = menuFoci[1 + menuFocus[menu]]
-    ink(pal[8])
-    love.graphics.print(">", focus.x - mainFontSize - sp, focus.y + sp / 2 + 4)
+    drawStrokedText(
+        ">",
+        pal[8], 3, pal[5],
+        focus.x - mainFontSize - sp, focus.y + sp / 2 + 4
+    )
 end
 
 function gotoMenu(kind, focus, callback)
