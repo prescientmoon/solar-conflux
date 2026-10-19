@@ -375,6 +375,7 @@ local function changeFocus(delta)
     menuFocus.main = menuFocus.main % 3
     menuFocus.options = menuFocus.options % 3
     menuFocus.pause = menuFocus.pause % 3
+    menuFocus.gameover = menuFocus.gameover % 2
 end
 
 function updateMenus()
