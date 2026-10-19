@@ -9,3 +9,11 @@ zip -9 dist/rocketrush.love \
 	sprites/*.png \
 	palettes/*.hex \
 	libs/*.lua 
+
+love-web-builder dist/rocketrush.love dist/rocketrush-web --name "RockeTrush"
+
+chmod -R +w dist
+
+cd dist/rocketrush-web
+zip -9 ../rocketrush-web.zip *
+cd ../..

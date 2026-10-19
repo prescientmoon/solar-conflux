@@ -1,16 +1,13 @@
 --main script
+tick = require "libs.tick" --framerate lock library
+local baton = require 'libs.baton' --input manager library
+json = require "libs.dkjson"
 
-tick = require "libs/tick" --framerate lock library
-local baton = require 'libs/baton' --input manager library
-json = require "libs/dkjson"
-
---helper scripts
-require "scripts/helpers"
-require "scripts/palette"
-
---scenes
-require "scripts/menus"
-require "scripts/game"
+require "scripts.compat"
+require "scripts.helpers"
+require "scripts.palette"
+require "scripts.menus"
+require "scripts.game"
 
 --states and screen stuff
 screenWidth = 300

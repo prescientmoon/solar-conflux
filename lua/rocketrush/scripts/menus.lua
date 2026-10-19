@@ -27,9 +27,9 @@ local function drawStrokedText(text, color, outline, ocolor, x, y, r, sx, sy)
     ink(ocolor)
     for i=-outline,outline do
         for j=-outline,outline do
-            if i == 0 and j == 0 then goto continue end
-            love.graphics.print(text, i + x, j + y, r, sx, sy)
-            ::continue::
+            if i ~= 0 or j ~= 0 then
+                love.graphics.print(text, i + x, j + y, r, sx, sy)
+            end
         end
     end
     ink(color)

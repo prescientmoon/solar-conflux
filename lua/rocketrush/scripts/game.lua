@@ -323,46 +323,52 @@ local function updateTrash()
     end
 
     for index, value in ipairs(trashObjs) do
+        local skip = false
+
         value.dy = lerp(value.dy,value.spd,value.accel)
         if value.y < 500 then
             value.y = value.y + value.dy
         else
             table.remove(trashObjs, index)
             trashDodged = trashDodged + 1
-            goto continue
+            skip = true
         end
-        value.r = value.r + 5
 
-        if trashCollidesWith(value, playerData.x-playerConfig.scaleX/2,playerData.y-playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY) then
-            shakeCam(2)
-            table.remove(trashObjs, index)
-            addExplode(value.x,value.y)
-            if canTakeDamage and iframes <= 0 then
-                charge = math.floor(charge / 2)
-                hitsTaken = hitsTaken + 1
-                if debug == false then
-                    addOrRemoveHealth(-1)
+        if not skip then
+            value.r = value.r + 5
+
+            if trashCollidesWith(value, playerData.x-playerConfig.scaleX/2,playerData.y-playerConfig.scaleY/2,playerConfig.scaleX,playerConfig.scaleY) then
+                shakeCam(2)
+                table.remove(trashObjs, index)
+                addExplode(value.x,value.y)
+                if canTakeDamage and iframes <= 0 then
+                    charge = math.floor(charge / 2)
+                    hitsTaken = hitsTaken + 1
+                    if debug == false then
+                        addOrRemoveHealth(-1)
+                    end
+                else
+                    trashPierced = trashPierced + 1
                 end
-            else
-                trashPierced = trashPierced + 1
-            end
-            goto continue
-        end
-        if trashCollidesWith(value, playerData.x-(playerConfig.scaleX*4)/2,playerData.y-(playerConfig.scaleY*3)/2,playerConfig.scaleX*4,playerConfig.scaleY*3) then
-            isInAura = true
-            hasAdddedCharge = false
-            if tempCharge < 10 and charge ~= 50 then
-                outlineVisible = true
-                if auraTimer >= 5 then
-                    auraSfx:setPitch(remap(tempCharge,1,10,0.8,1.2))
-                    love.audio.play(auraSfx)
-                    tempCharge = tempCharge + 1
-                    auraTimer = 1
-                end
+                skip = true
             end
         end
 
-        ::continue::
+        if not skip then
+            if trashCollidesWith(value, playerData.x-(playerConfig.scaleX*4)/2,playerData.y-(playerConfig.scaleY*3)/2,playerConfig.scaleX*4,playerConfig.scaleY*3) then
+                isInAura = true
+                hasAdddedCharge = false
+                if tempCharge < 10 and charge ~= 50 then
+                    outlineVisible = true
+                    if auraTimer >= 5 then
+                        auraSfx:setPitch(remap(tempCharge,1,10,0.8,1.2))
+                        love.audio.play(auraSfx)
+                        tempCharge = tempCharge + 1
+                        auraTimer = 1
+                    end
+                end
+            end
+        end
     end
 
     if trashTimer < dynamicTrashInterval() then
