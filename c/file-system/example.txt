@@ -1,0 +1,11 @@
+mkdir -p a/a/b/a/b/bc
+cd a/a/b/a/b/c
+echo "echo. echo. echo. echo." > /a/a/b/a/b/c/TEXT-FILE
+echo "echo." >> TEXT-FILE
+cd ../../../../../../../../../../../../../../../../../..
+echo "echo." >> TEXT-FILE
+ls
+cat TEXT-FILE
+cat /TEXT-FILE
+cat a/a/b/a/b/c/TEXT-FILE
+exit
