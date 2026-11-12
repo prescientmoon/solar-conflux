@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -std=c99 -pedantic -Wall -o -lm -g
+CFLAGS = -g -O2 -Wall -pedantic -Wno-unused-result -lm
 
 main: main.c
 	$(CC) $(CFLAGS) $^ -o $@

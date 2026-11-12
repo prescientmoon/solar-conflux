@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#define  MAX_PATH_LENGTH 60
+#define  MAX_PATH_LENGTH 128
 #define  MAX_COMMAND_LENGTH 256
 
 typedef struct {
@@ -16,6 +16,7 @@ typedef enum CommandType {
   CAT,
   TOUCH,
   ECHO_INTO,
+  MKDIR,
   // Not required, but useful for debugging. Prints the current working directory.
   PWD
 } CommandType;
@@ -30,6 +31,7 @@ struct Command {
     struct { Path path; } cat;
     struct { Path path; char contents[MAX_COMMAND_LENGTH]; bool overwrite; } echo;
     struct { char filenames[MAX_COMMAND_LENGTH]; } touch;
+    struct { char dirnames[MAX_COMMAND_LENGTH]; } mkdir;
   } data;
 };
 
@@ -80,7 +82,7 @@ Path str_path(char *str) {
 Path parse_path(char args[MAX_COMMAND_LENGTH], Path default_path) {
   Path out;
 
-  if (sscanf(args, "%s", out.path)) {
+  if (sscanf(args, "%s", out.path) == 1) {
     return out;
   } else {
     return default_path;
@@ -114,6 +116,12 @@ Command parse_command(State *state) {
     } else if (strcmp(command, "touch") == 0) {
       out.type = TOUCH;
       strcpy(out.data.touch.filenames, args);
+    } else if (strcmp(command, "mkdir") == 0) {
+      out.type = MKDIR;
+
+      if (sscanf(args, "-p %[^\n]", args) == 1) {
+        strcpy(out.data.mkdir.dirnames, args);
+      }
     } else if (strcmp(command, "cd") == 0) {
       out.type = CD;
       out.data.cd.path = parse_path(args, str_path("/"));
@@ -145,36 +153,129 @@ Command parse_command(State *state) {
   return out;
 }
 
-Path make_absolute(State *state, Path path) {
-  if (path.path[0] == '/') { return path; }
-
-  Path out = state->cwd;
-  strcat(out.path, path.path);
-  return out;
-}
-
-Node* get_node_by_path(Node* root, Path path) {
-  if (strcmp(path.path, "") == 0) {
-    return root;
-  } else if (strcmp(path.path, ".") == 0) {
-    return root;
-  } else if (strcmp(path.path, "..") == 0) {
-    return root->parent;
-  }
-
+// Splits the path into the characters before and after the first slash.
+// Returns a boolean representing whether such a slash was found.
+// In the case where no slash exists in the string, the path is fully
+// copied into the "pre-slash" argument.
+//
+// This procedure will also change the given node pointer when following
+// `.` and `..` path segments.
+bool uncons_path(Node** node, Path path, Path *pre, Path *post) {
   // Before and after the slash
-  Path pre, post = {0};
-
   char *first_slash = strchr(path.path, '/');
   bool found_slash = first_slash != NULL;
 
   if (found_slash) {
     int slash_index = (int)(first_slash - &path.path[0]);
-    strncpy(pre.path, path.path, slash_index);
-    pre.path[slash_index] = '\0';
-    strcpy(post.path, &path.path[slash_index + 1]);
+    strncpy(pre->path, path.path, slash_index);
+    pre->path[slash_index] = '\0';
+    strcpy(post->path, &path.path[slash_index + 1]);
+
+    if (strcmp(pre->path, "") == 0) {
+      if (node != NULL && *node != NULL && (**node).data.directory.children != NULL) {
+        *node = (**node).data.directory.children;
+      }
+
+      return uncons_path(node, *post, pre, post);
+    }
   } else {
-    pre = path;
+    strcpy(pre->path, path.path);
+  }
+
+  return found_slash;
+}
+
+Path normalize_relative_path(Path path) {
+  Path pre, post, out;
+  strcpy(out.path, "");
+
+  while (true) {
+    bool found_slash = uncons_path(NULL, path, &pre, &post);
+
+    if (found_slash) {
+      post = normalize_relative_path(post);
+      char *remaining = &post.path;
+
+      while (true) {
+        if (remaining[0] == '.' && remaining[1] == '.') {
+          remaining = &remaining[2];
+          strcpy(post.path, remaining);
+          return normalize_relative_path(post.path)
+        } else if (remaining[0] == "/" || remaining[1] == '.') {
+          remaining = &remaining[1];
+        } else {
+          strcpy(post.path, remaining);
+          break;
+        }
+      }
+
+      if (post.path[0] == '.' && post.path[1] == '.') {
+        path = post;
+        continue;
+      }
+    }
+
+    // Uhhh, this iterates over the existing path twice, I hate null-terminated
+    // strings aaaaaaaa...
+    strcat(out.path, "/");
+    strcat(out.path, pre.path);
+
+    if (!found_slash) {
+      return out;
+    } else {
+      path = post;
+    }
+  }
+}
+
+Path normalize_path(State *state, Path path) {
+  if (path.path[0] != '/') {
+    Path out = state->cwd;
+    printf("Appending '%s' to '%s'\n", out.path, path.path);
+    strcat(out.path, path.path);
+    return normalize_path(state, out);
+  }
+
+  Path pre, post, out;
+  strcpy(out.path, "");
+
+  while (true) {
+    bool found_slash = uncons_path(NULL, path, &pre, &post);
+    post = normalize_path
+
+    printf("Current: '%s'\n", out.path);
+    printf("Splitting '%s' into '%s' and '%s'\n", path.path, pre.path, post.path);
+    if (found_slash && post.path[0] == '.' && post.path[1] == '.') {
+      path = post;
+      continue;
+    }
+
+    // Uhhh, this iterates over the existing path twice, I hate null-terminated
+    // strings aaaaaaaa...
+    strcat(out.path, "/");
+    strcat(out.path, pre.path);
+
+    if (!found_slash) {
+      return out;
+    } else {
+      path = post;
+    }
+  }
+}
+
+
+Node* insert_child_in(Node* parent, char* filename);
+Node* mkdir(Node* parent, char* filename);
+Node* mkfile(Node* parent, char* filename);
+
+// Gets the node at a given path. Creates said node if it doesn't exist.
+Node* get_node_by_path(Node* root, Path path) {
+  // Before and after the slash
+  Path pre, post;
+  bool found_slash = uncons_path(&root, path, &pre, &post);
+
+  if (!found_slash && strcmp(pre.path, "") == 0) {
+    return root;
   }
 
   // TODO: we could use binary search here 🤔
@@ -190,8 +291,83 @@ Node* get_node_by_path(Node* root, Path path) {
     }
   }
 
-  printf("ERROR: could not find file '%s', split into '%s' and '%s'\n", path.path, pre.path, post.path);
-  return root;
+
+  if (found_slash) {
+    Node *child = mkdir(root, pre.path);
+    return get_node_by_path(child, post);
+  } else {
+    return mkfile(root, pre.path);
+  }
+}
+
+Node* insert_child_in(Node* parent, char* filename) {
+  Directory *directory = &parent->data.directory;
+  int target_index = directory->children_count;
+
+  // TODO: use binary search, this is inefficient af
+  for (int i = 0; i < directory->children_count; i++) {
+    Node *child = &directory->children[i];
+    if (strcmp(filename, child->name) < 0) {
+      target_index = i;
+    }
+  }
+
+  directory->children_count += 1;
+  while (directory->children_count >= directory->children_cap) {
+    directory->children_cap = 2 * directory->children_cap + 1;
+    directory->children = realloc(
+      directory->children,
+      directory->children_cap * sizeof(Node)
+    );
+  }
+
+  for (int j = directory->children_count; j > target_index; j--) {
+    directory->children[j] = directory->children[j - 1];
+  }
+
+  Node new_node;
+  new_node.parent = parent;
+  strcpy(new_node.name, filename);
+  directory->children[target_index] = new_node;
+  return &directory->children[target_index];
+}
+
+Node* mkfile(Node* parent, char* filename) {
+  Node *new_node = insert_child_in(parent, filename);
+  new_node->type = T_File;
+  new_node->data.file = malloc(sizeof(FileData));
+
+  new_node->data.file->contents = malloc(sizeof(char));
+  new_node->data.file->contents[0] = '\0';
+  new_node->data.file->contents_cap = 0;
+  new_node->data.file->contents_len = 0;
+
+  new_node->data.file->ref_count = 1;
+
+  return new_node;
+}
+
+// Pretty much `mkdir` (without the `-p`)
+Node* mkdir(Node* parent, char* filename) {
+  Node *node = insert_child_in(parent, filename);
+  node->type = T_Directory;
+  node->data.directory.children = NULL;
+  node->data.directory.children_count = 0;
+  node->data.directory.children_cap = 0;
+  return node;
+}
+
+Node* make_nested_dir(Node* parent, Path path) {
+  Path pre, post;
+  bool found_slash = uncons_path(&parent, path, &pre, &post);
+
+  Node *child = mkdir(parent, pre.path);
+
+  if (found_slash) {
+    return make_nested_dir(child, post);
+  } else {
+    return child;
+  }
 }
 
 // Returns `true` when the program should quit.
@@ -203,7 +379,7 @@ bool exec_command(State *state, Command command) {
   } else if (command.type == LS) {
     Node *node = get_node_by_path(
       &state->root,
-      make_absolute(state, command.data.ls.path)
+      normalize_path(state, command.data.ls.path)
     );
 
     for (int i = 0; i < node->data.directory.children_count; i++) {
@@ -216,11 +392,21 @@ bool exec_command(State *state, Command command) {
 
     Node *node = get_node_by_path(
       &state->root,
-      make_absolute(state, command.data.cat.path)
+      normalize_path(state, command.data.cat.path)
     );
     printf("%s\n", node->data.file->contents);
   } else if (command.type == CD) {
-    strcpy(state->cwd.path, command.data.cd.path.path);
+    Path absolute = normalize_path(state, command.data.cd.path);
+    size_t l = strlen(absolute.path);
+
+    if (absolute.path[l - 1] != '/') {
+      absolute.path[l] = '/';
+      absolute.path[l + 1] = '\0';
+    }
+
+    printf("Changing directory to '%s'\n", absolute.path);
+
+    strcpy(state->cwd.path, absolute.path);
   } else if (command.type == TOUCH) {
     Node *node = get_node_by_path(&state->root, state->cwd);
     char args[MAX_COMMAND_LENGTH];
@@ -228,50 +414,32 @@ bool exec_command(State *state, Command command) {
     char* filename = strtok(args, " ");
 
     while (filename != NULL) {
-      Directory *directory = &node->data.directory;
-      int target_index = directory->children_count;
-
-      // TODO: use binary search, this is inefficient af
-      for (int i = 0; i < directory->children_count; i++) {
-        Node *child = &directory->children[i];
-        if (strcmp(filename, child->name) < 0) {
-          target_index = i;
-        }
-      }
-
-      directory->children_count += 1;
-      while (directory->children_count >= directory->children_cap) {
-        directory->children_cap *= 2;
-        directory->children = realloc(
-          directory->children,
-          directory->children_cap * sizeof(Node)
-        );
-      }
-
-      for (int j = directory->children_count; j > target_index; j--) {
-        directory->children[j] = directory->children[j - 1];
-      }
-
-      Node new_node;
-      strcpy(new_node.name, filename);
-      new_node.type = T_File;
-      new_node.data.file = malloc(sizeof(FileData));
-
-      new_node.data.file->contents = malloc(sizeof(char));
-      new_node.data.file->contents[0] = '\0';
-      new_node.data.file->contents_cap = 0;
-      new_node.data.file->contents_len = 0;
-
-      new_node.data.file->ref_count = 1;
-      directory->children[target_index] = new_node;
+      Path filepath;
+      strcpy(filepath.path, filename);
+      get_node_by_path(node, filepath);
 
       filename = strtok(NULL, " ");
+    }
+  } else if (command.type == MKDIR) {
+    Node *node = get_node_by_path(&state->root, state->cwd);
+
+    char args[MAX_COMMAND_LENGTH];
+    strcpy(args, command.data.mkdir.dirnames);
+
+    char* dirname = strtok(args, " ");
+
+    while (dirname != NULL) {
+      Path dirpath;
+      strcpy(dirpath.path, dirname);
+      make_nested_dir(node, dirpath);
+      dirname = strtok(NULL, " ");
     }
   } else if (command.type == ECHO_INTO) {
     Node *node = get_node_by_path(
       &state->root,
-      make_absolute(state, command.data.echo.path)
+      normalize_path(state, command.data.echo.path)
     );
+    node->type = T_File; // In case the file was just created
 
     FileData *file = node->data.file;
 
@@ -306,16 +474,11 @@ int main(int argc, char *argv[]) {
   State state = {0};
   strcpy(state.cwd.path, "/");
   state.root.type = T_Directory;
-  state.root.data.directory.children_count = 1;
-  state.root.data.directory.children_cap = 1;
+  state.root.data.directory.children_count = 0;
+  state.root.data.directory.children_cap = 0;
+  state.root.data.directory.children = NULL;
 
-  Node *root = malloc(sizeof(Node));
-  state.root.data.directory.children = root;
-  strcpy(root->name, "");
-  root->type = T_Directory;
-  root->data.directory.children_count = 0;
-  root->data.directory.children_cap = 1;
-  root->data.directory.children = malloc(sizeof(Node));
+  mkdir(&state.root, "");
 
   while (true) {
     Command command = parse_command(&state);

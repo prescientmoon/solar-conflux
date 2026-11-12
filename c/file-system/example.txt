@@ -1,10 +1,11 @@
-touch test a b c
+mkdir -p a/a/b/a/b/bc
+cd a/a/b/a/b/c
+echo "echo. echo. echo. echo." > /a/a/b/a/b/c/TEXT-FILE
+echo "echo." >> TEXT-FILE
+cd ../../../../../../../../../../../../../../../../../..
+echo "echo." >> TEXT-FILE
 ls
-pwd
-echo "heyyy" > test
-cat test
-echo " meow" >> test
-cat test
-echo "oops" > test
-cat test
+cat TEXT-FILE
+cat /TEXT-FILE
+cat a/a/b/a/b/c/TEXT-FILE
 exit
