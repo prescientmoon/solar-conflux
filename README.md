@@ -4,27 +4,6 @@ This repository contains numerous experiments of mine which do not deserve their
 
 The repositories are properly imported using [./import.sh](./import.sh) — a dangerous script that shouldn't be run unless everything in the local repo has been backed up.
 
-## Navigation
-
-The experiments are currently organized based on the language they use:
-
-- [Bash](./bash/)
-- [Dart](./dart/)
-- [Elm](./elm/)
-- [F#](./fsharp/)
-- [Haskell](./haskell/)
-- [Idris](./idris/)
-- [Javascript](./javascript/)
-- [Lean](./lean/)
-- [Lua](./lua/)
-- [Nix](./nix/)
-- [Odin](./odin/)
-- [Purescript](./purescript/)
-- [Python](./python/)
-- [Rust](./rust/)
-- [Typescript](./typescript/)
-- [Typst](./typst/)
-
   <!---->
   <!-- ## Philosophy -->
   <!---->
