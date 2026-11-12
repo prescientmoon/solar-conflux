@@ -1,0 +1,1 @@
+- [file-system](./file-system): Very unfinished and bad attempt at basic file system commands that I had to implement for a uni course. This version is just a random one I found on an old laptop, so it's probably in a very incomplete and super broken state.
